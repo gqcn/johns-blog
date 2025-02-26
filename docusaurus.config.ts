@@ -176,14 +176,10 @@ const config: Config = {
     // },
   } satisfies Preset.ThemeConfig,
   scripts: [
-    // {
-    //   src: 'https://hm.baidu.com/hm.js?38f38a0626fd7805722db06243cd0fa7',
-    //   async: true,
-    // },
-    // {
-    //   src: '/ad.js',
-    //   async: true,
-    // },
+    {
+      src: 'https://hm.baidu.com/hm.js?6b4ae23dc83ee5efe875b7172af6c7c1',
+      async: true,
+    }
   ],
 };
 
