@@ -140,6 +140,23 @@
     no-repeat;
   }
   
+   /* GoFrame */
+   .header-goframe-link:hover {
+    opacity: 0.8;
+  }
+  
+  .header-goframe-link:before {
+    content: '';
+    width: 25px;
+    height: 25px;
+    display: flex;
+    background: url("/img/goframe.svg") no-repeat;
+  }
+  
+  html[data-theme='dark'] .header-goframe-link:before {
+    background: url("/img/goframe.svg") no-repeat;
+  }
+
   /* TODO: 加这个可以防止toml表头换行，但不知道有没有副作用，需要深入研究
    https://github.com/PrismJS/prism/issues/2443 */
   .token.table.class-name{

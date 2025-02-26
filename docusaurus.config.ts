@@ -129,6 +129,11 @@ const config: Config = {
           to: '/notes',
         },
         {
+          href: 'https://goframe.org/',
+          position: 'right',
+          className: 'header-goframe-link',
+        },
+        {
           href: 'https://github.com/gqcn',
           position: 'right',
           className: 'header-github-link',
