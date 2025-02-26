@@ -1,6 +1,3 @@
-import Link from '@docusaurus/Link';
-import useBaseUrl from '@docusaurus/useBaseUrl';
-import ContributorsSVG from '@site/static/img/contributors.svg';
 import Layout from '@theme/Layout';
 
 function HomepageHeader() {
