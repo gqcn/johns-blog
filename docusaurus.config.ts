@@ -60,11 +60,11 @@ const config: Config = {
     metadata: [
       {
         name: 'keywords',
-        content: 'john',
+        content: '技术架构,微服务,Kubernetes,容器技术,操作系统,数据库,中间件',
       },
       {
         name: 'description',
-        content: 'john',
+        content: 'John的技术博客，分享深度技术文章和实践经验。',
       },
     ],
     colorMode: {
