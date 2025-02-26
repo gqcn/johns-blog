@@ -64,7 +64,7 @@ const config: Config = {
       },
       {
         name: 'description',
-        content: 'John的技术博客，分享技术，记录生活。',
+        content: 'John的博客，分享技术，记录生活。',
       },
     ],
     colorMode: {
