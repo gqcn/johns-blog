@@ -60,11 +60,11 @@ const config: Config = {
     metadata: [
       {
         name: 'keywords',
-        content: '技术架构,微服务,Kubernetes,容器技术,操作系统,数据库,中间件',
+        content: '技术架构,Golang,微服务,Kubernetes,容器技术,可观测性,链路跟踪,Opentelemetry,数据库,中间件',
       },
       {
         name: 'description',
-        content: 'John的技术博客，分享深度技术文章和实践经验。',
+        content: 'John的技术博客，分享技术，记录生活。',
       },
     ],
     colorMode: {
