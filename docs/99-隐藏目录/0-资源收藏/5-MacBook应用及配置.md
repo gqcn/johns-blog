@@ -2,7 +2,7 @@
 slug: "/macbook-app-and-config"
 title: "MacBook应用及配置"
 hide_title: true
-unlisted: false
+unlisted: true
 ---
 
 /etc/profile
