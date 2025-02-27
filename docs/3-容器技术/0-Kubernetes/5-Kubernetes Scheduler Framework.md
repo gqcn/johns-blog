@@ -124,19 +124,19 @@ scheduling framework extensions
 ```go
 // Plugin is the parent type for all the scheduling framework plugins.
 type Plugin interface {
-	Name() string
+    Name() string
 }
 
 type QueueSortPlugin interface {
-	Plugin
-	Less(*PodInfo, *PodInfo) bool
+    Plugin
+    Less(*PodInfo, *PodInfo) bool
 }
 
 // PreFilterPlugin is an interface that must be implemented by "prefilter" plugins.
 // These plugins are called at the beginning of the scheduling cycle.
 type PreFilterPlugin interface {
-	Plugin
-	PreFilter(pc *PluginContext, p *v1.Pod) *Status
+    Plugin
+    PreFilter(pc *PluginContext, p *v1.Pod) *Status
 }
 
 // FilterPlugin is an interface for Filter plugins. These plugins are called at the
@@ -147,8 +147,8 @@ type PreFilterPlugin interface {
 // Anything other than "Success" will lead to exclusion of the given host from
 // running the pod.
 type FilterPlugin interface {
-	Plugin
-	Filter(pc *PluginContext, pod *v1.Pod, nodeName string) *Status
+    Plugin
+    Filter(pc *PluginContext, pod *v1.Pod, nodeName string) *Status
 }
 
 // PostFilterPlugin is an interface for Post-filter plugin. Post-filter is an
@@ -156,23 +156,23 @@ type FilterPlugin interface {
 // that passed the filtering phase. A plugin may use this data to update internal
 // state or to generate logs/metrics.
 type PostFilterPlugin interface {
-	Plugin
-	PostFilter(pc *PluginContext, pod *v1.Pod, nodes []*v1.Node, filteredNodesStatuses NodeToStatusMap) *Status
+    Plugin
+    PostFilter(pc *PluginContext, pod *v1.Pod, nodes []*v1.Node, filteredNodesStatuses NodeToStatusMap) *Status
 }
 
 // ScorePlugin is an interface that must be implemented by "score" plugins to rank
 // nodes that passed the filtering phase.
 type ScorePlugin interface {
-	Plugin
-	Score(pc *PluginContext, p *v1.Pod, nodeName string) (int, *Status)
+    Plugin
+    Score(pc *PluginContext, p *v1.Pod, nodeName string) (int, *Status)
 }
 
 // ScoreWithNormalizePlugin is an interface that must be implemented by "score"
 // plugins that also need to normalize the node scoring results produced by the same
 // plugin's "Score" method.
 type ScoreWithNormalizePlugin interface {
-	ScorePlugin
-	NormalizeScore(pc *PluginContext, p *v1.Pod, scores NodeScoreList) *Status
+    ScorePlugin
+    NormalizeScore(pc *PluginContext, p *v1.Pod, scores NodeScoreList) *Status
 }
 
 // ReservePlugin is an interface for Reserve plugins. These plugins are called
@@ -182,22 +182,22 @@ type ScoreWithNormalizePlugin interface {
 // the scheduler accepts other valid codes as well. Anything other than Success
 // will lead to rejection of the pod.
 type ReservePlugin interface {
-	Plugin
-	Reserve(pc *PluginContext, p *v1.Pod, nodeName string) *Status
+    Plugin
+    Reserve(pc *PluginContext, p *v1.Pod, nodeName string) *Status
 }
 
 // PreBindPlugin is an interface that must be implemented by "prebind" plugins.
 // These plugins are called before a pod being scheduled.
 type PreBindPlugin interface {
-	Plugin
-	PreBind(pc *PluginContext, p *v1.Pod, nodeName string) *Status
+    Plugin
+    PreBind(pc *PluginContext, p *v1.Pod, nodeName string) *Status
 }
 
 // PostBindPlugin is an interface that must be implemented by "postbind" plugins.
 // These plugins are called after a pod is successfully bound to a node.
 type PostBindPlugin interface {
-	Plugin
-	PostBind(pc *PluginContext, p *v1.Pod, nodeName string)
+    Plugin
+    PostBind(pc *PluginContext, p *v1.Pod, nodeName string)
 }
 
 // UnreservePlugin is an interface for Unreserve plugins. This is an informational
@@ -205,22 +205,22 @@ type PostBindPlugin interface {
 // un-reserve plugins will be notified. Un-reserve plugins should clean up state
 // associated with the reserved Pod.
 type UnreservePlugin interface {
-	Plugin
-	Unreserve(pc *PluginContext, p *v1.Pod, nodeName string)
+    Plugin
+    Unreserve(pc *PluginContext, p *v1.Pod, nodeName string)
 }
 
 // PermitPlugin is an interface that must be implemented by "permit" plugins.
 // These plugins are called before a pod is bound to a node.
 type PermitPlugin interface {
-	Plugin
-	Permit(pc *PluginContext, p *v1.Pod, nodeName string) (*Status, time.Duration)
+    Plugin
+    Permit(pc *PluginContext, p *v1.Pod, nodeName string) (*Status, time.Duration)
 }
 
 // BindPlugin is an interface that must be implemented by "bind" plugins. Bind
 // plugins are used to bind a pod to a Node.
 type BindPlugin interface {
-	Plugin
-	Bind(pc *PluginContext, p *v1.Pod, nodeName string) *Status
+    Plugin
+    Bind(pc *PluginContext, p *v1.Pod, nodeName string) *Status
 }
 ```
 
@@ -283,15 +283,15 @@ plugins:
 
 ```go
 func NewRegistry() Registry {
-	return Registry{
-		// FactoryMap:
-		// New plugins are registered here.
-		// example:
-		// {
-		//  stateful_plugin.Name: stateful.NewStatefulMultipointExample,
-		//  fooplugin.Name: fooplugin.New,
-		// }
-	}
+    return Registry{
+        // FactoryMap:
+        // New plugins are registered here.
+        // example:
+        // {
+        //  stateful_plugin.Name: stateful.NewStatefulMultipointExample,
+        //  fooplugin.Name: fooplugin.New,
+        // }
+    }
 }
 ```
 
@@ -312,9 +312,9 @@ func NewSchedulerCommand(registryOptions ...Option) *cobra.Command {
 ```go
 // WithPlugin creates an Option based on plugin name and factory.
 func WithPlugin(name string, factory framework.PluginFactory) Option {
-	return func(registry framework.Registry) error {
-		return registry.Register(name, factory)
-	}
+    return func(registry framework.Registry) error {
+        return registry.Register(name, factory)
+    }
 }
 ```
 
@@ -322,19 +322,19 @@ func WithPlugin(name string, factory framework.PluginFactory) Option {
 
 ```go
 func main() {
-	rand.Seed(time.Now().UTC().UnixNano())
+    rand.Seed(time.Now().UTC().UnixNano())
 
-	command := app.NewSchedulerCommand(
-		app.WithPlugin(sample.Name, sample.New), 
-	)
+    command := app.NewSchedulerCommand(
+        app.WithPlugin(sample.Name, sample.New), 
+    )
 
-	logs.InitLogs()
-	defer logs.FlushLogs()
+    logs.InitLogs()
+    defer logs.FlushLogs()
 
-	if err := command.Execute(); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
+    if err := command.Execute(); err != nil {
+        _, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
+        os.Exit(1)
+    }
 }
 ```
 
@@ -351,50 +351,50 @@ type PluginFactory = func(configuration *runtime.Unknown, f FrameworkHandle) (Pl
 const Name = "sample-plugin"
 
 type Args struct {
-	FavoriteColor  string `json:"favorite_color,omitempty"`
-	FavoriteNumber int    `json:"favorite_number,omitempty"`
-	ThanksTo       string `json:"thanks_to,omitempty"`
+    FavoriteColor  string `json:"favorite_color,omitempty"`
+    FavoriteNumber int    `json:"favorite_number,omitempty"`
+    ThanksTo       string `json:"thanks_to,omitempty"`
 }
 
 type Sample struct {
-	args   *Args
-	handle framework.FrameworkHandle
+    args   *Args
+    handle framework.FrameworkHandle
 }
 
 func (s *Sample) Name() string {
-	return Name
+    return Name
 }
 
 func (s *Sample) PreFilter(pc *framework.PluginContext, pod *v1.Pod) *framework.Status {
-	klog.V(3).Infof("prefilter pod: %v", pod.Name)
-	return framework.NewStatus(framework.Success, "")
+    klog.V(3).Infof("prefilter pod: %v", pod.Name)
+    return framework.NewStatus(framework.Success, "")
 }
 
 func (s *Sample) Filter(pc *framework.PluginContext, pod *v1.Pod, nodeName string) *framework.Status {
-	klog.V(3).Infof("filter pod: %v, node: %v", pod.Name, nodeName)
-	return framework.NewStatus(framework.Success, "")
+    klog.V(3).Infof("filter pod: %v, node: %v", pod.Name, nodeName)
+    return framework.NewStatus(framework.Success, "")
 }
 
 func (s *Sample) PreBind(pc *framework.PluginContext, pod *v1.Pod, nodeName string) *framework.Status {
-	if nodeInfo, ok := s.handle.NodeInfoSnapshot().NodeInfoMap[nodeName]; !ok {
-		return framework.NewStatus(framework.Error, fmt.Sprintf("prebind get node info error: %+v", nodeName))
-	} else {
-		klog.V(3).Infof("prebind node info: %+v", nodeInfo.Node())
-		return framework.NewStatus(framework.Success, "")
-	}
+    if nodeInfo, ok := s.handle.NodeInfoSnapshot().NodeInfoMap[nodeName]; !ok {
+        return framework.NewStatus(framework.Error, fmt.Sprintf("prebind get node info error: %+v", nodeName))
+    } else {
+        klog.V(3).Infof("prebind node info: %+v", nodeInfo.Node())
+        return framework.NewStatus(framework.Success, "")
+    }
 }
 
 //type PluginFactory = func(configuration *runtime.Unknown, f FrameworkHandle) (Plugin, error)
 func New(configuration *runtime.Unknown, f framework.FrameworkHandle) (framework.Plugin, error) {
-	args := &Args{}
-	if err := framework.DecodeInto(configuration, args); err != nil {
-		return nil, err
-	}
-	klog.V(3).Infof("get plugin config args: %+v", args)
-	return &Sample{
-		args: args,
-		handle: f,
-	}, nil
+    args := &Args{}
+    if err := framework.DecodeInto(configuration, args); err != nil {
+        return nil, err
+    }
+    klog.V(3).Infof("get plugin config args: %+v", args)
+    return &Sample{
+        args: args,
+        handle: f,
+    }, nil
 }
 ```
 
@@ -824,19 +824,19 @@ scheduling framework extensions
 ```go
 // Plugin is the parent type for all the scheduling framework plugins.
 type Plugin interface {
-	Name() string
+    Name() string
 }
 
 type QueueSortPlugin interface {
-	Plugin
-	Less(*PodInfo, *PodInfo) bool
+    Plugin
+    Less(*PodInfo, *PodInfo) bool
 }
 
 // PreFilterPlugin is an interface that must be implemented by "prefilter" plugins.
 // These plugins are called at the beginning of the scheduling cycle.
 type PreFilterPlugin interface {
-	Plugin
-	PreFilter(pc *PluginContext, p *v1.Pod) *Status
+    Plugin
+    PreFilter(pc *PluginContext, p *v1.Pod) *Status
 }
 
 // FilterPlugin is an interface for Filter plugins. These plugins are called at the
@@ -847,8 +847,8 @@ type PreFilterPlugin interface {
 // Anything other than "Success" will lead to exclusion of the given host from
 // running the pod.
 type FilterPlugin interface {
-	Plugin
-	Filter(pc *PluginContext, pod *v1.Pod, nodeName string) *Status
+    Plugin
+    Filter(pc *PluginContext, pod *v1.Pod, nodeName string) *Status
 }
 
 // PostFilterPlugin is an interface for Post-filter plugin. Post-filter is an
@@ -856,23 +856,23 @@ type FilterPlugin interface {
 // that passed the filtering phase. A plugin may use this data to update internal
 // state or to generate logs/metrics.
 type PostFilterPlugin interface {
-	Plugin
-	PostFilter(pc *PluginContext, pod *v1.Pod, nodes []*v1.Node, filteredNodesStatuses NodeToStatusMap) *Status
+    Plugin
+    PostFilter(pc *PluginContext, pod *v1.Pod, nodes []*v1.Node, filteredNodesStatuses NodeToStatusMap) *Status
 }
 
 // ScorePlugin is an interface that must be implemented by "score" plugins to rank
 // nodes that passed the filtering phase.
 type ScorePlugin interface {
-	Plugin
-	Score(pc *PluginContext, p *v1.Pod, nodeName string) (int, *Status)
+    Plugin
+    Score(pc *PluginContext, p *v1.Pod, nodeName string) (int, *Status)
 }
 
 // ScoreWithNormalizePlugin is an interface that must be implemented by "score"
 // plugins that also need to normalize the node scoring results produced by the same
 // plugin's "Score" method.
 type ScoreWithNormalizePlugin interface {
-	ScorePlugin
-	NormalizeScore(pc *PluginContext, p *v1.Pod, scores NodeScoreList) *Status
+    ScorePlugin
+    NormalizeScore(pc *PluginContext, p *v1.Pod, scores NodeScoreList) *Status
 }
 
 // ReservePlugin is an interface for Reserve plugins. These plugins are called
@@ -882,22 +882,22 @@ type ScoreWithNormalizePlugin interface {
 // the scheduler accepts other valid codes as well. Anything other than Success
 // will lead to rejection of the pod.
 type ReservePlugin interface {
-	Plugin
-	Reserve(pc *PluginContext, p *v1.Pod, nodeName string) *Status
+    Plugin
+    Reserve(pc *PluginContext, p *v1.Pod, nodeName string) *Status
 }
 
 // PreBindPlugin is an interface that must be implemented by "prebind" plugins.
 // These plugins are called before a pod being scheduled.
 type PreBindPlugin interface {
-	Plugin
-	PreBind(pc *PluginContext, p *v1.Pod, nodeName string) *Status
+    Plugin
+    PreBind(pc *PluginContext, p *v1.Pod, nodeName string) *Status
 }
 
 // PostBindPlugin is an interface that must be implemented by "postbind" plugins.
 // These plugins are called after a pod is successfully bound to a node.
 type PostBindPlugin interface {
-	Plugin
-	PostBind(pc *PluginContext, p *v1.Pod, nodeName string)
+    Plugin
+    PostBind(pc *PluginContext, p *v1.Pod, nodeName string)
 }
 
 // UnreservePlugin is an interface for Unreserve plugins. This is an informational
@@ -905,22 +905,22 @@ type PostBindPlugin interface {
 // un-reserve plugins will be notified. Un-reserve plugins should clean up state
 // associated with the reserved Pod.
 type UnreservePlugin interface {
-	Plugin
-	Unreserve(pc *PluginContext, p *v1.Pod, nodeName string)
+    Plugin
+    Unreserve(pc *PluginContext, p *v1.Pod, nodeName string)
 }
 
 // PermitPlugin is an interface that must be implemented by "permit" plugins.
 // These plugins are called before a pod is bound to a node.
 type PermitPlugin interface {
-	Plugin
-	Permit(pc *PluginContext, p *v1.Pod, nodeName string) (*Status, time.Duration)
+    Plugin
+    Permit(pc *PluginContext, p *v1.Pod, nodeName string) (*Status, time.Duration)
 }
 
 // BindPlugin is an interface that must be implemented by "bind" plugins. Bind
 // plugins are used to bind a pod to a Node.
 type BindPlugin interface {
-	Plugin
-	Bind(pc *PluginContext, p *v1.Pod, nodeName string) *Status
+    Plugin
+    Bind(pc *PluginContext, p *v1.Pod, nodeName string) *Status
 }
 ```
 
@@ -983,15 +983,15 @@ plugins:
 
 ```go
 func NewRegistry() Registry {
-	return Registry{
-		// FactoryMap:
-		// New plugins are registered here.
-		// example:
-		// {
-		//  stateful_plugin.Name: stateful.NewStatefulMultipointExample,
-		//  fooplugin.Name: fooplugin.New,
-		// }
-	}
+    return Registry{
+        // FactoryMap:
+        // New plugins are registered here.
+        // example:
+        // {
+        //  stateful_plugin.Name: stateful.NewStatefulMultipointExample,
+        //  fooplugin.Name: fooplugin.New,
+        // }
+    }
 }
 ```
 
@@ -1012,9 +1012,9 @@ func NewSchedulerCommand(registryOptions ...Option) *cobra.Command {
 ```go
 // WithPlugin creates an Option based on plugin name and factory.
 func WithPlugin(name string, factory framework.PluginFactory) Option {
-	return func(registry framework.Registry) error {
-		return registry.Register(name, factory)
-	}
+    return func(registry framework.Registry) error {
+        return registry.Register(name, factory)
+    }
 }
 ```
 
@@ -1022,19 +1022,19 @@ func WithPlugin(name string, factory framework.PluginFactory) Option {
 
 ```go
 func main() {
-	rand.Seed(time.Now().UTC().UnixNano())
+    rand.Seed(time.Now().UTC().UnixNano())
 
-	command := app.NewSchedulerCommand(
-		app.WithPlugin(sample.Name, sample.New), 
-	)
+    command := app.NewSchedulerCommand(
+        app.WithPlugin(sample.Name, sample.New), 
+    )
 
-	logs.InitLogs()
-	defer logs.FlushLogs()
+    logs.InitLogs()
+    defer logs.FlushLogs()
 
-	if err := command.Execute(); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
+    if err := command.Execute(); err != nil {
+        _, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
+        os.Exit(1)
+    }
 }
 ```
 
@@ -1051,50 +1051,50 @@ type PluginFactory = func(configuration *runtime.Unknown, f FrameworkHandle) (Pl
 const Name = "sample-plugin"
 
 type Args struct {
-	FavoriteColor  string `json:"favorite_color,omitempty"`
-	FavoriteNumber int    `json:"favorite_number,omitempty"`
-	ThanksTo       string `json:"thanks_to,omitempty"`
+    FavoriteColor  string `json:"favorite_color,omitempty"`
+    FavoriteNumber int    `json:"favorite_number,omitempty"`
+    ThanksTo       string `json:"thanks_to,omitempty"`
 }
 
 type Sample struct {
-	args   *Args
-	handle framework.FrameworkHandle
+    args   *Args
+    handle framework.FrameworkHandle
 }
 
 func (s *Sample) Name() string {
-	return Name
+    return Name
 }
 
 func (s *Sample) PreFilter(pc *framework.PluginContext, pod *v1.Pod) *framework.Status {
-	klog.V(3).Infof("prefilter pod: %v", pod.Name)
-	return framework.NewStatus(framework.Success, "")
+    klog.V(3).Infof("prefilter pod: %v", pod.Name)
+    return framework.NewStatus(framework.Success, "")
 }
 
 func (s *Sample) Filter(pc *framework.PluginContext, pod *v1.Pod, nodeName string) *framework.Status {
-	klog.V(3).Infof("filter pod: %v, node: %v", pod.Name, nodeName)
-	return framework.NewStatus(framework.Success, "")
+    klog.V(3).Infof("filter pod: %v, node: %v", pod.Name, nodeName)
+    return framework.NewStatus(framework.Success, "")
 }
 
 func (s *Sample) PreBind(pc *framework.PluginContext, pod *v1.Pod, nodeName string) *framework.Status {
-	if nodeInfo, ok := s.handle.NodeInfoSnapshot().NodeInfoMap[nodeName]; !ok {
-		return framework.NewStatus(framework.Error, fmt.Sprintf("prebind get node info error: %+v", nodeName))
-	} else {
-		klog.V(3).Infof("prebind node info: %+v", nodeInfo.Node())
-		return framework.NewStatus(framework.Success, "")
-	}
+    if nodeInfo, ok := s.handle.NodeInfoSnapshot().NodeInfoMap[nodeName]; !ok {
+        return framework.NewStatus(framework.Error, fmt.Sprintf("prebind get node info error: %+v", nodeName))
+    } else {
+        klog.V(3).Infof("prebind node info: %+v", nodeInfo.Node())
+        return framework.NewStatus(framework.Success, "")
+    }
 }
 
 //type PluginFactory = func(configuration *runtime.Unknown, f FrameworkHandle) (Plugin, error)
 func New(configuration *runtime.Unknown, f framework.FrameworkHandle) (framework.Plugin, error) {
-	args := &Args{}
-	if err := framework.DecodeInto(configuration, args); err != nil {
-		return nil, err
-	}
-	klog.V(3).Infof("get plugin config args: %+v", args)
-	return &Sample{
-		args: args,
-		handle: f,
-	}, nil
+    args := &Args{}
+    if err := framework.DecodeInto(configuration, args); err != nil {
+        return nil, err
+    }
+    klog.V(3).Infof("get plugin config args: %+v", args)
+    return &Sample{
+        args: args,
+        handle: f,
+    }, nil
 }
 ```
 

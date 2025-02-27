@@ -26,10 +26,10 @@ type Mutex struct {
 }
 
 const (
-	mutexLocked = 1 << iota // mutex is locked
-	mutexWoken
-	mutexStarving
-	mutexWaiterShift = iota
+    mutexLocked = 1 << iota // mutex is locked
+    mutexWoken
+    mutexStarving
+    mutexWaiterShift = iota
 )
 ```
 
@@ -57,15 +57,15 @@ Waiter 信息虽然也存在 state 中，其实并不代表状态。它表示阻
 
 ```go
 func (m *Mutex) Lock() {
-	// Fast path: grab unlocked mutex.
-	if atomic.CompareAndSwapInt32(&m.state, 0, mutexLocked) {
-		if race.Enabled {
-			race.Acquire(unsafe.Pointer(m))
-		}
-		return
-	}
-	// Slow path (outlined so that the fast path can be inlined)
-	m.lockSlow()
+    // Fast path: grab unlocked mutex.
+    if atomic.CompareAndSwapInt32(&m.state, 0, mutexLocked) {
+        if race.Enabled {
+            race.Acquire(unsafe.Pointer(m))
+        }
+        return
+    }
+    // Slow path (outlined so that the fast path can be inlined)
+    m.lockSlow()
 }
 ```
 
@@ -91,18 +91,18 @@ Waiter 计数器增加了1，协程B将会持续阻塞，直到 `Locked` 值变�
 
 ```go
 func (m *Mutex) Unlock() {
-	if race.Enabled {
-		_ = m.state
-		race.Release(unsafe.Pointer(m))
-	}
+    if race.Enabled {
+        _ = m.state
+        race.Release(unsafe.Pointer(m))
+    }
 
-	// Fast path: drop lock bit.
-	new := atomic.AddInt32(&m.state, -mutexLocked)
-	if new != 0 {
-		// Outlined slow path to allow inlining the fast path.
-		// To hide unlockSlow during tracing we skip one extra frame when tracing GoUnblock.
-		m.unlockSlow(new)
-	}
+    // Fast path: drop lock bit.
+    new := atomic.AddInt32(&m.state, -mutexLocked)
+    if new != 0 {
+        // Outlined slow path to allow inlining the fast path.
+        // To hide unlockSlow during tracing we skip one extra frame when tracing GoUnblock.
+        m.unlockSlow(new)
+    }
 }
 ```
 

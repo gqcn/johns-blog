@@ -31,50 +31,50 @@ description: "探讨 Cadvisor 中 working set bytes 的概念以及其与 Linux 
 
 ```go
 func setMemoryStats(s *cgroups.Stats, ret *info.ContainerStats) {
-	ret.Memory.Usage = s.MemoryStats.Usage.Usage
-	ret.Memory.MaxUsage = s.MemoryStats.Usage.MaxUsage
-	ret.Memory.Failcnt = s.MemoryStats.Usage.Failcnt
-	ret.Memory.KernelUsage = s.MemoryStats.KernelUsage.Usage
+    ret.Memory.Usage = s.MemoryStats.Usage.Usage
+    ret.Memory.MaxUsage = s.MemoryStats.Usage.MaxUsage
+    ret.Memory.Failcnt = s.MemoryStats.Usage.Failcnt
+    ret.Memory.KernelUsage = s.MemoryStats.KernelUsage.Usage
 
-	if cgroups.IsCgroup2UnifiedMode() {
-		ret.Memory.Cache = s.MemoryStats.Stats["file"]
-		ret.Memory.RSS = s.MemoryStats.Stats["anon"]
-		ret.Memory.Swap = s.MemoryStats.SwapUsage.Usage - s.MemoryStats.Usage.Usage
-		ret.Memory.MappedFile = s.MemoryStats.Stats["file_mapped"]
-	} else if s.MemoryStats.UseHierarchy {
-		ret.Memory.Cache = s.MemoryStats.Stats["total_cache"]
-		ret.Memory.RSS = s.MemoryStats.Stats["total_rss"]
-		ret.Memory.Swap = s.MemoryStats.Stats["total_swap"]
-		ret.Memory.MappedFile = s.MemoryStats.Stats["total_mapped_file"]
-	} else {
-		ret.Memory.Cache = s.MemoryStats.Stats["cache"]
-		ret.Memory.RSS = s.MemoryStats.Stats["rss"]
-		ret.Memory.Swap = s.MemoryStats.Stats["swap"]
-		ret.Memory.MappedFile = s.MemoryStats.Stats["mapped_file"]
-	}
-	if v, ok := s.MemoryStats.Stats["pgfault"]; ok {
-		ret.Memory.ContainerData.Pgfault = v
-		ret.Memory.HierarchicalData.Pgfault = v
-	}
-	if v, ok := s.MemoryStats.Stats["pgmajfault"]; ok {
-		ret.Memory.ContainerData.Pgmajfault = v
-		ret.Memory.HierarchicalData.Pgmajfault = v
-	}
+    if cgroups.IsCgroup2UnifiedMode() {
+        ret.Memory.Cache = s.MemoryStats.Stats["file"]
+        ret.Memory.RSS = s.MemoryStats.Stats["anon"]
+        ret.Memory.Swap = s.MemoryStats.SwapUsage.Usage - s.MemoryStats.Usage.Usage
+        ret.Memory.MappedFile = s.MemoryStats.Stats["file_mapped"]
+    } else if s.MemoryStats.UseHierarchy {
+        ret.Memory.Cache = s.MemoryStats.Stats["total_cache"]
+        ret.Memory.RSS = s.MemoryStats.Stats["total_rss"]
+        ret.Memory.Swap = s.MemoryStats.Stats["total_swap"]
+        ret.Memory.MappedFile = s.MemoryStats.Stats["total_mapped_file"]
+    } else {
+        ret.Memory.Cache = s.MemoryStats.Stats["cache"]
+        ret.Memory.RSS = s.MemoryStats.Stats["rss"]
+        ret.Memory.Swap = s.MemoryStats.Stats["swap"]
+        ret.Memory.MappedFile = s.MemoryStats.Stats["mapped_file"]
+    }
+    if v, ok := s.MemoryStats.Stats["pgfault"]; ok {
+        ret.Memory.ContainerData.Pgfault = v
+        ret.Memory.HierarchicalData.Pgfault = v
+    }
+    if v, ok := s.MemoryStats.Stats["pgmajfault"]; ok {
+        ret.Memory.ContainerData.Pgmajfault = v
+        ret.Memory.HierarchicalData.Pgmajfault = v
+    }
 
-	inactiveFileKeyName := "total_inactive_file"
-	if cgroups.IsCgroup2UnifiedMode() {
-		inactiveFileKeyName = "inactive_file"
-	}
+    inactiveFileKeyName := "total_inactive_file"
+    if cgroups.IsCgroup2UnifiedMode() {
+        inactiveFileKeyName = "inactive_file"
+    }
 
-	workingSet := ret.Memory.Usage
-	if v, ok := s.MemoryStats.Stats[inactiveFileKeyName]; ok {
-		if workingSet < v {
-			workingSet = 0
-		} else {
-			workingSet -= v
-		}
-	}
-	ret.Memory.WorkingSet = workingSet
+    workingSet := ret.Memory.Usage
+    if v, ok := s.MemoryStats.Stats[inactiveFileKeyName]; ok {
+        if workingSet < v {
+            workingSet = 0
+        } else {
+            workingSet -= v
+        }
+    }
+    ret.Memory.WorkingSet = workingSet
 }
 ```
 
@@ -82,52 +82,52 @@ func setMemoryStats(s *cgroups.Stats, ret *info.ContainerStats) {
 
 ```go
 func getMemoryData(path, name string) (cgroups.MemoryData, error) {
-	memoryData := cgroups.MemoryData{}
+    memoryData := cgroups.MemoryData{}
 
-	moduleName := "memory"
-	if name != "" {
-		moduleName = "memory." + name
-	}
-	var (
-		usage    = moduleName + ".usage_in_bytes"
-		maxUsage = moduleName + ".max_usage_in_bytes"
-		failcnt  = moduleName + ".failcnt"
-		limit    = moduleName + ".limit_in_bytes"
-	)
+    moduleName := "memory"
+    if name != "" {
+        moduleName = "memory." + name
+    }
+    var (
+        usage    = moduleName + ".usage_in_bytes"
+        maxUsage = moduleName + ".max_usage_in_bytes"
+        failcnt  = moduleName + ".failcnt"
+        limit    = moduleName + ".limit_in_bytes"
+    )
 
-	value, err := fscommon.GetCgroupParamUint(path, usage)
-	if err != nil {
-		if name != "" && os.IsNotExist(err) {
-			// Ignore ENOENT as swap and kmem controllers
-			// are optional in the kernel.
-			return cgroups.MemoryData{}, nil
-		}
-		return cgroups.MemoryData{}, err
-	}
-	memoryData.Usage = value
-	value, err = fscommon.GetCgroupParamUint(path, maxUsage)
-	if err != nil {
-		return cgroups.MemoryData{}, err
-	}
-	memoryData.MaxUsage = value
-	value, err = fscommon.GetCgroupParamUint(path, failcnt)
-	if err != nil {
-		return cgroups.MemoryData{}, err
-	}
-	memoryData.Failcnt = value
-	value, err = fscommon.GetCgroupParamUint(path, limit)
-	if err != nil {
-		if name == "kmem" && os.IsNotExist(err) {
-			// Ignore ENOENT as kmem.limit_in_bytes has
-			// been removed in newer kernels.
-			return memoryData, nil
-		}
+    value, err := fscommon.GetCgroupParamUint(path, usage)
+    if err != nil {
+        if name != "" && os.IsNotExist(err) {
+            // Ignore ENOENT as swap and kmem controllers
+            // are optional in the kernel.
+            return cgroups.MemoryData{}, nil
+        }
+        return cgroups.MemoryData{}, err
+    }
+    memoryData.Usage = value
+    value, err = fscommon.GetCgroupParamUint(path, maxUsage)
+    if err != nil {
+        return cgroups.MemoryData{}, err
+    }
+    memoryData.MaxUsage = value
+    value, err = fscommon.GetCgroupParamUint(path, failcnt)
+    if err != nil {
+        return cgroups.MemoryData{}, err
+    }
+    memoryData.Failcnt = value
+    value, err = fscommon.GetCgroupParamUint(path, limit)
+    if err != nil {
+        if name == "kmem" && os.IsNotExist(err) {
+            // Ignore ENOENT as kmem.limit_in_bytes has
+            // been removed in newer kernels.
+            return memoryData, nil
+        }
 
-		return cgroups.MemoryData{}, err
-	}
-	memoryData.Limit = value
+        return cgroups.MemoryData{}, err
+    }
+    memoryData.Limit = value
 
-	return memoryData, nil
+    return memoryData, nil
 }
 ```
 

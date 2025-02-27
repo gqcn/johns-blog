@@ -72,47 +72,47 @@ Indexer 能够基于一些索引函数以及对象的标签计算出索引存储
 package main
 
 import (
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/cache"
-	"k8s.io/client-go/tools/clientcmd"
-	"log"
+    "k8s.io/apimachinery/pkg/apis/meta/v1"
+    "k8s.io/client-go/informers"
+    "k8s.io/client-go/kubernetes"
+    "k8s.io/client-go/tools/cache"
+    "k8s.io/client-go/tools/clientcmd"
+    "log"
 )
 
 func main() {
-	config, err := clientcmd.BuildConfigFromFlags("", "/Users/john/.kube/config")
-	if err != nil {
-		panic(err)
-	}
+    config, err := clientcmd.BuildConfigFromFlags("", "/Users/john/.kube/config")
+    if err != nil {
+        panic(err)
+    }
 
-	clientSet, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err)
-	}
-	var (
-		stopCh          = make(chan struct{})
-		sharedInformers = informers.NewSharedInformerFactory(clientSet, 0)
-		podsInformer    = sharedInformers.Core().V1().Pods().Informer()
-	)
-	defer close(stopCh)
+    clientSet, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        panic(err)
+    }
+    var (
+        stopCh          = make(chan struct{})
+        sharedInformers = informers.NewSharedInformerFactory(clientSet, 0)
+        podsInformer    = sharedInformers.Core().V1().Pods().Informer()
+    )
+    defer close(stopCh)
 
-	podsInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: func(obj interface{}) {
-			mObj := obj.(v1.Object)
-			log.Printf("New Pod Added to Stroe: %s", mObj.GetName())
-		},
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			oObj := oldObj.(v1.Object)
-			nObj := newObj.(v1.Object)
-			log.Printf("%s Pod Updated to %s", oObj.GetName(), nObj.GetName())
-		},
-		DeleteFunc: func(obj interface{}) {
-			mObj := obj.(v1.Object)
-			log.Printf("Pod Deleted from Stroe : %s", mObj.GetName())
-		},
-	})
-	podsInformer.Run(stopCh)
+    podsInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+        AddFunc: func(obj interface{}) {
+            mObj := obj.(v1.Object)
+            log.Printf("New Pod Added to Stroe: %s", mObj.GetName())
+        },
+        UpdateFunc: func(oldObj, newObj interface{}) {
+            oObj := oldObj.(v1.Object)
+            nObj := newObj.(v1.Object)
+            log.Printf("%s Pod Updated to %s", oObj.GetName(), nObj.GetName())
+        },
+        DeleteFunc: func(obj interface{}) {
+            mObj := obj.(v1.Object)
+            log.Printf("Pod Deleted from Stroe : %s", mObj.GetName())
+        },
+    })
+    podsInformer.Run(stopCh)
 }
 ```
 

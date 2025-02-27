@@ -63,20 +63,20 @@ description: "深入解析 Go 语言的 Goroutine 调度器原理，包括 GMP �
 在关心绝大多数程序的内部原理的时候，我们都试图去弄明白其启动初始化过程，弄明白这个过程对后续的深入分析至关重要。在`asm_amd64.s`文件中的汇编代码`_rt0_amd64`就是整个启动过程，核心过程如下：
 
 ```text
-CALL	runtime.args(SB)
-CALL	runtime.osinit(SB)
-CALL	runtime.hashinit(SB)
-CALL	runtime.schedinit(SB)
+CALL    runtime.args(SB)
+CALL    runtime.osinit(SB)
+CALL    runtime.hashinit(SB)
+CALL    runtime.schedinit(SB)
  
 // create a new goroutine to start program
-PUSHQ	$runtime.main.f(SB)		// entry
-PUSHQ	$0			// arg size
-CALL	runtime.newproc(SB)
-POPQ	AX
-POPQ	AX
+PUSHQ    $runtime.main.f(SB)        // entry
+PUSHQ    $0            // arg size
+CALL    runtime.newproc(SB)
+POPQ    AX
+POPQ    AX
  
 // start this M
-CALL	runtime.mstart(SB)
+CALL    runtime.mstart(SB)
 ```
 
 启动过程做了调度器初始化`runtime.schedinit`后，调用`runtime.newproc`创建出第一个`goroutine`，这个`goroutine`将执行的函数是`runtime.main`，这第一个`goroutine`也就是所谓的主`goroutine`。我们写的最简单的Go程序`hello，world`就是完全跑在这个`goroutine`里，当然任何一个Go程序的入口都是从这个`goroutine`开始的。最后调用的`runtime.mstart`就是真正的执行上一步创建的主`goroutine`。
@@ -117,8 +117,8 @@ void newm(void (*fn)(void), P *p)
 
 ```c
 } else if(m != &runtime.m0) {
-	acquirep(m->nextp);
-	m->nextp = nil;
+    acquirep(m->nextp);
+    m->nextp = nil;
 }
 schedule();
 ```
@@ -129,18 +129,18 @@ schedule();
 
 ```c
 static void schedule(void) {
-	G *gp;
+    G *gp;
  
-	gp = runqget(m->p);
-	if(gp == nil)
-		gp = findrunnable();
+    gp = runqget(m->p);
+    if(gp == nil)
+        gp = findrunnable();
  
-	if (m->p->runqhead != m->p->runqtail &&
-		runtime.atomicload(&runtime.sched.nmspinning) == 0 &&
-		runtime.atomicload(&runtime.sched.npidle) > 0)  // TODO: fast atomic
-		wakep();
+    if (m->p->runqhead != m->p->runqtail &&
+        runtime.atomicload(&runtime.sched.nmspinning) == 0 &&
+        runtime.atomicload(&runtime.sched.npidle) > 0)  // TODO: fast atomic
+        wakep();
  
-	execute(gp);
+    execute(gp);
 }
 ```
 
