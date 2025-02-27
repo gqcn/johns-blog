@@ -241,7 +241,7 @@ Redis 有个叫 slave-priority 配置项，可以给从节点设置优先级。
 
 在我第一次搭建哨兵集群的时候，当时觉得很诧异。因为在配置哨兵的信息时，竟然只需要填下面这几个参数，设置主节点名字、主节点的 IP 地址和端口号以及 quorum 值。
 
-```
+```bash
 sentinel monitor <master-name> <ip> <redis-port> <quorum>
 ```
 

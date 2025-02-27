@@ -29,7 +29,7 @@ Kubernetes 里资源类型有如下所示：
 
 这是CRD定义的标准模板参考，更详细的介绍请参考官方：[https://kubernetes.io/zh/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/](https://kubernetes.io/zh/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)
 
-```
+```yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:

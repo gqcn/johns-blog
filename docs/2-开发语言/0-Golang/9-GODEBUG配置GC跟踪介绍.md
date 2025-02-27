@@ -17,7 +17,7 @@ description: "详细说明如何使用 GODEBUG 环境变量进行 Go 程序的 G
 
 ### 示例
 
-```
+```bash
 $ GODEBUG=gctrace=1 go run main.go    
 gc 1 @0.032s 0%: 0.019+0.45+0.003 ms clock, 0.076+0.22/0.40/0.80+0.012 ms cpu, 4->4->0 MB, 5 MB goal, 4 P
 gc 2 @0.046s 0%: 0.004+0.40+0.008 ms clock, 0.017+0.32/0.25/0.81+0.034 ms cpu, 4->4->0 MB, 5 MB goal, 4 P
@@ -31,7 +31,7 @@ gc 7 @0.140s 1%: 0.031+2.0+0.042 ms clock, 0.12+0.43/1.8/0.049+0.17 ms cpu, 4->4
 
 ### 格式
 
-```
+```text
 gc ## @#s #%: #+#+## ms clock, #+#/#/#+## ms cpu, #->#->## MB, ## MB goal, ## P
 ```
 
@@ -54,7 +54,7 @@ gc ## @#s #%: #+#+## ms clock, #+#/#/#+## ms cpu, #->#->## MB, ## MB goal, ## P
 
 ### 案例
 
-```
+```text
 gc 7 @0.140s 1%: 0.031+2.0+0.042 ms clock, 0.12+0.43/1.8/0.049+0.17 ms cpu, 4->4->1 MB, 5 MB goal, 4 P
 ```
 

@@ -19,7 +19,7 @@ description: "深入分析 Linux 系统中进程内存和 cgroup 内存统计的
 
 通过查询到的内存数据可以得到`Linux`内存计算公式如下：
 
-```
+```bash
 ## 总内存 = 已使用内存 + 空闲内存 + 缓存
 total = used + free + buff/cache 
 ```
@@ -76,15 +76,17 @@ total = used + free + buff/cache
 *   `file_rss`：表示映射到文件的内存量。如果一个进程打开了一个文件并将其映射到内存，那么这部分内存就会被计入`file_rss`。
 *   `shmem_rss`：表示共享内存量。如果多个进程共享一部分内存，那么这部分内存就会被计入`shmem_rss`。
 
-> [!TIP]
-> `RSS( resident set size)`：驻留集大小。表示进程已装入内存的页面的集合。
+::: tip
+`RSS( resident set size)`：驻留集大小。表示进程已装入内存的页面的集合。
+:::
 
 #### 常用内存查询命令
 
 ###### top
 
-> [!TIP]
-> 该命令展示的内存单位默认为`KB`。
+::: tip
+该命令展示的内存单位默认为`KB`。
+:::
 
 ![](/attachments/image-2024-5-6_15-47-44.png)
 
@@ -97,8 +99,9 @@ total = used + free + buff/cache
 
 ###### ps
 
-> [!TIP]
-> 该命令展示的内存单位默认为`KB`。
+::: tip
+该命令展示的内存单位默认为`KB`。
+:::
 
 ![](/attachments/image-2024-5-6_15-49-57.png)
 
@@ -110,8 +113,9 @@ total = used + free + buff/cache
 
 ###### smem
 
-> [!TIP]
-> 该命令需要单独安装。
+::: tip
+该命令需要单独安装。
+:::
 
 ![](/attachments/image-2024-5-6_15-54-38.png)
 
@@ -125,8 +129,11 @@ total = used + free + buff/cache
 
 ![](/attachments/p623795.png)
 
-> [!TIP]
-> `WSS(Memoy Working Set Size)`指标：一种更为合理评估进程内存真实使用内存的计算方式。但是受限于`Linux Page Reclaim`机制，这个概念目前还只是概念，并没有哪一个工具可以正确统计出`WSS`，只能是趋近。
+::: tip
+`WSS(Memoy Working Set Size)`指标：一种更为合理评估进程内存真实使用内存的计算方式。
+但是受限于`Linux Page Reclaim`机制，这个概念目前还只是概念，并没有哪一个工具可以正确统计出`WSS`，只能是趋近。
+:::
+
 
 #### `cgroup`内存统计指标
 
@@ -136,7 +143,7 @@ total = used + free + buff/cache
 
 `memory cgroup`文件包含以下指标：
 
-```
+```text
 cgroup.event_control       ## 用于eventfd的接口
 memory.usage_in_bytes      ## 显示当前已用的内存
 memory.limit_in_bytes      ## 设置/显示当前限制的内存额度
@@ -201,14 +208,15 @@ memory.numa_stat           ## 显示numa相关的内存
 *   `LIMIT`对应控制组的`memory.limit_in_bytes`
 *   `MEM USAGE`对应控制组的`memory.usage_in_bytes - memory.stat[total_cache]`
 
-> [!TIP]
-> `docker stat`命令查询原理，请参见[官方文档](https://github.com/docker/cli/blob/37f9a88c696ae81be14c1697bd083d6421b4933c/cli/command/container/stats_helpers.go##L233)。
+::: tip
+`docker stat`命令查询原理，请参见[官方文档](https://github.com/docker/cli/blob/37f9a88c696ae81be14c1697bd083d6421b4933c/cli/command/container/stats_helpers.go##L233)。
+:::
 
 #### kubectl top pod命令
 
 `kubectl top`命令通过`Metric-server`和`Heapster`获取`Cadvisor`中`working_set`的值，表示`Pod`实例使用的内存大小（不包括`Pause`容器）。`Metrics-server`中`Pod`内存获取原理如下，更多信息，请参见[官方文档](https://github.com/kubernetes-sigs/metrics-server/blob/d4432d67b2fc435b9c71a89c13659882008a4c54/pkg/sources/summary/summary.go##L206)。
 
-```
+```go
 func decodeMemory(target *resource.Quantity, memStats *stats.MemoryStats) error {
     if memStats == nil || memStats.WorkingSetBytes == nil {
         return fmt.Errorf("missing memory usage metric")
@@ -223,7 +231,7 @@ func decodeMemory(target *resource.Quantity, memStats *stats.MemoryStats) error 
 
 `Cadvisor`内存`workingset`算法如下，更多信息，请参见[官方文档](https://github.com/google/cadvisor/blob/0ff17b8d0df3712923c46ca484701b876d02dfee/container/libcontainer/handler.go##L706)。 
 
-```
+```go
 func setMemoryStats(s *cgroups.Stats, ret *info.ContainerStats) {
     ret.Memory.Usage = s.MemoryStats.Usage.Usage
     ret.Memory.MaxUsage = s.MemoryStats.Usage.MaxUsage

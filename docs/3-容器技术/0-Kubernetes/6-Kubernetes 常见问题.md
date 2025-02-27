@@ -15,7 +15,7 @@ description: "总结和解决 Kubernetes 中的常见问题，包括 namespace �
 
 ![](/attachments/image-2024-1-30_16-31-59.png)
 
-```
+```bash
 ## 导出ns详情
 kubectl get namespace khaos -o json > tmp.json
 ## 修改tmp.json，去掉finalizers中的关联

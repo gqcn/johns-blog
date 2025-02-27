@@ -121,7 +121,7 @@ scheduling framework extensions
 
 如果我们要实现自己的插件，必须向调度框架注册插件并完成配置，另外还必须实现扩展点接口，对应的扩展点接口我们可以在源码 `pkg/scheduler/framework/v1alpha1/interface.go`  文件中找到，如下所示：
 
-```
+```go
 // Plugin is the parent type for all the scheduling framework plugins.
 type Plugin interface {
 	Name() string
@@ -226,7 +226,7 @@ type BindPlugin interface {
 
 对于调度框架插件的启用或者禁用，我们可以使用  `KubeSchedulerConfiguration`  资源对象来进行配置。下面的例子中的配置启用了一个实现了  `reserve`  和  `preBind`  扩展点的插件，并且禁用了另外一个插件，同时为插件 foo 提供了一些配置信息：
 
-```
+```yaml
 apiVersion: kubescheduler.config.k8s.io/v1alpha1
 kind: KubeSchedulerConfiguration
 
@@ -260,7 +260,7 @@ pluginConfig:
 
 假设默认插件 foo 实现了  `reserve`  扩展点，此时我们要添加一个插件 bar，想要在 foo 之前被调用，则应该先禁用 foo 再按照 bar foo 的顺序激活。示例配置如下所示：
 
-```
+```yaml
 apiVersion: kubescheduler.config.k8s.io/v1alpha1
 kind: KubeSchedulerConfiguration
 
@@ -281,7 +281,7 @@ plugins:
 
 其实要实现一个调度框架的插件，并不难，我们只要实现对应的扩展点，然后将插件注册到调度器中即可。Kubernetes官方也提供了相关的插件开发工具和示例可以参考 [https://github.com/kubernetes-sigs/scheduler-plugins](https://github.com/kubernetes-sigs/scheduler-plugins) 。下面是默认调度器在初始化的时候注册的插件：
 
-```
+```go
 func NewRegistry() Registry {
 	return Registry{
 		// FactoryMap:
@@ -297,7 +297,7 @@ func NewRegistry() Registry {
 
 但是可以看到默认并没有注册一些插件，所以要想让调度器能够识别我们的插件代码，就需要自己来实现一个调度器了，当然这个调度器我们完全没必要完全自己实现，直接调用默认的调度器，然后在上面的  `NewRegistry()`  函数中将我们的插件注册进去即可。在  `kube-scheduler`  的源码文件  `kubernetes/cmd/kube-scheduler/app/server.go`  中有一个  `NewSchedulerCommand`  入口函数，其中的参数是一个类型为  `Option`  的列表，而这个  `Option`  恰好就是一个插件配置的定义：
 
-```
+```go
 // Option configures a framework.Registry.
 type Option func(framework.Registry) error
 
@@ -309,7 +309,7 @@ func NewSchedulerCommand(registryOptions ...Option) *cobra.Command {
 
 所以我们完全就可以直接调用这个函数来作为我们的函数入口，并且传入我们自己实现的插件作为参数即可，而且该文件下面还有一个名为  `WithPlugin`  的函数可以来创建一个  `Option`  实例：
 
-```
+```go
 // WithPlugin creates an Option based on plugin name and factory.
 func WithPlugin(name string, factory framework.PluginFactory) Option {
 	return func(registry framework.Registry) error {
@@ -320,7 +320,7 @@ func WithPlugin(name string, factory framework.PluginFactory) Option {
 
 所以最终我们的入口函数如下所示：
 
-```
+```go
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
@@ -340,13 +340,13 @@ func main() {
 
 其中  `app.WithPlugin(sample.Name, sample.New)`  就是我们接下来要实现的插件，从  `WithPlugin`  函数的参数也可以看出我们这里的  `sample.New`  必须是一个  `framework.PluginFactory`  类型的值，而  `PluginFactory`  的定义就是一个函数：
 
-```
+```go
 type PluginFactory = func(configuration *runtime.Unknown, f FrameworkHandle) (Plugin, error)
 ```
 
 所以  `sample.New`  实际上就是上面的这个函数，在这个函数中我们可以获取到插件中的一些数据然后进行逻辑处理即可，插件实现如下所示，我们这里只是简单获取下数据打印日志，如果你有实际需求的可以根据获取的数据就行处理即可，我们这里只是实现了  `PreFilter`、`Filter`、`PreBind`  三个扩展点，其他的可以用同样的方式来扩展即可：
 
-```
+```go
 // 插件名称
 const Name = "sample-plugin"
 
@@ -404,7 +404,7 @@ func New(configuration *runtime.Unknown, f framework.FrameworkHandle) (framework
 
 实现完成后，编译打包成镜像即可，然后我们就可以当成普通的应用用一个  `Deployment`  控制器来部署即可，由于我们需要去获取集群中的一些资源对象，所以当然需要申请 RBAC 权限，然后同样通过  `--config`  参数来配置我们的调度器，同样还是使用一个  `KubeSchedulerConfiguration`  资源对象配置，可以通过  `plugins`  来启用或者禁用我们实现的插件，也可以通过  `pluginConfig`  来传递一些参数值给插件：
 
-```
+```yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -621,7 +621,7 @@ spec:
 
 直接部署上面的资源对象即可，这样我们就部署了一个名为  `sample-scheduler`  的调度器了，接下来我们可以部署一个应用来使用这个调度器进行调度：
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -649,7 +649,7 @@ spec:
 
 我们直接创建这个资源对象，创建完成后查看我们自定义调度器的日志信息：
 
-```
+```bash
 $ kubectl get pods -n kube-system -l component=sample-scheduler
 NAME                               READY   STATUS    RESTARTS   AGE
 sample-scheduler-7c469787f-rwhhd   1/1     Running   0          13m
@@ -666,11 +666,11 @@ I0104 08:24:22.091761       1 factory.go:610] Attempting to bind test-scheduler-
 I0104 08:24:22.104994       1 scheduler.go:667] pod default/test-scheduler-6d779d9465-rq2bb is bound successfully on node "ydzs-node3", 5 nodes evaluated, 4 nodes were found feasible. Bound node resource: "Capacity: CPU<4>|Memory<8008820Ki>|Pods<110>|StorageEphemeral<17921Mi>; Allocatable: CPU<4>|Memory<7906420Ki>|Pods<110>|StorageEphemeral<16912377419>.".
 ```
 
-```
-可以看到当我们创建完 Pod 后，在我们自定义的调度器中就出现了对应的日志，并且在我们定义的扩展点上面都出现了对应的日志，证明我们的示例成功了，也可以通过查看 Pod 的 `schedulerName` 来验证：
-```
 
-```
+可以看到当我们创建完 Pod 后，在我们自定义的调度器中就出现了对应的日志，并且在我们定义的扩展点上面都出现了对应的日志，证明我们的示例成功了，也可以通过查看 Pod 的 `schedulerName` 来验证：
+
+
+```bash
 $ kubectl get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
 test-scheduler-6d779d9465-rq2bb           1/1     Running   0          22m
@@ -821,7 +821,7 @@ scheduling framework extensions
 
 如果我们要实现自己的插件，必须向调度框架注册插件并完成配置，另外还必须实现扩展点接口，对应的扩展点接口我们可以在源码 `pkg/scheduler/framework/v1alpha1/interface.go`  文件中找到，如下所示：
 
-```
+```go
 // Plugin is the parent type for all the scheduling framework plugins.
 type Plugin interface {
 	Name() string
@@ -926,7 +926,7 @@ type BindPlugin interface {
 
 对于调度框架插件的启用或者禁用，我们可以使用  `KubeSchedulerConfiguration`  资源对象来进行配置。下面的例子中的配置启用了一个实现了  `reserve`  和  `preBind`  扩展点的插件，并且禁用了另外一个插件，同时为插件 foo 提供了一些配置信息：
 
-```
+```yaml
 apiVersion: kubescheduler.config.k8s.io/v1alpha1
 kind: KubeSchedulerConfiguration
 
@@ -960,7 +960,7 @@ pluginConfig:
 
 假设默认插件 foo 实现了  `reserve`  扩展点，此时我们要添加一个插件 bar，想要在 foo 之前被调用，则应该先禁用 foo 再按照 bar foo 的顺序激活。示例配置如下所示：
 
-```
+```yaml
 apiVersion: kubescheduler.config.k8s.io/v1alpha1
 kind: KubeSchedulerConfiguration
 
@@ -981,7 +981,7 @@ plugins:
 
 其实要实现一个调度框架的插件，并不难，我们只要实现对应的扩展点，然后将插件注册到调度器中即可。Kubernetes官方也提供了相关的插件开发工具和示例可以参考 [https://github.com/kubernetes-sigs/scheduler-plugins](https://github.com/kubernetes-sigs/scheduler-plugins) 。下面是默认调度器在初始化的时候注册的插件：
 
-```
+```go
 func NewRegistry() Registry {
 	return Registry{
 		// FactoryMap:
@@ -997,7 +997,7 @@ func NewRegistry() Registry {
 
 但是可以看到默认并没有注册一些插件，所以要想让调度器能够识别我们的插件代码，就需要自己来实现一个调度器了，当然这个调度器我们完全没必要完全自己实现，直接调用默认的调度器，然后在上面的  `NewRegistry()`  函数中将我们的插件注册进去即可。在  `kube-scheduler`  的源码文件  `kubernetes/cmd/kube-scheduler/app/server.go`  中有一个  `NewSchedulerCommand`  入口函数，其中的参数是一个类型为  `Option`  的列表，而这个  `Option`  恰好就是一个插件配置的定义：
 
-```
+```go
 // Option configures a framework.Registry.
 type Option func(framework.Registry) error
 
@@ -1009,7 +1009,7 @@ func NewSchedulerCommand(registryOptions ...Option) *cobra.Command {
 
 所以我们完全就可以直接调用这个函数来作为我们的函数入口，并且传入我们自己实现的插件作为参数即可，而且该文件下面还有一个名为  `WithPlugin`  的函数可以来创建一个  `Option`  实例：
 
-```
+```go
 // WithPlugin creates an Option based on plugin name and factory.
 func WithPlugin(name string, factory framework.PluginFactory) Option {
 	return func(registry framework.Registry) error {
@@ -1020,7 +1020,7 @@ func WithPlugin(name string, factory framework.PluginFactory) Option {
 
 所以最终我们的入口函数如下所示：
 
-```
+```go
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
@@ -1040,13 +1040,13 @@ func main() {
 
 其中  `app.WithPlugin(sample.Name, sample.New)`  就是我们接下来要实现的插件，从  `WithPlugin`  函数的参数也可以看出我们这里的  `sample.New`  必须是一个  `framework.PluginFactory`  类型的值，而  `PluginFactory`  的定义就是一个函数：
 
-```
+```go
 type PluginFactory = func(configuration *runtime.Unknown, f FrameworkHandle) (Plugin, error)
 ```
 
 所以  `sample.New`  实际上就是上面的这个函数，在这个函数中我们可以获取到插件中的一些数据然后进行逻辑处理即可，插件实现如下所示，我们这里只是简单获取下数据打印日志，如果你有实际需求的可以根据获取的数据就行处理即可，我们这里只是实现了  `PreFilter`、`Filter`、`PreBind`  三个扩展点，其他的可以用同样的方式来扩展即可：
 
-```
+```go
 // 插件名称
 const Name = "sample-plugin"
 
@@ -1104,7 +1104,7 @@ func New(configuration *runtime.Unknown, f framework.FrameworkHandle) (framework
 
 实现完成后，编译打包成镜像即可，然后我们就可以当成普通的应用用一个  `Deployment`  控制器来部署即可，由于我们需要去获取集群中的一些资源对象，所以当然需要申请 RBAC 权限，然后同样通过  `--config`  参数来配置我们的调度器，同样还是使用一个  `KubeSchedulerConfiguration`  资源对象配置，可以通过  `plugins`  来启用或者禁用我们实现的插件，也可以通过  `pluginConfig`  来传递一些参数值给插件：
 
-```
+```yaml
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -1321,7 +1321,7 @@ spec:
 
 直接部署上面的资源对象即可，这样我们就部署了一个名为  `sample-scheduler`  的调度器了，接下来我们可以部署一个应用来使用这个调度器进行调度：
 
-```
+```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1349,7 +1349,7 @@ spec:
 
 我们直接创建这个资源对象，创建完成后查看我们自定义调度器的日志信息：
 
-```
+```bash
 $ kubectl get pods -n kube-system -l component=sample-scheduler
 NAME                               READY   STATUS    RESTARTS   AGE
 sample-scheduler-7c469787f-rwhhd   1/1     Running   0          13m
@@ -1366,11 +1366,11 @@ I0104 08:24:22.091761       1 factory.go:610] Attempting to bind test-scheduler-
 I0104 08:24:22.104994       1 scheduler.go:667] pod default/test-scheduler-6d779d9465-rq2bb is bound successfully on node "ydzs-node3", 5 nodes evaluated, 4 nodes were found feasible. Bound node resource: "Capacity: CPU<4>|Memory<8008820Ki>|Pods<110>|StorageEphemeral<17921Mi>; Allocatable: CPU<4>|Memory<7906420Ki>|Pods<110>|StorageEphemeral<16912377419>.".
 ```
 
-```
-可以看到当我们创建完 Pod 后，在我们自定义的调度器中就出现了对应的日志，并且在我们定义的扩展点上面都出现了对应的日志，证明我们的示例成功了，也可以通过查看 Pod 的 `schedulerName` 来验证：
-```
 
-```
+可以看到当我们创建完 Pod 后，在我们自定义的调度器中就出现了对应的日志，并且在我们定义的扩展点上面都出现了对应的日志，证明我们的示例成功了，也可以通过查看 Pod 的 `schedulerName` 来验证：
+
+
+```bash
 $ kubectl get pods
 NAME                                      READY   STATUS    RESTARTS   AGE
 test-scheduler-6d779d9465-rq2bb           1/1     Running   0          22m

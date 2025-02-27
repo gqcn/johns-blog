@@ -12,7 +12,7 @@ description: "分析 MySQL 5.7 中使用 insert into on duplicate 语句时可�
 
 表结构：
 
-```
+```sql
 CREATE TABLE `test` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `alias` int(11) NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE `test` (
 
 插入数据：
 
-```
+```sql
 insert into test(alias,age) values(1,1),(3,3),(5,5),(7,7);
 ```
 
@@ -48,7 +48,7 @@ insert into test(alias,age) values(1,1),(3,3),(5,5),(7,7);
 
 首先打开：
 
-```
+```bash
 set GLOBAL innodb_status_output_locks=ON;
 set GLOBAL innodb_status_output=ON;
 ```
@@ -80,7 +80,7 @@ MySQL的锁统计，这个线上不推荐打开打开的话日志会记录得比
 
 示例数据：
 
-```
+```text
 +----+------+
 | id | n    |
 +----+------+

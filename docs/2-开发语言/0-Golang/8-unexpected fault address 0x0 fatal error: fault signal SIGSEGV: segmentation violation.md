@@ -14,7 +14,7 @@ description: "分析 Go 程序中的段错误（SIGSEGV）问题，包括可能�
 
 需要进一步跟进问题。
 
-```
+```text
 unexpected fault address 0x0
 fatal error: fault
 [signal SIGSEGV: segmentation violation code=0x80 addr=0x0 pc=0x1219cfb]

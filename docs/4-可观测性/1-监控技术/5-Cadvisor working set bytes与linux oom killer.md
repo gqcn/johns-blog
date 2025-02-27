@@ -19,7 +19,7 @@ description: "探讨 Cadvisor 中 working set bytes 的概念以及其与 Linux 
 
 内存使用率告警的`promeql`如下：
 
-```
+```text
 100*(sum (container_memory_working_set_bytes{namespace=~"argo|khaos|obs|kube-system"}) by (khaos_product,khaos_cluster,namespace,app_name,pod,container)/sum (container_spec_memory_limit_bytes{namespace=~"argo|khaos|obs|kube-system"}) by (khaos_product,khaos_cluster,namespace,app_name,pod,container) <= 1)
 ```
 
@@ -29,7 +29,7 @@ description: "探讨 Cadvisor 中 working set bytes 的概念以及其与 Linux 
 
 `cadvisor`中的源码计算如下：
 
-```
+```go
 func setMemoryStats(s *cgroups.Stats, ret *info.ContainerStats) {
 	ret.Memory.Usage = s.MemoryStats.Usage.Usage
 	ret.Memory.MaxUsage = s.MemoryStats.Usage.MaxUsage
@@ -80,7 +80,7 @@ func setMemoryStats(s *cgroups.Stats, ret *info.ContainerStats) {
 
  其中的`s.MemoryStats.Usage.Usage`来源于`github.com/opencontainers/runc`库：
 
-```
+```go
 func getMemoryData(path, name string) (cgroups.MemoryData, error) {
 	memoryData := cgroups.MemoryData{}
 

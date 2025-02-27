@@ -24,7 +24,7 @@ description: "详细介绍 OpenTracing 分布式链路追踪规范，包括核�
 
 `Trace`表示一次完整的追踪链路，`trace`由一个或多个`span`组成。下图示例表示了一个由`8`个`span`组成的`trace`:
 
-```
+```text
         [Span A]  ←←←(the root span)
             |
      +------+------+
@@ -42,7 +42,7 @@ description: "详细介绍 OpenTracing 分布式链路追踪规范，包括核�
 
 时间轴的展现方式会更容易理解：
 
-```
+```text
 ––|–––––––|–––––––|–––––––|–––––––|–––––––|–––––––|–––––––|–> time
 
  [Span A···················································]
@@ -69,7 +69,7 @@ description: "详细介绍 OpenTracing 分布式链路追踪规范，包括核�
 
 `Tags`以`K/V`键值对的形式保存用户自定义标签，主要用于链路追踪结果的查询过滤。例如： `http.method="GET",http.status_code=200`。其中`key`值必须为字符串，`value`必须是字符串，布尔型或者数值型。 `span`中的`tag`仅自己可见，不会随着 `SpanContext`传递给后续`span`。 例如：
 
-```
+```go
 span.SetTag("http.method","GET")
 span.SetTag("http.status_code", 200)
 ```
@@ -78,7 +78,7 @@ span.SetTag("http.status_code", 200)
 
 `Logs`与`tags`类似，也是`K/V`键值对形式。与`tags`不同的是，`logs`还会记录写入`logs`的时间，因此`logs`主要用于记录某些事件发生的时间。`logs`的`key`值同样必须为字符串，但对`value`类型则没有限制。例如：
 
-```
+```go
 span.LogFields( 
     log.String("event", "soft error"), 
     log.String("type", "cache timeout"), 
@@ -86,8 +86,9 @@ span.LogFields(
 )
 ```
 
-> [!INFO]
-> `Opentracing`列举了一些惯用的`Tags`和`Logs`：[https://github.com/opentracing/specification/blob/master/semantic\_conventions.md](https://github.com/opentracing/specification/blob/master/semantic_conventions.md)
+::: info
+`Opentracing`列举了一些惯用的`Tags`和`Logs`：[https://github.com/opentracing/specification/blob/master/semantic\_conventions.md](https://github.com/opentracing/specification/blob/master/semantic_conventions.md)
+:::
 
 ### SpanContext
 
@@ -110,9 +111,9 @@ span.LogFields(
 
 对`Opentracing`的概念有初步了解后，下面使用`Jaeger`来演示如何在程序中使用实现链路追踪。
 
-> [!TIP]
-> 为方便演示，以下示例为进程内部方法的链路跟踪记录，更多详细的示例可参考： [Opentracing Go Tutorial](https://github.com/yurishkuro/opentracing-tutorial/tree/master/go)
-
+::: tip
+为方便演示，以下示例为进程内部方法的链路跟踪记录，更多详细的示例可参考： [Opentracing Go Tutorial](https://github.com/yurishkuro/opentracing-tutorial/tree/master/go)
+:::
   
 
 ![](/attachments/architecture-v1.png)
@@ -125,7 +126,7 @@ span.LogFields(
 
 `Jaeger`提供了`all-in-one`镜像，方便我们快速开始测试：
 
-```
+```bash
 docker run -d --name jaeger \
 -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 \
 -p 5775:5775/udp \
@@ -142,13 +143,13 @@ jaegertracing/all-in-one:1.14
 
 下载客户端`library`:
 
-```
+```bash
 go get github.com/jaegertracing/jaeger-client-go
 ```
 
 初始化`Jaeger tracer`:
 
-```
+```go
 import (
 	"context"
 	"errors"
@@ -186,7 +187,7 @@ func initJaeger(service string) io.Closer {
 
 创建`tracer`，生成`root span`：
 
-```
+```go
 func main() {
 	closer := initJaeger("in-process")
 	defer closer.Close()
@@ -204,7 +205,7 @@ func main() {
 
 上述代码创建了一个`root span`，并将该`span`通过`context`传递给`Foo`方法，以便在`Foo`方法中将追踪链继续延续下去：
 
-```
+```go
 func Foo(ctx context.Context) {
 	// 开始一个span, 设置span的operation_name为Foo
 	span, ctx := opentracing.StartSpanFromContext(ctx, "Foo")

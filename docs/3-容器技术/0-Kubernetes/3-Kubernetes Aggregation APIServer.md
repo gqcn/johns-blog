@@ -42,7 +42,7 @@ APIService 的最常见实现方式是在集群中某 Pod 内运行  *扩展 AP
 
 kube-apiserver 增加以下配置：
 
-```
+```bash
 --requestheader-client-ca-file=<path to aggregator CA cert>
 --requestheader-allowed-names=aggregator
 --requestheader-extra-headers-prefix=X-Remote-Extra-
@@ -54,7 +54,7 @@ kube-apiserver 增加以下配置：
 
 如果 `kube-proxy` 没有在 Master 上面运行，还需要配置：
 
-```
+```bash
 --enable-aggregator-routing=true
 ```
 
@@ -81,7 +81,7 @@ kube-apiserver 增加以下配置：
 
 可以使用 [apiserver-builder](https://github.com/kubernetes-incubator/apiserver-builder) 工具自动化上面的步骤。
 
-```
+```bash
 ## 初始化项目
 $ cd GOPATH/src/github.com/my-org/my-project
 $ apiserver-boot init repo --domain <your-domain>

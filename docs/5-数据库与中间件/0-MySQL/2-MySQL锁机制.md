@@ -54,7 +54,7 @@ InnoDB 行锁是通过对索引数据页上的记录加锁实现的，MySQL Inno
 
 由于 MVCC 的存在，对于一般的 `SELECT` 语句，InnoDB 不会加任何锁。不过， 你可以通过以下语句显式加共享锁或排他锁。
 
-```
+```sql
 ## 共享锁 可以在 MySQL 5.7 和 MySQL 8.0 中使用
 SELECT ... LOCK IN SHARE MODE;
 ## 共享锁 可以在 MySQL 8.0 中使用

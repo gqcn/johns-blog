@@ -15,7 +15,7 @@ description: "分析从 Kubelet 获取 cAdvisor 指标时偶现丢失容器相�
 
 一开始以为是网络访问的问题，直到给程序增加了调试信息，发现确实是`kubelet`返回的指标数据就已经丢失了相关指标，因此再去查看节点上的`kubeket`日志，通过以下命令：
 
-```
+```bash
 journalctl -u kubelet
 ```
 

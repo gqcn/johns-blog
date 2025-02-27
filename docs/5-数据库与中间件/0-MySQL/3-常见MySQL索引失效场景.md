@@ -20,7 +20,7 @@ description: "详细分析 MySQL 中常见的索引失效场景及其解决方�
 
 为了逐项验证索引的使用情况，我们先准备一张表t\_user：
 
-```
+```sql
 CREATE TABLE `t_user` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `id_no` varchar(18) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '身份编号',
@@ -45,7 +45,7 @@ CREATE TABLE `t_user` (
 
 基础数据`insert`了4条数据，其中第4条数据的创建时间为未来的时间，用于后续特殊场景的验证：
 
-```
+```sql
 INSERT INTO `t_user` (`id`, `id_no`, `username`, `age`, `create_time`) VALUES (null, '1001', 'Tom1', 11, '2022-02-27 09:04:23');
 INSERT INTO `t_user` (`id`, `id_no`, `username`, `age`, `create_time`) VALUES (null, '1002', 'Tom2', 12, '2022-02-26 09:04:23');
 INSERT INTO `t_user` (`id`, `id_no`, `username`, `age`, `create_time`) VALUES (null, '1003', 'Tom3', 13, '2022-02-25 09:04:23');
@@ -54,7 +54,7 @@ INSERT INTO `t_user` (`id`, `id_no`, `username`, `age`, `create_time`) VALUES (n
 
 除了基础数据，还有一条存储过程及其调用的SQL，方便批量插入数据，用来验证数据比较多的场景：
 
-```
+```sql
 -- 删除历史存储过程
 DROP PROCEDURE IF EXISTS `insert_t_user`
 
@@ -86,7 +86,7 @@ call insert_t_user(100);
 
 查看当前数据库的版本：
 
-```
+```bash
 select version();
 8.0.18
 ```
@@ -97,7 +97,7 @@ select version();
 
 执行示例：
 
-```
+```sql
 explain select * from t_user where id = 1;
 ```
 
@@ -123,7 +123,7 @@ explain
 
 实例中，`union_idx`联合索引组成：
 
-```
+```sql
 KEY `union_idx` (`id_no`,`username`,`age`)
 ```
 
@@ -131,7 +131,7 @@ KEY `union_idx` (`id_no`,`username`,`age`)
 
 **示例一：**
 
-```
+```sql
 explain select * from t_user where id_no = '1002';
 ```
 
@@ -153,7 +153,7 @@ explain-01
 
 **示例二：**
 
-```
+```sql
 explain select * from t_user where id_no = '1002' and username = 'Tom2';
 ```
 
@@ -167,7 +167,7 @@ explain-02
 
 **示例三：**
 
-```
+```sql
 explain select * from t_user where id_no = '1002' and age = 12;
 ```
 
@@ -183,7 +183,7 @@ explain-03
 
 **反向示例：**
 
-```
+```sql
 explain select * from t_user where username = 'Tom2' and age = 12;
 ```
 
@@ -197,7 +197,7 @@ explain-04
 
 同样的，下面只要没出现最左条件的组合，索引也是失效的：
 
-```
+```sql
 explain select * from t_user where age = 12;
 explain select * from t_user where username = 'Tom2';
 ```
@@ -220,7 +220,7 @@ explain select * from t_user where username = 'Tom2';
 
 但如果希望根据`username`查询出`id_no`、`username`、`age`这三个结果(均为索引字段)，明确查询结果字段，是可以走覆盖索引的：
 
-```
+```sql
 explain select id_no, username, age from t_user where username = 'Tom2';
 explain select id_no, username, age from t_user where age = 12;
 ```
@@ -241,7 +241,7 @@ explain select id_no, username, age from t_user where age = 12;
 
 直接来看示例：
 
-```
+```sql
 explain select * from t_user where id + 1 = 2 ;
 ```
 
@@ -270,7 +270,7 @@ explain select * from t_user where id = 2 - 1 ;
 
 ### 4、索引列参使用了函数示例
 
-```
+```sql
 explain select * from t_user where SUBSTR(id_no,1,3) = '100';
 ```
 
@@ -292,7 +292,7 @@ explain select * from t_user where SUBSTR(id_no,1,3) = '100';
 
 示例：
 
-```
+```sql
 explain select * from t_user where id_no like '%00%';
 ```
 
@@ -316,7 +316,7 @@ explain select * from t_user where id_no like '%00%';
 
 示例：
 
-```
+```sql
 explain select * from t_user where id_no = 1002;
 ```
 
@@ -336,7 +336,7 @@ explain select * from t_user where id_no = 1002;
 
 这种情况还有一个特例，如果字段类型为`int`类型，而查询条件添加了单引号或双引号，则mysql会参数转化为int类型，虽然使用了单引号或双引号（优化器）：
 
-```
+```sql
 explain select * from t_user where id = '2';
 ```
 
@@ -348,7 +348,7 @@ explain select * from t_user where id = '2';
 
 示例：
 
-```
+```sql
 explain select * from t_user where id = 2 or username = 'Tom2';
 ```
 
@@ -364,7 +364,7 @@ or-索引
 
 但如果`or`两边同时使用`>`和`<`，则索引也会失效：
 
-```
+```sql
 explain select * from t_user where id  > 1 or id  < 80;
 ```
 
@@ -382,7 +382,7 @@ or-范围
 
 这里举个不恰当的示例，比如`age`小于`id`这样的两列(真实场景可能是两列同维度的数据比较，这里迁就现有表结构)：
 
-```
+```sql
 explain select * from t_user where id > age;
 ```
 
@@ -400,7 +400,7 @@ explain select * from t_user where id > age;
 
 示例：
 
-```
+```sql
 explain select * from t_user where id_no <> '1002';
 ```
 
@@ -412,7 +412,7 @@ explain select * from t_user where id_no <> '1002';
 
 当查询条件为字符串时，使用`<>`或`!=`作为条件查询，有可能不走索引，但也不全是。
 
-```
+```sql
 explain select * from t_user where create_time != '2022-02-27 09:56:42';
 ```
 
@@ -420,7 +420,7 @@ explain select * from t_user where create_time != '2022-02-27 09:56:42';
 
 需要注意的是：上述语句如果是`id`进行不等操作，则正常走索引。
 
-```
+```sql
 explain select * from t_user where id != 2;
 ```
 
@@ -436,7 +436,7 @@ explain select * from t_user where id != 2;
 
 示例：
 
-```
+```sql
 explain select * from t_user where id_no is not null;
 ```
 
@@ -452,7 +452,7 @@ explain select * from t_user where id_no is not null;
 
 在日常中使用比较多的范围查询有`in`、`exists`、`not in`、`not exists`、`between and`等。
 
-```
+```sql
 explain select * from t_user where id in (2,3);
 
 explain select * from t_user where id_no in ('1001','1002');
@@ -464,7 +464,7 @@ explain select * from t_user where id_no between '1002' and '1003';
 
 上述四种语句执行时都会正常走索引，具体的`explain`结果就不再展示。主要看不走索引的情况：
 
-```
+```sql
 explain select * from t_user where id_no not in('1002' , '1003');
 ```
 
@@ -476,7 +476,7 @@ explain select * from t_user where id_no not in('1002' , '1003');
 
 当使用`not in`时，不走索引?把条件列换成主键试试：
 
-```
+```sql
 explain select * from t_user where id not in (2,3);
 ```
 
@@ -492,7 +492,7 @@ explain select * from t_user where id not in (2,3);
 
 再来看看`not exists`：
 
-```
+```sql
 explain select * from t_user u1 where not exists (select 1 from t_user u2 where u2.id  = 2 and u2.id = u1.id);
 ```
 
@@ -510,7 +510,7 @@ explain select * from t_user u1 where not exists (select 1 from t_user u2 where 
 
 示例：
 
-```
+```sql
 explain select * from t_user order by id_no ;
 ```
 
@@ -524,7 +524,7 @@ explain select * from t_user order by id_no ;
 
 那么，添加删`limit`关键字是否就走索引了呢?
 
-```
+```sql
 explain select * from t_user order by id_no limit 10;
 ```
 
@@ -538,7 +538,7 @@ order by limit
 
 这里还有一个特例，就是主键使用`order by`时，可以正常走索引。
 
-```
+```sql
 explain select * from t_user order by id desc;
 ```
 
@@ -552,7 +552,7 @@ explain select * from t_user order by id desc;
 
 另外，笔者测试如下SQL语句：
 
-```
+```sql
 explain select id from t_user order by age;
 explain select id , username from t_user order by age;
 explain select id_no from t_user order by id_no;
@@ -562,7 +562,7 @@ explain select id_no from t_user order by id_no;
 
 现在将`id`和`id_no`组合起来进行`order by`：
 
-```
+```sql
 explain select * from t_user order by id,id_no desc;
 explain select * from t_user order by id,id_no desc limit 10;
 explain select * from t_user order by id_no desc,username desc;
@@ -582,7 +582,7 @@ orderby多索引
 
 此时，如果你还未执行最开始创建的存储过程，建议你先执行一下存储过程，然后执行如下SQL：
 
-```
+```sql
 explain select * from t_user where create_time > '2023-02-24 09:04:23';
 ```
 
@@ -598,7 +598,7 @@ explain select * from t_user where create_time > '2023-02-24 09:04:23';
 
 随后，我们将查询条件的参数换个日期：
 
-```
+```sql
 explain select * from t_user where create_time > '2022-02-27 09:04:23';
 ```
 

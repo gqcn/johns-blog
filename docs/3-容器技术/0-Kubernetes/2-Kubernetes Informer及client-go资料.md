@@ -36,8 +36,9 @@ Informer In Kubernetes
 
 我们再来看一张经典的架构图，来自于client-go的官方介绍，展示了client-go与自定义Controller之间的相关组件以及数据交互流程。原文地址：[https://github.com/kubernetes/sample-controller/blob/master/docs/controller-client-go.md](https://github.com/kubernetes/sample-controller/blob/master/docs/controller-client-go.md)
 
-> [!TIP]
-> client-go项目地址：[https://github.com/kubernetes/client-go](https://github.com/kubernetes/client-go)
+::: tip
+client-go项目地址：[https://github.com/kubernetes/client-go](https://github.com/kubernetes/client-go)
+:::
 
 ![](/attachments/client-go-controller-interaction.jpeg)
 
@@ -67,7 +68,7 @@ Indexer 能够基于一些索引函数以及对象的标签计算出索引存储
 
 ## 三、源码示例
 
-```
+```go
 package main
 
 import (

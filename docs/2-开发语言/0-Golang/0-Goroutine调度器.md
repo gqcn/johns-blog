@@ -62,7 +62,7 @@ description: "深入解析 Go 语言的 Goroutine 调度器原理，包括 GMP �
 
 在关心绝大多数程序的内部原理的时候，我们都试图去弄明白其启动初始化过程，弄明白这个过程对后续的深入分析至关重要。在`asm_amd64.s`文件中的汇编代码`_rt0_amd64`就是整个启动过程，核心过程如下：
 
-```
+```text
 CALL	runtime.args(SB)
 CALL	runtime.osinit(SB)
 CALL	runtime.hashinit(SB)
@@ -91,7 +91,7 @@ CALL	runtime.mstart(SB)
 
 在Go程序中，时常会有类似代码：
 
-```
+```go
 go do_something()
 ```
 
@@ -105,7 +105,7 @@ go关键字就是用来创建一个`goroutine`的，后面的函数就是这个`
 
 Go程序中没有语言级的关键字让你去创建一个内核线程，你只能创建`goroutine`，内核线程只能由`runtime`根据实际情况去创建。`runtime`什么时候创建线程？以地鼠运砖图来讲，砖(**G**)太多了，地鼠(**M**)又太少了，实在忙不过来，刚好还有空闲的小车(**P**)没有使用，那就从别处再借些地鼠(**M**)过来直到把小车(**P**)用完为止。这里有一个地鼠(**M**)不够用，从别处借地鼠(**M**)的过程，这个过程就是创建一个内核线程(**M**)。创建M的接口函数是:
 
-```
+```c
 void newm(void (*fn)(void), P *p)
 ```
 
@@ -115,7 +115,7 @@ void newm(void (*fn)(void), P *p)
 
 `newm`接口只是给新创建的**M**分配了一个空闲的**P**，也就是相当于告诉借来的地鼠(**M**)——"接下来的日子，你将使用1号小车搬砖，记住是1号小车；待会自己到停车场拿车。"，地鼠(**M**)去拿小车(**P**)这个过程就是 `acquirep`。`runtime.mstart`在进入 `schedule`之前会给当前**M**装配上**P**，`runtime.mstart`函数中的代码：
 
-```
+```c
 } else if(m != &runtime.m0) {
 	acquirep(m->nextp);
 	m->nextp = nil;
@@ -127,7 +127,7 @@ schedule();
 
 地鼠(**M**)拿到属于自己的小车(**P**)后，就进入工场开始干活了，也就是上面的 `schedule`调用。简化`schedule`的代码如下：
 
-```
+```c
 static void schedule(void) {
 	G *gp;
  

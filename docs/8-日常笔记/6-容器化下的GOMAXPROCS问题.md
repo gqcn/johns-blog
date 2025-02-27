@@ -20,7 +20,7 @@ description: "探讨在容器化环境下 Go 程序 GOMAXPROCS 设置的问题�
 
 使用方式：
 
-```
+```go
 import _ "go.uber.org/automaxprocs"
 
 func main() {

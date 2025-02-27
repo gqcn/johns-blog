@@ -68,19 +68,19 @@ description: "分析和解决 Kubernetes Pod 卡在 ContainerCreating 或 Termin
 
 通过`docker run`运行一个容器：
 
-```
+```bash
 docker run -d --pid=host --rm --name nginx nginx
 ```
 
 在另一个终端执行`docker exec`指令：
 
-```
+```bash
 docker exec -it nginx sh
 ```
 
 随后`kill`容器：
 
-```
+```bash
 docker kill nginx
 ```
 
@@ -96,8 +96,10 @@ docker kill nginx
 
 ![](/attachments/image-2024-4-16_18-2-48.png)
 
-> [!TIP]
-> 这种创建虽然在`kubernetes`中是顺序执行的，但是宿主机的容器启动成功却是异步的，不能保证顺序性。有的容器可能在最开始执行创建，但是可能在最后才运行成功。
+::: tip
+这种创建虽然在`kubernetes`中是顺序执行的，但是宿主机的容器启动成功却是异步的，不能保证顺序性。
+有的容器可能在最开始执行创建，但是可能在最后才运行成功。
+:::
 
 但是，如果容器中存在`PostStart`脚本，那么将会阻塞后续容器的创建，需要等待`PostStart`脚本执行完成后才会继续执行。具体参考：[https://github.com/kubernetes/kubernetes/blob/b722d017a34b300a2284b890448e5a605f21d01e/pkg/kubelet/kuberuntime/kuberuntime\_container.go#L297](https://github.com/kubernetes/kubernetes/blob/b722d017a34b300a2284b890448e5a605f21d01e/pkg/kubelet/kuberuntime/kuberuntime_container.go#L297)
 
@@ -111,13 +113,13 @@ docker kill nginx
 
 step1：检索出`Terminating`的`Pod`
 
-```
+```bash
 kubectl get pod -n xxx -owide | grep Terminating
 ```
 
 step2：进入宿主机干掉`docker`容器
 
-```
+```bash
 kubectl node-shell x.x.x.x
 docker ps -a | grep xxx
 docker rm -f xxx
@@ -126,7 +128,7 @@ exit
 
 step3：退出宿主机，强删对应的`Pod`
 
-```
+```bash
 kubectl delete -n xxx pod/xxx --force
 ```
 

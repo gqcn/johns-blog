@@ -13,7 +13,7 @@ description: "深入分析 Go 语言 Mutex 互斥锁的实现原理，包括加�
 
 `Mutex` 是一个结构体，对外提供 `Lock()`和`Unlock()`两个方法，分别用来加锁和解锁。
 
-```
+```go
 // A Locker represents an object that can be locked and unlocked.
 type Locker interface {
     Lock()
@@ -89,7 +89,7 @@ Waiter 计数器增加了1，协程B将会持续阻塞，直到 `Locked` 值变�
 
 ## Unlock
 
-```
+```go
 func (m *Mutex) Unlock() {
 	if race.Enabled {
 		_ = m.state

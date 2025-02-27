@@ -7,7 +7,7 @@ unlisted: false
 
 /etc/profile
 
-```
+```bash
 # 隐藏zsh切换提醒信息
 export BASH_SILENCE_DEPRECATION_WARNING=1
 

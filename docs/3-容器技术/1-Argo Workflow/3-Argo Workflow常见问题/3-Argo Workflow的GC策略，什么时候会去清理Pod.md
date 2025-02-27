@@ -39,9 +39,11 @@ description: "详细说明 Argo Workflow 的垃圾回收策略，包括 Pod 的�
 
 ![](/attachments/image2021-7-6_17-14-46.png)
 
-> [!TIP]
-> 这里需要注意`Completion`和`Success`的区别。`Completion`表示`Workflow`执行完成，`Workflow`的状态不是`Running/Appending/Unknown`阻塞状态。`Success`表示`Workflow`执行完成，并且`exit code`为`0`，表示没有错误产生。
-
+::: tip
+这里需要注意`Completion`和`Success`的区别。
+`Completion`表示`Workflow`执行完成，`Workflow`的状态不是`Running/Appending/Unknown`阻塞状态。
+`Success`表示`Workflow`执行完成，并且`exit code`为`0`，表示没有错误产生。
+:::
   
 
   

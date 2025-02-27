@@ -10,12 +10,13 @@ description: "介绍如何有效清理和管理Docker系统中的无用镜像，
 
 ## 删除`docker`进程不再使用的`image`
 
-```
+```bash
 docker system prune -a --volumes
 ```
 
-> [!CAUTION]
-> 当您的`docker`占用过多的空间时，该命令执行可能会比较耗时。
+::: warning
+当您的`docker`占用过多的空间时，该命令执行可能会比较耗时。
+:::
 
 ![](/attachments/image2022-4-20_17-46-45.png)
 
@@ -27,7 +28,7 @@ docker system prune -a --volumes
 
 ## 通过`grep`过滤批量删除`image`
 
-```
+```bash
 docker images | grep 'ccr.ccs.tencentyun.com/cdb.khaos' | awk '{print $3}' | sort | uniq | xargs docker rmi
 ```
 

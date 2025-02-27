@@ -41,7 +41,7 @@ description: "深入分析etcd读请求的执行流程，包括请求处理、�
 
 以下面的命令进行分析：
 
-```
+```bash
 # --endpoint=http://127.0.0.1:2379 用于指定后端的 etcd 地址
 /usr/local/bin # etcdctl --endpoint=http://127.0.0.1:2379 put hello world
 ok

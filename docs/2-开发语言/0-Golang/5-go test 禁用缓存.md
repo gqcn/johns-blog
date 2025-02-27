@@ -17,7 +17,7 @@ description: "详细说明如何禁用 go test 的缓存功能，包括使用 -c
 
 如下示例：
 
-```
+```bash
 ## ~/test/hello-drone/go_demo [master ✗ (fe95bec)] [13:45:16]
 ➜ go test -v ./...               
 ?       go_demo [no test files]
@@ -69,7 +69,7 @@ ok      go_demo/utils   0.006s
 
 关于 `-count=1` 的解释，可以通过命令 `go help testflag` 来查看：
 
-```
+```text
 When 'go test' runs in package list mode, 'go test' caches successful
 package test results to avoid unnecessary repeated running of tests. To
 disable test caching, use any test flag or argument other than the

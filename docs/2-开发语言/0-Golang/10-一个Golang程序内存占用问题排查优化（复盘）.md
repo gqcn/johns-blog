@@ -68,7 +68,7 @@ kubectl cp khaos/khaos-guardian-sjsm4:/root/pprof.profile /root/pprof.profile  -
 
 由于我们需要排查的是内存占用问题，所以主要是分析`pprof.heap`这个文件即可，其他两个文件（`pprof.profile`用以分析`cpu`耗时、`pprof.goroutine`用以分析`goroutine`占用判断有误`goroutine`阻塞）主要用来辅助排查。通过以下命令使用`go tool`打开`pprof`内存分析：
 
-```
+```bash
 $ go tool pprof -http :8080 pprof.heap
 Serving web UI on http://localhost:8080
 ```
@@ -95,8 +95,9 @@ Serving web UI on http://localhost:8080
 
 ![](/attachments/image-2024-5-11_16-29-31.png)
 
-> [!TIP]
-> 这种问题其实属于常见问题，对于所有的`HTTP`访问操作都容易出现。大多数`HTTP`访问的场景下，程序员的思维逻辑都是直接完整读取后再交给上层处理，但是这样会额外占用一块无意义的临时内存。
+::: tip
+这种问题其实属于常见问题，对于所有的`HTTP`访问操作都容易出现。大多数`HTTP`访问的场景下，程序员的思维逻辑都是直接完整读取后再交给上层处理，但是这样会额外占用一块无意义的临时内存。
+:::
 
 因此去掉临时内存申请，改为直接`res.Body`流式读取。同时程序中其他`HTTP`请求也做类似的改进。
 
@@ -120,7 +121,7 @@ Serving web UI on http://localhost:8080
 
 我们这里来梳理一下业务实例的监控指标的数据结构转换流程：
 
-```
+```text
 Metric Text -> dto.MetricFamily -> prompb.WriteRequest
 ```
 

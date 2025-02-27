@@ -22,8 +22,10 @@ description: "详细介绍如何搭建 Argo Workflow 的本地开发环境，包
 
 ## 一、服务准备
 
-> [!WARNING]
-> `MacOS`环境先安装好`brew`命令：[https://brew.sh/](https://brew.sh/)
+
+::: warning
+`MacOS`环境先安装好`brew`命令：[https://brew.sh/](https://brew.sh/)
+:::
 
 ### 1、Golang
 
@@ -31,7 +33,7 @@ description: "详细介绍如何搭建 Argo Workflow 的本地开发环境，包
 
 ### 2、Yarn
 
-```
+```bash
 brew install yarn
 ```
 
@@ -47,7 +49,7 @@ brew install yarn
 
 ### 5、Protoc
 
-```
+```bash
 brew install protobuf
 ```
 
@@ -59,7 +61,7 @@ brew install protobuf
 
 便于后续服务的内部别名访问，修改 `/etc/hosts`：
 
-```
+```text
 127.0.0.1 dex
 127.0.0.1 minio
 127.0.0.1 postgres
@@ -74,7 +76,7 @@ brew install protobuf
 
 #### 1）创建`argo`数据库以及`mysql`账号
 
-```
+```sql
 CREATE DATABASE `argo`;
 CREATE USER 'mysql'@'%' IDENTIFIED BY 'password';
 GRANT ALL ON argo.* TO 'mysql'@'%';
@@ -88,15 +90,16 @@ GRANT ALL ON argo.* TO 'mysql'@'%';
 
 在argo-workflows项目根目录下执行以下命令执行编译安装argo-workflows相关服务到本地，并在minikube中创建相应的argo资源：
 
-```
+```bash
 make start PROFILE=mysql
 ```
 
 编译将会使用`mysql`服务（默认使用的是`pgsql`）。
 
-> [!TIP]
-> 当argo相关服务启动后，可以发现argo数据库被初始化了相关数据表。
-> ![](/attachments/image2021-8-9_16-36-46.png)
+::: tip
+当argo相关服务启动后，可以发现argo数据库被初始化了相关数据表。
+![](/attachments/image2021-8-9_16-36-46.png)
+:::
 
 ## 五、检查服务状态
 
@@ -104,15 +107,17 @@ make start PROFILE=mysql
 
 [http://localhost:2746](http://localhost:2746)
 
-> [!WARNING]
-> 注意查看终端日志输出信息，不是HTTPS访问。
+::: warning
+注意查看终端日志输出信息，不是HTTPS访问。
+:::
 
 ### 2、`Argo UI`
 
 [http://localhost:8080](http://localhost:8080)
 
-> [!WARNING]
-> 初次访问的时候会比较慢，注意查看终端日志输出信息。
+::: warning
+初次访问的时候会比较慢，注意查看终端日志输出信息。
+:::
 
 ### 3、`MinIO UI`
 
@@ -124,19 +129,21 @@ make start PROFILE=mysql
 
 ## 六、构建Image镜像
 
-> [!INFO]
-> 正常完整编译约5分钟左右。
+::: info
+正常完整编译约5分钟左右。
+:::
 
 ### 1、构建镜像
 
 **这一步是非常重要的，否则你无法创建workflow资源，因为argo相关的image在本地没有，拉取镜像会失败。**执行以下命令编译即可：
 
-```
+```bash
 eval $(minikube -p minikube docker-env) && make build
 ```
 
-> [!TIP]
-> 其中的 `eval $(minikube -p minikube docker-env)` 命令用以设置当前的`Docker`为`Minikube`的`Docker`，后续常见错误中有介绍。
+::: tip
+其中的 `eval $(minikube -p minikube docker-env)` 命令用以设置当前的`Docker`为`Minikube`的`Docker`，后续常见错误中有介绍。
+:::
 
 ### 2、常见错误
 
@@ -154,11 +161,11 @@ eval $(minikube -p minikube docker-env) && make build
 
 编译阶段报错：
 
-`![](/attachments/image2021-8-23_15-48-23.png)  `
+![](/attachments/image2021-8-23_15-48-23.png)
 
 可能由于`GFW`的关系无法访问对应的地址，在国内想好好撸代码真的是太不容易了，在`go.mod`中增加一个`replace`吧：
 
-```
+```go
 golang.org/x/sys => github.com/golang/sys v0.0.0-20200317113312-5766fd39f98d
 ```
 
@@ -182,7 +189,7 @@ golang.org/x/sys => github.com/golang/sys v0.0.0-20200317113312-5766fd39f98d
 
 主要原因也就是说`Minikube`使用的`Docker`和系统安装的`Docker`不一样，我们之前编译的镜像在默认情况下都是编译到了系统的`Docker`上。因此我们需要在编译的Shell终端上执行一下 `eval $(minikube -p minikube docker-env)` 命令，设置当前的`Docker`为`Minikube`的`Docker`，随后重新执行编译即可：
 
-```
+```bash
 eval $(minikube -p minikube docker-env) && make build
 ```
 
