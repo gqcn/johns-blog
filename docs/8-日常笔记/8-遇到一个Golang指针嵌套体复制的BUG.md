@@ -1,5 +1,5 @@
 ---
-slug: "/golang-nested-pointer-bug"
+slug: "/notes/golang-nested-pointer-bug"
 title: "遇到一个Golang指针嵌套体复制的BUG"
 hide_title: true
 keywords: ["Go", "指针", "嵌套结构体", "Bug修复", "空指针", "内存管理"]

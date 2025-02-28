@@ -1,5 +1,5 @@
 ---
-slug: "/redis-cache-issues"
+slug: "/database-and-middleware/redis-cache-issues"
 title: "Redis缓存常见问题"
 hide_title: true
 keywords:

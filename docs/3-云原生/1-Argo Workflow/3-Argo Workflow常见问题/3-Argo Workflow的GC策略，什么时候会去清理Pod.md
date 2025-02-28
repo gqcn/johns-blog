@@ -1,5 +1,5 @@
 ---
-slug: "/argo-workflow-gc-policy"
+slug: "/cloud-native/argo-workflow-gc-policy"
 title: "Argo Workflow的GC策略，什么时候会去清理Pod"
 hide_title: true
 keywords:

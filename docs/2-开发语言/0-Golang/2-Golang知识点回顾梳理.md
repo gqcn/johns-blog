@@ -1,5 +1,5 @@
 ---
-slug: "/golang-knowledge-review"
+slug: "/programming/golang-knowledge-review"
 title: "Golang知识点回顾梳理"
 hide_title: true
 keywords: ["Go语言", "知识点", "并发编程", "性能优化", "源码分析", "基础知识"]

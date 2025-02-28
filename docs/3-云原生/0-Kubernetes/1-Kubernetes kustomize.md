@@ -1,5 +1,5 @@
 ---
-slug: "/kubernetes-kustomize"
+slug: "/cloud-native/kubernetes-kustomize"
 title: "Kubernetes kustomize"
 hide_title: true
 keywords:

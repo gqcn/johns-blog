@@ -1,5 +1,5 @@
 ---
-slug: "/opentracing-introduction"
+slug: "/observability/opentracing-introduction"
 title: "OpenTracing介绍"
 hide_title: true
 keywords:

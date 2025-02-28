@@ -1,5 +1,5 @@
 ---
-slug: "/data-structure-heap"
+slug: "/data-structures-and-algorithms/data-structure-heap"
 title: "堆（Heap）"
 hide_title: true
 keywords: ["数据结构", "堆", "二叉堆", "优先队列", "完全二叉树", "堆排序"]

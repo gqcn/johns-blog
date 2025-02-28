@@ -1,5 +1,5 @@
 ---
-slug: "/golang"
+slug: "/programming/golang"
 title: "Golang"
 hide_title: true
 keywords: ["Golang", "Go语言", "并发编程", "高性能", "编程语言", "后端开发"]

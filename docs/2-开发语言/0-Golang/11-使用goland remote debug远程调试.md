@@ -1,5 +1,5 @@
 ---
-slug: "/goland-remote-debug"
+slug: "/programming/goland-remote-debug"
 title: "使用goland remote debug远程调试"
 hide_title: true
 keywords:

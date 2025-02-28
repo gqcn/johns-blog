@@ -1,5 +1,5 @@
 ---
-slug: "/linux-vim-encoding-fix"
+slug: "/notes/linux-vim-encoding-fix"
 title: "解决linux下vim乱码的情况"
 hide_title: true
 keywords: ["Linux", "Vim", "编码", "乱码", "字符集", "配置优化"]

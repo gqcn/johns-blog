@@ -1,5 +1,5 @@
 ---
-slug: "/redis-stream"
+slug: "/database-and-middleware/redis-stream"
 title: "Redis Stream简介"
 hide_title: true
 keywords:

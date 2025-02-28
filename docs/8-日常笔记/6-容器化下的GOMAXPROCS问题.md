@@ -1,5 +1,5 @@
 ---
-slug: "/container-gomaxprocs-issue"
+slug: "/notes/container-gomaxprocs-issue"
 title: "容器化下的GOMAXPROCS问题"
 hide_title: true
 keywords: ["Go", "GOMAXPROCS", "容器化", "性能调优", "资源限制", "并发编程"]

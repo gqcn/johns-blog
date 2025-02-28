@@ -1,5 +1,5 @@
 ---
-slug: "/argo-workflow-context-passing"
+slug: "/cloud-native/argo-workflow-context-passing"
 title: "Argo Workflow的流程数据是如何实现上下文传递的"
 hide_title: true
 keywords:

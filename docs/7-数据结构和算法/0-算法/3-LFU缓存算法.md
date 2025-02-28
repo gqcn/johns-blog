@@ -1,5 +1,5 @@
 ---
-slug: "/lfu-cache-algorithm"
+slug: "/data-structures-and-algorithms/lfu-cache-algorithm"
 title: "LFU缓存算法"
 hide_title: true
 keywords:

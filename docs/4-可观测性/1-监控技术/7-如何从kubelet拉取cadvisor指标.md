@@ -1,5 +1,5 @@
 ---
-slug: "/kubelet-cadvisor-metrics-collection"
+slug: "/observability/kubelet-cadvisor-metrics-collection"
 title: "如何从kubelet拉取cadvisor指标"
 hide_title: true
 keywords:

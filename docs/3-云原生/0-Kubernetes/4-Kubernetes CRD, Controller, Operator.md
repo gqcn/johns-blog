@@ -1,5 +1,5 @@
 ---
-slug: "/kubernetes-crd-controller-operator"
+slug: "/cloud-native/kubernetes-crd-controller-operator"
 title: "Kubernetes CRD, Controller, Operator"
 hide_title: true
 keywords:

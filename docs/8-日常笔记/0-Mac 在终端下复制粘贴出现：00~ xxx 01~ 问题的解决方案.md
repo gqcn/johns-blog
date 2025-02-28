@@ -1,5 +1,5 @@
 ---
-slug: "/mac-terminal-copy-paste-issue"
+slug: "/notes/mac-terminal-copy-paste-issue"
 title: "Mac 在终端下复制粘贴出现：00~ xxx 01~ 问题的解决方案"
 hide_title: true
 keywords: ["Mac", "终端", "复制粘贴", "括号粘贴模式", "Terminal", "Shell"]

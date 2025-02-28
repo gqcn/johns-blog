@@ -1,5 +1,5 @@
 ---
-slug: "/mac-git-completion-setup"
+slug: "/notes/mac-git-completion-setup"
 title: "Mac安装git completion"
 hide_title: true
 keywords: ["Mac", "Git", "Git Completion", "Zsh", "命令行工具", "开发工具"]

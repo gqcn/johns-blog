@@ -1,5 +1,5 @@
 ---
-slug: "/tcp-handshake-teardown"
+slug: "/operating-systems-and-networks/tcp-handshake-teardown"
 title: "TCP三次握手与四次挥手"
 hide_title: true
 keywords:

@@ -1,5 +1,5 @@
 ---
-slug: "/ddd-ecommerce-case"
+slug: "/architecture/ddd-ecommerce-case"
 title: "DDD流程，以电商系统为场景"
 hide_title: true
 keywords:

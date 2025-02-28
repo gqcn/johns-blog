@@ -1,5 +1,5 @@
 ---
-slug: "/mysql-binlog-replication"
+slug: "/database-and-middleware/mysql-binlog-replication"
 title: "浅谈 MySQL binlog 主从同步"
 hide_title: true
 keywords:

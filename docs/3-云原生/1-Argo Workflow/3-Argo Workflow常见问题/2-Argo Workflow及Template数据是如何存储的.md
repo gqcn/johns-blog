@@ -1,5 +1,5 @@
 ---
-slug: "/argo-workflow-template-storage"
+slug: "/cloud-native/argo-workflow-template-storage"
 title: "Argo Workflow及Template数据是如何存储的"
 hide_title: true
 keywords:

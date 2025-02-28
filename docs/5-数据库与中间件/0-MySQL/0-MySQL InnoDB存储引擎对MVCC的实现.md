@@ -1,5 +1,5 @@
 ---
-slug: "/mysql-innodb-mvcc"
+slug: "/database-and-middleware/mysql-innodb-mvcc"
 title: "MySQL InnoDB存储引擎对MVCC的实现"
 hide_title: true
 keywords:

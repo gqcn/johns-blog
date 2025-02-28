@@ -1,5 +1,5 @@
 ---
-slug: "/kubernetes-aggregation-apiserver"
+slug: "/cloud-native/kubernetes-aggregation-apiserver"
 title: "Kubernetes Aggregation APIServer"
 hide_title: true
 keywords:

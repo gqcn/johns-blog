@@ -1,5 +1,5 @@
 ---
-slug: "/kubernetes"
+slug: "/cloud-native/kubernetes"
 title: "Kubernetes"
 hide_title: true
 keywords: ["Kubernetes", "容器编排", "云原生", "容器平台", "微服务", "容器管理"]

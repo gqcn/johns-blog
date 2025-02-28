@@ -1,5 +1,5 @@
 ---
-slug: "/godebug-gc-trace"
+slug: "/programming/godebug-gc-trace"
 title: "GODEBUG配置GC跟踪介绍"
 hide_title: true
 keywords: ["GODEBUG", "GC跟踪", "垃圾回收", "性能分析", "内存管理", "调试工具"]

@@ -1,5 +1,5 @@
 ---
-slug: "/kubernetes-scheduler-framework"
+slug: "/cloud-native/kubernetes-scheduler-framework"
 title: "Kubernetes Scheduler Framework"
 hide_title: true
 keywords:

@@ -1,5 +1,5 @@
 ---
-slug: "/redis-skiplist-sorted-set"
+slug: "/database-and-middleware/redis-skiplist-sorted-set"
 title: "Redis 为什么用跳表实现有序集合"
 hide_title: true
 keywords:

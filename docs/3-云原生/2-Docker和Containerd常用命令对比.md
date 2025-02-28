@@ -1,5 +1,5 @@
 ---
-slug: "/docker-containerd-commands"
+slug: "/cloud-native/docker-containerd-commands"
 title: "Docker和Containerd常用命令对比"
 hide_title: true
 keywords:

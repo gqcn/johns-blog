@@ -1,5 +1,5 @@
 ---
-slug: "/websocket-protocol"
+slug: "/operating-systems-and-networks/websocket-protocol"
 title: "WebSocket的原理"
 hide_title: true
 keywords:

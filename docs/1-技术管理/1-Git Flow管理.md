@@ -1,5 +1,5 @@
 ---
-slug: "/git-flow-management"
+slug: "/management/git-flow-management"
 title: "Git Flow管理"
 hide_title: true
 keywords:

@@ -1,5 +1,5 @@
 ---
-slug: "/network-layer-models"
+slug: "/operating-systems-and-networks/network-layer-models"
 title: "OSI七层模型与TCP/IP五层模型"
 hide_title: true
 keywords:

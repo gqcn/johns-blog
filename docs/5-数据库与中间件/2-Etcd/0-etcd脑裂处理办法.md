@@ -1,5 +1,5 @@
 ---
-slug: "/etcd-split-brain-handling"
+slug: "/database-and-middleware/etcd-split-brain-handling"
 title: "etcd脑裂处理办法"
 hide_title: true
 keywords:

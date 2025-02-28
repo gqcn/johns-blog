@@ -1,5 +1,5 @@
 ---
-slug: "/kubernetes-pod-stuck-issues"
+slug: "/cloud-native/kubernetes-pod-stuck-issues"
 title: "Pod stuck in ContainerCreating/Terminating"
 hide_title: true
 keywords:

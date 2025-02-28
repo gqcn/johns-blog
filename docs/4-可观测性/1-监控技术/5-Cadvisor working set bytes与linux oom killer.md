@@ -1,5 +1,5 @@
 ---
-slug: "/cadvisor-working-set-bytes-oom-killer"
+slug: "/observability/cadvisor-working-set-bytes-oom-killer"
 title: "Cadvisor working set bytes与linux oom killer"
 hide_title: true
 keywords:

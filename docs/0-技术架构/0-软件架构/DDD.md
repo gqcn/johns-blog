@@ -1,5 +1,5 @@
 ---
-slug: "/ddd-project-structure"
+slug: "/architecture/ddd-project-structure"
 title: "DDD"
 hide_title: true
 unlisted: true

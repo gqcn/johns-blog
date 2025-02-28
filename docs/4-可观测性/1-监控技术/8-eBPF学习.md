@@ -1,5 +1,5 @@
 ---
-slug: "/ebpf-learning-guide"
+slug: "/observability/ebpf-learning-guide"
 title: "eBPF学习"
 hide_title: true
 keywords: ["eBPF", "内核追踪", "性能监控", "系统观测", "网络监控", "安全监控"]

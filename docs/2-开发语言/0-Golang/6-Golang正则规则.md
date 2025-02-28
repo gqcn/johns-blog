@@ -1,5 +1,5 @@
 ---
-slug: "/golang-regex-rules"
+slug: "/programming/golang-regex-rules"
 title: "Golang正则规则"
 hide_title: true
 keywords: ["Golang", "正则表达式", "re2", "正则规则", "字符串处理", "模式匹配"]

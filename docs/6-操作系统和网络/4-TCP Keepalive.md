@@ -1,5 +1,5 @@
 ---
-slug: "/tcp-keepalive"
+slug: "/operating-systems-and-networks/tcp-keepalive"
 title: "TCP Keepalive"
 hide_title: true
 keywords:

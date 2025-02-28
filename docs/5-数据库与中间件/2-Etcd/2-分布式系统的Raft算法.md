@@ -1,5 +1,5 @@
 ---
-slug: "/distributed-system-raft"
+slug: "/database-and-middleware/distributed-system-raft"
 title: "分布式系统的Raft算法"
 hide_title: true
 keywords:

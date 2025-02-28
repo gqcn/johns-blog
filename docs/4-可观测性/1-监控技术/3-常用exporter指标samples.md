@@ -1,5 +1,5 @@
 ---
-slug: "/prometheus-exporter-metrics-samples"
+slug: "/observability/prometheus-exporter-metrics-samples"
 title: "常用exporter指标samples"
 hide_title: true
 keywords:

@@ -1,5 +1,5 @@
 ---
-slug: "/macbook-app-and-config"
+slug: "/hidden/macbook-app-and-config"
 title: "MacBook应用及配置"
 hide_title: true
 unlisted: true

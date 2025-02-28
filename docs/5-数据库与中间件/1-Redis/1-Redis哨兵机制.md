@@ -1,5 +1,5 @@
 ---
-slug: "/redis-sentinel"
+slug: "/database-and-middleware/redis-sentinel"
 title: "Redis哨兵机制"
 hide_title: true
 keywords:

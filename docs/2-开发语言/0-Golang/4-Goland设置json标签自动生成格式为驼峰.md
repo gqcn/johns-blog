@@ -1,5 +1,5 @@
 ---
-slug: "/goland-json-tag-camelcase"
+slug: "/programming/goland-json-tag-camelcase"
 title: "Goland设置json标签自动生成格式为驼峰"
 hide_title: true
 keywords: ["Goland", "JSON标签", "驼峰命名", "自动生成", "IDE配置", "开发工具"]

@@ -1,5 +1,5 @@
 ---
-slug: "/goroutine-scheduler"
+slug: "/programming/goroutine-scheduler"
 title: "Goroutine调度器"
 hide_title: true
 keywords: ["Goroutine", "调度器", "GMP模型", "并发编程", "线程调度", "Go运行时"]

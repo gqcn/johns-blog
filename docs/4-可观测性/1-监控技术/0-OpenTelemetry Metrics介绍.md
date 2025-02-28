@@ -1,5 +1,5 @@
 ---
-slug: "/opentelemetry-metrics-introduction"
+slug: "/observability/opentelemetry-metrics-introduction"
 title: "OpenTelemetry Metrics介绍"
 hide_title: true
 keywords:

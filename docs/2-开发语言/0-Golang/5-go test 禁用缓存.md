@@ -1,5 +1,5 @@
 ---
-slug: "/go-test-disable-cache"
+slug: "/programming/go-test-disable-cache"
 title: "go test 禁用缓存"
 hide_title: true
 keywords:

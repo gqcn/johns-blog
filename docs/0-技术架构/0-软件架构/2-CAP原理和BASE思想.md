@@ -1,5 +1,5 @@
 ---
-slug: "/cap-and-base"
+slug: "/architecture/cap-and-base"
 title: "CAP原理和BASE思想"
 hide_title: true
 keywords: ["CAP原理", "BASE思想", "分布式系统", "一致性", "可用性", "分区容错"]

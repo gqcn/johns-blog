@@ -1,5 +1,5 @@
 ---
-slug: "/argo-workflow-development-setup"
+slug: "/cloud-native/argo-workflow-development-setup"
 title: "Argo Workflow开发环境搭建"
 hide_title: true
 keywords:

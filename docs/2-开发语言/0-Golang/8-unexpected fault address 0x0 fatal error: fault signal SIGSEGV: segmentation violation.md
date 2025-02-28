@@ -1,5 +1,5 @@
 ---
-slug: "/golang-sigsegv-error"
+slug: "/programming/golang-sigsegv-error"
 title: "unexpected fault address 0x0 fatal error: fault signal SIGSEGV: segmentation violation"
 hide_title: true
 keywords:

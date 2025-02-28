@@ -1,5 +1,5 @@
 ---
-slug: "/io-multiplexing-models"
+slug: "/operating-systems-and-networks/io-multiplexing-models"
 title: "select,poll,epoll,kqueue IO多路复用模型归纳总结区分"
 hide_title: true
 keywords:

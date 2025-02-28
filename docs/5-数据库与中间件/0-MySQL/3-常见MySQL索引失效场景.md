@@ -1,5 +1,5 @@
 ---
-slug: "/mysql-index-failure-scenarios"
+slug: "/database-and-middleware/mysql-index-failure-scenarios"
 title: "常见MySQL索引失效场景"
 hide_title: true
 keywords:

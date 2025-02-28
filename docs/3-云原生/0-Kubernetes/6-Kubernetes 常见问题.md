@@ -1,5 +1,5 @@
 ---
-slug: "/kubernetes-common-issues"
+slug: "/cloud-native/kubernetes-common-issues"
 title: "Kubernetes 常见问题"
 hide_title: true
 keywords:

@@ -1,5 +1,5 @@
 ---
-slug: "/golang-memory-optimization-case"
+slug: "/programming/golang-memory-optimization-case"
 title: "一个Golang程序内存占用问题排查优化（复盘）"
 hide_title: true
 keywords: ["内存优化", "PProf", "性能分析", "内存泄漏", "OOM", "性能优化"]

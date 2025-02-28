@@ -96,7 +96,7 @@ const config: Config = {
           position: 'left',
           label: '技术管理',
           sidebarId: 'mainSidebar',
-          to: '/technical-management',
+          to: '/management',
         },
         {
           position: 'left',
@@ -106,9 +106,9 @@ const config: Config = {
         },
         {
           position: 'left',
-          label: '容器技术',
+          label: '云原生',
           sidebarId: 'mainSidebar',
-          to: '/container',
+          to: '/cloud-native',
         },
         {
           position: 'left',

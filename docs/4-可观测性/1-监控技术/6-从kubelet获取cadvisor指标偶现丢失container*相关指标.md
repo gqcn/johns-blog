@@ -1,5 +1,5 @@
 ---
-slug: "/kubelet-cadvisor-metrics-missing"
+slug: "/observability/kubelet-cadvisor-metrics-missing"
 title: "从kubelet获取cadvisor指标偶现丢失container*相关指标"
 hide_title: true
 keywords:

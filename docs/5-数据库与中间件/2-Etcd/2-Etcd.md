@@ -1,5 +1,5 @@
 ---
-slug: "/etcd"
+slug: "/database-and-middleware/etcd"
 title: "Etcd"
 hide_title: true
 keywords:

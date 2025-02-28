@@ -1,5 +1,5 @@
 ---
-slug: "/kubernetes-informer-client-go"
+slug: "/cloud-native/kubernetes-informer-client-go"
 title: "Kubernetes Informer及client-go资料"
 hide_title: true
 keywords:

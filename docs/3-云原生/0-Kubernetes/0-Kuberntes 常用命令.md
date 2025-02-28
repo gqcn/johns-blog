@@ -1,5 +1,5 @@
 ---
-slug: "/kubernetes-common-commands"
+slug: "/cloud-native/kubernetes-common-commands"
 title: "Kuberntes 常用命令"
 hide_title: true
 keywords:

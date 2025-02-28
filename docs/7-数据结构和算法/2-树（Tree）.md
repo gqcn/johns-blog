@@ -1,5 +1,5 @@
 ---
-slug: "/data-structure-tree"
+slug: "/data-structures-and-algorithms/data-structure-tree"
 title: "树（Tree）"
 hide_title: true
 keywords: ["数据结构", "树", "二叉树", "搜索树", "平衡树", "遍历算法"]

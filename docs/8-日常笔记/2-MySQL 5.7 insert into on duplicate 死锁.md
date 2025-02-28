@@ -1,5 +1,5 @@
 ---
-slug: "/mysql-insert-duplicate-deadlock"
+slug: "/notes/mysql-insert-duplicate-deadlock"
 title: "MySQL 5.7 insert into on duplicate 死锁"
 hide_title: true
 keywords:

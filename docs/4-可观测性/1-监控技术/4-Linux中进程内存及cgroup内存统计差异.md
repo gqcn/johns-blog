@@ -1,5 +1,5 @@
 ---
-slug: "/linux-memory-cgroup-statistics"
+slug: "/observability/linux-memory-cgroup-statistics"
 title: "Linux中进程内存及cgroup内存统计差异"
 hide_title: true
 keywords:

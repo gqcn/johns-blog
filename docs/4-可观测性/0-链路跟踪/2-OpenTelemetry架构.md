@@ -1,5 +1,5 @@
 ---
-slug: "/opentelemetry-architecture"
+slug: "/observability/opentelemetry-architecture"
 title: "OpenTelemetry架构"
 hide_title: true
 keywords:

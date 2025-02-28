@@ -1,5 +1,5 @@
 ---
-slug: "/make-command-tutorial"
+slug: "/notes/make-command-tutorial"
 title: "Make 命令教程"
 hide_title: true
 keywords:

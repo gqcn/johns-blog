@@ -1,5 +1,5 @@
 ---
-slug: "/golang-kubernetes-resource-control"
+slug: "/programming/golang-kubernetes-resource-control"
 title: "Golang程序在Kubernetes下的资源控制"
 hide_title: true
 keywords:

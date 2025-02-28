@@ -1,5 +1,5 @@
 ---
-slug: "/etcd-read-request-flow"
+slug: "/database-and-middleware/etcd-read-request-flow"
 title: "etcd读请求执行流程分析"
 hide_title: true
 keywords:

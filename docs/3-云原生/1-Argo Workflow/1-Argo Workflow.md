@@ -1,5 +1,5 @@
 ---
-slug: "/argo-workflow"
+slug: "/cloud-native/argo-workflow"
 title: "Argo Workflow"
 hide_title: true
 keywords:

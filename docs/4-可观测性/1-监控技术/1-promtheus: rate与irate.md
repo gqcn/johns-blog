@@ -1,5 +1,5 @@
 ---
-slug: "/prometheus-rate-irate"
+slug: "/observability/prometheus-rate-irate"
 title: "promtheus: rate与irate"
 hide_title: true
 keywords: ["Prometheus", "rate", "irate", "监控", "指标计算", "时序数据"]

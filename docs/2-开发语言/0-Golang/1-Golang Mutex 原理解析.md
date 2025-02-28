@@ -1,5 +1,5 @@
 ---
-slug: "/golang-mutex-principle"
+slug: "/programming/golang-mutex-principle"
 title: "Golang Mutex 原理解析"
 hide_title: true
 keywords: ["Mutex", "互斥锁", "并发控制", "自旋锁", "饥饿模式", "锁机制"]

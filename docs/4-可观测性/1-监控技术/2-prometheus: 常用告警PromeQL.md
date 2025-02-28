@@ -1,5 +1,5 @@
 ---
-slug: "/prometheus-alert-rules"
+slug: "/observability/prometheus-alert-rules"
 title: "prometheus: 常用告警PromeQL"
 hide_title: true
 keywords:

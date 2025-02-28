@@ -1,5 +1,5 @@
 ---
-slug: "/mysql"
+slug: "/database-and-middleware/mysql"
 title: "MySQL"
 hide_title: true
 keywords:

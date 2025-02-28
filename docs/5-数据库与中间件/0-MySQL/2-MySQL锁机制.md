@@ -1,5 +1,5 @@
 ---
-slug: "/mysql-lock-mechanism"
+slug: "/database-and-middleware/mysql-lock-mechanism"
 title: "MySQL锁机制"
 hide_title: true
 keywords:

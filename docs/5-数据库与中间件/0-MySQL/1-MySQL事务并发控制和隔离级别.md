@@ -1,5 +1,5 @@
 ---
-slug: "/mysql-transaction-isolation"
+slug: "/database-and-middleware/mysql-transaction-isolation"
 title: "MySQL事务并发控制和隔离级别"
 hide_title: true
 keywords:

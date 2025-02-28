@@ -1,5 +1,5 @@
 ---
-slug: "/golang-development-tips"
+slug: "/programming/golang-development-tips"
 title: "Golang开发中的一些技巧"
 hide_title: true
 keywords:

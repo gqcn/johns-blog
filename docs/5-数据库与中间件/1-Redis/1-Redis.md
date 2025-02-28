@@ -1,5 +1,5 @@
 ---
-slug: "/redis"
+slug: "/database-and-middleware/redis"
 title: "Redis"
 hide_title: true
 keywords:
