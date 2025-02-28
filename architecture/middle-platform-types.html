@@ -1,0 +1,114 @@
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-技术架构/中台架构相关/业务中台、数据中台、技术中台" data-has-hydrated=false><meta charset=UTF-8><meta name=generator content="Docusaurus v3.6.3"><title data-rh=true>业务中台、数据中台、技术中台 | John's Blog</title><meta data-rh=true name=viewport content="width=device-width,initial-scale=1.0"><meta data-rh=true name=twitter:card content=summary_large_image><meta data-rh=true property=og:url content=https://johng.cn/architecture/middle-platform-types><meta data-rh=true property=og:locale content=en><meta data-rh=true name=docusaurus_locale content=en><meta data-rh=true name=docsearch:language content=en><meta data-rh=true name=docusaurus_version content=current><meta data-rh=true name=docusaurus_tag content=docs-default-current><meta data-rh=true name=docsearch:version content=current><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current><meta data-rh=true property=og:title content="业务中台、数据中台、技术中台 | John's Blog"><meta data-rh=true name=description content=详细解析业务中台、数据中台和技术中台的概念、实现方式和价值，帮助企业构建高效的中台体系><meta data-rh=true property=og:description content=详细解析业务中台、数据中台和技术中台的概念、实现方式和价值，帮助企业构建高效的中台体系><meta data-rh=true name=keywords content=业务中台,数据中台,技术中台,中台建设,能力复用,企业架构><link data-rh=true rel=icon href=/img/favicon.ico><link data-rh=true rel=canonical href=https://johng.cn/architecture/middle-platform-types><link data-rh=true rel=alternate href=https://johng.cn/architecture/middle-platform-types hreflang=en><link data-rh=true rel=alternate href=https://johng.cn/architecture/middle-platform-types hreflang=x-default><link data-rh=true rel=preconnect href=https://XGS1CPQERK-dsn.algolia.net crossorigin><link rel=search type=application/opensearchdescription+xml title="John's Blog" href=/opensearch.xml><script src=https://hm.baidu.com/hm.js?6b4ae23dc83ee5efe875b7172af6c7c1 async></script><link rel=stylesheet href=/assets/css/styles.873a270f.css><script src=/assets/js/runtime~main.4fde59a1.js defer></script><script src=/assets/js/main.520a52bd.js defer></script><body class=navigation-with-keyboard><script>!function(){var t,e=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();t=null!==e?e:"light",document.documentElement.setAttribute("data-theme",t)}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="navbar navbar--fixed-top"><div class=navbar__inner><div class=navbar__items><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><b class="navbar__title text--truncate">John's Blog</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" sidebarid=mainSidebar href=/architecture>技术架构</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/management>技术管理</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/programming>开发语言</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/cloud-native>云原生</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/observability>可观测性</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/database-and-middleware>数据库与中间件</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/notes>日常笔记</a></div><div class="navbar__items navbar__items--right"><a href=https://goframe.org/ target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-goframe-link"></a><a href=https://github.com/gqcn target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-github-link"></a><div class=navbarSearchContainer_Bca1><button type=button class="DocSearch DocSearch-Button" aria-label="Search (Command+K)"><span class=DocSearch-Button-Container><svg width=20 height=20 class=DocSearch-Search-Icon viewBox="0 0 20 20" aria-hidden=true><path d="M14.386 14.386l4.0877 4.0877-4.0877-4.0877c-2.9418 2.9419-7.7115 2.9419-10.6533 0-2.9419-2.9418-2.9419-7.7115 0-10.6533 2.9418-2.9419 7.7115-2.9419 10.6533 0 2.9419 2.9418 2.9419 7.7115 0 10.6533z" stroke=currentColor fill=none fill-rule=evenodd stroke-linecap=round stroke-linejoin=round /></svg><span class=DocSearch-Button-Placeholder>Search</span></span><span class=DocSearch-Button-Keys></span></button></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--active" href=/architecture>技术架构</a><button aria-label="Collapse sidebar category '技术架构'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul style=display:block;overflow:visible;height:auto class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/architecture/software-architecture>软件架构</a><button aria-label="Expand sidebar category '软件架构'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/architecture/microservice-architecture>微服务架构</a><button aria-label="Expand sidebar category '微服务架构'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--active" tabindex=0 href=/architecture/middle-platform-architecture>中台架构相关</a><button aria-label="Collapse sidebar category '中台架构相关'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul style=display:block;overflow:visible;height:auto class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/architecture/middle-platform-types>业务中台、数据中台、技术中台</a></ul></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/management>技术管理</a><button aria-label="Expand sidebar category '技术管理'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/programming>开发语言</a><button aria-label="Expand sidebar category '开发语言'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/cloud-native>云原生</a><button aria-label="Expand sidebar category '云原生'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/observability>可观测性</a><button aria-label="Expand sidebar category '可观测性'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/database-and-middleware>数据库与中间件</a><button aria-label="Expand sidebar category '数据库与中间件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/operating-systems-and-networks>操作系统和网络</a><button aria-label="Expand sidebar category '操作系统和网络'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/data-structures-and-algorithms>数据结构和算法</a><button aria-label="Expand sidebar category '数据结构和算法'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/notes>日常笔记</a><button aria-label="Expand sidebar category '日常笔记'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label=Breadcrumbs><ul class=breadcrumbs itemscope itemtype=https://schema.org/BreadcrumbList><li class=breadcrumbs__item><a aria-label="Home page" class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_YNFT><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class=breadcrumbs__item><a class=breadcrumbs__link itemprop=item href=/architecture><span itemprop=name>技术架构</span></a><meta itemprop=position content=1><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class=breadcrumbs__item><a class=breadcrumbs__link itemprop=item href=/architecture/middle-platform-architecture><span itemprop=name>中台架构相关</span></a><meta itemprop=position content=2><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link itemprop=name>业务中台、数据中台、技术中台</span><meta itemprop=position content=3></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><blockquote>
+<p>文章来源：<a href=https://mp.weixin.qq.com/s/BnMuPZ45LXhC-lqLdUv7Sw target=_blank rel="noopener noreferrer">https://mp.weixin.qq.com/s/BnMuPZ45LXhC-lqLdUv7Sw</a> 著作权归原作者所有</p>
+</blockquote>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=一总体框架>一、总体框架<a href=#一总体框架 class=hash-link aria-label="Direct link to 一、总体框架" title="Direct link to 一、总体框架">​</a></h2>
+<p>中台建设过程从根本上讲是企业自身综合能力持续优化和提升的过程，最终目标是实现企业级业务能力复用和不同业务板块能力的联通和融合。</p>
+<p>企业级的综合能力，一般包含以下四种：<strong>业务能力</strong>、<strong>数据能力</strong>、<strong>技术能力</strong>和<strong>组织能力</strong>，如图2-1所示。</p>
+<p><img decoding=async loading=lazy src=/assets/images/640-b2f5adc0bd3c9dc54e9c3e634ee3839f.png width=1080 height=615 class=img_ev3q></p>
+<p>▲图2-1 企业中台数字化转型基本能力框架</p>
+<ul>
+<li>
+<p><strong>业务能力</strong>主要体现为对中台领域模型的构建能力，对领域模型的持续演进能力，企业级业务能力的复用、融合和产品化运营能力，以及快速响应市场的商业模式创新能力。</p>
+</li>
+<li>
+<p><strong>数据能力</strong>主要体现为企业级的数据融合能力、数据服务能力以及对商业模式创新和企业数字化运营的支撑能力。</p>
+</li>
+<li>
+<p><strong>技术能力</strong>主要体现为对设备、网络等基础资源的自动化运维和管理能力，对微服务等分布式技术架构体系化的设计、开发和架构演进能力。</p>
+</li>
+<li>
+<p><strong>组织能力</strong>主要体现为一体化的研发运营能力和敏捷的中台产品化运营能力，还体现为快速建设自适应的组织架构和中台建设方法体系等方面的能力。</p>
+</li>
+<li>
+<p>这些能力相辅相成，融合在一起为企业中台数字化转型发挥最大效能。接下来，我们一起来看看在不同的领域应该如何实现这些能力。</p>
+</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=二业务中台>二、业务中台<a href=#二业务中台 class=hash-link aria-label="Direct link to 二、业务中台" title="Direct link to 二、业务中台">​</a></h2>
+<p>企业所有能力建设都是服务于前台一线业务的。从这个角度来讲，所有中台应该都可以称为业务中台。但我们所说的业务中台一般是指支持企业线上核心业务的中台。</p>
+<p>业务中台承载了企业核心关键业务，是企业的核心业务能力，也是企业数字化转型的重点。业务中台的建设目标是：“将可复用的业务能力沉淀到业务中台，实现企业级业务能力复用和各业务板块之间的联通和协同，确保关键业务链路的稳定高效，提升业务创新效能。”</p>
+<p>业务中台的主要目标是实现企业级业务能力的复用，所以业务中台建设需优先解决业务能力重复建设和复用的问题。通过重构业务模型，将分散在不同渠道和业务场景（例如：互联网应用和传统核心应用）重复建设的业务能力，沉淀到企业级中台业务模型，面向企业所有业务场景和领域，实现能力复用和流程融合。</p>
+<p>图2-2是一个业务中台示例。在业务中台设计时，我们可以将用户管理、订单管理、商品管理和支付等这些通用的能力，通过业务领域边界划分和领域建模，沉淀到用户中心、订单中心、商品中心和支付中心等业务中台，然后基于分布式微服务技术体系完成微服务建设，形成企业级解决方案，面向前台应用提供可复用的业务能力。</p>
+<p><img decoding=async loading=lazy src=/assets/images/640-1-6ce90b1714ab9833723a53a80662fdf6.png width=1080 height=484 class=img_ev3q></p>
+<p>▲图2-2 业务中台示例</p>
+<p>在技术实现上，中台的系统落地可以采用微服务架构。微服务是目前公认的业务中台技术最佳实现，可以有效提升业务扩展能力，实现业务能力复用。</p>
+<p>在业务建模上，中台领域建模可以采用领域驱动设计（DDD）方法，通过划分业务限界上下文边界，构建中台领域模型，根据领域模型完成微服务拆分和设计。</p>
+<p>业务中台可以面向前台应用提供基于API接口级的业务服务能力，也可以将领域模型所在的微服务和微前端组合为业务单元，以组件的形式面向前台应用，提供基于微前端的页面级服务能力。</p>
+<p>业务中台建设完成后，前台应用就可以联通和组装各个不同中台业务板块，既提供企业级一体化业务能力支撑，又可以提供灵活的场景化销售能力支撑。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=三数据中台>三、数据中台<a href=#三数据中台 class=hash-link aria-label="Direct link to 三、数据中台" title="Direct link to 三、数据中台">​</a></h2>
+<p>数据中台与业务中台相辅相成，共同支持前台一线业务。数据中台除了拥有传统数据平台的统计分析和决策支持功能外，会更多聚焦于为前台一线交易类业务提供智能化的数据服务，支持企业流程智能化、运营智能化和商业模式创新，实现“业务数据化和数据业务化”。</p>
+<p>最近几年，数据应用领域出现了很多新的趋势。数据中台建设模式也随着这些趋势在发生变化，主要体现在以下几点。</p>
+<p><strong>第一</strong>，数据应用技术发展迅猛。近几年涌现出了大量新的数据应用技术，如NoSQL、NewSQL和分布式数据库等，以及与数据采集、数据存储、数据建模和数据挖掘等大数据相关的技术。这些技术解决业务问题的能力越来越强，但同时也增加了技术实现的复杂度。</p>
+<p><strong>第二</strong>，数据架构更加灵活。在从单体向微服务架构转型后，企业业务和数据形态也发生了很大的变化，数据架构已经从集中式架构向分布式架构转变。</p>
+<p><strong>第三</strong>，数据来源更加多元化，数据格式更加多样化。随着车联网、物联网、LBS和社交媒体等数据的引入，数据来源已从单一的业务数据向复杂的多源数据转变，数据格式也已经从以结构化为主向结构化与非结构化多种模式混合的方向转变。</p>
+<p><strong>第四</strong>，数据智能化应用将会越来越广泛。在数字新基建的大背景下，未来企业将汇集多种模式下的数据，借助深度学习和人工智能等智能技术，优化业务流程，实现业务流程的智能化，通过用户行为分析提升用户体验，实现精准营销、反欺诈和风险管控，实现数字化和智能化的产品运营以及AIOps等，提升企业数字智能化水平。</p>
+<p>面对复杂的数据领域，如何建设数据中台管理并利用好这些数据？<br>
+<!-- -->这对企业来说是一个非常重要的课题。</p>
+<p>数据中台的大部分数据来源于业务中台，经过数据建模和数据分析等操作后，将加工后的数据，返回业务中台为前台应用提供数据服务，或直接以数据类应用的方式面向前台应用提供API数据服务。<br>
+<!-- -->数据中台一般包括数据采集、数据集成、数据治理、数据应用和数据资产管理，另外还有诸如数据标准和指标建设，以及数据仓库或大数据等技术应用。图2-3是2017年阿里云栖大会上的一个数据中台示例。</p>
+<p><img decoding=async loading=lazy src=/assets/images/640-2-4aef8fdfc0a7fc59c7c757f47bd87f86.png width=1080 height=724 class=img_ev3q></p>
+<p>▲图2-3 数据中台示例（图参考：2017年阿里云栖大会）</p>
+<p>综上所述，数据中台建设需要做好以下三方面的工作。</p>
+<ul>
+<li>
+<p>一是建立统一的企业级数据标准指标体系，解决数据来源多元化和标准不统一的问题。企业在统一的数据标准下，规范有序地完成数据采集、数据建模、数据分析、数据集成、数据应用和数据资产管理。</p>
+</li>
+<li>
+<p>二是建立与企业能力相适应的数据研发、分析、应用和资产管理技术体系。结合企业自身技术能力和数据应用场景，选择合适的技术体系构建数据中台。</p>
+</li>
+<li>
+<p>三是构建支持前台一线业务的数据中台。业务中台微服务化后，虽然提升了应用的高可用能力，但是随着数据和应用的拆分，会形成更多的数据孤岛，会增加应用和数据集成的难度。在业务中台建设的同时，需要同步启动数据中台建设，整合业务中台数据，消除不同业务板块核心业务链条之间的数据孤岛，对外提供统一的一致的数据服务。用“业务+数据”双中台模式，支持业务、数据和流程的融合。</p>
+</li>
+</ul>
+<p>数据中台投入相对较大，收益周期较长，但会给企业带来巨大的潜在商业价值，也是企业未来数字化运营的重要基础。企业可以根据业务发展需求，制定好阶段性目标，分步骤、有计划地整合好现有数据平台，演进式推进数据中台建设。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=四技术中台>四、技术中台<a href=#四技术中台 class=hash-link aria-label="Direct link to 四、技术中台" title="Direct link to 四、技术中台">​</a></h2>
+<p>业务中台落地时需要有很多的技术组件支撑，这些不同技术领域的技术组件就组成了技术中台。业务中台大多采用微服务架构，以保障系统高可用性，有效应对高频海量业务访问场景，所以技术中台会有比较多的微服务相关的技术组件。</p>
+<p>一般来说，技术中台会有以下几类关键技术领域的组件，如API网关、前端开发框架、微服务开发框架、微服务治理组件、分布式数据库以及分布式架构下诸如复制、同步等数据处理相关的关键技术组件，如图2-4所示。</p>
+<p><strong>1. API网关</strong></p>
+<p>微服务架构一般采用前后端分离设计，前端页面逻辑和后端微服务业务逻辑独立开发、独立部署，通过网关实现前后端集成。<br>
+<!-- -->前台应用接入中台微服务的技术组件一般是API网关。</p>
+<p>API网关主要包括：鉴权、降级限流、流量分析、负载均衡、服务路由和访问日志等功能。API网关可以帮助用户，方便地管理微服务API接口，实现安全的前后端分离，实现高效的系统集成和精细的服务监控。</p>
+<p><strong>2. 开发框架</strong></p>
+<p>开发框架主要包括前端开发框架和后端微服务开发框架。基于前、后端开发框架，分别完成前端页面逻辑和后端业务逻辑的开发。<br>
+<!-- -->前端开发框架主要是面向PC端或者移动端应用，用于构建系统表示层，规范前后端交互，降低前端开发成本。</p>
+<p><img decoding=async loading=lazy src=/assets/images/640-3-ef098d8650a00b12c6a85f1bc4506949.png width=1080 height=786 class=img_ev3q></p>
+<p>▲图2-4 技术中台关键技术领域</p>
+<p>微服务开发框架用于构建企业级微服务应用。一般具备自动化配置、快速开发、方便调试及部署等特性，提供微服务注册、发现、通信、容错和监控等服务治理基础类库，帮助开发人员快速构建产品级的微服务应用。</p>
+<p><strong>开发框架一般都支持代码自动生成、本地调试和依赖管理等功能。</strong></p>
+<p><strong>3. 微服务治理</strong></p>
+<p>微服务治理是在微服务的运行过程中，针对微服务的运行状况采取的动态治理策略，如服务注册、发现、限流、熔断和降级等，以<strong>保障微服务能够持续稳定运行。</strong></p>
+<p>微服务治理主要应用于微服务运行中的状态监控、微服务运行异常时的治理策略配置等场景，保障微服务在常见异常场景下的自恢复能力。</p>
+<p>微服务治理技术组件一般包括服务注册、服务发现、服务通信、配置中心、服务熔断、容错和微服务监控等组件。</p>
+<p><strong>常见的微服务治理有Dubbo、Spring Cloud和Service Mesh等技术体系。</strong></p>
+<p><strong>4. 分布式数据库</strong></p>
+<p>分布式数据库一般都具有较强的数据线性扩展能力，它们大多采用数据多副本机制实现数据库高可用，具有可扩展和低成本等技术优势。</p>
+<p><strong>分布式数据库一般包括三类：交易型分布式数据库、分析型分布式数据库和交易分析混合型分布式数据库。</strong></p>
+<ul>
+<li>
+<p><strong>交易型分布式数据库</strong>用于解决交易型业务的数据库计算能力，它支持数据分库、分片、数据多副本，具有高可用的特性，提供统一的运维界面，具备高性能的交易型业务数据处理能力。主要应用于具有跨区域部署和高可用需求，需支持高并发和高频访问的核心交易类业务场景。</p>
+</li>
+<li>
+<p><strong>分析型分布式数据库</strong>通过横向扩展能力和并行计算能力，提升数据整体计算能力和吞吐量，支持海量数据的分析。主要应用于大规模结构化数据的统计分析、高性能交互式分析等场景，如数据仓库、数据集市等。</p>
+</li>
+<li>
+<p><strong>交易分析混合型分布式数据库</strong>通过资源隔离、分时和数据多副本等技术手段，基于不同的数据存储、访问性能和容量等需求，使用不同的存储介质和分布式计算引擎，同时满足业务交易和分析需求。主要应用于数据规模大和访问并发量大，需要解决交易型数据同步到分析型数据库时成本高的问题，需要解决数据库入口统一的问题，需要支持高可用和高扩展性等数据处理业务场景。</p>
+</li>
+</ul>
+<p><strong>5. 数据处理组件</strong></p>
+<p>为了提高应用性能和业务承载能力，降低微服务的耦合度，实现分布式架构下的分布式事务等要求，**技术中台还有很多数据处理相关的基础技术组件。**如：分布式缓存、搜索引擎、数据复制、消息中间件和分布式事务等技术组件。</p>
+<ul>
+<li>
+<p><strong>分布式缓存</strong>是将高频热点数据集分布于多个内存集群节点，以复制、分发、分区和失效相结合的方式进行维护，解决高并发热点数据访问性能问题，降低后台数据库访问压力，提升系统吞吐能力。典型的开源分布式缓存技术组件有Redis。</p>
+</li>
+<li>
+<p><strong>搜索引擎</strong>主要解决大数据量的快速搜索和分析等需求。将业务、日志类等不同类型的数据，加载到搜索引擎，提供可扩展和近实时的搜索能力。</p>
+</li>
+<li>
+<p><strong>数据复制</strong>主要解决数据同步需求，实现同构、异构数据库间以及跨数据中心的数据复制，满足数据多级存储、交换和整合需求。主要应用于基于表或库的业务数据迁移、业务数据向数据仓库复制等数据迁移场景。数据复制技术组件大多采用数据库日志捕获和解析技术，在技术选型时需考虑数据复制技术组件与源端数据库的适配能力。</p>
+</li>
+<li>
+<p><strong>消息中间件</strong>主要适用于数据最终一致性的业务场景，它采用异步化的设计，实现数据同步转异步操作，支持海量异步数据调用，并通过削峰填谷设计提高业务吞吐量和承载能力。它被广泛用于微服务之间的数据异步传输、大数据日志采集和流计算等场景。另外，在领域驱动设计的领域事件驱动模型中，消息中间件是实现领域事件数据最终一致性的非常关键的技术组件，可以实现微服务之间的解耦，满足“高内聚，松耦合”设计原则。典型的开源消息中间件有Kafka等。</p>
+</li>
+</ul>
+<p><strong>分布式事务主要是解决分布式架构下事务一致性的问题。</strong> 单体应用被拆分成微服务后，原来单体应用大量的内部调用会变成跨微服务访问，业务调用链路中任意一个节点出现问题，都可能造成数据不一致。分布式事务是基于分布式事务模型，保证跨数据库或跨微服务调用场景下的数据一致性。</p>
+<p>分布式事务虽然可以实时保证数据的一致性，但过多的分布式事务设计会导致系统性能下降。因此微服务设计时应优先采用基于消息中间件的最终数据一致性机制，尽量避免使用分布式事务。</p>
+<p><strong>技术中台是业务中台建设的关键技术基础。</strong> 在中台建设过程中，可以根据业务需要不断更新和吸纳新的技术组件，也可以考虑将一些不具有明显业务含义的通用组件（如认证等），通过抽象和标准化设计后纳入技术中台统一管理。为了保证业务中台的高性能和稳定性，在技术组件选型时一定要记住：尽可能选用成熟的技术组件。</div></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/architecture/middle-platform-architecture><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>中台架构相关</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/management><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>技术管理</div></a></nav><div class=docusaurus-mt-lg></div></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#一总体框架 class="table-of-contents__link toc-highlight">一、总体框架</a><li><a href=#二业务中�台 class="table-of-contents__link toc-highlight">二、业务中台</a><li><a href=#三数据中台 class="table-of-contents__link toc-highlight">三、数据中台</a><li><a href=#四技术中台 class="table-of-contents__link toc-highlight">四、技术中台</a></ul></div></div></div></div></main></div></div></div><footer class=footer><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright 2025 johng.cn</div></div></div></footer></div>
