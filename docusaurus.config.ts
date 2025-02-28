@@ -158,27 +158,27 @@ const config: Config = {
       // 默认支持的语言 "markup","jsx","tsx","swift","kotlin","objectivec","js-extras","reason","rust","graphql","yaml","go","cpp","markdown","python","json"
     },
     // 搜索配置
-    // algolia: {
-      // // The application ID provided by Algolia
-      // appId: 'ZQUL8VI47R',
+    algolia: {
+      // The application ID provided by Algolia
+      appId: 'XGS1CPQERK',
 
-      // // Public API key: it is safe to commit it
-      // apiKey: '35fbd44a6d7dfae18587c435bc6a0d01',
+      // Public API key: it is safe to commit it
+      apiKey: '4b3972b5af1d9371cb020b1a79cdccb4',
 
-      // indexName: 'goframe',
+      indexName: 'johng',
 
-      // // Optional: see doc section below
-      // contextualSearch: true,
+      // Optional: see doc section below
+      contextualSearch: true,
 
-      // // Optional: Algolia search parameters
-      // searchParameters: {},
+      // Optional: Algolia search parameters
+      searchParameters: {},
 
-      // // Optional: path for search page that enabled by default (`false` to disable it)
-      // searchPagePath: 'search',
+      // Optional: path for search page that enabled by default (`false` to disable it)
+      searchPagePath: 'search',
 
-      // // Optional: whether the insights feature is enabled or not on Docsearch (`false` by default)
-      // insights: false,
-    // },
+      // Optional: whether the insights feature is enabled or not on Docsearch (`false` by default)
+      insights: false,
+    },
   } satisfies Preset.ThemeConfig,
   scripts: [
     {
