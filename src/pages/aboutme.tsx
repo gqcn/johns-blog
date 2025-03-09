@@ -15,7 +15,7 @@ export default function AboutMe(): JSX.Element {
                                 对<code>Go</code>语言有着深入研究，
                                 是 <a href="https://goframe.org" target="_blank" rel="noreferrer">GoFrame</a> 开源项目的发起人和主要贡献者。
                                 擅长技术架构、云原生、微服务、<code>DevOps</code>技术。
-                                在大中小厂工作过，感受过创业的不易，
+                                在大中小厂都工作过，体会过职场的不易，感受过创业的艰辛。
                                 始终坚持在技术方向学习与深耕，不给自己设限。
                             </p>
                         </div>
@@ -30,7 +30,7 @@ export default function AboutMe(): JSX.Element {
 
                         <div className={styles.aboutSection}>
                             <h2>联系方式</h2>
-                            <p> 非常欢迎志同道合的朋友，可以通过以下方式与我交流：</p>
+                            <p> 目前定居于成都，乐于结识志同道合的朋友，可以通过以下方式与我交流：</p>
                             <ul>
                                 <li>在文章下方评论区留言</li>
                                 <li>个人微信号：<code>389961817</code></li>
