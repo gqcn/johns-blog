@@ -129,6 +129,11 @@ const config: Config = {
           to: '/notes',
         },
         {
+          position: 'left',
+          label: '关于我',
+          to: '/aboutme',
+        },
+        {
           href: 'https://goframe.org/',
           position: 'right',
           className: 'header-goframe-link',
