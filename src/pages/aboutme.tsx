@@ -15,8 +15,8 @@ export default function AboutMe(): JSX.Element {
                                 对<code>Go</code>语言有着深入研究，
                                 是 <a href="https://goframe.org" target="_blank" rel="noreferrer">GoFrame</a> 开源项目的发起人和主要贡献者。
                                 擅长技术架构、云原生、微服务、<code>DevOps</code>技术。
-                                在大中小厂都工作过，经历过职场的不平、感受过创业的艰辛。
-                                始终坚持在技术方向持续学习与深耕，不给自己设限。
+                                在大中小厂工作过，感受过创业的不易，
+                                始终坚持在技术方向学习与深耕，不给自己设限。
                             </p>
                         </div>
 
