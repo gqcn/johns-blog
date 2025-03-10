@@ -3,9 +3,7 @@ import Footer from '@theme-original/Footer';
 
 export default function CustomFooter(props) {
   React.useEffect(() => {
-    const currentDomain = window.location.hostname;
-    const icpNumber = currentDomain === 'goframe.org.cn'
-      ? '<a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">蜀ICP备2024111610号</a >' : null;
+    const icpNumber = '<a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">蜀ICP备2024111610号</a >';
     if (icpNumber) {
       const footerElement = document.querySelector('.footer__bottom');
       if (footerElement) {
