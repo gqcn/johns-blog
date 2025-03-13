@@ -236,3 +236,9 @@
     font-size: 88%;
     color: var(--ifm-font-color-base);
   }
+
+  pre {
+    tab-size: 4;
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+  }
