@@ -21,6 +21,10 @@ const config: Config = {
   future: {
     experimental_faster: true,
   },
+  // 启用 Markdown 中的 Mermaid 支持
+  markdown: {
+    mermaid: true,
+  },
   presets: [
     [
       'classic',
@@ -42,6 +46,8 @@ const config: Config = {
       } satisfies Preset.Options,
     ],
   ],
+  // 添加 Mermaid 主题
+  themes: ['@docusaurus/theme-mermaid'],
   plugins: [
     require.resolve('docusaurus-plugin-image-zoom'),
     [
@@ -148,7 +154,7 @@ const config: Config = {
     // toc目录层级显示设置
     tableOfContents: {
       minHeadingLevel: 2,
-      maxHeadingLevel: 4,
+      maxHeadingLevel: 3,
     },
     footer: {
       copyright: `Copyright ${new Date().getFullYear()} johng.cn`,
