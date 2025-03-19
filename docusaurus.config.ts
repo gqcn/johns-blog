@@ -100,12 +100,6 @@ const config: Config = {
         },
         {
           position: 'left',
-          label: '技术管理',
-          sidebarId: 'mainSidebar',
-          to: '/management',
-        },
-        {
-          position: 'left',
           label: '开发语言',
           sidebarId: 'mainSidebar',
           to: '/programming',
