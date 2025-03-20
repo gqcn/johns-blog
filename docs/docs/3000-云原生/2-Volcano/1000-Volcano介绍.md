@@ -130,14 +130,34 @@ graph TD
 `Volcano Scheduler`的工作流程如下：
 
 1.  客户端提交的`Job`被调度器识别到并缓存起来。
-2.  周期性开启会话，一个调度周期开始。
+2.  周期性开启会话（`Session`），一个调度周期开始。
 3.  将没有被调度的`Job`发送到会话的待调度队列中。
 4.  遍历所有的待调度`Job`，按照定义的次序依次执行`enqueue`、`allocate`、`preempt`、`reclaim`、`backfill`等动作，为每个`Job`找到一个最合适的节点。将该`Job`绑定到这个节点。`action`中执行的具体算法逻辑取决于注册的`plugin`中各函数的实现。
 5.  关闭本次会话。
 
+具体流程、`Actions`和`Plugins`介绍请参考：
+- https://volcano.sh/zh/docs/schduler_introduction
+- https://volcano.sh/zh/docs/actions
+- https://volcano.sh/zh/docs/plugins
 
 
-### Volcano自定义资源
+
+### Task/Pod状态转换
+
+
+![Task/Pod状态转换](../assets/v2-0a38d4ee885e17ce828f581eab1d795b_1440w.jpg)
+
+
+`Volcano`在`Pod`和`Pod`的状态方面增加了很多状态:
+- 图中**蓝色部分**为`Kubernetes`自带的状。
+- **绿色部分**是`session`级别的状态，一个调度周期，`Volcano Scheduler`会创建一个`session`，它只在调度周期内发挥作用，一旦过了调度周期，这几个状态它是失效的。
+- **黄色部分**的状态是放在`Cache`内的。
+
+我们加这些状态的目的是减少调度和API之间的一个交互，从而来优化调度性能。
+
+`Pod`的这些状态为调度器提供了更多优化的可能。例如，当进行`Pod`驱逐时，驱逐在`Binding`和`Bound`状态的`Pod`要比较驱逐`Running`状态的`Pod`的代价要小；并且状态都是记录在`Volcano`调度内部，减少了与`kube-apiserver`的通信。但目前`Volcano`调度器仅使用了状态的部分功能，比如现在的`preemption/reclaim`仅会驱逐`Running`状态下的`Pod`；这主要是由于分布式系统中很难做到完全的状态同步，在驱逐`Binding`和`Bound`状态的`Pod`会有很多的状态竞争。
+
+## Volcano自定义资源
 
 *  `Pod`组（`PodGroup`）：`Pod`组是`Volcano`自定义资源类型，代表一组强关联`Pod`的集合，主要用于批处理工作负载场景，比如`Tensorflow`中的一组`ps`和`worker`。这主要解决了`Kubernetes`原生调度器中单个`Pod`调度的限制。
 
@@ -146,241 +166,101 @@ graph TD
 
 *   作业（`Volcano Job`，简称`vcjob`）：`Volcano`自定义的`Job`资源类型，它扩展了`Kubernetes`的`Job`资源。区别于`Kubernetes Job`，`vcjob`提供了更多高级功能，如可指定调度器、支持最小运行`Pod`数、支持`task`、支持生命周期管理、支持指定队列、支持优先级调度等。`Volcano Job`更加适用于机器学习、大数据、科学计算等高性能计算场景。
 
+### PodGroup资源组
+
+`PodGroup` 是 `Volcano` 中实现`Gang Scheduling`的核心资源对象，它将一组相关的 `Pod` 视为一个整体进行调度。
 
 
 
-### Volcano Scheduler使用示例
+#### PodGroup 的作用
 
+1. **整体调度**
+   - 确保一组相关的 `Pod` 要么全部调度成功，要么全部不调度
+   - 防止部分 `Pod` 调度成功而其他失败导致资源浪费
 
-#### 配置 Deployment 使用 Volcano 控制资源使用
+2. **资源预留**
+   - 可以为 `PodGroup` 设置最小成员数（`minMember`）
+   - 当可用资源不足以调度最小成员数时，整个组将等待而不是部分调度
 
-这里举一个示例，限制`Deployment`最多仅能使用 2 核 CPU。
+3. **状态跟踪**
+   - 提供 `PodGroup` 的整体状态信息
+   - 包括已调度数量、运行状态等
 
-1. 创建队列
+#### PodGroup 配置示例
+
+下面是一个基本的 `PodGroup` 定义示例：
+
+```yaml
+apiVersion: scheduling.volcano.sh/v1beta1
+kind: PodGroup
+metadata:
+  name: tf-training-group
+spec:
+  minMember: 4  # 最小需要 4 个 Pod 同时调度
+  queue: ml-jobs  # 指定队列
+  priorityClassName: high-priority  # 指定优先级
+  minResources:  # 最小资源需求
+    cpu: 8
+    memory: 16Gi
+    nvidia.com/gpu: 2
+```
+
+#### 使用 PodGroup 的方法
+
+1. **直接创建 PodGroup 资源**
+
+   先创建 `PodGroup`，然后在 `Pod` 中引用它：
    ```yaml
-    apiVersion: scheduling.volcano.sh/v1beta1
-    kind: Queue
-    metadata:
-      name: my-node-queue
-    spec:
-      weight: 1
-      reclaimable: false
-      capability:
-        cpu: 2
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: tf-worker-1
+     annotations:
+       volcano.sh/pod-group: "tf-training-group"  # 引用 PodGroup 名称
+   spec:
+     schedulerName: volcano  # 使用 Volcano 调度器
+     containers:
+     - name: tensorflow
+       image: tensorflow/tensorflow:latest-gpu
    ```
-    创建一个仅有 2 核 CPU、并且绑定到节点组`my-node-group`的队列。这里的`weight`表示集群资源划分中所占的相对比重，是软约束;`reclaimable`表示是否允许被回收，由`weight`来决定;`capability`表示队列的资源限制。
 
-2. 创建`Deployment`
+2. **通过 Volcano Job 自动创建**
+
+   `Volcano Job` 会自动创建并管理 `PodGroup`：
    ```yaml
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: ubuntu-with-volcano
-      labels:
-        app: demo
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: demo
-      template:
-        metadata:
-          labels:
-            app: demo
-        spec:
-          schedulerName: volcano
-          containers:
-            - name: demo
-              image: shaowenchen/demo-ubuntu
-              resources:
-                requests:
-                  cpu: 1
-   ```
-    将`schedulerName`设置为`volcano，表示使用``Volcano`调度器。
-
-3. 查看`Pod`
-   ```bash
-    $ kubectl get pods -l app=demo
-    NAME                                  READY   STATUS    RESTARTS   AGE
-    ubuntu-with-volcano-97c94f9fb-bfgrh   1/1     Running   0          6m24s
-   ```
-4. 扩容`Deployment`
-   ```bash
-    $ kubectl scale deployment/ubuntu-with-volcano --replicas=3
-   ```
-    此时，三个 Pod 只有两个处于 Running 状态，因为 Volcano 限制了 Deployment 最多仅能使用 2c CPU。
-   ```bash
-    $ kubectl get pods -l app=demo
-
-    NAME                                  READY   STATUS    RESTARTS   AGE
-    ubuntu-with-volcano-97c94f9fb-25nb7   1/1     Running   0          27s
-    ubuntu-with-volcano-97c94f9fb-6fd64   0/1     Pending   0          27s
-    ubuntu-with-volcano-97c94f9fb-bfgrh   1/1     Running   0          7m31s
+   apiVersion: batch.volcano.sh/v1alpha1
+   kind: Job
+   metadata:
+     name: tensorflow-training
+   spec:
+     minAvailable: 4
+     schedulerName: volcano
+     queue: ml-jobs
    ```
 
-#### 配置`Job`使用`Volcano`限流并发执行
+#### PodGroup 的实际应用场景
 
-这里创建一个`Job`并且要求至少 3 个`Pod`一起运行的`Job。`
+1. **分布式机器学习**
+   - 确保参数服务器和工作节点同时启动
+   - 避免资源浪费和训练任务失败
 
-直接使用`Kubernetes batch/v1`中的`Job`，配置`completions`和`parallelism`，也可以实现这个需求。但`Volcano`提供的`Queue`可以控制资源使用、`Policy`可以控制`Task`的生命周期策略，能更精准控制`Job`的执行。
+2. **大数据处理**
+   - 确保`Spark`或`Flink`集群的所有组件同时启动
+   - 提高数据处理效率
 
-1. 创建`Job`
-   ```yaml
-    apiVersion: batch.volcano.sh/v1alpha1
-    kind: Job
-    metadata:
-      name: my-job
-    spec:
-      minAvailable: 3
-      schedulerName: volcano
-      queue: default
-      policies:
-        - event: PodEvicted
-          action: RestartJob
-      tasks:
-        - replicas: 30
-          name: demo
-          policies:
-          - event: TaskCompleted
-            action: CompleteJob
-          template:
-            spec:
-              containers:
-                - image: ubuntu
-                  name: demo
-                  command: ["sleep", "5"]
-                  resources:
-                    requests:
-                      cpu: 20
-              restartPolicy: Never
-    ```
-    其中:
-    ```yaml
-    policies:
-      - event: PodEvicted
-        action: RestartJob
-    ```
-    表示如果`Pod`被`Evict`了，就重启`Job`。
-    ```yaml
-    policies:
-      - event: TaskCompleted
-        action: CompleteJob
-    ```
-    表示如果`Task`完成了，就完成`Job`。
+3. **高性能计算**
+   - 为`MPI`等高性能计算任务提供同步启动能力
+   - 确保计算节点的一致性
 
-    通过`Event`和`Action`，可以控制`Job`的状态和行为。
-
-2. 查看`Pod`创建情况
-    ```bash
-    $ kubectl get pod
-
-    NAME                            READY   STATUS    RESTARTS   AGE
-    my-job-demo-0                   1/1     Running   0          7s
-    my-job-demo-1                   1/1     Running   0          7s
-    my-job-demo-10                  0/1     Pending   0          7s
-    ...
-    my-job-demo-2                   1/1     Running   0          7s
-    ...
-    ```
-    由于我设置了`Pod`的`CPU Request`为 20，集群上没有足够的资源，所以 30 个`Pod`每次只能运行 3 个。
-
-    执行完成之后，`Pod`不会被删除而是处于`Completed`状态。由于`Pod`的`ownerReferences`是`Job`，如果删除`Job`，`Pod`也会被删除。
+`PodGroup` 是 `Volcano` 实现`Gang Scheduling`的基础，它使得复杂的分布式工作负载可以更可靠地运行在 `Kubernetes` 集群上。
 
 
+### Queue资源队列
 
+`Queue`是`Volcano`调度系统中的核心概念，用于管理和分配集群资源。
+它充当了资源池的角色，允许管理员将集群资源划分给不同的用户组或应用场景。该自定义资源可以很好地用于多租户场景下的资源隔离。
 
-
-## Volcano 注解
-
-`Volcano`提供了一系列注解（`Annotations`），可以应用于`Pod`或`PodGroup`资源，用于控制调度行为和资源分配。这些注解提供了一种简单而强大的方式来影响`Volcano`的调度决策，而无需修改复杂的配置文件或自定义资源定义。
-
-### 常用注解及其作用
-
-| 注解 | 适用对象 | 作用 | 示例值 |
-|------|---------|------|--------|
-|`volcano.sh/queue-name`|`Pod, PodGroup`| 指定资源应该被分配到哪个队列 |`"default"`|
-|`volcano.sh/preemptable`|`Pod`| 标记`Pod`是否可被抢占 |`"true"`,`"false"`|
-|`volcano.sh/task-spec`|`Pod`| 指定`Pod`所属的任务类型 |`"default"`|
-|`volcano.sh/num-pods`|`PodGroup`| 指定`PodGroup`中需要的`Pod`数量 |`"5"`|
-|`volcano.sh/min-available`|`PodGroup`| 指定`PodGroup`最小可用`Pod`数量 |`"3"`|
-|`volcano.sh/priorityClassName`|`PodGroup`| 指定`PodGroup`的优先级类名 |`"high-priority"`|
-|`volcano.sh/resource-reservation`|`PodGroup`| 是否为`PodGroup`预留资源 |`"true"`,`"false"`|
-|`volcano.sh/job-type`|`PodGroup`| 指定作业类型，影响调度策略 |`"MPI"`,`"TensorFlow"`|
-
-### 注解使用示例
-
-1. **将`Pod`分配到特定队列**
-
-    ```yaml
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      name: example-pod
-      annotations:
-        volcano.sh/queue-name: "high-priority-queue"
-    spec:
-      schedulerName: volcano
-      containers:
-      - name: example-container
-        image: nginx
-    ```
-
-2. **设置`PodGroup`的最小可用数量**
-
-    ```yaml
-    apiVersion: scheduling.volcano.sh/v1beta1
-    kind: PodGroup
-    metadata:
-      name: example-podgroup
-      annotations:
-        volcano.sh/min-available: "3"
-    spec:
-      minMember: 5
-      queue: default
-    ```
-
-3. **标记 Pod 为可抢占**
-
-    可抢占（`Preemptable`）是`Volcano`中的一个重要概念，它允许集群在资源紧张时为高优先级任务让出资源。当标记为可抢占时：
-    
-    - 该`Pod`可能会在运行过程中被终止，以释放资源给更高优先级的任务
-    - 适用于容错性高、可以中断的工作负载，如批处理任务、后台分析等
-    - 可以提高集群资源利用率，允许低优先级任务在资源空闲时运行，高优先级任务来时自动让出
-
-    ```yaml
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      name: preemptable-pod
-      annotations:
-        volcano.sh/preemptable: "true"
-    spec:
-      schedulerName: volcano
-      containers:
-      - name: example-container
-        image: nginx
-    ```
-    
-    当集群资源紧张时，调度器会优先抢占标记为`volcano.sh/preemptable: "true"`的`Pod`，而不是随机选择。这使得集群管理员可以明确指定哪些工作负载可以被安全地中断。
-
-### 注解的优势
-
-使用注解控制`Volcano`行为有以下优势：
-
-1. **简单易用**：无需创建复杂的自定义资源，只需添加注解即可
-2. **灵活性**：可以针对单个`Pod`或`PodGroup`进行精细控制
-3. **兼容性**：与现有`Kubernetes`工作负载控制器（如`Deployment`、`StatefulSet`）良好集成
-4. **动态调整**：可以通过更新注解动态调整调度行为，而无需重启组件
-
-通过合理使用这些注解，用户可以更精细地控制`Volcano`的调度行为，满足不同场景下的资源分配和调度需求。
-
-
-
-## Queue 资源队列
-
-`Queue`是`Volcano`调度系统中的核心概念，用于管理和分配集群资源。它充当了资源池的角色，允许管理员将集群资源划分给不同的用户组或应用场景。
-
-### Queue 的作用
+#### Queue 的作用
 
 1. **资源隔离与划分**
    - 将集群资源划分给不同的用户组或业务线
@@ -398,7 +278,7 @@ graph TD
    - 通过`reclaimable`属性控制队列资源是否可被回收（被其他队列借用）
    - 当集群资源紧张时，决定哪些队列的资源可以被抢占
 
-### Queue 配置示例
+#### Queue 配置示例
 
 下面是一个定义三个不同队列的示例，分别用于生产、开发和测试环境：
 
@@ -442,7 +322,7 @@ spec:
     memory: 100Gi  # 最多使用 100Gi 内存
 ```
 
-### 使用 Queue 的方法
+#### 使用 Queue 的方法
 
 1. **在 Pod 中指定队列**
 
@@ -479,7 +359,7 @@ spec:
      queue: production  # 指定使用 production 队列
    ```
 
-### Queue 的实际应用场景
+#### Queue 的实际应用场景
 
 1. **多租户环境**
    - 为不同部门或团队创建独立队列
@@ -494,6 +374,116 @@ spec:
    - 为不同类型的工作负载设置适当的资源上限
 
 `Queue`机制是`Volcano`实现多租户资源管理和公平调度的关键组件，它使得集群管理员可以更精细地控制资源分配策略，提高集群资源利用率和用户满意度。
+
+
+
+
+
+
+
+
+
+
+
+### Volcano Job资源
+
+`Volcano Job`（简称 `vcjob`）是 `Volcano` 提供的一种高级作业资源类型，扩展了 `Kubernetes` 原生的 `Job` 资源，为高性能计算和批处理场景提供了更丰富的功能。
+
+#### Volcano Job 的作用
+
+1. **多任务类型支持**
+   - 支持在一个作业中定义多种不同类型的任务（`task`）
+   - 每种任务类型可以有不同的镜像、资源需求和副本数
+
+2. **生命周期管理**
+   - 支持在作业生命周期的不同阶段执行特定命令
+   - 包括启动前、运行中、完成后等阶段
+
+3. **高级调度策略**
+   - 支持指定最小可用数量（`minAvailable`）
+   - 支持指定队列、优先级和调度策略
+
+4. **容错和恢复机制**
+   - 提供多种重启策略（`RestartPolicy`）
+   - 支持在任务失败时的不同处理方式
+
+#### Volcano Job 配置示例
+
+下面是一个`TensorFlow`分布式训练任务的`Volcano Job`配置示例：
+
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: tensorflow-training
+spec:
+  minAvailable: 3
+  schedulerName: volcano
+  queue: ml-jobs
+  policies:
+  - event: PodEvicted
+    action: RestartJob
+  - event: PodFailed
+    action: RestartJob
+  tasks:
+  - replicas: 1
+    name: ps
+    template:
+      spec:
+        containers:
+        - image: tensorflow/tensorflow:latest
+          name: tensorflow
+          command: ["python", "/app/ps.py"]
+          resources:
+            requests:
+              cpu: 2
+              memory: 4Gi
+  - replicas: 2
+    name: worker
+    template:
+      spec:
+        containers:
+        - image: tensorflow/tensorflow:latest-gpu
+          name: tensorflow
+          command: ["python", "/app/worker.py"]
+          resources:
+            requests:
+              cpu: 4
+              memory: 8Gi
+              nvidia.com/gpu: 1
+```
+
+#### Volcano Job 的特性
+
+1. **多任务类型**
+   - 在上面的示例中，定义了两种任务类型：`ps`（参数服务器）和 `worker`（工作节点）
+   - 每种类型有不同的副本数和资源需求
+
+2. **事件处理策略**
+   - 定义了当 `Pod` 被驱逐或失败时重启整个作业的策略
+   - 可以根据不同事件类型执行不同的操作
+
+3. **队列和调度器指定**
+   - 指定使用 `volcano` 调度器和 `ml-jobs` 队列
+   - 确保作业在正确的资源池中运行
+
+#### Volcano Job 的实际应用场景
+
+1. **分布式机器学习**
+   - `TensorFlow`、`PyTorch` 等分布式训练任务
+   - 支持参数服务器和工作节点的协调调度
+
+2. **大数据处理**
+   - `Spark`、`Flink` 等大数据处理框架
+   - 支持`Master`和`Worker`节点的组织管理
+
+3. **MPI 并行计算**
+   - 高性能计算和科学模拟
+   - 支持多节点协同计算
+
+`Volcano Job` 为复杂的分布式工作负载提供了完整的生命周期管理和调度能力，是 `Volcano` 系统中最强大的资源类型之一。
+
+
 
 ## 参考资料
 - https://volcano.sh/
