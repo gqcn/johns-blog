@@ -88,14 +88,23 @@ graph TD
 
 ## Scheduler
 
-### kubernetes deault scheduler
+### Kubernetes Scheduler
 `kubernetes`当然有默认的pod调度器，但是其并不适应AI作业任务需求。在多机训练任务中，一个AI作业可能需要同时创建上千个甚至上万个pod，而只有当所有pod当创建完成后，AI作业才能开始运行，而如果有几个pod创建失败，已经创建成功的pod就应该退出并释放资源，否则便会产生资源浪费的情况。因此Ai作业的pod调度应该遵循`All or nothing`的理念，即要不全部调度成功，否则应一个也不调度。这便是`Volcano`项目的由来（前身是`kube-batch`项目），接下来便来介绍`Volcano`的调度。
 
 ![](./assets/20240330125540.png)
 
+
+
 ### Volcano Scheduler
 
+值得注意的是，原生 `Kubernetes` 调度器（`kube-scheduler`）没有内置提供完整的 `Gang Scheduling`（组调度）能力。`Gang Scheduling` 是指将一组相关的任务作为一个整体进行调度，要么全部调度成功，要么全部不调度。
+
+`Kubernetes` 默认调度器主要关注单个 `Pod` 的调度，它会逐个处理 `Pod`，而不会考虑 `Pod` 之间的相互依赖关系或者需要同时调度的需求。这种设计对于无状态应用和独立工作负载很有效，但对于需要多个 `Pod` 协同工作的场景（如分布式机器学习、大数据处理等）就显得不足。
+
+`Volcano` 通过实现 `Gang Scheduling` 能力，确保一组相关的 `Pod` 要么全部被调度成功，要么全部不被调度，避免资源浪费和死锁情况。这是 `Volcano` 相对于原生 `Kubernetes` 调度器的一个关键优势。
+
 `Volcano Scheduler`是负责`Pod`调度的组件，它由一系列`action`和`plugin`组成。`action`定义了调度各环节中需要执行的动作；`plugin`根据不同场景提供了`action`中算法的具体实现细节。`Volcano Scheduler`具有高度的可扩展性，您可以根据需要实现自己的`action`和`plugin`。
+
 ![](./assets/zh-cn_image_0000002065638558.png)
 
 `Volcano Scheduler`的工作流程如下：
@@ -105,6 +114,7 @@ graph TD
 3.  将没有被调度的`Job`发送到会话的待调度队列中。
 4.  遍历所有的待调度`Job`，按照定义的次序依次执行`enqueue`、`allocate`、`preempt`、`reclaim`、`backfill`等动作，为每个`Job`找到一个最合适的节点。将该`Job`绑定到这个节点。`action`中执行的具体算法逻辑取决于注册的`plugin`中各函数的实现。
 5.  关闭本次会话。
+
 
 
 ### Volcano自定义资源
