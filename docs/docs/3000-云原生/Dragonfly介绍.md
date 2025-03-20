@@ -1,5 +1,5 @@
 ---
-slug: "/ai/dragonfly"
+slug: "/cloud-native/dragonfly"
 title: "Dragonfly介绍"
 hide_title: true
 keywords:

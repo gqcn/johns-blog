@@ -1,5 +1,5 @@
 ---
-slug: "/ai/volcano"
+slug: "/cloud-native/volcano"
 title: "Volcano介绍"
 hide_title: true
 keywords:
