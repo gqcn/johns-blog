@@ -149,7 +149,7 @@ graph TD
 
 
 `Volcano`在`Pod`和`Pod`的状态方面增加了很多状态:
-- 图中**蓝色部分**为`Kubernetes`自带的状。
+- 图中**蓝色部分**为`Kubernetes`自带的状态。
 - **绿色部分**是`session`级别的状态，一个调度周期，`Volcano Scheduler`会创建一个`session`，它只在调度周期内发挥作用，一旦过了调度周期，这几个状态它是失效的。
 - **黄色部分**的状态是放在`Cache`内的。
 
