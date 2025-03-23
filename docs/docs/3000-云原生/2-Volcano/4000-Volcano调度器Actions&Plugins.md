@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/volcano-scheduler-actions-plugins"
-title: "Volcano调度器Actions & Plugins"
+title: "Volcano调度器Actions&Plugins"
 hide_title: true
 keywords:
   [
