@@ -10,7 +10,7 @@ description: "本文详细介绍了Volcano调度器中的Actions和Plugins机制
 ---
 
 
-`Volcano`调度器是一个为高性能计算、机器学习和批处理工作负载设计的`Kubernetes`调度器。它的核心功能之一是通过可插拔的`Actions`和`Plugins`机制来实现灵活的调度策略。本文将通俗地介绍这些机制，帮助你更好地理解和使用`Volcano`调度器。
+`Volcano`调度器是一个为高性能计算、机器学习和批处理工作负载设计的`Kubernetes`调度器。它的核心功能之一是通过可插拔的`Actions`和`Plugins`机制来实现灵活的调度策略。本文将详细地介绍这些机制，帮助你更好地理解和使用`Volcano`调度器。
 
 ![](../assets/zh-cn_image_0000002065638558.png)
 
@@ -71,7 +71,8 @@ tiers:
 
 ## Volcano 中的 Actions
 
-`Actions`定义了调度器的工作流程和执行顺序。在上面的配置中，我们定义了五个动作：`enqueue`、`allocate`、`backfill`、`preempt`和`reclaim`。这些动作将按照定义的顺序执行。
+`Actions`定义了调度器的工作流程和执行顺序。
+在上面的配置中，我们定义了五个动作：`enqueue`、`allocate`、`backfill`、`preempt`和`reclaim`。这些动作将按照定义的顺序执行。
 
 让我们逐一解释各个动作的作用：
 
@@ -171,9 +172,14 @@ tiers:
 
 **示例**：当集群中有多个队列，每个队列都有权重设置（如生产队列权重为`60%`，开发队列为`30%`，测试队列为`10%`）。如果开发队列使用了超过`50%`的集群资源，而生产队列需要更多资源时，`reclaim`动作会从开发队列中回收资源。
 
+
+
+
 ## Volcano 中的 Plugins
 
-`Plugins`是`Volcano`调度器的决策模块，它们在不同的调度阶段提供特定的功能。在上面的配置中，插件被组织成两个层级（`tiers`），每个层级包含多个插件。层级的概念允许插件按照优先级顺序执行，高层级的插件优先级高于低层级的插件。
+`Plugins`是`Volcano`调度器的决策模块，它们在不同的调度阶段提供特定的功能。
+在上面的配置中，插件被组织成两个层级（`tiers`），每个层级包含多个插件。
+层级的概念允许插件按照优先级顺序执行，高层级的插件优先级高于低层级的插件。
 
 让我们逐一解释这些插件的作用：
 
@@ -181,6 +187,8 @@ tiers:
 ### 1. priority（优先级）
 
 **作用**：根据任务的优先级对其进行排序，确保高优先级任务先被调度。
+
+![](../assets/fair-share.png)
 
 **工作原理**：
 - 读取任务的`PriorityClass`或优先级注解
@@ -237,6 +245,9 @@ spec:
 这个配置要求至少`4`个`Pod`（1个ps和3个worker）同时可用才会开始调度。这对于分布式训练等需要多个组件协同工作的任务非常重要。
 
 ### 3. conformance（一致性）
+
+> 官网介绍链接：[https://volcano.sh/en/docs/schduler_introduction/#conformance](https://volcano.sh/en/docs/schduler_introduction/#conformance)
+
 **作用**：`conformance`插件就像`Kubernetes`的"规则检查员"，确保`Volcano`的调度决策符合`Kubernetes`的标准和约定。
 
 **工作原理**：
@@ -289,7 +300,11 @@ spec:
 
 ### 4. drf（主导资源公平性）
 
+
+
 **作用**：实现主导资源公平性（`Dominant Resource Fairness`）算法，确保资源在不同队列和任务之间公平分配。
+
+![](../assets/drfjob.png)
 
 **工作原理**：
 - 计算每个任务的主导资源（即任务所需的最多的资源类型）
@@ -444,33 +459,7 @@ spec:
 这个配置定义了三个队列，权重比例为`6:3:1`。`proportion`插件会确保资源分配大致符合这个比例，
 即生产队列获得`60%`的资源，开发队列获得`30%`，测试队列获得`10%`。
 
-### 7. resourcequota（资源配额）
-
-**作用**：实现队列级别的资源配额限制，确保队列不会超过其分配的资源上限。
-
-**工作原理**：
-- 计算每个队列的资源使用情况
-- 检查是否超过配额限制
-- 阻止超过配额的资源请求
-
-**示例**：
-```yaml
-apiVersion: scheduling.volcano.sh/v1beta1
-kind: Queue
-metadata:
-  name: development
-spec:
-  weight: 3
-  capability:
-    cpu: 10
-    memory: 20Gi
-    nvidia.com/gpu: 2
-```
-
-这个配置限制了开发队列最多可以使用`10`个CPU核心、`20`GB内存和`2`个GPU。
-如果队列中的任务请求超过这些限制，则新的任务将无法被调度。
-
-### 8. nodeorder（节点排序）
+### 7. nodeorder（节点排序）
 
 **作用**：为任务选择最适合的节点，基于多种因素对节点进行打分和排序。
 
@@ -485,7 +474,7 @@ spec:
 如节点的当前负载、资源利用率、与其他任务的亲和性等，然后选择最适合的节点。
 
 
-### 9. binpack（装箱）
+### 8. binpack（装箱）
 
 **作用**：将任务紧密地打包到尽可能少的节点上，提高资源利用率。
 
@@ -498,6 +487,428 @@ spec:
 当集群中有多个小型任务需要调度时，`binpack`插件会尽量将它们调度到同一个或少数几个节点上，而不是分散到多个节点。
 这样可以保持更多的节点处于空闲状态，可以关闭这些节点以节省能源，或者用于运行大型任务。
 
+
+### 9. numaaware（NUMA感知）
+
+**NUMA简介**：
+`NUMA`（`Non-Uniform Memory Access`，非统一内存访问）是一种计算机内存架构，在这种架构中，内存访问时间取决于内存相对于处理器的位置。在`NUMA`系统中，处理器访问其本地内存（同一`NUMA`节点上的内存）比访问非本地内存（其他`NUMA`节点上的内存）要快。这种架构在现代多处理器服务器中非常常见，对于高性能计算工作负载来说至关重要。
+
+![](../assets/20220602110808.png)
+
+**作用**：优化对`NUMA`（非统一内存访问）架构的支持，提高计算密集型任务的性能。
+
+**工作原理**：
+- 识别节点的`NUMA`拓扑结构
+- 尽量将任务的所有资源（CPU、内存、设备）分配在同一`NUMA`节点上
+- 减少跨`NUMA`节点的内存访问，降低延迟
+
+**示例**：
+对于高性能计算或AI训练等对内存访问延迟敏感的工作负载，
+`numaaware`插件可以确保任务的CPU和内存资源分配在同一`NUMA`节点上，避免跨节点访问导致的性能下降。
+
+### 10. task-topology（任务拓扑）
+
+**作用**：基于任务之间的亲和性和反亲和性配置，计算任务和节点的优先级，优化任务分布。
+
+**工作原理**：
+- 分析任务之间的亲和性和反亲和性设置
+- 将有亲和性配置的任务优先调度到同一节点
+- 将有反亲和性配置的任务调度到不同节点
+
+**示例**：
+在深度学习计算场景中，任务拓扑对提高计算效率非常重要。以`TensorFlow`分布式训练为例，我们可以定义如下任务拓扑关系：
+
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: tensorflow-training
+spec:
+  minAvailable: 5
+  schedulerName: volcano
+  plugins:
+    ssh: []
+    svc: []
+  policies:
+    - event: PodEvicted
+      action: RestartJob
+  queue: default
+  tasks:
+    - replicas: 1
+      name: ps
+      template:
+        spec:
+          containers:
+            - name: tensorflow
+              image: tensorflow/tensorflow:2.4.0
+              command: ["python", "/app/train.py", "--job_name=ps", "--task_index=0"]
+              ports:
+                - containerPort: 2222
+                  name: tfjob-port
+              resources:
+                limits:
+                  cpu: 4000m
+                  memory: 8Gi
+                requests:
+                  cpu: 2000m
+                  memory: 4Gi
+    - replicas: 4
+      name: worker
+      policies:
+        - event: TaskCompleted
+          action: CompleteJob
+      template:
+        spec:
+          containers:
+            - name: tensorflow
+              image: tensorflow/tensorflow:2.4.0-gpu
+              command: ["python", "/app/train.py", "--job_name=worker", "--task_index=${VK_TASK_INDEX}"]
+              resources:
+                limits:
+                  cpu: 4000m
+                  memory: 8Gi
+                  nvidia.com/gpu: 1
+                requests:
+                  cpu: 2000m
+                  memory: 4Gi
+                  nvidia.com/gpu: 1
+  topologyPolicy:
+    affinity:
+      - {"taskA": "ps", "taskB": "worker", "weight": 10}  # ps和worker之间的亲和性，权重为10
+    antiAffinity:
+      - {"taskA": "worker", "taskB": "worker", "weight": 5}  # worker之间的反亲和性，权重为5
+```
+
+在这个配置中：
+
+1. **亲和性配置**：
+   - `ps`和`worker`任务之间设置了亲和性，权重为`10`
+   - 这意味着调度器将尽量将`ps`和`worker`调度到同一节点或者物理上接近的节点
+   - 这样可以显著减少参数服务器（PS）和工作节点之间的网络延迟，提高训练效率
+
+2. **反亲和性配置**：
+   - `worker`之间设置了反亲和性，权重为`5`
+   - 这意味着调度器将尽量将不同的`worker`调度到不同的节点
+   - 这样可以提高系统的容错性（单个节点失效不会导致所有worker都下线），并充分利用集群中的分布式计算能力
+
+3. **权重设置**：
+   - 亲和性的权重为`10`
+   - 反亲和性的权重为`5`
+   - 这意味着在决策过程中，如果出现冲突，调度器会优先考虑`ps`和`worker`的亲和性需求
+
+通过这种配置，`task-topology`插件可以显著提高分布式训练的效率和可靠性。在实际应用中，可以根据具体工作负载的特点和集群的结构来调整亲和性和反亲和性的配置及其权重。
+
+### 11. sla（服务级别协议）
+
+**作用**：实现服务级别协议（`Service Level Agreement`）的管理，确保任务的调度符合特定的服务质量要求。
+
+**工作原理**：
+- 监控任务的等待时间和调度状态
+- 根据`sla`策略调整任务的优先级
+- 防止任务长时间处于等待状态，避免资源饥饿
+
+**示例**：
+下面是一个完整的`sla`插件配置示例，展示了如何为不同类型的任务设置不同的`sla`策略：
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    actions: "enqueue, allocate, backfill"
+    tiers:
+    - plugins:
+      - name: priority
+      - name: gang
+      - name: conformance
+    - plugins:
+      - name: drf
+      - name: predicates
+      - name: proportion
+      - name: nodeorder
+      - name: binpack
+      - name: sla
+        arguments:
+          sla-waiting-time: true
+          job-waiting-time.high-priority: 60s     # 高优先级任务的等待时间阈值
+          job-waiting-time.medium-priority: 120s  # 中优先级任务的等待时间阈值
+          job-waiting-time.low-priority: 300s     # 低优先级任务的等待时间阈值
+          job-starvation-timeout: 900s            # 任务饥饿超时时间
+```
+
+在这个配置中，我们为`sla`插件设置了以下参数：
+
+1. **等待时间策略**：
+   - 启用了`sla-waiting-time`功能，允许基于任务等待时间调整优先级
+   - 为不同优先级的任务设置了不同的等待时间阈值：
+     - 高优先级任务：`60`秒
+     - 中优先级任务：`120`秒
+     - 低优先级任务：`300`秒
+
+2. **饥饿防止机制**：
+   - 设置了`job-starvation-timeout`为`900`秒，即如果任何任务等待超过`15`分钟仍未被调度，将触发饥饿防止机制
+
+现在，让我们看一个具体的任务配置示例，展示如何为任务设置优先级以便于与`sla`插件配合使用：
+
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: real-time-analytics
+spec:
+  schedulerName: volcano
+  priorityClassName: high-priority  # 使用高优先级类别
+  minAvailable: 3
+  queue: default
+  tasks:
+    - replicas: 3
+      name: analytics
+      template:
+        spec:
+          containers:
+            - name: analytics-container
+              image: analytics:v1.0
+              resources:
+                requests:
+                  cpu: 2000m
+                  memory: 4Gi
+---
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: batch-processing
+spec:
+  schedulerName: volcano
+  priorityClassName: low-priority  # 使用低优先级类别
+  minAvailable: 2
+  queue: default
+  tasks:
+    - replicas: 5
+      name: batch
+      template:
+        spec:
+          containers:
+            - name: batch-container
+              image: batch:v1.0
+              resources:
+                requests:
+                  cpu: 1000m
+                  memory: 2Gi
+```
+
+在这个示例中，我们定义了两个任务：
+
+1. **实时分析任务**：
+   - 设置为`high-priority`优先级
+   - 根据`sla`插件配置，如果该任务等待超过`60`秒，其优先级将被提升
+   - 这确保了实时分析任务能快速获得调度，满足其实时性需求
+
+2. **批处理任务**：
+   - 设置为`low-priority`优先级
+   - 根据`sla`插件配置，该任务可以等待长达`300`秒才会被提升优先级
+   - 这适合于不需要实时响应的批量计算任务
+
+当集群资源紧张时，`sla`插件将确保：
+
+1. 高优先级的实时分析任务优先获得资源
+2. 如果低优先级的批处理任务等待时间过长（超过`300`秒），其优先级会被提升，以避免资源饥饿
+3. 如果任何任务等待时间超过`900`秒（饥饿超时），将触发特殊的饥饿防止机制，确保其能尽快获得调度
+
+通过这种方式，`sla`插件在保证高优先级任务快速响应的同时，也避免了低优先级任务的资源饥饿问题，实现了集群资源的合理分配和服务质量保证。
+
+### 12. tdm（时分复用）
+
+**作用**：实现时分复用（`Time Division Multiplexing`）机制，允许不同系统在不同时间段共享同一节点的资源。
+
+**工作原理**：
+- 将特定节点标记为可撤销节点（`revocable nodes`）
+- 在节点的可用时间段内，将可抢占任务调度到这些节点
+- 在非可用时间段，将这些任务从节点上驱逐
+
+**示例**：
+下面是一个完整的`tdm`插件配置示例，展示了如何在混合计算环境中实现资源的时分复用：
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    actions: "enqueue, allocate, backfill"
+    tiers:
+    - plugins:
+      - name: priority
+      - name: gang
+      - name: conformance
+    - plugins:
+      - name: drf
+      - name: predicates
+      - name: proportion
+      - name: nodeorder
+      - name: binpack
+      - name: tdm
+        arguments:
+          tdm-scheduler-name: "volcano-tdm"
+          tdm-revocable-node-label: "volcano.sh/revocable-node"
+          tdm-time-ranges: |
+            [
+              {
+                "name": "working-hours",
+                "start": "09:00",
+                "end": "18:00",
+                "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "locations": ["Asia/Shanghai"]
+              },
+              {
+                "name": "non-working-hours",
+                "start": "18:00",
+                "end": "09:00",
+                "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                "locations": ["Asia/Shanghai"]
+              },
+              {
+                "name": "weekend",
+                "days": ["Saturday", "Sunday"],
+                "locations": ["Asia/Shanghai"]
+              }
+            ]
+```
+
+在这个配置中，我们为`tdm`插件设置了以下参数：
+
+1. **调度器名称**：
+   - `tdm-scheduler-name: "volcano-tdm"`指定了负责时分复用的调度器名称
+
+2. **可收回节点标签**：
+   - `tdm-revocable-node-label: "volcano.sh/revocable-node"`指定了标记可收回节点的标签
+   - 只有带有这个标签的节点才会参与时分复用
+
+3. **时间段配置**：
+   - `tdm-time-ranges`定义了不同的时间段，每个时间段都有自己的名称、开始时间、结束时间、适用的星期和时区
+   - 这里定义了三个时间段：工作时间（工作日的9:00-18:00）、非工作时间（工作日的18:00-次日9:00）和周末时间
+
+现在，让我们看一个具体的节点和任务配置示例，展示如何使用`tdm`插件进行时分复用：
+
+```yaml
+# 首先，我们需要标记可收回的节点
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: worker-node-01
+  labels:
+    volcano.sh/revocable-node: "true"  # 标记该节点为可收回节点
+    node-role.kubernetes.io/worker: ""
+spec:
+  # ...
+
+# 然后，我们可以创建一个交互式服务任务，它将在工作时间运行
+---
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: interactive-service
+spec:
+  schedulerName: volcano
+  queue: default
+  minAvailable: 1
+  tasks:
+    - replicas: 3
+      name: service
+      template:
+        metadata:
+          labels:
+            app: interactive-service
+        spec:
+          containers:
+            - name: service-container
+              image: nginx:latest
+              resources:
+                requests:
+                  cpu: 2000m
+                  memory: 4Gi
+  plugins:
+    tdm: 
+      revocable: false  # 这个任务不是可收回的，它将在工作时间运行
+
+# 最后，我们创建一个批处理任务，它将在非工作时间运行
+---
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: batch-processing
+spec:
+  schedulerName: volcano
+  queue: default
+  minAvailable: 2
+  tasks:
+    - replicas: 5
+      name: batch
+      template:
+        metadata:
+          labels:
+            app: batch-processing
+        spec:
+          containers:
+            - name: batch-container
+              image: batch-processor:v1.0
+              command: ["python", "/app/process.py"]
+              resources:
+                requests:
+                  cpu: 1000m
+                  memory: 2Gi
+  plugins:
+    tdm: 
+      revocable: true  # 这个任务是可收回的，它将在非工作时间运行
+      timeRanges: ["non-working-hours", "weekend"]  # 指定这个任务可以运行的时间段
+```
+
+在这个示例中，我们实现了以下功能：
+
+1. **节点配置**：
+   - 我们将`worker-node-01`标记为可收回节点，这意味着它将参与时分复用
+
+2. **交互式服务任务**：
+   - 这个任务不是可收回的（`revocable: false`）
+   - 它将在工作时间（工作日的9:00-18:00）运行
+   - 在这个时间段，它将优先使用集群资源
+
+3. **批处理任务**：
+   - 这个任务是可收回的（`revocable: true`）
+   - 它被配置为在非工作时间和周末运行（`timeRanges: ["non-working-hours", "weekend"]`）
+   - 当工作时间开始时，这个任务将被驱逐，以便交互式服务可以使用这些资源
+
+通过这种配置，`tdm`插件实现了以下效果：
+
+1. **资源利用率提高**：
+   - 同一组节点在不同时间段被不同类型的任务使用
+   - 在工作时间，资源用于交互式服务，确保用户体验
+   - 在非工作时间，资源用于批处理任务，提高计算效率
+
+2. **成本降低**：
+   - 不需要为不同类型的工作负载维护独立的集群
+   - 减少了闲置资源，降低了硬件和运维成本
+
+3. **灵活的时间管理**：
+   - 可以根据实际需求灵活调整时间段定义
+   - 支持多个时区，适用于全球分布式集群
+
+这种方式特别适用于以下场景：
+
+1. **企业混合工作负载**：在工作时间运行交互式服务，在非工作时间运行数据分析和批处理任务
+
+2. **云服务提供商**：为不同客户在不同时间段提供资源，最大化资源利用率
+
+3. **混合系统集成**：允许`Kubernetes`和其他系统（如`Hadoop/Yarn`）在不同时间段共享同一组物理资源
+
+
+
+
 ## 总结
 
 `Volcano`调度器的`Actions`和`Plugins`机制提供了强大的灵活性，可以满足各种复杂场景的调度需求。通过合理配置这些机制，可以实现：
@@ -508,6 +919,8 @@ spec:
 4. **特殊工作负载的支持**：如机器学习、高性能计算等需要成组调度的任务
 
 对于不同的应用场景，可以通过调整`Actions`的顺序和启用不同的`Plugins`来定制调度器的行为，以满足特定的需求。这种灵活性使`Volcano`成为在Kubernetes上运行复杂工作负载的理想选择。
+
+
 
 
 ## 参考资料
