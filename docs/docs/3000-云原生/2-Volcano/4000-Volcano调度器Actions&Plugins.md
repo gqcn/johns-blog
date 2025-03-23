@@ -513,40 +513,7 @@ spec:
 ## 参考资料
 
 - https://volcano.sh/zh/docs/actions
-- https://volcano.sh/zh/docs/plugins**作用**：conformance插件就像Kubernetes的"规则检查员"，确保Volcano的调度决策符合Kubernetes的标准和约定。
+- https://volcano.sh/zh/docs/plugins
 
-**工作原理**：
-- 检查Pod的配置是否符合Kubernetes的规则（比如不能设置无效的资源请求）
-- 验证调度决策不会违反Kubernetes的基本原则（比如不会将Pod调度到资源不足的节点）
-- 确保Volcano的行为与标准Kubernetes调度器保持一致，避免冲突
 
-**示例**：
-假设有一个任务请求了以下资源：
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: example-job
-spec:
-  tasks:
-    - replicas: 2
-      name: example-task
-      template:
-        spec:
-          containers:
-            - name: main-container
-              image: nginx
-              resources:
-                requests:
-                  memory: "2Gi"
-                  cpu: "500m"
-```
 
-conformance插件会执行以下检查：
-1. 验证资源请求格式是否正确（如"500m" CPU是有效格式）
-2. 确保Pod不会被调度到无法满足2GB内存和0.5CPU需求的节点上
-3. 如果该Pod有特殊的调度约束（如污点容忍），确保这些约束被正确处理
-
-如果Volcano尝试做出不符合Kubernetes规则的调度决策（例如，将Pod调度到资源已满的节点），conformance插件会阻止这种行为，确保系统稳定性和一致性。
-
-这个插件对用户来说是"无形"的，它在后台默默工作，确保所有调度决策都符合Kubernetes的标准，不需要用户进行特殊配置。
