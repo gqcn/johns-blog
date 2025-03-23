@@ -4,8 +4,9 @@ title: "Kubernetes Device Plugin"
 hide_title: true
 keywords:
   [
+    "Kubernetes", "Device Plugin", "GPU", "扩展资源", "硬件资源", "容器编排", "AI", "资源管理", "自定义资源", "节点资源"
   ]
-description: ""
+description: "本文详细介绍了Kubernetes中的Device Plugin机制，包括其工作原理和实现方法。通过Device Plugin，Kubernetes可以感知和管理GPU等特殊硬件资源，使容器能够像使用CPU和内存一样使用这些资源，特别适用于AI和高性能计算场景。"
 ---
 
 
@@ -793,7 +794,7 @@ I0719 14:03:55.905267       1 api.go:32] device update,new device list [g1]
 
 这些信息传给`Kubelet`，然后`Kubelet`通过`CRI`调用`Runtime`（`Docker/Containerd`等等）真正开始创建容器。
 
-比如`NVIDIA`在`Allocate`中就传递了`NVIDIA\_VISIBLE\_DEVICES`这个 Env，然后自己实现了`nvidia-container-runtime`，该 runtime 就可以根据该 Env 知道要把哪个 GPU 分配给容器，然后修改容器的 OCI Spec，最终`runC`（或者其他实现）真正创建容器时就会按照这个描述去处理。
+比如`NVIDIA`在`Allocate`中就传递了`NVIDIA_VISIBLE_DEVICES`这个 Env，然后自己实现了`nvidia-container-runtime`，该 runtime 就可以根据该 Env 知道要把哪个 GPU 分配给容器，然后修改容器的 OCI Spec，最终`runC`（或者其他实现）真正创建容器时就会按照这个描述去处理。
 
 又比如 [ix-device-plugin](https://github.com/Deep-Spark/ix-device-plugin/blob/master/pkg/dpm/plugin.go#L144-L156) 就是用的`Devices`方式,直接指定分配给容器的设备在宿主机的位置，以及要挂载到容器中的位置，这样就不需要实现自己的 `container-runtime` 了，`runC`创建容器时也能把对应设备分配给容器。
 
