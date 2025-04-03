@@ -185,6 +185,118 @@ tiers:
 
 **示例**：当一个生产环境的关键任务（高优先级）需要运行，但集群资源已被开发环境的任务（低优先级）占用时，`preempt`动作会终止部分开发环境的任务，将资源让给生产环境的关键任务。
 
+**配置示例**：
+
+```yaml
+# volcano-scheduler-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    actions: "enqueue,allocate,backfill,preempt,reclaim"
+    tiers:
+    - plugins:
+      - name: priority
+      - name: gang
+      - name: conformance
+    - plugins:
+      - name: drf
+      - name: predicates
+      - name: proportion
+      - name: nodeorder
+```
+
+**preempt动作参数说明**：
+
+| 参数 | 说明 | 默认值 | 示例值 |
+|------|------|--------|--------|
+| `preemptable` | 是否允许抢占操作 | `true` | `true`, `false` |
+| `preemptablePriority` | 可被抢占的任务优先级阈值，低于此优先级的任务可被抢占 | `0` | `100` |
+| `preemptPriority` | 可执行抢占的任务优先级阈值，高于此优先级的任务可执行抢占 | `0` | `1000` |
+| `preemptPolicy` | 抢占策略，决定如何选择被抢占的任务 | `Arbitrary` | `Arbitrary`, `PriorityBased` |
+
+**如何配置preempt动作**：
+
+1. **在调度器配置中启用preempt动作**：
+
+   确保在调度器配置的`actions`列表中包含`preempt`，通常放在`allocate`和`backfill`之后：
+   
+   ```yaml
+   actions: "enqueue,allocate,backfill,preempt,reclaim"
+   ```
+
+2. **为Pod标记是否可被抢占**：
+
+   通过在Pod上添加`volcano.sh/preemptable`注解来标记Pod是否可被抢占：
+   
+   ```yaml
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: low-priority-pod
+     annotations:
+       volcano.sh/preemptable: "true"  # 标记此Pod可被抢占
+   spec:
+     schedulerName: volcano
+     containers:
+     - name: container
+       image: nginx
+   ```
+
+3. **使用优先级类定义任务优先级**：
+
+   创建优先级类（PriorityClass）来定义不同优先级的任务：
+   
+   ```yaml
+   apiVersion: scheduling.k8s.io/v1
+   kind: PriorityClass
+   metadata:
+     name: high-priority
+   value: 1000
+   globalDefault: false
+   description: "高优先级任务，可以抢占低优先级任务"
+   ---
+   apiVersion: scheduling.k8s.io/v1
+   kind: PriorityClass
+   metadata:
+     name: low-priority
+   value: 100
+   globalDefault: false
+   description: "低优先级任务，可被高优先级任务抢占"
+   ```
+
+4. **在PodGroup中使用优先级类**：
+
+   ```yaml
+   apiVersion: scheduling.volcano.sh/v1beta1
+   kind: PodGroup
+   metadata:
+     name: high-priority-job
+   spec:
+     minMember: 3
+     priorityClassName: high-priority  # 使用高优先级类
+     queue: default
+   ```
+
+**preempt动作的工作流程**：
+
+1. 调度器识别出因资源不足而无法调度的高优先级任务
+2. 根据`preemptPolicy`策略，在集群中寻找可被抢占的低优先级任务
+3. 对于标记为`volcano.sh/preemptable: "true"`的Pod，优先考虑抢占
+4. 根据优先级差异，选择优先级最低的任务进行抢占
+5. 终止被选中的低优先级任务，释放其资源
+6. 将释放的资源分配给高优先级任务
+
+**最佳实践**：
+
+1. 明确标记哪些Pod可被抢占，避免关键服务被意外终止
+2. 为不同类型的工作负载设置合理的优先级类
+3. 对于可能被抢占的工作负载，实现适当的检查点机制或任务恢复能力
+4. 在资源紧张的环境中，合理使用`preempt`动作可以提高关键任务的响应速度和集群资源利用率
+
 ### 5. reclaim（回收）
 
 **作用**：从超出其公平份额的队列中回收资源，并将其重新分配给其他队列。
