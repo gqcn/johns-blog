@@ -14,7 +14,5 @@ div[class*='tableOfContents'] {
 }
 
 .tocAdBanner {
-  /* margin-top: 1rem; */
-  /* 确保广告位在滚动时保持可见 */
-  /* position: relative; */
+  display: none;
 }
