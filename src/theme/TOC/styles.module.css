@@ -12,11 +12,11 @@ div[class*='tableOfContents'] {
   position: static !important; /* 覆盖原始样式 */
   max-height: none;
   overflow-y: auto;
-  max-height: calc(100vh - var(--ifm-navbar-height) - 14rem);
+  max-height: calc(100vh - var(--ifm-navbar-height) - 14.5rem);
 }
 
 /* 广告位样式 */
 .tocAdBanner {
-  margin-top: 1rem;
+  /* margin-top: 1rem; */
   position: relative;
 }
