@@ -12,7 +12,7 @@ div[class*='tableOfContents'] {
   position: static !important; /* 覆盖原始样式 */
   max-height: none;
   overflow-y: auto;
-  max-height: calc(100vh - var(--ifm-navbar-height) - 12rem);
+  max-height: calc(100vh - var(--ifm-navbar-height) - 14rem);
 }
 
 /* 广告位样式 */
