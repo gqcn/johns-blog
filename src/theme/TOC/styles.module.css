@@ -14,5 +14,5 @@ div[class*='tableOfContents'] {
 }
 
 .tocAdBanner {
-  display: none;
+  /* display: none; */
 }
