@@ -1,7 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './styles.module.css';
 
 export default function AdBanner() {
+  // 使用状态来跟踪是否应该显示广告
+  const [shouldShowAd, setShouldShowAd] = useState(false);
+  
+  useEffect(() => {
+    // 检查当前域名是否为 goframe.org
+    const checkDomain = () => {
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        // 检查是否为 goframe.org 或其子域名
+        const isGoframeDomain = hostname === 'goframe.org' || hostname.endsWith('.goframe.org');
+        setShouldShowAd(isGoframeDomain);
+      }
+    };
+    
+    checkDomain();
+  }, []);
+  
+  // 如果不是 goframe.org 域名，返回 null，不渲染任何内容
+  if (!shouldShowAd) {
+    return null;
+  }
+  
+  // 如果是 goframe.org 域名，正常显示广告
   return (
     <div className={styles.adContainer}>
       <div className={styles.adBanner}>
