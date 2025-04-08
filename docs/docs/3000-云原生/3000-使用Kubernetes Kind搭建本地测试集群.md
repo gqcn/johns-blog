@@ -9,8 +9,6 @@ keywords:
 description: "本文详细介绍了如何使用Kind工具快速搭建Kubernetes本地测试集群，包括Kind的安装配置、基本使用方法以及常见问题解决方案，帮助开发者在本地高效进行Kubernetes应用开发和测试。"
 ---
 
-# 使用Kubernetes Kind搭建本地测试集群
-
 ## 1. Kind简介
 
 ![使用Kubernetes Kind搭建本地测试集群](<assets/3000-使用Kubernetes Kind搭建本地测试集群/image.png>)
