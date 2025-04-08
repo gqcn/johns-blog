@@ -1,18 +1,22 @@
+/* 使整个TOC容器固定 */
 .tocContainer {
   display: flex;
   flex-direction: column;
   width: 100%;
-  /* 确保容器内的所有内容都能正确固定 */
   position: sticky;
-  max-height: calc(100vh - var(--ifm-navbar-height) - 2rem);
-  overflow-y: auto;
+  top: calc(var(--ifm-navbar-height) + 1rem);
 }
 
-/* 确保目录和广告位容器正确显示 */
+/* 确保原始目录组件不再使用sticky定位，因为外层容器已经处理了 */
 div[class*='tableOfContents'] {
-  top: 0 !important;
+  position: static !important; /* 覆盖原始样式 */
+  max-height: none;
+  overflow-y: auto;
+  max-height: calc(100vh - var(--ifm-navbar-height) - 12rem);
 }
 
+/* 广告位样式 */
 .tocAdBanner {
-  /* display: none; */
+  margin-top: 1rem;
+  position: relative;
 }
