@@ -1,0 +1,20 @@
+.tocContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  /* 确保容器内的所有内容都能正确固定 */
+  position: sticky;
+  max-height: calc(100vh - var(--ifm-navbar-height) - 2rem);
+  overflow-y: auto;
+}
+
+/* 确保目录和广告位容器正确显示 */
+div[class*='tableOfContents'] {
+  top: 0 !important;
+}
+
+.tocAdBanner {
+  /* margin-top: 1rem; */
+  /* 确保广告位在滚动时保持可见 */
+  /* position: relative; */
+}
