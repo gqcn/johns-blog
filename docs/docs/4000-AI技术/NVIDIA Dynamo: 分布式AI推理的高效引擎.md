@@ -34,8 +34,6 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 `NVIDIA Dynamo`采用模块化架构设计，旨在为分布式环境中的生成式AI模型提供高效的推理服务。它支持所有主要的LLM框架，包括`NVIDIA TensorRT-LLM`、`vLLM`和`SGLang`，并整合了最先进的`LLM`推理服务优化技术。
 
-### 2.1 整体架构
-
 ![Dynamo架构图](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image.png>)
 
 `NVIDIA Dynamo`包含多项关键特性，使其能够实现大规模分布式和分离式推理服务。
