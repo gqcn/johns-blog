@@ -1209,7 +1209,7 @@ spec:
 | job-waiting-time.优先级名      | string  | 各优先级任务的等待时间阈值（如 60s、120s、300s）    |
 | job-starvation-timeout          | string  | 任务饥饿超时时间，超时后强制提升优先级（如 900s）   |
 | sla-queue-waiting-time.队列名  | string  | 针对特定队列的等待时间阈值（可选）                  |
-| sla-job-label-waiting-time.{label}={value} | string | 针对带特定 label 的 Job 的等待时间阈值（可选）     |
+| sla-job-label-waiting-time.标签名=标签值 | string | 针对带特定 label 的 Job 的等待时间阈值（可选）     |
 
 **参数示例**：
 ```yaml
