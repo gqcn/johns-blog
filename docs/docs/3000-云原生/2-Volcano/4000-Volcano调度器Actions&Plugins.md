@@ -823,15 +823,31 @@ spec:
 
 **参数说明**：
 
-| 参数名                      | 类型    | 说明                                 |
-|-----------------------------|---------|--------------------------------------|
-| predicates.enableNodeSelectorPredicate | bool | 是否启用节点标签断言                 |
-| predicates.enablePodAffinityPredicate  | bool | 是否启用Pod亲和性断言                |
-| predicates.enablePodTolerationPredicate| bool | 是否启用污点容忍断言                 |
-| predicates.enableResourcePredicate     | bool | 是否启用资源断言                     |
-| predicates.enableNodePortsPredicate    | bool | 是否启用端口冲突断言                 |
-| predicates.enableVolumePredicate       | bool | 是否启用存储卷断言                   |
-| predicates.resourceThresholds          | map  | 自定义资源阈值（如cpu、memory等）     |
+| 参数名                      | 类型    | 默认值   | 说明                                 |
+|-----------------------------|---------|---------|--------------------------------------|
+| `predicates.enableNodeSelectorPredicate` | `bool` | `true`  | 是否启用节点标签断言                 |
+| `predicates.enablePodAffinityPredicate`  | `bool` | `false` | 是否启用`Pod`亲和性断言                |
+| `predicates.enablePodTolerationPredicate`| `bool` | `true`  | 是否启用污点容忍断言                 |
+| `predicates.enableResourcePredicate`     | `bool` | `true`  | 是否启用资源断言                     |
+| `predicates.enableNodePortsPredicate`    | `bool` | `true`  | 是否启用端口冲突断言                 |
+| `predicates.enableVolumePredicate`       | `bool` | `true`  | 是否启用存储卷断言                   |
+| `predicates.resourceThresholds`          | `map`  | `{}`    | 自定义资源阈值（如`cpu`、`memory`等）     |
+
+**参数说明补充**：
+
+- `predicates.resourceThresholds` 用于自定义节点资源的可用阈值，影响调度器在断言节点资源是否满足任务需求时的判定标准。默认情况下，调度器会根据节点的实际可用资源与 `Pod` 的 `requests` 进行对比，判断节点是否有足够资源来承载任务。通过配置该参数，可以为如 `cpu`、`memory` 等资源设置阈值，只有当节点的可用资源大于等于该阈值时，才会被认为可调度。
+- 典型用途包括保护节点资源，防止节点被调度到极限，提升集群稳定性。例如：
+
+  ```yaml
+  - name: predicates
+    arguments:
+      predicates.resourceThresholds:
+        cpu: 2000m
+        memory: 8Gi
+  ```
+  上述配置表示：只有当节点剩余 `CPU≥2000m`、`内存≥8Gi` 时，才会被断言为“可用节点”。
+
+如不配置该参数，默认 `{}`，即不额外限制，由调度器按实际资源判断。
 
 **参数示例**：
 ```yaml
@@ -847,6 +863,9 @@ spec:
       cpu: 2000m
       memory: 8Gi
 ```
+
+
+
 
 **使用示例**：
 ```yaml
@@ -870,7 +889,19 @@ spec:
                   nvidia.com/gpu: 1
 ```
 
-这个配置要求任务只能运行在标记为`gpu=true`的节点上，并且需要GPU资源。`predicates`插件会确保只有满足这些条件的节点才会被选中。
+这个配置要求任务只能运行在标记为`gpu=true`的节点上，并且需要`GPU`资源。`predicates`插件会确保只有满足这些条件的节点才会被选中。
+
+**注意事项**：
+
+- `predicates` 插件并不是 `Volcano` 调度器中的“强制必选”插件，但在绝大多数实际生产场景下，它是非常推荐启用的核心插件之一。
+
+- `predicates` 插件实现了节点资源、亲和性、污点容忍、端口冲突等一系列基础调度断言，类似于 `Kubernetes` 默认调度器的核心功能。如果关闭该插件，调度器将无法正确判断节点是否真正满足任务的各种约束条件，可能导致任务被调度到不合适的节点，带来资源冲突、调度失败或业务异常等问题。
+
+- `Volcano` 支持插件化调度框架，允许用户通过配置 `tiers/plugins` 灵活启用或禁用插件。如果你明确了解自己的业务场景、节点环境和调度需求，也可以选择不启用 `predicates` 插件，但需自行确保不会引入调度安全隐患。
+结论：
+
+- 对于大多数生产集群和常规批量计算场景，建议始终启用 `predicates` 插件，以保障调度的正确性与安全性。
+只有在非常特殊、可控的实验性场景下，且明确知道后果时，才可以选择不启用该插件。
 
 ### 6. proportion（比例）
 
@@ -1110,8 +1141,8 @@ spec:
 | sla-waiting-time                | bool    | 是否启用等待时间提升优先级功能                      |
 | job-waiting-time.优先级名      | string  | 各优先级任务的等待时间阈值（如 60s、120s、300s）    |
 | job-starvation-timeout          | string  | 任务饥饿超时时间，超时后强制提升优先级（如 900s）   |
-| sla-queue-waiting-time.<队列名>  | string  | 针对特定队列的等待时间阈值（可选）                  |
-| sla-job-label-waiting-time.<label>=<value> | string | 针对带特定 label 的 Job 的等待时间阈值（可选）     |
+| sla-queue-waiting-time.队列名  | string  | 针对特定队列的等待时间阈值（可选）                  |
+| sla-job-label-waiting-time.{label}={value} | string | 针对带特定 label 的 Job 的等待时间阈值（可选）     |
 
 **参数示例**：
 ```yaml
