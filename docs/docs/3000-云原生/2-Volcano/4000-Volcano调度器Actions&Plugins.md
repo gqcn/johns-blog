@@ -606,7 +606,7 @@ data:
 
 ### 1. priority（优先级）
 
-**作用**：根据任务的优先级对其进行排序，确保高优先级任务先被调度。
+**主要功能**：根据任务的优先级对其进行排序，确保高优先级任务先被调度。
 
 ![](../assets/fair-share.png)
 
@@ -615,7 +615,7 @@ data:
 - 根据优先级值对任务进行排序
 - 高优先级任务在资源分配时会被优先考虑
 
-**示例**：
+**使用示例**：
 ```yaml
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
@@ -638,14 +638,14 @@ spec:
 
 ### 2. gang（成组）
 
-**作用**：实现成组调度，确保任务的所有成员（Pod）可以同时运行。
+**主要功能**：实现成组调度，确保任务的所有成员（`Pod`）可以同时运行。
 
 **工作原理**：
 - 读取任务的`minAvailable`设置
-- 检查是否有足够的资源来运行最小所需的Pod数量
+- 检查是否有足够的资源来运行最小所需的`Pod`数量
 - 只有当所有必要的`Pod`都能被调度时，才会进行调度
 
-**示例**：
+**使用示例**：
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
@@ -668,14 +668,14 @@ spec:
 
 > 官网介绍链接：[https://volcano.sh/en/docs/schduler_introduction/#conformance](https://volcano.sh/en/docs/schduler_introduction/#conformance)
 
-**作用**：`conformance`插件就像`Kubernetes`的"规则检查员"，确保`Volcano`的调度决策符合`Kubernetes`的标准和约定。
+**主要功能**：`conformance`插件就像`Kubernetes`的"规则检查员"，确保`Volcano`的调度决策符合`Kubernetes`的标准和约定。
 
 **工作原理**：
 - 检查`Pod`的配置是否符合`Kubernetes`的规则（比如不能设置无效的资源请求）
 - 验证调度决策不会违反`Kubernetes`的基本原则（比如不会将`Pod`调度到资源不足的节点）
 - 确保`Volcano`的行为与标准`Kubernetes`调度器保持一致，避免冲突
 
-**示例**：
+**使用示例**：
 假设有一个任务请求了以下资源：
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
@@ -722,7 +722,7 @@ spec:
 
 
 
-**作用**：实现主导资源公平性（`Dominant Resource Fairness`）算法，确保资源在不同队列和任务之间公平分配。
+**主要功能**：实现主导资源公平性（`Dominant Resource Fairness`）算法，确保资源在不同队列和任务之间公平分配。
 
 ![](../assets/drfjob.png)
 
@@ -731,7 +731,7 @@ spec:
 - 根据主导资源的使用比例对任务进行排序
 - 确保所有用户或队列都能获得公平的资源份额
 
-**示例**：
+**使用示例**：
 
 假设集群中有两个队列（A和B）和两种资源（CPU和内存），总资源为`100`个CPU核心和`200`GB内存。
 
@@ -812,14 +812,41 @@ spec:
 
 ### 5. predicates（断言）
 
-**作用**：检查节点是否满足运行特定任务的条件，类似于标准`Kubernetes`调度器的断言。
+**主要功能**：检查节点是否满足运行特定任务的条件，类似于标准`Kubernetes`调度器的断言。
 
 **工作原理**：
 - 检查节点资源是否满足任务需求
 - 检查节点是否满足任务的亲和性、反亲和性要求
 - 检查节点标签是否符合任务要求
 
-**示例**：
+**参数说明**：
+
+| 参数名                      | 类型    | 说明                                 |
+|-----------------------------|---------|--------------------------------------|
+| predicates.enableNodeSelectorPredicate | bool | 是否启用节点标签断言                 |
+| predicates.enablePodAffinityPredicate  | bool | 是否启用Pod亲和性断言                |
+| predicates.enablePodTolerationPredicate| bool | 是否启用污点容忍断言                 |
+| predicates.enableResourcePredicate     | bool | 是否启用资源断言                     |
+| predicates.enableNodePortsPredicate    | bool | 是否启用端口冲突断言                 |
+| predicates.enableVolumePredicate       | bool | 是否启用存储卷断言                   |
+| predicates.resourceThresholds          | map  | 自定义资源阈值（如cpu、memory等）     |
+
+**参数示例**：
+```yaml
+- name: predicates
+  arguments:
+    predicates.enableNodeSelectorPredicate: true
+    predicates.enablePodAffinityPredicate: true
+    predicates.enablePodTolerationPredicate: true
+    predicates.enableResourcePredicate: true
+    predicates.enableNodePortsPredicate: true
+    predicates.enableVolumePredicate: false
+    predicates.resourceThresholds:
+      cpu: 2000m
+      memory: 8Gi
+```
+
+**使用示例**：
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
@@ -845,14 +872,14 @@ spec:
 
 ### 6. proportion（比例）
 
-**作用**：根据队列的权重按比例分配资源，确保资源分配符合预定的比例。
+**主要功能**：根据队列的权重按比例分配资源，确保资源分配符合预定的比例。
 
 **工作原理**：
 - 计算每个队列的目标资源份额（根据权重）
 - 监控实际资源使用情况
 - 调整资源分配以符合目标比例
 
-**示例**：
+**使用示例**：
 ```yaml
 apiVersion: scheduling.volcano.sh/v1beta1
 kind: Queue
@@ -881,7 +908,7 @@ spec:
 
 ### 7. nodeorder（节点排序）
 
-**作用**：为任务选择最适合的节点，基于多种因素对节点进行打分和排序。
+**主要功能**：为任务选择最适合的节点，基于多种因素对节点进行打分和排序。
 
 **工作原理**：
 - 考虑节点的资源利用率
@@ -889,21 +916,68 @@ spec:
 - 考虑节点的标签和条件
 - 为每个节点计算分数，选择分数最高的节点
 
-**示例**：
+**参数说明**：
+
+| 参数名                        | 类型   | 说明                            |
+|-------------------------------|--------|---------------------------------|
+| nodeaffinity.weight           | int    | 节点亲和性优先级权重            |
+| podaffinity.weight            | int    | Pod 亲和性优先级权重            |
+| leastrequested.weight         | int    | 最少资源使用优先级权重          |
+| balancedresource.weight       | int    | 资源均衡优先级权重              |
+| mostrequested.weight          | int    | 最大资源使用优先级权重          |
+| tainttoleration.weight        | int    | 污点容忍优先级权重              |
+| imagelocality.weight          | int    | 镜像本地性优先级权重            |
+| podtopologyspread.weight      | int    | Pod 拓扑分布优先级权重          |
+
+**参数示例**：
+```yaml
+- name: nodeorder
+  arguments:
+    nodeaffinity.weight: 1
+    podaffinity.weight: 1
+    leastrequested.weight: 1
+    balancedresource.weight: 1
+    mostrequested.weight: 1
+    tainttoleration.weight: 1
+    imagelocality.weight: 1
+    podtopologyspread.weight: 1
+```
+
+**使用示例**：
 当一个任务需要调度到集群中的节点时，`nodeorder`插件会考虑多种因素，
 如节点的当前负载、资源利用率、与其他任务的亲和性等，然后选择最适合的节点。
 
 
 ### 8. binpack（装箱）
 
-**作用**：将任务紧密地打包到尽可能少的节点上，提高资源利用率。
+**主要功能**：将任务紧密地打包到尽可能少的节点上，提高资源利用率。
 
 **工作原理**：
 - 优先选择已经有高资源利用率的节点
 - 尽量将任务集中在少数节点上
 - 减少空闲节点的数量，提高能源效率
 
-**示例**：
+**参数说明**：
+
+| 参数名              | 类型   | 说明                              |
+|---------------------|--------|-----------------------------------|
+| binpack.weight      | int    | binpack 策略整体权重（优先级）    |
+| binpack.cpu         | int    | CPU 资源权重                      |
+| binpack.memory      | int    | 内存资源权重                      |
+| binpack.resources   | map    | 其他自定义资源权重（如gpu等）      |
+
+**参数示例**：
+```yaml
+- name: binpack
+  arguments:
+    binpack.weight: 10
+    binpack.cpu: 1
+    binpack.memory: 1
+    binpack.resources:
+      nvidia.com/gpu: 2
+```
+
+**使用示例**：
 当集群中有多个小型任务需要调度时，`binpack`插件会尽量将它们调度到同一个或少数几个节点上，而不是分散到多个节点。
 这样可以保持更多的节点处于空闲状态，可以关闭这些节点以节省能源，或者用于运行大型任务。以`deepseek`为例，一个集群有三个8卡节点，每个节点上都已经被占用了一个卡，每个节点只有7卡，而`deepseek`需要两个8卡节点才能启动，这时候管理视角有21卡空余，但是实际却不能调度任何容器。这是需要调度器尽可能优先将一个节点填满，或者可以触发重调度，将三个单卡容器调度到一个节点，以平衡资源状态，使业务可以被调度。
 
@@ -915,27 +989,27 @@ spec:
 
 ![](../assets/20220602110808.png)
 
-**作用**：优化对`NUMA`（非统一内存访问）架构的支持，提高计算密集型任务的性能。
+**主要功能**：优化对`NUMA`（非统一内存访问）架构的支持，提高计算密集型任务的性能。
 
 **工作原理**：
 - 识别节点的`NUMA`拓扑结构
 - 尽量将任务的所有资源（CPU、内存、设备）分配在同一`NUMA`节点上
 - 减少跨`NUMA`节点的内存访问，降低延迟
 
-**示例**：
+**使用示例**：
 对于高性能计算或AI训练等对内存访问延迟敏感的工作负载，
 `numaaware`插件可以确保任务的CPU和内存资源分配在同一`NUMA`节点上，避免跨节点访问导致的性能下降。
 
 ### 10. task-topology（任务拓扑）
 
-**作用**：基于任务之间的亲和性和反亲和性配置，计算任务和节点的优先级，优化任务分布。
+**主要功能**：基于任务之间的亲和性和反亲和性配置，计算任务和节点的优先级，优化任务分布。
 
 **工作原理**：
 - 分析任务之间的亲和性和反亲和性设置
 - 将有亲和性配置的任务优先调度到同一节点
 - 将有反亲和性配置的任务调度到不同节点
 
-**示例**：
+**使用示例**：
 在深度学习计算场景中，任务拓扑对提高计算效率非常重要。以`TensorFlow`分布式训练为例，我们可以定义如下任务拓扑关系：
 
 ```yaml
@@ -1020,14 +1094,37 @@ spec:
 
 ### 11. sla（服务级别协议）
 
-**作用**：实现服务级别协议（`Service Level Agreement`）的管理，确保任务的调度符合特定的服务质量要求。
+**主要功能**：实现服务级别协议（`Service Level Agreement`）的管理，确保任务的调度符合特定的服务质量要求。
 
 **工作原理**：
 - 监控任务的等待时间和调度状态
 - 根据`sla`策略调整任务的优先级
 - 防止任务长时间处于等待状态，避免资源饥饿
 
-**示例**：
+**参数说明**：
+
+| 参数名                          | 类型    | 说明                                               |
+|---------------------------------|---------|----------------------------------------------------|
+| sla-waiting-time                | bool    | 是否启用等待时间提升优先级功能                      |
+| job-waiting-time.<优先级名>      | string  | 各优先级任务的等待时间阈值（如 60s、120s、300s）    |
+| job-starvation-timeout          | string  | 任务饥饿超时时间，超时后强制提升优先级（如 900s）   |
+| sla-queue-waiting-time.<队列名>  | string  | 针对特定队列的等待时间阈值（可选）                  |
+| sla-job-label-waiting-time.<label>=<value> | string | 针对带特定 label 的 Job 的等待时间阈值（可选）     |
+
+**参数示例**：
+```yaml
+- name: sla
+  arguments:
+    sla-waiting-time: true
+    job-waiting-time.high-priority: 60s
+    job-waiting-time.medium-priority: 120s
+    job-waiting-time.low-priority: 300s
+    job-starvation-timeout: 900s
+    sla-queue-waiting-time.analytics: 180s
+    sla-job-label-waiting-time.type=batch: 600s
+```
+
+**使用示例**：
 下面是一个完整的`sla`插件配置示例，展示了如何为不同类型的任务设置不同的`sla`策略：
 
 ```yaml
@@ -1139,16 +1236,17 @@ spec:
 
 通过这种方式，`sla`插件在保证高优先级任务快速响应的同时，也避免了低优先级任务的资源饥饿问题，实现了集群资源的合理分配和服务质量保证。
 
+
 ### 12. tdm（时分复用）
 
-**作用**：实现时分复用（`Time Division Multiplexing`）机制，允许不同系统在不同时间段共享同一节点的资源。
+**主要功能**：实现时分复用（`Time Division Multiplexing`）机制，允许不同系统在不同时间段共享同一节点的资源。
 
 **工作原理**：
 - 将特定节点标记为可撤销节点（`revocable nodes`）
 - 在节点的可用时间段内，将可抢占任务调度到这些节点
 - 在非可用时间段，将这些任务从节点上驱逐
 
-**示例**：
+**使用示例**：
 下面是一个完整的`tdm`插件配置示例，展示了如何在混合计算环境中实现资源的时分复用：
 
 ```yaml
@@ -1328,6 +1426,518 @@ spec:
 
 
 
+
+### 13. deviceshare（设备共享）
+
+**主要功能**：支持在同一节点上安全高效地共享 GPU、FPGA 等特殊硬件资源。
+
+**工作原理**：
+- 跟踪节点上的可用设备资源
+- 动态分配、隔离和调度设备到不同任务
+- 支持设备分片和多任务共享同一物理设备
+
+**应用场景**：AI 训练、推理等需要特殊硬件资源的场景，提升资源利用率。
+
+**参数说明**：
+
+| 参数名                        | 类型   | 说明                                                         |
+|-------------------------------|--------|--------------------------------------------------------------|
+| deviceshare.GPUSharingEnable  | bool   | 是否启用 GPU 显存分片共享                                    |
+| deviceshare.NodeLockEnable    | bool   | 是否启用节点锁定（防止多任务争抢同一设备）                   |
+| deviceshare.GPUNumberEnable   | bool   | 是否按 GPU 数量调度                                          |
+| deviceshare.VGPUEnable        | bool   | 是否启用 vGPU 支持                                           |
+| deviceshare.SchedulePolicy    | string | 设备调度策略（如“binpack”、“spread”等）                     |
+| deviceshare.ScheduleWeight    | int    | 设备调度打分权重                                             |
+
+**参数示例**：
+```yaml
+- name: deviceshare
+  arguments:
+    deviceshare.GPUSharingEnable: true
+    deviceshare.NodeLockEnable: false
+    deviceshare.SchedulePolicy: "binpack"
+    deviceshare.ScheduleWeight: 10
+```
+
+**使用示例**：
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: gpu-share-job
+spec:
+  minAvailable: 2
+  schedulerName: volcano
+  plugins:
+    deviceshare: []
+  tasks:
+    - replicas: 2
+      name: gpu-task
+      template:
+        spec:
+          containers:
+            - name: gpu-container
+              image: nvidia/cuda:latest
+              resources:
+                limits:
+                  volcano.sh/gpu-mem: 4096 # 申请4GB显存分片
+```
+
+---
+
+### 14. overcommit（超额分配）
+
+**主要功能**：允许节点资源被“超额预定”，提升资源利用率。
+
+**工作原理**：
+- 支持为节点设置 overcommit 策略
+- 允许任务总资源请求超过节点实际可用资源
+- 适合实际资源消耗远低于请求的场景
+
+**注意事项**：需谨慎使用，避免资源争抢导致任务 OOM 或性能抖动。
+
+**参数说明**：
+
+| 参数名            | 类型   | 说明                     |
+|-------------------|--------|--------------------------|
+| overcommit-factor | float  | 超额分配因子，默认1.2    |
+
+**参数示例**：
+```yaml
+- name: overcommit
+  arguments:
+    overcommit-factor: 1.5
+```
+
+**使用示例**：
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    tiers:
+    - plugins:
+      - name: overcommit
+        arguments:
+          cpu-overcommit-ratio: 2.0   # 允许CPU超配2倍
+          mem-overcommit-ratio: 1.5   # 允许内存超配1.5倍
+```
+
+---
+
+### 15. pdb（PodDisruptionBudget 支持）
+
+**主要功能**：在调度和驱逐任务时，遵守 Kubernetes 的 PDB 约束，保障服务可用性。
+
+**工作原理**：
+- 检查 PDB 约束，避免一次性驱逐过多 Pod
+- 保证关键服务的最小可用实例数
+
+**参数说明**：
+
+当前插件无参数配置。
+
+**使用示例**：
+```yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-demo
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: my-app
+---
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: pdb-job
+spec:
+  schedulerName: volcano
+  plugins:
+    pdb: []
+  tasks:
+    - replicas: 3
+      name: worker
+      template:
+        metadata:
+          labels:
+            app: my-app
+        spec:
+          containers:
+            - name: main
+              image: busybox
+              command: ["sleep", "3600"]
+```
+
+---
+
+### 16. resourcequota（资源配额）
+
+**主要功能**：支持队列或命名空间级别的资源配额限制，防止资源被单一队列/用户占满。
+
+**工作原理**：
+- 跟踪每个队列/命名空间的资源使用量
+- 拒绝超出配额的任务调度请求
+
+**参数说明**：
+
+当前插件无参数配置。
+
+**使用示例**：
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: queue-quota
+  namespace: default
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+    limits.cpu: "16"
+    limits.memory: 32Gi
+---
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: quota-job
+  namespace: default
+spec:
+  schedulerName: volcano
+  plugins:
+    resourcequota: []
+  tasks:
+    - replicas: 2
+      name: main
+      template:
+        spec:
+          containers:
+            - name: main
+              image: busybox
+              command: ["sleep", "3600"]
+```
+
+---
+
+### 17. rescheduling（重调度）
+
+**主要功能**：动态检测资源碎片或节点利用率低下情况，自动触发任务重调度，提升集群整体利用率。
+
+**工作原理**：
+- 定期评估节点利用率
+- 识别低效分布的任务并触发迁移
+
+**参数说明**：
+
+| 参数名                      | 类型         | 说明                                   |
+|-----------------------------|--------------|----------------------------------------|
+| interval                    | string       | 执行重调度的时间间隔（如“5m”）         |
+| strategies                  | 数组         | 重调度策略列表                         |
+| strategies.name             | string       | 策略名称（如“lowNodeUtilization”）      |
+| strategies.params           | map          | 策略参数（如阈值等，具体见源码）        |
+
+**参数示例**：
+```yaml
+- name: rescheduling
+  arguments:
+    interval: "5m"
+    strategies:
+      - name: lowNodeUtilization
+        params:
+          nodeUtilizationThreshold: 0.5
+```
+
+**使用示例**：
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    actions: "enqueue, allocate, backfill, rescheduling"
+    tiers:
+    - plugins:
+      - name: rescheduling
+        arguments:
+          rescheduling-interval-seconds: 300 # 每5分钟检测一次重调度
+```
+
+---
+
+### 18. capacity（容量感知）
+
+**主要功能**：根据节点和队列的容量约束进行调度，防止资源超卖。
+
+**工作原理**：
+- 跟踪并校验队列/节点的容量限制
+- 调度时严格遵守容量约束
+
+**参数说明**：
+
+| 参数名           | 类型   | 说明                       |
+|------------------|--------|----------------------------|
+| enabledHierarchy | bool   | 是否启用队列层级调度       |
+
+**参数示例**：
+```yaml
+- name: capacity
+  enabledHierarchy: true
+```
+
+**使用示例**：
+```yaml
+apiVersion: scheduling.volcano.sh/v1beta1
+kind: Queue
+metadata:
+  name: research
+spec:
+  weight: 2
+  capacity:
+    cpu: "32"
+    memory: 128Gi
+---
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: research-job
+spec:
+  queue: research
+  schedulerName: volcano
+  plugins:
+    capacity: []
+  tasks:
+    - replicas: 4
+      name: main
+      template:
+        spec:
+          containers:
+            - name: main
+              image: busybox
+              command: ["sleep", "3600"]
+```
+
+---
+
+### 19. cdp（自定义调度参数）
+
+**主要功能**：允许用户通过 CRD 配置自定义调度参数，增强调度灵活性。
+
+**工作原理**：
+- 支持通过 CRD 动态扩展调度参数
+- 满足特殊业务场景的调度需求
+
+**参数说明**：
+
+主要通过 CRD（如 CustomDispatchPolicy）配置，无调度器插件参数。
+
+**使用示例**：
+```yaml
+apiVersion: scheduling.volcano.sh/v1alpha1
+kind: CustomDispatchPolicy
+metadata:
+  name: my-policy
+spec:
+  rules:
+    - name: prefer-cpu
+      match:
+        labelSelector:
+          matchLabels:
+            app: cpu-intensive
+      actions:
+        - setNodeSelector:
+            cpu-type: high-performance
+---
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: cpu-intensive-job
+spec:
+  schedulerName: volcano
+  plugins:
+    cdp: []
+  tasks:
+    - replicas: 2
+      name: cpu-task
+      template:
+        metadata:
+          labels:
+            app: cpu-intensive
+        spec:
+          containers:
+            - name: main
+              image: busybox
+              command: ["sleep", "3600"]
+```
+
+---
+
+### 20. extender（调度扩展）
+
+**主要功能**：支持与外部调度器集成，允许通过 HTTP/gRPC 等方式扩展调度决策。
+
+**工作原理**：
+- 与外部调度器通信，获取调度建议
+- 支持定制化的调度逻辑扩展
+
+**参数说明**：
+
+| 参数名                        | 类型     | 说明                       |
+|-------------------------------|----------|----------------------------|
+| extender.urlPrefix            | string   | 扩展调度器服务地址         |
+| extender.httpTimeout          | string   | HTTP超时时间（如“2s”）     |
+| extender.onSessionOpenVerb    | string   | OnSessionOpen 调用名        |
+| extender.onSessionCloseVerb   | string   | OnSessionClose 调用名       |
+| extender.predicateVerb        | string   | Predicate 调用名            |
+| extender.prioritizeVerb       | string   | Prioritize 调用名           |
+| extender.preemptableVerb      | string   | Preemptable 调用名          |
+| extender.reclaimableVerb      | string   | Reclaimable 调用名          |
+| extender.ignorable            | bool     | 是否忽略扩展器异常          |
+
+**参数示例**：
+```yaml
+- name: extender
+  arguments:
+    extender.urlPrefix: http://127.0.0.1
+    extender.httpTimeout: 2s
+    extender.ignorable: true
+```
+
+**使用示例**：
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    tiers:
+    - plugins:
+      - name: extender
+        arguments:
+          extender-url: "http://my-extender-service/scheduler"
+          extender-timeout: 2s
+```
+
+---
+
+### 21. nodegroup（节点分组）
+
+**主要功能**：对节点进行逻辑分组，支持基于节点组的调度策略。
+
+**工作原理**：
+- 标记和分组不同类型节点
+- 支持按组调度、资源隔离等高级策略
+
+**参数说明**：
+
+| 参数名                | 类型   | 说明                                   |
+|-----------------------|--------|----------------------------------------|
+| affinity              | map    | 队列与节点组的亲和性/反亲和性配置      |
+
+**参数示例**：
+```yaml
+- name: nodegroup
+  arguments:
+    affinity:
+      queueGroupAffinityRequired:
+        queueA: [group1]
+      queueGroupAntiAffinityPreferred:
+        queueB: [group2]
+```
+
+**使用示例**：
+```yaml
+apiVersion: v1
+kind: Node
+metadata:
+  name: node-a
+  labels:
+    volcano.sh/nodegroup: group1
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: node-b
+  labels:
+    volcano.sh/nodegroup: group2
+---
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: group-job
+spec:
+  schedulerName: volcano
+  plugins:
+    nodegroup: []
+  tasks:
+    - replicas: 2
+      name: main
+      template:
+        spec:
+          nodeSelector:
+            volcano.sh/nodegroup: group1
+          containers:
+            - name: main
+              image: busybox
+              command: ["sleep", "3600"]
+```
+
+---
+
+### 22. usage（资源使用统计）
+
+**主要功能**：收集和统计任务、队列、节点的资源使用情况，为调度决策和资源优化提供数据基础。
+
+**工作原理**：
+- 实时收集各类资源使用数据
+- 提供资源利用率分析和调度参考
+
+**参数说明**：
+
+| 参数名         | 类型   | 说明                                 |
+|----------------|--------|--------------------------------------|
+| usage.weight   | int    | 总资源利用率打分权重                 |
+| cpu.weight     | int    | CPU 利用率打分权重                   |
+| memory.weight  | int    | 内存利用率打分权重                   |
+| thresholds     | map    | 各资源类型的利用率阈值（如cpu/mem）   |
+
+**参数示例**：
+```yaml
+- name: usage
+  arguments:
+    usage.weight: 5
+    cpu.weight: 1
+    memory.weight: 1
+    thresholds:
+      cpu: 80
+      mem: 80
+```
+
+**使用示例**：
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    tiers:
+    - plugins:
+      - name: usage
+        arguments:
+          usage-collect-interval: 60s # 每60秒统计一次资源使用
+```
+
+---
 
 ## 总结
 
