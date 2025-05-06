@@ -908,7 +908,7 @@ spec:
 **主要功能**：根据队列的权重按比例分配资源，确保资源分配符合预定的比例。
 
 **工作原理**：
-- 计算每个队列的目标资源份额（根据权重）
+- 计算每个队列的目标资源份额（根据`weight`权重）
 - 监控实际资源使用情况
 - 调整资源分配以符合目标比例
 
@@ -953,14 +953,14 @@ spec:
 
 | 参数名                        | 类型   | 说明                            |
 |-------------------------------|--------|---------------------------------|
-| nodeaffinity.weight           | int    | 节点亲和性优先级权重            |
-| podaffinity.weight            | int    | Pod 亲和性优先级权重            |
-| leastrequested.weight         | int    | 最少资源使用优先级权重          |
-| balancedresource.weight       | int    | 资源均衡优先级权重              |
-| mostrequested.weight          | int    | 最大资源使用优先级权重          |
-| tainttoleration.weight        | int    | 污点容忍优先级权重              |
-| imagelocality.weight          | int    | 镜像本地性优先级权重            |
-| podtopologyspread.weight      | int    | Pod 拓扑分布优先级权重          |
+| `nodeaffinity.weight`           | `int`    | 节点亲和性优先级权重            |
+| `podaffinity.weight`            | `int`    | `Pod` 亲和性优先级权重            |
+| `leastrequested.weight`         | `int`    | 最少资源使用优先级权重          |
+| `balancedresource.weight`       | `int`    | 资源均衡优先级权重              |
+| `mostrequested.weight`          | `int`    | 最大资源使用优先级权重          |
+| `tainttoleration.weight`        | `int`    | 污点容忍优先级权重              |
+| `imagelocality.weight`          | `int`    | 镜像本地性优先级权重            |
+| `podtopologyspread.weight`      | `int`    | `Pod` 拓扑分布优先级权重          |
 
 **参数示例**：
 ```yaml
@@ -977,8 +977,75 @@ spec:
 ```
 
 **使用示例**：
-当一个任务需要调度到集群中的节点时，`nodeorder`插件会考虑多种因素，
-如节点的当前负载、资源利用率、与其他任务的亲和性等，然后选择最适合的节点。
+
+下面是一个典型的 `nodeorder` 插件配置与任务调度示例：
+
+```yaml
+# volcano-scheduler.conf 片段
+- name: nodeorder
+  arguments:
+    nodeaffinity.weight: 5
+    podaffinity.weight: 10
+    leastrequested.weight: 1
+    balancedresource.weight: 2
+    mostrequested.weight: 1
+    tainttoleration.weight: 1
+    imagelocality.weight: 1
+    podtopologyspread.weight: 1
+```
+
+```yaml
+# Job 示例
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: affinity-job
+spec:
+  minAvailable: 2
+  tasks:
+    - replicas: 2
+      name: worker
+      template:
+        spec:
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: disktype
+                        operator: In
+                        values: [ssd]
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app: myapp
+                  topologyKey: kubernetes.io/hostname
+          containers:
+            - name: main
+              image: busybox
+              command: ["sleep", "3600"]
+```
+
+在上述配置中：
+- `nodeorder` 插件通过不同权重综合考虑节点亲和性、`Pod` 亲和性、资源利用率等因素，为每个节点打分。
+- 任务通过 `affinity` 字段表达了节点和 `Pod` 亲和性需求。
+- 调度器最终会选择分数最高、最符合业务需求的节点进行任务调度。
+
+
+**注意事项**：
+
+- `nodeorder` 插件并不是 `Volcano` 调度器中的“强制必选”插件，但在实际生产环境中，它也是非常常用且推荐启用的插件之一。
+
+- `nodeorder` 插件负责为所有可用节点打分排序，帮助调度器选择最适合任务的节点。它支持多种打分策略（如资源利用率、亲和性、污点容忍等），极大提升了调度的灵活性和智能性。
+
+- 如果不启用 `nodeorder` 插件，调度器将无法对节点进行综合打分排序，可能只能采用简单的随机或轮询等方式分配任务，容易导致资源利用率低下或调度结果不理想。
+
+- `Volcano` 支持插件化调度框架，允许用户根据实际需求选择启用或禁用 `nodeorder`。只有在极为特殊、对节点选择没有要求的场景下，才可能不启用该插件。
+
+- 对于绝大多数生产集群和批量计算场景，建议始终启用 `nodeorder` 插件，以实现更优的资源利用和调度效果。
+
+- 只有在明确知道后果且业务场景极为特殊时，才可以选择不启用该插件。
 
 
 ### 8. binpack（装箱）
