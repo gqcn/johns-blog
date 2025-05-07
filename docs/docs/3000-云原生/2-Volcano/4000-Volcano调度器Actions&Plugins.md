@@ -601,6 +601,8 @@ data:
 在上面的配置中，插件被组织成两个层级（`tiers`），每个层级包含多个插件。
 层级的概念允许插件按照优先级顺序执行，高层级的插件优先级高于低层级的插件。
 
+**注意事项**：部分插件支持在`Job`的`spec.plugins`中设置插件参数，但是只有在`Volcano`的全局配置中启用了该插件，在`Job`的`spec.plugins`中该插件才能起作用，否则无效。
+
 让我们逐一解释这些插件的作用：
 
 
@@ -911,6 +913,22 @@ spec:
 - 计算每个队列的目标资源份额（根据`weight`权重）
 - 监控实际资源使用情况
 - 调整资源分配以符合目标比例
+
+**Job插件参数**：
+
+- `proportion` 插件在 Job 层级无需配置参数，仅需在 `spec.plugins` 中声明启用即可。
+- 仅对当前 Job 生效，不影响其它 Job 和全局调度策略。
+
+**Job插件参数示例**：
+```yaml
+spec:
+  plugins:
+    proportion: [] # 启用比例插件，无需额外参数
+```
+
+**Job插件参数与全局参数关系**
+
+- `Job` 层级的 `proportion` 配置不会覆盖全局设置，仅影响当前 Job。
 
 **使用示例**：
 ```yaml
@@ -1369,6 +1387,61 @@ spec:
 - 在节点的可用时间段内，将可抢占任务调度到这些节点
 - 在非可用时间段，将这些任务从节点上驱逐
 
+**参数说明**：
+
+
+**全局插件参数**：
+| 参数名                       | 类型    | 默认值 | 说明                                                                 |
+|------------------------------|---------|--------|----------------------------------------------------------------------|
+| `tdm-scheduler-name`         | `string`  | `volcano-tdm` | 负责时分复用调度的调度器名称（需与 `schedulerName` 匹配）              |
+| `tdm-revocable-node-label`   | `string`  | `volcano.sh/revocable-node` | 标记可撤销节点的标签名，只有带此标签的节点参与时分复用              |
+| `tdm-time-ranges`            | `string`  | 无     | 不同时间段的配置，支持 `JSON` 数组格式，定义名称、起止时间、星期、时区等 |
+| `tdm-revocable`              | `bool`    | `false`  | 是否为可撤销任务（可在指定时间段被调度到可撤销节点）                |
+| `tdm-timezone`               | `string`  | `Asia/Shanghai` | 时区设置，影响时间段的生效范围                                   |
+
+> **说明：**
+> - `tdm-scheduler-name` 和 `tdm-revocable-node-label` 一般无需更改，除非有多套调度器或特殊节点标签。
+> - `tdm-time-ranges` 必须配置，支持多个时间段（如工作日、非工作日、周末等），每个时间段可指定名称、起止时间、适用星期、时区等。
+> - `tdm-revocable` 通常在 `Job/task` 的插件参数中指定，决定该任务是否为可撤销任务。
+> - `tdm-timezone` 可选，默认 `Asia/Shanghai`，适用于多时区集群。
+
+
+
+**Job插件参数**：
+
+`Volcano` 支持在 `Job` 级别通过 `spec.plugins` 单独配置 `tdm` 插件参数，实现更细粒度的时分复用调度控制。
+
+| Job 层级参数   | 类型      | 说明 |
+|----------------|-----------|------|
+| `revocable`    | `bool`    | 是否为可收回任务，决定是否参与时分复用调度 |
+| `timeRanges`   | `[]string`| 允许任务运行的时间段名称，需与全局 `tdm` 配置的 `time-ranges` 匹配 |
+| `timezone`     | `string`  | 可选，指定该 Job 使用的时区，默认继承全局配置 |
+
+**Job插件参数示例**：
+```yaml
+plugins:
+  tdm:
+    revocable: true
+    timeRanges: ["non-working-hours", "weekend"]
+    timezone: "Asia/Shanghai"
+```
+
+
+**Job插件参数与全局参数关系**
+
+
+- `Job` 层级的 `tdm` 参数不会覆盖全局配置，而是基于全局配置做细粒度补充。
+  - 例如 `timeRanges` 必须引用全局 `tdm` 配置中定义的 `time-ranges` 名称，否则无效。
+  - `revocable` 仅影响该 `Job` 是否参与可收回任务调度，不会影响全局其它 `Job`。
+- 如果 `Job` 层级未配置某参数，则默认继承全局配置（如 `timezone`）。
+- `Job` 层级参数仅对当前 `Job` 有效，不会影响全局设置。
+
+> **总结：**
+> - `Job.spec.plugins` 是 `Volcano` 支持的原生扩展点。
+> - `plugins.tdm` 支持 `revocable`、`timeRanges`、`timezone` 等参数，主要用于细化 `Job` 的时分复用调度行为。
+> - `Job` 层级参数不会与全局参数冲突，而是互为补充，`Job` 层级参数优先生效，仅影响该 `Job`。
+
+
 **使用示例**：
 下面是一个完整的`tdm`插件配置示例，展示了如何在混合计算环境中实现资源的时分复用：
 
@@ -1431,7 +1504,7 @@ data:
 
 3. **时间段配置**：
    - `tdm-time-ranges`定义了不同的时间段，每个时间段都有自己的名称、开始时间、结束时间、适用的星期和时区
-   - 这里定义了三个时间段：工作时间（工作日的9:00-18:00）、非工作时间（工作日的18:00-次日9:00）和周末时间
+   - 这里定义了三个时间段：工作时间（工作日的`9:00-18:00`）、非工作时间（工作日的`18:00`-次日`9:00`）和周末时间
 
 现在，让我们看一个具体的节点和任务配置示例，展示如何使用`tdm`插件进行时分复用：
 
@@ -1516,7 +1589,7 @@ spec:
 
 2. **交互式服务任务**：
    - 这个任务不是可收回的（`revocable: false`）
-   - 它将在工作时间（工作日的9:00-18:00）运行
+   - 它将在工作时间（工作日的`9:00-18:00`）运行
    - 在这个时间段，它将优先使用集群资源
 
 3. **批处理任务**：
@@ -1552,7 +1625,7 @@ spec:
 
 ### 13. deviceshare（设备共享）
 
-**主要功能**：支持在同一节点上安全高效地共享 GPU、FPGA 等特殊硬件资源。
+**主要功能**：支持在同一节点上安全高效地共享 `GPU`、`FPGA` 等特殊硬件资源。
 
 **工作原理**：
 - 跟踪节点上的可用设备资源
@@ -1561,23 +1634,32 @@ spec:
 
 **应用场景**：AI 训练、推理等需要特殊硬件资源的场景，提升资源利用率。
 
+**注意事项：**
+- `deviceshare` 插件本身只负责调度决策，实际的物理设备发现、分配与隔离，必须依赖 `Kubernetes` 的 `Device Plugin` 机制或相关 `Operator`。
+- **NVIDIA GPU 场景**：需提前安装 [NVIDIA Device Plugin](https://github.com/NVIDIA/k8s-device-plugin) 或 [GPU Operator](https://github.com/NVIDIA/gpu-operator)。
+- **FPGA/其它设备**：需根据硬件类型选择对应的 `Device Plugin/Operator`。
+- **显存分片/vGPU**：如需启用 `deviceshare.GPUSharingEnable: true`，还需配合社区（如 `volcano-sh/gpu-share-device-plugin`）或厂商的分片插件。
+- 若未安装对应 `Device Plugin`，`deviceshare` 插件无法实现对物理资源的精细调度和隔离。
+
 **参数说明**：
 
+
+**全局插件参数**：
 | 参数名                        | 类型   | 默认值 | 说明                                                         |
 |-------------------------------|--------|--------|--------------------------------------------------------------|
-| deviceshare.GPUSharingEnable  | bool   | false  | 是否启用 GPU 显存分片共享                                    |
-| deviceshare.NodeLockEnable    | bool   | false  | 是否启用节点锁定（防止多任务争抢同一设备）                   |
-| deviceshare.GPUNumberEnable   | bool   | false  | 是否按 GPU 数量调度                                          |
-| deviceshare.VGPUEnable        | bool   | false  | 是否启用 vGPU 支持                                           |
-| deviceshare.SchedulePolicy    | string | binpack| 设备调度策略（如“binpack”、“spread”等）                     |
-| deviceshare.ScheduleWeight    | int    | 10     | 设备调度打分权重                                             |
+| `deviceshare.GPUSharingEnable`  | `bool`   | `false`  | 是否启用 `GPU` 显存分片共享                                    |
+| `deviceshare.NodeLockEnable`    | `bool`   | `false`  | 是否启用节点锁定（防止多任务争抢同一设备）                   |
+| `deviceshare.GPUNumberEnable`   | `bool`   | `false`  | 是否按 `GPU` 数量调度                                          |
+| `deviceshare.VGPUEnable`        | `bool`   | `false`  | 是否启用 `vGPU` 支持                                           |
+| `deviceshare.SchedulePolicy`    | `string` | `binpack`| 设备调度策略（如`binpack`、`spread`等）                     |
+| `deviceshare.ScheduleWeight`    | `int`    | `10`     | 设备调度打分权重                                             |
 
 > **说明：**
 > - 如未配置，所有布尔参数默认 `false`，`SchedulePolicy` 默认 `binpack`，`ScheduleWeight` 默认 `10`。
-> - 可按需开启分片、锁定或 vGPU 支持，提升设备利用率。
+> - 可按需开启分片、锁定或 `vGPU` 支持，提升设备利用率。
 
 
-**参数示例**：
+**全局插件参数示例**：
 ```yaml
 - name: deviceshare
   arguments:
@@ -1587,7 +1669,47 @@ spec:
     deviceshare.ScheduleWeight: 10
 ```
 
+
+**Job插件参数**：
+
+`Volcano` 支持在 `Job` 级别通过 `spec.plugins` 单独配置 `deviceshare` 插件参数，实现更细粒度的设备调度控制。
+
+| 参数名                        | 类型      | 说明                                   |
+|-------------------------------|-----------|----------------------------------------|
+| `GPUSharingEnable`              | `bool`    | 是否启用 `GPU` 显存分片共享              |
+| `NodeLockEnable`                | `bool`    | 是否启用节点锁定                       |
+| `GPUNumberEnable`               | `bool`    | 是否按 `GPU` 数量调度                    |
+| `VGPUEnable`                    | `bool`    | 是否启用 `vGPU` 支持                     |
+| `SchedulePolicy`                | `string`  | 设备调度策略（如 `binpack`、`spread` 等）   |
+| `ScheduleWeight`                | `int`     | 设备调度打分权重                       |
+
+> **说明：**
+> - `Job` 层级参数与全局参数同名时，仅对当前 `Job` 生效，不影响全局其它任务。
+> - 未配置参数时，默认继承全局 `deviceshare` 配置。
+
+**Job插件参数示例**：
+```yaml
+spec:
+  plugins:
+    deviceshare:
+      GPUSharingEnable: true
+      SchedulePolicy: "spread"
+      ScheduleWeight: 20
+```
+
+**Job插件参数与全局参数关系**
+
+- `Job` 层级的 `deviceshare` 参数不会覆盖全局配置，而是基于全局配置做细粒度补充。
+- 仅对当前 `Job` 有效，不影响其它 `Job` 和全局调度策略。
+
+
 **使用示例**：
+
+下方示例展示了如何通过 `deviceshare` 插件实现 `GPU` 显存分片调度：
+- 用户只需在 `Job` 的 `plugins` 字段中启用 `deviceshare` 插件，并在容器资源 `limits` 中声明所需的显存分片（如 `4096 MiB`）。
+- 调度器会根据 `deviceshare` 配置和底层` Device Plugin` 的资源分片能力，将多个任务合理分配到同一块物理 `GPU` 上，实现资源高效复用。
+- 需要注意，只有在集群已正确部署支持显存分片的 `Device Plugin` 时，该功能才能生效。
+
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
@@ -1618,31 +1740,67 @@ spec:
 **主要功能**：允许节点资源被“超额预定”，提升资源利用率。
 
 **工作原理**：
-- 支持为节点设置 overcommit 策略
-- 允许任务总资源请求超过节点实际可用资源
-- 适合实际资源消耗远低于请求的场景
+- `overcommit` 插件通过调度层面对节点资源进行“超额预定”（`Overcommit`），并不是物理硬件超频，而是放大调度器感知的节点可分配资源。
+- 支持为节点设置超配策略，通过 `overcommit-factor`、`cpu-overcommit-ratio`、`mem-overcommit-ratio` 等参数，将节点的“可分配资源”虚拟放大。例如节点实际 `100` 核 `CPU`，设置 `cpu-overcommit-ratio: 2.0` 后，调度器视为可分配 `200` 核。
+- 在调度决策阶段，允许任务总资源请求超过节点实际物理资源，实现资源的“虚拟扩容”，适合实际资源消耗远低于申请量的场景（如离线批处理、AI 推理等）。
+- `Kubernetes` 本身支持资源 `overcommit`，`Volcano` 通过插件机制进一步增强了资源超配的灵活性和粒度。
+- 超配策略仅影响调度决策，节点 `kubelet` 仍按物理资源运行容器，若所有任务实际消耗接近申请值，可能导致节点资源耗尽、任务 `OOM` 或性能抖动。
+- 建议根据节点实际资源消耗情况合理设置超配比例，平衡资源利用率与稳定性。
 
-**注意事项**：需谨慎使用，避免资源争抢导致任务 OOM 或性能抖动。
+**注意事项**：需谨慎使用，避免资源争抢导致任务 `OOM` 或性能抖动。
 
 **参数说明**：
 
+**全局插件参数**：
+
 | 参数名                | 类型   | 默认值 | 说明                        |
 |---------------------|--------|--------|-----------------------------|
-| overcommit-factor   | float  | 1.2    | 超额分配因子（全局生效）    |
-| cpu-overcommit-ratio| float  | 无     | CPU 资源超配比例，未配置则不超配 |
-| mem-overcommit-ratio| float  | 无     | 内存资源超配比例，未配置则不超配 |
+| `overcommit-factor`   | `float`  | `1.2`    | 超额分配因子（全局生效）    |
+| `cpu-overcommit-ratio`| `float`  | 无     | `CPU` 资源超配比例，未配置则不超配 |
+| `mem-overcommit-ratio`| `float`  | 无     | 内存资源超配比例，未配置则不超配 |
 
 > **说明：**
 > - `overcommit-factor` 为全局默认超配因子，若未配置 `cpu-overcommit-ratio` 或 `mem-overcommit-ratio` 时生效。
-> - 建议根据节点实际资源消耗情况合理设置，避免因超配导致 OOM。
+> - 建议根据节点实际资源消耗情况合理设置，避免因超配导致 `OOM`。
 
 
-**参数示例**：
+**全局插件参数示例**：
 ```yaml
 - name: overcommit
   arguments:
     overcommit-factor: 1.5
 ```
+
+
+**Job插件参数**：
+
+`Volcano` 支持在 `Job` 级别通过 `spec.plugins` 单独配置 `overcommit` 插件参数，实现更细粒度的超配调度控制。
+
+| 参数名                | 类型   | 说明                                  |
+|---------------------|--------|---------------------------------------|
+| `overcommitFactor`      | `float`  | 当前 `Job` 的超配因子，优先生效于全局配置 |
+| `cpuOvercommitRatio`   | `float`  | 当前 `Job` 的 `CPU` 超配比例               |
+| `memOvercommitRatio`   | `float`  | 当前 `Job` 的内存超配比例                |
+
+> **说明：**
+> - `Job` 层级参数仅对当前 `Job` 生效，不影响全局其它任务。
+> - 未配置参数时，默认继承全局 `overcommit` 配置。
+
+**Job插件参数示例**：
+```yaml
+spec:
+  plugins:
+    overcommit:
+      overcommitFactor: 1.3
+      cpuOvercommitRatio: 1.5
+      memOvercommitRatio: 1.2
+```
+
+**Job插件参数与全局参数关系**
+
+- `Job` 层级的 `overcommit` 参数不会覆盖全局配置，而是基于全局配置做细粒度补充。
+- 仅对当前 `Job` 有效，不影响其它 `Job` 和全局调度策略。
+
 
 **使用示例**：
 ```yaml
@@ -1665,28 +1823,44 @@ data:
 
 ### 15. pdb（PodDisruptionBudget 支持）
 
-**主要功能**：在调度和驱逐任务时，遵守 Kubernetes 的 PDB 约束，保障服务可用性。
+**主要功能**：在调度和驱逐任务时，遵守 `Kubernetes` 的 `PDB` 约束，保障服务可用性。
 
 **工作原理**：
-- 检查 PDB 约束，避免一次性驱逐过多 Pod
+- 检查 `PDB` 约束，避免一次性驱逐过多 `Pod`
 - 保证关键服务的最小可用实例数
 
-**参数说明**：
+**全局插件参数**：
 
-当前插件无参数配置。
+| 参数名 | 类型 | 说明 |
+|--------|------|------|
+| 无     | -    | `pdb` 插件无可配置参数，只需启用插件即可 |
 
-**使用示例**：
+> **说明：**
+> - `pdb` 插件只需在 `scheduler` 配置文件的 `tiers.plugins` 中启用即可生效。
+> - 插件行为完全依赖于集群中已存在的 `PDB` 资源对象。
+
+**全局启用示例**：
 ```yaml
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: pdb-demo
-spec:
-  minAvailable: 2
-  selector:
-    matchLabels:
-      app: my-app
+actions: "reclaim, preempt, shuffle"
+tiers:
+- plugins:
+  - name: pdb
+```
+
 ---
+
+**Job 插件参数**：
+
+| 参数名 | 类型 | 说明 |
+|--------|------|------|
+| 无     | -    | 当前版本不支持 `Job` 层级参数配置 |
+
+> **说明：**
+> - 无需在 `Job` 的 `spec.plugins` 字段下为 pdb 插件配置参数。
+> - 插件会自动根据集群中的 `PDB` 资源约束进行调度决策。
+
+**Job 示例**：
+```yaml
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
@@ -1694,7 +1868,7 @@ metadata:
 spec:
   schedulerName: volcano
   plugins:
-    pdb: []
+    - name: pdb  # 仅需声明使用 pdb 插件，无需参数
   tasks:
     - replicas: 3
       name: worker
@@ -1821,6 +1995,8 @@ data:
 
 **参数说明**：
 
+**全局插件参数**：
+
 | 参数名           | 类型   | 默认值 | 说明                       |
 |------------------|--------|--------|----------------------------|
 | enabledHierarchy | bool   | false  | 是否启用队列层级调度       |
@@ -1828,12 +2004,30 @@ data:
 > **说明：**
 > - 默认关闭队列层级调度，如需多级队列管理需显式开启。
 
-
-**参数示例**：
+**全局插件参数示例**：
 ```yaml
 - name: capacity
   enabledHierarchy: true
 ```
+
+
+**Job插件参数**：
+
+- `capacity` 插件在 Job 层级无需配置参数，仅需在 `spec.plugins` 中声明启用即可。
+- 仅对当前 Job 生效，不影响其它 Job 和全局调度策略。
+
+**Job插件参数示例**：
+```yaml
+spec:
+  plugins:
+    capacity: [] # 启用容量感知插件，无需额外参数
+```
+
+**Job插件参数与全局参数关系**
+
+- `Job` 层级的 `capacity` 配置不会覆盖全局设置，仅影响当前 Job。
+
+
 
 **使用示例**：
 ```yaml
@@ -1880,6 +2074,22 @@ spec:
 **参数说明**：
 
 主要通过 CRD（如 CustomDispatchPolicy）配置，无调度器插件参数。
+
+**Job插件参数**：
+
+- `cdp` 插件在 Job 层级无需配置参数，仅需在 `spec.plugins` 中声明启用即可。
+- 仅对当前 Job 生效，不影响其它 Job 和全局调度策略。
+
+**Job插件参数示例**：
+```yaml
+spec:
+  plugins:
+    cdp: [] # 启用自定义调度参数插件，无需额外参数
+```
+
+**Job插件参数与全局参数关系**
+
+- `Job` 层级的 `cdp` 配置不会覆盖全局设置，仅影响当前 Job。
 
 **使用示例**：
 ```yaml
@@ -1932,6 +2142,8 @@ spec:
 
 **参数说明**：
 
+**全局插件参数**：
+
 | 参数名                        | 类型     | 说明                       |
 |-------------------------------|----------|----------------------------|
 | extender.urlPrefix            | string   | 扩展调度器服务地址         |
@@ -1944,7 +2156,7 @@ spec:
 | extender.reclaimableVerb      | string   | Reclaimable 调用名          |
 | extender.ignorable            | bool     | 是否忽略扩展器异常          |
 
-**参数示例**：
+**全局插件参数示例**：
 ```yaml
 - name: extender
   arguments:
@@ -1952,6 +2164,24 @@ spec:
     extender.httpTimeout: 2s
     extender.ignorable: true
 ```
+
+**Job插件参数**：
+
+- `extender` 插件在 `Job` 层级无需配置参数，仅需在 `spec.plugins` 中声明启用即可。
+- 仅对当前 `Job` 生效，不影响其它 `Job` 和全局调度策略。
+
+**Job插件参数示例**：
+```yaml
+spec:
+  plugins:
+    extender: [] # 启用调度扩展插件，无需额外参数
+```
+
+**Job插件参数与全局参数关系**
+
+- `Job` 层级的 `extender` 配置不会覆盖全局设置，仅影响当前 `Job`。
+
+
 
 **使用示例**：
 ```yaml
