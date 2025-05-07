@@ -1823,13 +1823,13 @@ data:
 
 ### 15. pdb（PodDisruptionBudget 支持）
 
-**主要功能**：在调度和驱逐任务时，遵守 `Kubernetes` 的 `PDB` 约束，保障服务可用性。
+**主要功能**：在调度和驱逐任务时，遵守 `Kubernetes` 的 `PDB` 约束，保障服务可用性。如需保障服务的高可用和安全驱逐，务必在 `scheduler` 全局配置中启用 `pdb` 插件，让调度器在相关操作时主动遵守 `PDB` 约束。
 
 **工作原理**：
 - 检查 `PDB` 约束，避免一次性驱逐过多 `Pod`
 - 保证关键服务的最小可用实例数
 
-**全局插件参数**：
+**参数说明**：
 
 | 参数名 | 类型 | 说明 |
 |--------|------|------|
@@ -1839,7 +1839,7 @@ data:
 > - `pdb` 插件只需在 `scheduler` 配置文件的 `tiers.plugins` 中启用即可生效。
 > - 插件行为完全依赖于集群中已存在的 `PDB` 资源对象。
 
-**全局启用示例**：
+**使用示例**：
 ```yaml
 actions: "reclaim, preempt, shuffle"
 tiers:
@@ -1847,45 +1847,20 @@ tiers:
   - name: pdb
 ```
 
----
-
-**Job 插件参数**：
-
-| 参数名 | 类型 | 说明 |
-|--------|------|------|
-| 无     | -    | 当前版本不支持 `Job` 层级参数配置 |
-
-> **说明：**
-> - 无需在 `Job` 的 `spec.plugins` 字段下为 pdb 插件配置参数。
-> - 插件会自动根据集群中的 `PDB` 资源约束进行调度决策。
-
-**Job 示例**：
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: pdb-job
-spec:
-  schedulerName: volcano
-  plugins:
-    - name: pdb  # 仅需声明使用 pdb 插件，无需参数
-  tasks:
-    - replicas: 3
-      name: worker
-      template:
-        metadata:
-          labels:
-            app: my-app
-        spec:
-          containers:
-            - name: main
-              image: busybox
-              command: ["sleep", "3600"]
-```
-
----
 
 ### 16. resourcequota（资源配额）
+
+
+Queue 资源配额与 resourcequota 插件的区别
+
+| 特性 | Queue 资源配额 | resourcequota 插件 | 
+|------|--------------|-------------------| 
+| 作用范围 | 仅限 Volcano Queue | 可跨命名空间、跨队列 | 
+| 限制粒度 | 队列级别 | 可自定义分组（如项目、部门等） | 
+| 资源类型 | 主要限制计算资源 | 支持更多资源类型（如存储、对象数量等） | 
+| 灵活性 | 相对固定 | 支持自定义资源组和复杂策略 | 
+| 集成性 | Volcano 原生机制 | 可与 Kubernetes ResourceQuota 对象协同 |
+
 
 **主要功能**：支持队列或命名空间级别的资源配额限制，防止资源被单一队列/用户占满。
 
