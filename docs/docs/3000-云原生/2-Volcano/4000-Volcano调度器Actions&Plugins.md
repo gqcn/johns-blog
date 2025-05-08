@@ -2179,43 +2179,138 @@ spec:
 **工作原理**：
 - 支持通过 `CRD` 动态扩展调度参数
 - 满足特殊业务场景的调度需求
+- 在不修改调度器代码的情况下实现自定义调度逻辑
 
 **参数说明**：
 
-主要通过 CRD（如 CustomDispatchPolicy）配置，无调度器插件参数。
+主要通过 `CRD`（如 `CustomDispatchPolicy`）配置，无调度器插件参数。
 
-**Job插件参数**：
+**CustomDispatchPolicy配置项详解**：
 
-- `cdp` 插件在 Job 层级无需配置参数，仅需在 `spec.plugins` 中声明启用即可。
-- 仅对当前 Job 生效，不影响其它 Job 和全局调度策略。
+`CustomDispatchPolicy`是一种自定义资源，用于定义灵活的调度规则，主要包含以下配置项：
 
-**Job插件参数示例**：
-```yaml
-spec:
-  plugins:
-    cdp: [] # 启用自定义调度参数插件，无需额外参数
-```
+1. **基本结构**
 
-**Job插件参数与全局参数关系**
-
-- `Job` 层级的 `cdp` 配置不会覆盖全局设置，仅影响当前 Job。
-
-**使用示例**：
 ```yaml
 apiVersion: scheduling.volcano.sh/v1alpha1
 kind: CustomDispatchPolicy
 metadata:
-  name: my-policy
+  name: <策略名称>
 spec:
   rules:
-    - name: prefer-cpu
-      match:
-        labelSelector:
-          matchLabels:
-            app: cpu-intensive
-      actions:
-        - setNodeSelector:
-            cpu-type: high-performance
+    - name: <规则名称>
+      match: <匹配条件>
+      actions: <执行动作>
+```
+
+2. **规则配置 (spec.rules)**
+
+每个`CustomDispatchPolicy`可以包含多条规则，每条规则由以下部分组成：
+
+   2.1 **规则名称 (name)**
+   ```yaml
+   name: prefer-cpu  # 规则的唯一标识符
+   ```
+
+   2.2 **匹配条件 (match)**
+   匹配条件决定哪些工作负载会应用此规则，支持以下匹配方式：
+   ```yaml
+   match:
+     # 标签选择器匹配
+     labelSelector:
+       matchLabels:
+         <key>: <value>  # 精确匹配标签
+       matchExpressions:  # 表达式匹配
+         - key: <label-key>
+           operator: In/NotIn/Exists/DoesNotExist
+           values: ["value1", "value2"]
+           
+     # 命名空间匹配
+     namespaces:
+       - <namespace1>
+       - <namespace2>
+       
+     # 队列匹配
+     queues:
+       - <queue1>
+       - <queue2>
+       
+     # 任务名称匹配
+     jobNames:
+       - <job-name1>
+       - <job-name2>
+   ```
+
+   2.3 **执行动作 (actions)**
+   当工作负载匹配规则条件时，将执行以下一个或多个动作：
+   ```yaml
+   actions:
+     # 设置节点选择器（替换现有的，基于标签选择）
+     - setNodeSelector:
+         <key>: <value>
+         
+     # 添加节点选择器（保留现有的，基于标签选择）
+     - addNodeSelector:
+         <key>: <value>
+         
+     # 设置节点亲和性
+     - setNodeAffinity:
+         requiredDuringSchedulingIgnoredDuringExecution:
+           nodeSelectorTerms:
+             - matchExpressions:
+                 - key: <node-label-key>
+                   operator: In
+                   values: ["value1", "value2"]
+                   
+     # 添加节点亲和性
+     - addNodeAffinity:
+         preferredDuringSchedulingIgnoredDuringExecution:
+           - weight: 100
+             preference:
+               matchExpressions:
+                 - key: <node-label-key>
+                   operator: In
+                   values: ["value1"]
+                   
+     # 设置污点容忍
+     - setTolerations:
+         - key: <taint-key>
+           operator: Equal/Exists
+           value: <taint-value>
+           effect: NoSchedule/PreferNoSchedule/NoExecute
+           
+     # 添加污点容忍
+     - addTolerations:
+         - key: <taint-key>
+           operator: Equal
+           value: <taint-value>
+           effect: NoSchedule
+   ```
+
+3. **注意事项**
+
+   - **规则优先级**：规则按照定义顺序执行，如果多个规则匹配同一工作负载，后面的规则可能会覆盖前面规则的某些设置
+   - **动作组合**：可以在一个规则中组合多个动作，它们会按顺序应用
+   - **与其他调度机制的交互**：`CustomDispatchPolicy`会与`Volcano`的其他调度机制（如`gang`调度、队列管理等）协同工作
+   - **资源限制**：`CustomDispatchPolicy`主要影响工作负载的调度位置，不会改变其资源请求和限制
+   - **动态性**：可以在不重启调度器的情况下创建、更新或删除`CustomDispatchPolicy`资源
+
+**使用示例**：
+```yaml
+apiVersion: scheduling.volcano.sh/v1alpha1  # API版本，指定使用Volcano的自定义调度策略API
+kind: CustomDispatchPolicy            # 资源类型，表示这是一个自定义调度策略
+metadata:
+  name: my-policy                     # 策略名称，在引用此策略时使用
+spec:                                 # 策略规范
+  rules:                              # 规则列表，可以定义多个规则
+    - name: prefer-cpu                # 规则名称，用于标识和描述规则
+      match:                          # 匹配条件，用于确定哪些工作负载适用此规则
+        labelSelector:                # 标签选择器，基于Pod/Job标签进行匹配
+          matchLabels:                # 精确匹配标签
+            app: cpu-intensive        # 匹配标签为app=cpu-intensive的工作负载
+      actions:                        # 匹配成功后要执行的操作列表
+        - setNodeSelector:            # 设置节点选择器操作
+            cpu-type: high-performance # 将匹配的工作负载调度到标签为cpu-type=high-performance的节点
 ---
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
@@ -2223,8 +2318,6 @@ metadata:
   name: cpu-intensive-job
 spec:
   schedulerName: volcano
-  plugins:
-    cdp: []
   tasks:
     - replicas: 2
       name: cpu-task
@@ -2243,53 +2336,80 @@ spec:
 
 ### 20. extender（调度扩展）
 
-**主要功能**：支持与外部调度器集成，允许通过 HTTP/gRPC 等方式扩展调度决策。
+**主要功能**：支持与外部调度器集成，允许通过 `HTTP/gRPC` 等方式扩展调度决策。
 
 **工作原理**：
 - 与外部调度器通信，获取调度建议
 - 支持定制化的调度逻辑扩展
+- 在关键调度点调用外部服务，修改或影响调度决策
+
+
+**外部调度器与Volcano调度器的协作流程**：
+
+`Extender`插件允许`Volcano`调度器在关键决策点与外部自定义调度器进行协作。整个协作流程如下：
+
+1. **会话生命周期事件**：
+   - **会话开始时**：`Volcano`调度器通过`onSessionOpenVerb`调用外部调度器，传递当前集群状态信息
+   - **会话结束时**：通过`onSessionCloseVerb`通知外部调度器当前调度周期结束
+
+2. **节点筛选阶段**：
+   - `Volcano`调度器首先执行内部的`predicates`插件进行初步筛选
+   - 然后通过`predicateVerb`调用外部调度器，发送候选节点列表和待调度任务信息
+   - 外部调度器返回过滤后的节点列表，可以完全移除不适合的节点
+
+3. **节点排序阶段**：
+   - `Volcano`调度器执行内部的`nodeorder`插件进行初步排序
+   - 通过`prioritizeVerb`调用外部调度器，发送当前排序结果
+   - 外部调度器返回修改后的节点排序分数，影响最终的节点选择
+
+4. **资源抢占与回收阶段**：
+   - 当`Volcano`调度器执行`preempt`或`reclaim`动作时，可以通过`preemptableVerb`和`reclaimableVerb`响应地咨询外部调度器
+   - 外部调度器可以决定哪些任务可以被抢占或回收，以及它们的优先级
+
+5. **错误处理机制**：
+   - 如果外部调度器返回错误或超时，根据`extender.ignorable`设置决定是否忽略错误
+   - 当`ignorable=true`时，外部调度器失败不会阻止调度过程，`Volcano`将使用内部插件的结果
+   - 当`ignorable=false`时，外部调度器失败将导致整个调度周期失败
+
+**数据交互格式**：
+
+外部调度器与`Volcano`之间的数据交互采用`JSON`格式，主要包含以下类型的数据：
+
+- **节点信息**：包含节点名称、标签、可用资源等
+- **任务信息**：包含任务ID、资源请求、优先级等
+- **调度结果**：包含节点排序分数、过滤决策等
+
+**实际应用场景**：
+
+1. **特定硬件调度**：外部调度器可以实现复杂的硬件亲和性逻辑，如`GPU`拓扑优化、`NUMA`亲和性等
+
+2. **业务特定策略**：实现基于业务指标的调度决策，如服务响应时间、客户优先级等
+
+3. **机器学习增强调度**：集成机器学习模型来预测工作负载特性并优化调度决策
+
+
 
 **参数说明**：
 
-**全局插件参数**：
-
 | 参数名                        | 类型     | 说明                       |
 |-------------------------------|----------|----------------------------|
-| extender.urlPrefix            | string   | 扩展调度器服务地址         |
-| extender.httpTimeout          | string   | HTTP超时时间（如“2s”）     |
-| extender.onSessionOpenVerb    | string   | OnSessionOpen 调用名        |
-| extender.onSessionCloseVerb   | string   | OnSessionClose 调用名       |
-| extender.predicateVerb        | string   | Predicate 调用名            |
-| extender.prioritizeVerb       | string   | Prioritize 调用名           |
-| extender.preemptableVerb      | string   | Preemptable 调用名          |
-| extender.reclaimableVerb      | string   | Reclaimable 调用名          |
-| extender.ignorable            | bool     | 是否忽略扩展器异常          |
+| `extender.urlPrefix`            | `string`   | 扩展调度器服务地址         |
+| `extender.httpTimeout`          | `string`   | `HTTP`超时时间（如`2s`）     |
+| `extender.onSessionOpenVerb`    | `string`   | `OnSessionOpen` 调用名        |
+| `extender.onSessionCloseVerb`   | `string`   | `OnSessionClose` 调用名       |
+| `extender.predicateVerb`        | `string`   | `Predicate` 调用名            |
+| `extender.prioritizeVerb`       | `string`   | `Prioritize` 调用名           |
+| `extender.preemptableVerb`      | `string`   | `Preemptable` 调用名          |
+| `extender.reclaimableVerb`      | `string`   | `Reclaimable` 调用名          |
+| `extender.ignorable`            | `bool`     | 是否忽略扩展器异常          |
 
-**全局插件参数示例**：
+**参数示例**：
 ```yaml
 - name: extender
   arguments:
-    extender.urlPrefix: http://127.0.0.1
-    extender.httpTimeout: 2s
+    extender.urlPrefix: "http://localhost:8888"
     extender.ignorable: true
 ```
-
-**Job插件参数**：
-
-- `extender` 插件在 `Job` 层级无需配置参数，仅需在 `spec.plugins` 中声明启用即可。
-- 仅对当前 `Job` 生效，不影响其它 `Job` 和全局调度策略。
-
-**Job插件参数示例**：
-```yaml
-spec:
-  plugins:
-    extender: [] # 启用调度扩展插件，无需额外参数
-```
-
-**Job插件参数与全局参数关系**
-
-- `Job` 层级的 `extender` 配置不会覆盖全局设置，仅影响当前 `Job`。
-
 
 
 **使用示例**：
@@ -2319,22 +2439,80 @@ data:
 - 标记和分组不同类型节点
 - 支持按组调度、资源隔离等高级策略
 
+
+
 **参数说明**：
 
 | 参数名                | 类型   | 说明                                   |
 |-----------------------|--------|----------------------------------------|
-| affinity              | map    | 队列与节点组的亲和性/反亲和性配置      |
+| `affinity`              | `map`    | 队列与节点组的亲和性/反亲和性配置，详见下方说明 |
+
+**`affinity` 参数详细说明**：
+
+`affinity` 参数是一个复杂的映射结构，用于定义队列与节点组之间的亲和性和反亲和性关系。它支持以下四种主要的配置选项：
+
+1. **`queueGroupAffinityRequired`**：强制要求队列中的任务必须调度到指定的节点组上
+   - 这是一个硬性要求，如果指定的节点组没有足够资源，任务将保持等待状态
+   - 格式：`{队列名}: [节点组名1, 节点组名2, ...]`
+
+2. **`queueGroupAffinityPreferred`**：优先考虑将队列中的任务调度到指定的节点组上
+   - 这是一个软性偏好，如果指定的节点组没有足够资源，任务仍可以调度到其他节点组
+   - 格式：`{队列名}: [节点组名1, 节点组名2, ...]`
+
+3. **`queueGroupAntiAffinityRequired`**：强制要求队列中的任务不能调度到指定的节点组上
+   - 这是一个硬性禁止，指定的节点组将被完全排除
+   - 格式：`{队列名}: [节点组名1, 节点组名2, ...]`
+
+4. **`queueGroupAntiAffinityPreferred`**：优先避免将队列中的任务调度到指定的节点组上
+   - 这是一个软性避免，当其他节点组没有足够资源时，任务仍可以调度到这些节点组
+   - 格式：`{队列名}: [节点组名1, 节点组名2, ...]`
 
 **参数示例**：
 ```yaml
 - name: nodegroup
   arguments:
     affinity:
+      # 强制要求queueA的任务必须调度到group1节点组
       queueGroupAffinityRequired:
         queueA: [group1]
+      # 优先避免将queueB的任务调度到group2节点组
       queueGroupAntiAffinityPreferred:
         queueB: [group2]
+      # 优先考虑将queueC的任务调度到group3节点组
+      queueGroupAffinityPreferred:
+        queueC: [group3]
+      # 强制要求queueD的任务不能调度到group4节点组
+      queueGroupAntiAffinityRequired:
+        queueD: [group4]
 ```
+
+**常见业务场景示例**：
+
+1. **硬件异构集群管理**：
+   - 场景：集群中包含不同类型的节点（如`GPU`节点、高内存节点、普通计算节点）
+   - 应用：将节点按硬件类型分组，并将特定工作负载（如`AI`训练任务）调度到相应的节点组
+   - 配置示例：使用`queueGroupAffinityRequired`将`AI`训练队列与含有`GPU`的节点组绑定
+
+2. **多租户资源隔离**：
+   - 场景：不同部门或团队共享同一个`Kubernetes`集群
+   - 应用：将节点分组并分配给不同部门，确保每个部门的工作负载只能运行在其指定的节点上
+   - 配置示例：使用`queueGroupAffinityRequired`将每个部门的队列与其专用节点组绑定
+
+3. **生产环境与测试环境隔离**：
+   - 场景：同一集群中同时运行生产和测试工作负载
+   - 应用：将节点分为生产组和测试组，确保测试工作负载不会影响生产环境
+   - 配置示例：使用`queueGroupAntiAffinityRequired`确保生产队列的任务不会调度到测试节点组
+
+4. **成本敏感工作负载优化**：
+   - 场景：集群包含不同成本的节点（如标准实例、端到端加密实例、高性能实例）
+   - 应用：将非关键任务调度到低成本节点，将高价值任务调度到高性能节点
+   - 配置示例：使用`queueGroupAffinityPreferred`将低优先级队列优先调度到低成本节点组
+
+5. **容灾与高可用性设计**：
+   - 场景：跨可用区域或机架的集群部署
+   - 应用：将节点按可用区分组，并确保关键应用的多个副本分布在不同的可用区
+   - 配置示例：使用`queueGroupAffinityPreferred`和`queueGroupAntiAffinityPreferred`的组合来实现跨可用区的平衡分布
+
 
 **使用示例**：
 ```yaml
@@ -2358,8 +2536,6 @@ metadata:
   name: group-job
 spec:
   schedulerName: volcano
-  plugins:
-    nodegroup: []
   tasks:
     - replicas: 2
       name: main
@@ -2377,31 +2553,113 @@ spec:
 
 ### 22. usage（资源使用统计）
 
-**主要功能**：收集和统计任务、队列、节点的资源使用情况，为调度决策和资源优化提供数据基础。
+**主要功能**：收集和统计任务、队列、节点的资源使用情况，为调度决策和资源优化提供数据基础。该插件是实现资源感知调度的关键组件。
 
 **工作原理**：
-- 实时收集各类资源使用数据
-- 提供资源利用率分析和调度参考
+- 实时收集各类资源使用数据，包括`CPU`、内存等实际使用情况
+- 计算节点的资源利用率并生成节点分数
+- 在调度决策中考虑实际资源使用情况，而不仅仅是资源申请量
+- 支持设置资源利用率阈值，避免调度到负载过高的节点
+
+**具体作用**：
+
+1. **资源感知调度**：
+   - 与传统调度器不同，`usage`插件考虑节点的实际资源使用情况，而非仅仅基于资源申请量
+   - 即使两个节点的可分配资源相同，实际负载不同的节点会获得不同的调度优先级
+
+2. **负载平衡**：
+   - 优先将新任务调度到资源利用率较低的节点，实现负载均衡分布
+   - 防止某些节点资源过度使用导致的性能问题
+
+3. **资源效率优化**：
+   - 通过权重调整，可以优化不同资源类型（`CPU`、内存）的利用效率
+   - 对于内存密集型工作负载，可以提高内存权重；对于`CPU`密集型工作负载，可以提高`CPU`权重
+
+4. **防止资源耗尽**：
+   - 通过设置阈值，避免将任务调度到资源利用率超过特定阈值的节点
+   - 保护节点不会因资源过度消耗而导致系统不稳定
+
+**应用场景**：
+
+1. **混合工作负载环境**：当集群中运行着不同类型的应用，如数据处理、Web服务、数据库等，`usage`插件可以确保资源均衡分配
+
+2. **弹性伸缩系统**：在基于负载进行自动伸缩的系统中，`usage`插件提供的资源使用数据是做出伸缩决策的重要依据
+
+3. **高性能计算集群**：在`HPC`环境中，精确的资源分配和负载平衡对于最大化计算效率至关重要
 
 **参数说明**：
 
 | 参数名         | 类型   | 说明                                 |
 |----------------|--------|--------------------------------------|
-| usage.weight   | int    | 总资源利用率打分权重                 |
-| cpu.weight     | int    | CPU 利用率打分权重                   |
-| memory.weight  | int    | 内存利用率打分权重                   |
-| thresholds     | map    | 各资源类型的利用率阈值（如cpu/mem）   |
+| `usage.weight`   | `int`    | 总资源利用率打分权重                 |
+| `cpu.weight`     | `int`    | `CPU` 利用率打分权重                   |
+| `memory.weight`  | `int`    | 内存利用率打分权重                   |
+| `thresholds`     | `map`    | 各资源类型的利用率阈值（如`cpu/mem`）   |
 
 **参数示例**：
 ```yaml
 - name: usage
   arguments:
+    # 总体资源利用率打分权重
     usage.weight: 5
+    # CPU利用率打分权重
     cpu.weight: 1
+    # 内存利用率打分权重
     memory.weight: 1
+    # 资源利用率阈值配置
     thresholds:
+      # CPU利用率阈值，超过该值的节点将获得较低的调度优先级
       cpu: 80
+      # 内存利用率阈值，超过该值的节点将获得较低的调度优先级
       mem: 80
+```
+
+**阈值配置说明**：
+
+`thresholds`参数定义了各类资源的利用率阈值，当节点的实际资源利用率超过这些阈值时，该节点在调度过程中的优先级将会降低。这有助于：
+
+1. 防止资源过度使用导致的系统不稳定
+2. 实现更均衡的负载分布
+3. 为系统组件和关键任务保留足够的资源缓冲
+
+阈值的设置应根据实际工作负载特点和集群性能要求来确定：
+
+- 对于关键生产环境，建议设置较低的阈值（如 `70-80%`）以确保系统稳定性
+- 对于测试环境或资源效率优先的场景，可以设置较高的阈值（如 `85-90%`）
+
+**使用示例**：
+
+下面是一个完整的调度器配置示例，其中启用了`usage`插件并为`CPU`密集型工作负载进行了优化：
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    actions: "enqueue, allocate, backfill"
+    tiers:
+    - plugins:
+      - name: priority
+      - name: gang
+      - name: conformance
+    - plugins:
+      - name: drf
+      - name: predicates
+      - name: proportion
+      - name: nodeorder
+      - name: binpack
+      - name: usage
+        arguments:
+          # 提高CPU权重，适合CPU密集型工作负载
+          usage.weight: 5
+          cpu.weight: 2
+          memory.weight: 1
+          thresholds:
+            cpu: 85
+            mem: 80
 ```
 
 **使用示例**：
@@ -2421,18 +2679,6 @@ data:
 ```
 
 ---
-
-## 总结
-
-`Volcano`调度器的`Actions`和`Plugins`机制提供了强大的灵活性，可以满足各种复杂场景的调度需求。通过合理配置这些机制，可以实现：
-
-1. **公平的资源分配**：确保不同团队和任务类型获得合理的资源份额
-2. **高效的资源利用**：通过回填和装箱策略提高集群资源利用率
-3. **智能的优先级处理**：确保关键任务在资源紧张时优先获得服务
-4. **特殊工作负载的支持**：如机器学习、高性能计算等需要成组调度的任务
-
-对于不同的应用场景，可以通过调整`Actions`的顺序和启用不同的`Plugins`来定制调度器的行为，以满足特定的需求。这种灵活性使`Volcano`成为在Kubernetes上运行复杂工作负载的理想选择。
-
 
 
 
