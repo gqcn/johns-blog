@@ -1767,8 +1767,6 @@ spec:
                   volcano.sh/gpu-mem: 4096 # 申请4GB显存分片
 ```
 
----
-
 ### 14. overcommit（超额分配）
 
 **主要功能**：允许节点资源被“超额预定”，提升资源利用率。
@@ -1852,8 +1850,6 @@ data:
           cpu-overcommit-ratio: 2.0   # 允许CPU超配2倍
           mem-overcommit-ratio: 1.5   # 允许内存超配1.5倍
 ```
-
----
 
 ### 15. pdb（PodDisruptionBudget 支持）
 
@@ -1957,8 +1953,6 @@ spec:
               image: busybox
               command: ["sleep", "3600"]
 ```
-
----
 
 ### 17. rescheduling（重调度）
 
@@ -2072,8 +2066,6 @@ data:
           rescheduling-interval-seconds: 300 # 每5分钟检测一次重调度
 ```
 
----
-
 ### 18. capacity（容量感知）
 
 **主要功能**：根据节点和队列的容量约束进行调度，防止资源超卖。
@@ -2169,8 +2161,6 @@ spec:
               image: busybox
               command: ["sleep", "3600"]
 ```
-
----
 
 ### 19. cdp（自定义调度参数）
 
@@ -2332,8 +2322,6 @@ spec:
               command: ["sleep", "3600"]
 ```
 
----
-
 ### 20. extender（调度扩展）
 
 **主要功能**：支持与外部调度器集成，允许通过 `HTTP/gRPC` 等方式扩展调度决策。
@@ -2428,8 +2416,6 @@ data:
           extender-url: "http://my-extender-service/scheduler"
           extender-timeout: 2s
 ```
-
----
 
 ### 21. nodegroup（节点分组）
 
@@ -2548,8 +2534,6 @@ spec:
               image: busybox
               command: ["sleep", "3600"]
 ```
-
----
 
 ### 22. usage（资源使用统计）
 
@@ -2677,10 +2661,6 @@ data:
         arguments:
           usage-collect-interval: 60s # 每60秒统计一次资源使用
 ```
-
----
-
-
 
 ## 参考资料
 
