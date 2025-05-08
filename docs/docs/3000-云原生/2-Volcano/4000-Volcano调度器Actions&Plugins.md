@@ -16,7 +16,24 @@ description: "本文详细介绍了Volcano调度器中的Actions和Plugins机制
 
 ## 调度器配置示例
 
-以下是一个典型的`Volcano`调度器配置示例：
+`Volcano`默认调度器配置：
+```yaml
+actions: "enqueue, allocate, backfill"
+tiers:
+- plugins:
+  - name: priority
+  - name: gang
+  - name: conformance
+- plugins:
+  - name: overcommit
+  - name: drf
+  - name: predicates
+  - name: proportion
+  - name: nodeorder
+```
+
+
+一个典型的`Volcano`调度器配置示例：
 
 ```yaml
 actions: "enqueue,allocate,backfill,preempt,reclaim"
@@ -35,6 +52,23 @@ tiers:
 ```
 
 这个配置定义了调度器的工作流程（`Actions`）和决策机制（`Plugins`）。
+
+### 可插拔的插件功能管理
+
+需要注意：
+- 当您提供自定义配置时，Volcano不会将其与默认配置合并
+- 自定义配置会完全替换默认配置，而不是与默认配置合并
+
+这种设计意味着：
+1. **必须明确指定所有需要的插件**：
+  - 如果您提供自定义配置，必须在配置中明确列出所有需要的插件，包括那些在默认配置中已经存在的插件
+  - 例如，如果您需要使用conformance插件（默认已启用），但在自定义配置中没有包含它，那么它将不会被启用
+2. **完整性要求**：
+  - 您的自定义配置必须是完整的，包含所有必要的actions和plugins
+  - 不能只指定您想要更改的部分，因为整个配置会被替换
+3. **默认配置的作用**：
+  - 默认配置仅在没有提供自定义配置时使用
+  - 或者在自定义配置解析失败时作为备选方案
 
 
 ### 多层级(tiers)数组结构
@@ -790,7 +824,7 @@ spec:
    - 队列`B`：`内存`是主导资源（每个`Pod`需要`2%`的集群`CPU`和`10%`的集群内存）
 
 2. **公平分配**：
-   - 如果没有`DRF`，调度器可能会简单地平均分配资源（每个队列各获`50%`的`CPU`和`50%`的内存，注意这不是`Kubernetes`默认调度策略）。
+   - 如果没有`DRF`，调度器可能会简单地平均分配资源（每个队列各获`50%`的`CPU`和`50%`的内存，注意这只是举例，并不是`Kubernetes`默认调度策略）。
      这种分配方式会导致队列`A`的`CPU`密集型任务只能使用一半的`CPU`资源，而队列`B`却无法充分利用其分配到的`CPU`资源，造成资源浪费
    - 使用`DRF`后，调度器会考虑每个队列的主导资源需求
    - 例如，队列`A`可能获得`60%`的`CPU`和`30%`的内存，队列`B`获得`40%`的`CPU`和`70%`的内存
@@ -1851,22 +1885,42 @@ tiers:
 ### 16. resourcequota（资源配额）
 
 
-Queue 资源配额与 resourcequota 插件的区别
-
-| 特性 | Queue 资源配额 | resourcequota 插件 | 
-|------|--------------|-------------------| 
-| 作用范围 | 仅限 Volcano Queue | 可跨命名空间、跨队列 | 
-| 限制粒度 | 队列级别 | 可自定义分组（如项目、部门等） | 
-| 资源类型 | 主要限制计算资源 | 支持更多资源类型（如存储、对象数量等） | 
-| 灵活性 | 相对固定 | 支持自定义资源组和复杂策略 | 
-| 集成性 | Volcano 原生机制 | 可与 Kubernetes ResourceQuota 对象协同 |
 
 
 **主要功能**：支持队列或命名空间级别的资源配额限制，防止资源被单一队列/用户占满。
 
+**`Queue` 资源配额与 `resourcequota` 插件的区别**：
+
+| 特性 | `Queue` 资源配额 | `resourcequota` 插件 | 
+|------|--------------|-------------------| 
+|** 作用范围** | 仅限 `Volcano Queue `| 可跨命名空间、跨队列 | 
+| **限制粒度** | 队列级别 | 可自定义分组（如项目、部门等） | 
+| **资源类型** | 主要限制计算资源 | 支持更多资源类型（如存储、对象数量等） | 
+| **灵活性** | 相对固定 | 支持自定义资源组和复杂策略 | 
+| **集成性** | `Volcano` 原生机制 | 可与 `Kubernetes ResourceQuota` 对象协同 |
+
+**`Kubernetes` 原生 `ResourceQuota` 与 `Volcano resourcequota` 插件的区别**：
+
+| 特性 | `Kubernetes ResourceQuota` | `Volcano resourcequota` 插件 | 
+|------|------------------------|---------------------------| 
+| **作用时机** | 资源创建时的准入控制 | 调度决策阶段 | 
+| **作用对象** | 命名空间级别的资源总量 | 批量作业调度和资源分配 | 
+| **调度感知** | 不参与调度决策 | 直接影响调度决策 | 
+| **队列感知** | 不理解 `Volcano` 队列 | 可与 `Volcano` 队列系统协同工作 | 
+| **批处理优化** | 不针对批处理场景优化 | 专为批处理工作负载设计 |
+
 **工作原理**：
 - 跟踪每个队列/命名空间的资源使用量
 - 拒绝超出配额的任务调度请求
+
+**注意事项**：
+
+- `Volcano` 的 `resourcequota` 插件依赖于 `Kubernetes` 原生的 `ResourceQuota` 资源对象，其资源限制只能针对特定命名空间生效，而不能跨命名空间实现资源限制。
+
+- 如果一个队列跨多个命名空间，`resourcequota` 插件无法对整个队列实施统一的资源限制
+需要为队列使用的每个命名空间单独配置 `ResourceQuota`。
+
+- 如果需要实现跨命名空间的资源管理，建议使用 `Volcano` 的多级队列功能，在队列级别设置资源限制。
 
 **参数说明**：
 
@@ -1893,8 +1947,6 @@ metadata:
   namespace: default
 spec:
   schedulerName: volcano
-  plugins:
-    resourcequota: []
   tasks:
     - replicas: 2
       name: main
@@ -1920,25 +1972,87 @@ spec:
 
 | 参数名                      | 类型         | 默认值 | 说明                                   |
 |-----------------------------|--------------|--------|----------------------------------------|
-| interval                    | string       | 5m     | 执行重调度的时间间隔（如“5m”）         |
-| strategies                  | 数组         | 无     | 重调度策略列表                         |
-| strategies.name             | string       | 无     | 策略名称（如“lowNodeUtilization”）      |
-| strategies.params           | map          | 无     | 策略参数（如阈值等，具体见源码）        |
+| `interval`                    | `string`       | `5m`     | 执行重调度的时间间隔（如`5m`）         |
+| `metricsPeriod`               | `string`       | `5m`     | 指标收集周期                           |
+| `strategies`                  | 数组         | 无     | 重调度策略列表                         |
+| `strategies.name`             | `string`       | 无     | 策略名称（见下方支持的策略列表）      |
+| `strategies.params`           | `map`          | 无     | 策略参数（不同策略有不同参数）        |
+| `queueSelector`               | 数组         | 无     | 选择特定队列中的工作负载进行重调度  |
+| `labelSelector`               | `map`          | 无     | 选择带有特定标签的工作负载进行重调度  |
+
+**支持的策略名称及参数**：
+
+1. **`lowNodeUtilization`**：对低节点利用率进行优化，将资源从低利用率节点迁移到高利用率节点
+
+   | 参数名 | 类型 | 默认值 | 说明 |
+   |------------|------|----------|---------|
+   | `thresholds` | `map[string]int` | `{"cpu": 100, "memory": 100, "pods": 100}` | 低利用率阈值，低于此阈值的节点被视为低利用率节点 |
+   | `targetThresholds` | `map[string]int` | `{"cpu": 100, "memory": 100, "pods": 100}` | 目标利用率阈值，高于此阈值的节点被视为高利用率节点 |
+   | `thresholdPriorityClassName` | `string` | `"system-cluster-critical"` | 指定了一个`PriorityClass`优先级类名，高于或等于该优先级的工作负载将受到保护，不会被重调度 |
+   | `nodeFit` | `bool` | `true` | 是否考虑节点适配性，当为 `true` 时仅重调度到适配的节点 |
+
+   个别参数说明：
+
+    `nodeFit`参数决定了在重调度过程中是否考虑节点与工作负载的适配性。
+
+    工作原理：
+
+    - 当 `nodeFit: true `时（默认值）：
+      - 重调度插件在选择目标节点时，会考虑节点的资源情况、亲和性规则、污点容忍等因素
+      - 只会将工作负载重调度到满足其所有调度要求的节点上
+      - 确保重调度后的工作负载能够在新节点上正常运行
+    - 当 `nodeFit: false` 时：
+      - 重调度插件只考虑资源平衡，不考虑节点与工作负载的适配性
+      - 可能会将工作负载重调度到不完全满足其调度要求的节点上
+      - 可能导致工作负载在新节点上无法正常运行或性能下降
+
+2. **`offlineOnly`**：仅选择离线工作负载（带有 `preemptable: true` 注解）进行重调度
+   - 当前版本暂无特殊参数
+
+3. **`lowPriorityFirst`**：按优先级排序，低优先级的工作负载先重调度
+   - 当前版本暂无特殊参数
+
+4. **`shortLifeTimeFirst`**：按运行时间排序，生命周期短的工作负载先重调度
+   - 当前版本暂无特殊参数
+
+5. **`bigObjectFirst`**：选择请求最多主导资源的工作负载先重调度
+   - 当前版本暂无特殊参数
+
+6. **`moreReplicasFirst`**：按副本数量排序，副本数量最多的工作负载先重调度
+   - 当前版本暂无特殊参数
 
 > **说明：**
-> - `interval` 默认 5 分钟，可根据集群规模和业务需求调整。
+> - `interval` 默认 `5` 分钟，可根据集群规模和业务需求调整。
 > - `strategies` 需显式配置，支持多种策略组合。
-
+> - 当前版本（`v1.11.2`）中仅实现了 `lowNodeUtilization` 策略，其他策略在后续版本中实现。
+> - **不支持** `Job` 级别的 `spec.plugins` 参数配置，只能在全局配置中启用和设置参数。
 
 **参数示例**：
 ```yaml
 - name: rescheduling
   arguments:
-    interval: "5m"
-    strategies:
-      - name: lowNodeUtilization
+    interval: 10m                    # 每10分钟执行一次重调度
+    metricsPeriod: 5m               # 使用过5分钟的指标数据
+    strategies:                     # 重调度策略列表，按顺序执行
+      - name: lowNodeUtilization     # 低节点利用率策略
         params:
-          nodeUtilizationThreshold: 0.5
+          thresholds:                # 低利用率阈值
+            cpu: 20                  # CPU利用率低于20%的节点被认为是低利用率
+            memory: 20               # 内存利用率低于20%的节点被认为是低利用率
+            pods: 20                 # Pod数量利用率低于20%的节点被认为是低利用率
+          targetThresholds:          # 目标利用率阈值
+            cpu: 50                  # CPU利用率高于50%的节点被认为是高利用率
+            memory: 50               # 内存利用率高于50%的节点被认为是高利用率
+            pods: 50                 # Pod数量利用率高于50%的节点被认为是高利用率
+          nodeFit: true              # 考虑节点适配性
+          thresholdPriorityClassName: "system-cluster-critical"  # 保护优先级
+      - name: offlineOnly            # 只重调度离线任务
+    queueSelector:                  # 只重调度指定队列中的任务
+      - default
+      - batch
+    labelSelector:                  # 只重调度带有指定标签的任务
+      app: batch
+      type: offline
 ```
 
 **使用示例**：
@@ -1967,41 +2081,63 @@ data:
 **工作原理**：
 - 跟踪并校验队列/节点的容量限制
 - 调度时严格遵守容量约束
+- 支持资源借用和回收机制，实现弹性资源管理
 
 **参数说明**：
 
-**全局插件参数**：
-
 | 参数名           | 类型   | 默认值 | 说明                       |
 |------------------|--------|--------|----------------------------|
-| enabledHierarchy | bool   | false  | 是否启用队列层级调度       |
+| `enabledHierarchy` | `bool`   | `false`  | 是否启用队列层级调度       |
 
 > **说明：**
 > - 默认关闭队列层级调度，如需多级队列管理需显式开启。
 
-**全局插件参数示例**：
+**参数示例**：
 ```yaml
 - name: capacity
   enabledHierarchy: true
 ```
 
+**重要注意事项**：
 
-**Job插件参数**：
+1. **非默认插件**：`capacity`插件**不是**`Volcano`默认启用的插件，必须在调度器配置中显式启用。
 
-- `capacity` 插件在 Job 层级无需配置参数，仅需在 `spec.plugins` 中声明启用即可。
-- 仅对当前 Job 生效，不影响其它 Job 和全局调度策略。
+2. **与proportion插件互斥**：`capacity`插件和默认的`proportion`插件是互斥的，它们代表两种不同的资源管理策略：
+   - `proportion`：基于权重的简单比例分配
+   - `capacity`：基于具体资源量的精细化管理和弹性借用/回收
 
-**Job插件参数示例**：
+3. **Queue资源配置依赖**：如果不在`Volcano`配置中启用`capacity`插件，`Queue`资源中的以下配置将**无法生效**：
+   - `spec.capability`：队列资源上限
+   - `spec.guarantee`：队列保障资源
+   - `spec.deserved`：队列应得资源
+
+4. **配置替换而非合并**：自定义`Volcano`配置会完全替换默认配置，因此在添加`capacity`插件时，必须保留其他必要的插件（如`priority`、`gang`、`conformance`等）。
+
+**为什么不默认启用capacity插件？**
+
+1. **历史和兼容性考虑**：`proportion`插件是`Volcano`早期就有的功能，而`capacity`插件是后来添加的更高级功能。为了保持向后兼容性，`Volcano`保留了`proportion`作为默认插件。
+
+2. **复杂性和使用场景**：`capacity`插件提供了更复杂的资源管理机制，这些功能在简单场景下可能过于复杂。`proportion`插件的简单权重机制对于大多数基本使用场景已经足够。
+
+3. **层级队列支持**：`capacity`插件支持层级队列管理，这是一个更高级的功能，需要更复杂的配置和管理。对于不需要这种复杂性的用户，默认的`proportion`插件更简单易用。
+
+**推荐配置示例**：
+
+如果需要使用`Queue`的`capacity`配置功能，建议使用以下配置（注意移除`proportion`插件，添加`capacity`插件）：
+
 ```yaml
-spec:
-  plugins:
-    capacity: [] # 启用容量感知插件，无需额外参数
+actions: "enqueue, allocate, backfill, reclaim, preempt"
+tiers:
+- plugins:
+  - name: priority
+  - name: gang
+  - name: conformance
+- plugins:
+  - name: drf
+  - name: predicates
+  - name: capacity  # 替换默认的proportion插件
+  - name: nodeorder
 ```
-
-**Job插件参数与全局参数关系**
-
-- `Job` 层级的 `capacity` 配置不会覆盖全局设置，仅影响当前 Job。
-
 
 
 **使用示例**：
@@ -2023,8 +2159,6 @@ metadata:
 spec:
   queue: research
   schedulerName: volcano
-  plugins:
-    capacity: []
   tasks:
     - replicas: 4
       name: main
@@ -2040,10 +2174,10 @@ spec:
 
 ### 19. cdp（自定义调度参数）
 
-**主要功能**：允许用户通过 CRD 配置自定义调度参数，增强调度灵活性。
+**主要功能**：允许用户通过 `CRD` 配置自定义调度参数，增强调度灵活性。
 
 **工作原理**：
-- 支持通过 CRD 动态扩展调度参数
+- 支持通过 `CRD` 动态扩展调度参数
 - 满足特殊业务场景的调度需求
 
 **参数说明**：
@@ -2306,6 +2440,7 @@ data:
 
 - https://volcano.sh/zh/docs/actions
 - https://volcano.sh/zh/docs/plugins
+- https://github.com/volcano-sh/volcano
 
 
 
