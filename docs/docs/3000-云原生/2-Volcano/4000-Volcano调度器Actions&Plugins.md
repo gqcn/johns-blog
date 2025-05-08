@@ -14,7 +14,7 @@ description: "本文详细介绍了Volcano调度器中的Actions和Plugins机制
 
 ![](../assets/zh-cn_image_0000002065638558.png)
 
-## 调度器配置示例
+## 调度器配置说明
 
 `Volcano`默认调度器配置：
 ```yaml
@@ -947,22 +947,6 @@ spec:
 - 计算每个队列的目标资源份额（根据`weight`权重）
 - 监控实际资源使用情况
 - 调整资源分配以符合目标比例
-
-**Job插件参数**：
-
-- `proportion` 插件在 Job 层级无需配置参数，仅需在 `spec.plugins` 中声明启用即可。
-- 仅对当前 Job 生效，不影响其它 Job 和全局调度策略。
-
-**Job插件参数示例**：
-```yaml
-spec:
-  plugins:
-    proportion: [] # 启用比例插件，无需额外参数
-```
-
-**Job插件参数与全局参数关系**
-
-- `Job` 层级的 `proportion` 配置不会覆盖全局设置，仅影响当前 Job。
 
 **使用示例**：
 ```yaml
