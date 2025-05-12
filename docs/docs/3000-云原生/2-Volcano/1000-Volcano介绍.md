@@ -166,7 +166,7 @@ graph TD
 
 *   作业（`Volcano Job`，简称`vcjob`）：`Volcano`自定义的`Job`资源类型，它扩展了`Kubernetes`的`Job`资源。区别于`Kubernetes Job`，`vcjob`提供了更多高级功能，如可指定调度器、支持最小运行`Pod`数、支持`task`、支持生命周期管理、支持指定队列、支持优先级调度等。`Volcano Job`更加适用于机器学习、大数据、科学计算等高性能计算场景。
 
-### PodGroup资源组
+### PodGroup 资源组
 
 `PodGroup` 是 `Volcano` 中实现`Gang Scheduling`的核心资源对象，它将一组相关的 `Pod` 视为一个整体进行调度。
 
@@ -255,10 +255,12 @@ spec:
 `PodGroup` 是 `Volcano` 实现`Gang Scheduling`的基础，它使得复杂的分布式工作负载可以更可靠地运行在 `Kubernetes` 集群上。
 
 
-### Queue资源队列
+### Queue 资源队列
 
 `Queue`是`Volcano`调度系统中的核心概念，用于管理和分配集群资源。
 它充当了资源池的角色，允许管理员将集群资源划分给不同的用户组或应用场景。该自定义资源可以很好地用于多租户场景下的资源隔离。
+
+
 
 #### Queue 的作用
 
@@ -346,7 +348,7 @@ spec:
      queue: production  # 指定使用 production 队列
    ```
 
-3. **在 Volcano Job 中指定队列**
+3. **在 Job 中指定队列**
 
    ```yaml
    apiVersion: batch.volcano.sh/v1alpha1
@@ -378,18 +380,224 @@ spec:
 
 
 
+#### Queue 对象详解
+
+```yaml
+apiVersion: scheduling.volcano.sh/v1beta1
+kind: Queue
+metadata:
+  name: default-queue  # 队列名称
+  namespace: default   # 命名空间，可选
+  labels:              # 标签，可选
+    type: production   # 自定义标签
+  annotations:         # 注释，可选
+    description: "Production workloads queue"  # 自定义注释
+spec:
+  weight: 1            # 队列权重，影响资源分配优先级，数值越大优先级越高
+  capability:          # 队列资源容量限制（上限）
+    cpu: 100           # CPU资源上限，单位为核心数
+    memory: 100Gi      # 内存资源上限
+    nvidia.com/gpu: 4  # GPU资源上限
+    huawei.com/npu: 2  # NPU资源上限（如华为Ascend NPU）
+    ephemeral-storage: 500Gi  # 临时存储资源上限
+  deserved:            # 应得资源量（多队列竞争时的资源分配基准）
+    cpu: 80            # 应得的CPU资源量
+    memory: 80Gi       # 应得的内存资源量
+    nvidia.com/gpu: 3  # 应得的GPU资源量
+  guarantee:           # 队列保障资源，即使在资源紧张情况下也会保证分配
+    cpu: 50            # 保障的CPU资源量
+    memory: 50Gi       # 保障的内存资源量
+    nvidia.com/gpu: 2  # 保障的GPU资源量
+  minResources:        # 队列最小资源，队列启动时必须满足的最小资源需求
+    cpu: 10            # 最小CPU资源量
+    memory: 10Gi       # 最小内存资源量
+  maxResources:        # 队列最大资源，队列能够使用的最大资源上限
+    cpu: 200           # 最大CPU资源量
+    memory: 200Gi      # 最大内存资源量
+    nvidia.com/gpu: 8  # 最大GPU资源量
+  reclaimable: true    # 是否允许回收资源，设为true时允许其他队列在空闲时借用该队列资源
+  state: Open          # 队列状态，可选值：Open(开放)、Closed(关闭)、Unknown(未知)
+  hierarchy: root.production.team-a  # 层级队列结构，定义队列在层级结构中的位置
+  priorityClassName: high-priority   # 优先级类名，引用集群中定义的PriorityClass
+  preemptable: true    # 是否允许被抢占，设为true时允许高优先级队列抢占该队列资源
+  jobOrderPolicy: FIFO # 作业排序策略，可选值：FIFO(先进先出)、Priority(按优先级)
+  timeToLiveSeconds: 3600  # 队列生存时间，超时后自动清理，单位为秒
+  resourceLimitPercent: 80  # 资源限制百分比，控制队列可使用的集群资源比例
+  podGroupMinAvailable: 2   # PodGroup最小可用数，指定该队列中的PodGroup至少需要多少Pod可用
+  shareWeight: 5       # 共享权重，影响队列在共享资源时的优先级
+```
 
 
+##### 三级资源配置机制
 
+`Volcano`的`Queue`资源对象采用了一个灵活的三级资源配置机制，这三个级别分别是：`capability`（资源上限）、`deserved`（应得资源）和`guarantee`（保障资源）。这种设计允许集群管理员精细控制资源分配，特别适合多租户环境下的资源管理。
 
+**1. capability（资源上限）**
 
+**定义**：队列能够使用的资源上限，队列中的所有作业使用的资源总和不能超过这个上限。
 
+**特点**：
 
-### Volcano Job资源
+- 代表队列能够使用的最大资源量
+- 设置了资源使用的硬限制，防止单个队列过度消耗集群资源
+- 可以针对多种资源类型设置（`CPU`、内存、`GPU`等）
+
+**示例场景**： 假设一个生产队列设置了`capability.cpu=100`，那么即使集群有更多空闲资源，该队列中的所有作业使用的`CPU`总和也不能超过`100`核。
+
+**2. deserved（应得资源）**
+
+**定义**：队列在资源竞争情况下应该获得的资源量，是资源分配和回收的基准线。
+
+**特点**：
+
+- 当集群资源充足时，队列可以使用超过`deserved`的资源（但不超过`capability`）
+- 当集群资源紧张时，超过`deserved`的资源可能被回收给其他队列使用
+- 是资源借用和回收机制的核心参考值
+
+**配置建议**：
+
+- 在同级队列场景下，所有队列的`deserved`值总和应等于集群总资源
+- 在层级队列场景下，子队列的`deserved`值总和应等于父队列的`deserved`值
+
+**示例场景**： 假设队列`A`设置了`deserved.cpu=80`，当资源充足时，它可以使用多达`100`核（`capability`上限）；但当资源紧张时，它只能保证获得`80`核，超出部分可能被回收。当资源极度紧张时，会保证后续介绍的队列`guarantee`资源，
+
+**3. guarantee（保障资源）**
+
+**定义**：队列被保证能够使用的最小资源量，即使在集群资源紧张的情况下也不会被回收。
+
+**特点**：
+
+- 提供了资源使用的最低保障
+- 这部分资源专属于该队列，不会被其他队列借用或抢占
+- 即使在资源紧张的情况下，调度器也会确保队列能获得这些资源
+
+**示例场景**： 假设关键业务队列设置了`guarantee.cpu=50`，即使集群资源非常紧张，该队列也能保证获得`50`核CPU资源用于运行关键业务。
+
+**三者之间的关系**
+
+1. **资源层级关系：guarantee ≤ deserved ≤ capability**
+- `guarantee`是最低保障
+- `deserved`是正常情况下（资源不是极度紧张情况下）应得的资源
+- `capability`是最高上限
+
+2. **资源分配优先级**：
+- 首先保证所有队列的`guarantee`资源
+- 然后按照`deserved`值和权重分配剩余资源
+- 最后允许队列使用空闲资源，但不超过`capability`
+
+3. **资源回收顺序**：
+
+    1. 首先回收超出`capability`的资源
+    - 这种情况通常不会发生，因为调度器会确保队列使用的资源不超过`capability`上限
+
+    2. 然后回收超出`deserved`但未超出`capability`的资源
+    - 当资源紧张时，队列使用的超过`deserved`值的资源可能被回收
+    - 这部分资源被视为"借用"的资源，在资源紧张时需要"归还"
+
+    3. 最后考虑回收超出`guarantee`但未超出`deserved`的资源
+    - 只有在极度资源紧张的情况下，且有更高优先级的队列需要资源时
+    - 这种回收通常通过抢占（`preemption`）机制实现，而不是简单的资源回收
+
+    4. `guarantee`资源永远不会被回收
+    - `guarantee`资源是队列的最低保障，即使在极度资源紧张的情况下也不会被回收
+    - 这是保证关键业务稳定运行的基础
+
+##### 资源抢占机制
+
+在`Volcano`中，队列的资源抢占（强占）机制主要基于`priorityClassName`属性配置，而不是`weight`属性。这两个属性在资源管理中有不同的作用。
+
+**1. priorityClassName与资源抢占**
+
+**定义**：`priorityClassName`是`Queue`对象中用于定义队列优先级的属性，它直接关联到`Kubernetes`的`PriorityClass`资源。
+
+**特点**：
+
+- 当集群资源紧张时，高优先级队列可以抢占低优先级队列的资源
+- 抢占决策主要基于队列的`priorityClassName`所指定的优先级值
+- 优先级值越高的队列可以抢占优先级值较低的队列资源
+
+**工作原理**：
+
+- 每个`priorityClassName`对应一个整数值，这个值在`PriorityClass`资源中定义
+- 调度器在资源紧张时，会比较不同队列的优先级值
+- 高优先级队列的作业可以抢占低优先级队列中的作业资源
+
+**抢占条件**：
+
+- 被抢占队列的`preemptable`属性必须设置为`true`
+- 抢占通常只发生在资源极度紧张且无法满足高优先级队列需求的情况下
+
+**2. weight与资源分配**
+
+**定义**：`weight`属性主要用于正常资源分配过程中的权重计算。
+
+**特点**：
+
+- `weight`影响队列在正常资源分配过程中的权重
+- 当有多个队列竞争资源但资源足够分配时，`weight`值较高的队列会获得更多资源
+- 这主要应用于`deserved`资源的分配过程
+
+**非抢占性质**：
+
+- `weight`不直接触发资源抢占
+- 它只影响资源分配的比例，而不会导致已分配资源的重新分配
+
+**3. 两者的区别与联系**
+
+**作用时机不同**：
+
+- `priorityClassName`在资源紧张需要抢占时起作用
+- `weight`在正常资源分配过程中起作用
+
+**影响方式不同**：
+
+- `priorityClassName`可能导致已运行作业被终止（抢占）
+- `weight`只影响新资源的分配比例，不会终止已运行的作业
+
+**配合使用**：
+
+- 在完整的资源管理策略中，这两个属性通常配合使用
+- 高优先级队列通常也会设置较高的`weight`值
+- 但它们解决的是不同的资源管理问题
+
+**4. 实际应用示例**
+
+假设有三个队列：
+
+1. **关键业务队列**：
+   ```yaml
+   priorityClassName: high-priority  # 对应优先级值1000
+   weight: 10
+   preemptable: false  # 不允许被抢占
+   ```
+
+2. **常规业务队列**：
+   ```yaml
+   priorityClassName: normal-priority  # 对应优先级值500
+   weight: 5
+   preemptable: true  # 允许被抢占
+   ```
+
+3. **批处理队列**：
+   ```yaml
+   priorityClassName: low-priority  # 对应优先级值100
+   weight: 2
+   preemptable: true  # 允许被抢占
+   ```
+
+**资源分配与抢占行为**：
+
+- 在资源充足时，三个队列按照`10:5:2`的比例分配资源（基于`weight`）
+- 在资源紧张时，关键业务队列可以抢占常规业务队列和批处理队列的资源（基于`priorityClassName`）
+- 常规业务队列可以抢占批处理队列的资源，但不能抢占关键业务队列的资源
+
+### Job 资源任务
 
 `Volcano Job`（简称 `vcjob`）是 `Volcano` 提供的一种高级作业资源类型，扩展了 `Kubernetes` 原生的 `Job` 资源，为高性能计算和批处理场景提供了更丰富的功能。
 
-#### Volcano Job 的作用
+
+
+#### Job 的作用
 
 1. **多任务类型支持**
    - 支持在一个作业中定义多种不同类型的任务（`task`）

@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/volcano-scheduler-actions-plugins"
-title: "Volcano调度器Actions&Plugins"
+title: "Volcano Actions&Plugins详解"
 hide_title: true
 keywords:
   [
@@ -36,7 +36,7 @@ tiers:
 一个典型的`Volcano`调度器配置示例：
 
 ```yaml
-actions: "enqueue,allocate,backfill,preempt,reclaim"
+actions: "enqueue,allocate,preempt,reclaim,backfill"
 tiers:
 - plugins:
   - name: priority
@@ -119,12 +119,12 @@ tiers:
    - 某些`action`计算复杂度较高，如果频繁执行可能会影响调度器性能
    - 合理的顺序可以减少不必要的计算和资源重分配
 
-推荐的顺序通常是：`enqueue,allocate,backfill,preempt,reclaim`。这个顺序确保了：
+推荐的顺序通常是：`enqueue,allocate,preempt,reclaim,backfill`。这个顺序确保了：
 1. 首先将任务入队(`enqueue`)
 2. 然后尝试正常分配资源(`allocate`)
-3. 接着利用剩余资源(`backfill`)
-4. 如果仍有高优先级任务未得到满足，考虑抢占(`preempt`)
-5. 最后尝试回收利用率低的资源(`reclaim`)
+3. 如果仍有高优先级任务未得到满足，考虑抢占(`preempt`)
+4. 尝试回收利用率低的资源(`reclaim`)
+5. 最后利用剩余资源进行回填(`backfill`)，最大化资源利用率
 
 在特定场景下，你可能需要根据工作负载特点调整顺序。例如，在高优先级任务较多的环境中，可能希望提前执行`preempt`；在资源紧张的环境中，可能希望提前执行`reclaim`。
 
@@ -292,7 +292,7 @@ metadata:
   namespace: volcano-system
 data:
   volcano-scheduler.conf: |
-    actions: "enqueue,allocate,backfill,preempt,reclaim"
+    actions: "enqueue,allocate,preempt,reclaim,backfill"
     tiers:
     - plugins:
       - name: priority
@@ -393,7 +393,7 @@ metadata:
   namespace: volcano-system
 data:
   volcano-scheduler.conf: |
-    actions: "enqueue,allocate,backfill,preempt,reclaim"
+    actions: "enqueue,allocate,preempt,reclaim,backfill"
     tiers:
     - plugins:
       - name: priority
@@ -467,7 +467,7 @@ metadata:
   namespace: volcano-system
 data:
   volcano-scheduler.conf: |
-    actions: "enqueue,allocate,backfill,preempt,reclaim"
+    actions: "enqueue,allocate,preempt,reclaim,backfill"
     tiers:
     - plugins:
       - name: priority
@@ -495,7 +495,7 @@ data:
    推荐在配置文件的 `configurations` 部分为 preempt 动作增加参数，避免默认 `preemptablePriority=0` 导致抢占不生效。例如：
    
    ```yaml
-   actions: "enqueue,allocate,backfill,preempt,reclaim"
+   actions: "enqueue,allocate,preempt,reclaim,backfill"
    configurations:
    - name: preempt
      arguments:
