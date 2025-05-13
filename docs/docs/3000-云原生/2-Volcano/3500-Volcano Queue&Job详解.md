@@ -77,8 +77,8 @@ spec:
 - 注解上实现的层级队列配置，如：
     ```yaml
     annotations:
-    "volcano.sh/hierarchy": "root/eng/prod"
-    "volcano.sh/hierarchy-weights": "1/2/8"
+      "volcano.sh/hierarchy": "root/eng/prod"
+      "volcano.sh/hierarchy-weights": "1/2/8"
     ```
 - 仅作队列类型标记使用的`spec.type`配置项，没有实际功能作用。
 
