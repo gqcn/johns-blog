@@ -161,6 +161,125 @@ spec:
     - 这是保证关键业务稳定运行的基础
 
 
+### 队列状态
+
+`Volcano Queue`有四种状态，用于控制队列的行为和作业调度。这些状态在集群维护和资源管理中非常重要。
+
+#### 状态状态类型
+
+1. **Open（开放）**：
+   - 队列处于正常工作状态
+   - 可以接受新的作业提交
+   - 队列中的作业可以被正常调度执行
+   - 这是队列的默认状态
+
+2. **Closing（关闭中）**：
+   - 队列正在关闭的过渡状态
+   - 不再接受新的作业提交
+   - 已有作业仍然可以继续运行
+   - 当队列中所有作业都完成后，队列会转变为Closed状态
+
+3. **Closed（已关闭）**：
+   - 队列完全关闭状态
+   - 不接受新的作业提交
+   - 队列中的作业不会被调度（即使有足够的资源）
+   - 通常用于系统维护或资源重新分配
+
+4. **Unknown（未知）**：
+   - 队列状态不明确
+   - 通常是由于系统错误或通信问题导致
+   - 控制器会尝试将队列恢复到已知状态
+
+#### 检查队列状态
+
+要检查队列的当前状态，可以使用以下命令：
+
+```bash
+# 查看单个队列状态
+kubectl get queue <队列名称> -o jsonpath='{.status.state}'
+
+# 查看所有队列状态
+kubectl get queue -o custom-columns=NAME:.metadata.name,STATE:.status.state
+```
+
+#### 状态控制
+
+`Volcano`使用命令（Command）机制来控制队列的状态，而不是通过直接修改`Queue`对象的字段。以下是控制队列状态的方法：
+
+##### 方式一：使用`kubectl vc`命令行工具（推荐）
+
+`Volcano`提供了专门的命令行工具来操作队列：
+
+```bash
+# 关闭队列
+kubectl vc queue operate --action close --name <队列名称>
+
+# 开启队列
+kubectl vc queue operate --action open --name <队列名称>
+```
+
+##### 方式二：创建`Command`资源
+
+如果需要以编程方式或在自动化脚本中控制队列状态，可以创建`Command`资源：
+
+```yaml
+apiVersion: bus.volcano.sh/v1alpha1
+kind: Command
+metadata:
+  generateName: queue-name-close-  # 会自动生成唯一名称
+  namespace: default
+  ownerReferences:
+  - apiVersion: scheduling.volcano.sh/v1beta1
+    kind: Queue
+    name: <队列名称>
+    uid: <队列UID>  # 需要获取队列的实际UID
+targetObject:
+  apiVersion: scheduling.volcano.sh/v1beta1
+  kind: Queue
+  name: <队列名称>
+  uid: <队列UID>
+action: CloseQueue  # 或 OpenQueue
+```
+
+##### 方式三：使用Volcano API客户端
+
+在`Go`程序中，可以使用`Volcano`的客户端库：
+
+```go
+import (
+    "context"
+    "fmt"
+    
+    metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    "volcano.sh/apis/pkg/apis/bus/v1alpha1"
+    "volcano.sh/apis/pkg/client/clientset/versioned"
+)
+
+func closeQueue(client *versioned.Clientset, queueName string) error {
+    // 获取队列信息
+    queue, err := client.SchedulingV1beta1().Queues().Get(context.TODO(), queueName, metav1.GetOptions{})
+    if err != nil {
+        return err
+    }
+    
+    // 创建控制器引用
+    ctrlRef := metav1.NewControllerRef(queue, v1beta1.SchemeGroupVersion.WithKind("Queue"))
+    
+    // 创建命令
+    cmd := &v1alpha1.Command{
+        ObjectMeta: metav1.ObjectMeta{
+            GenerateName: fmt.Sprintf("%s-close-", queue.Name),
+            OwnerReferences: []metav1.OwnerReference{*ctrlRef},
+        },
+        TargetObject: ctrlRef,
+        Action:       string(v1alpha1.CloseQueueAction),
+    }
+    
+    // 提交命令
+    _, err = client.BusV1alpha1().Commands(queue.Namespace).Create(context.TODO(), cmd, metav1.CreateOptions{})
+    return err
+}
+```
 
 
 ### 资源分配机制
@@ -537,6 +656,142 @@ spec:
 
 4. **性能影响**：跨集群调度可能引入额外的网络延迟和性能开销，需要考虑这些因素
 
+### 队列使用方式
+
+`Volcano Queue`可以与多种`Kubernetes`工作负载类型结合使用。以下是不同工作负载类型如何关联到指定队列的示例：
+
+#### 1. Volcano Job
+
+`Volcano Job`可以直接在定义中指定队列名称：
+
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: distributed-training
+spec:
+  queue: ai-training  # 指定队列名称
+  minAvailable: 3
+  tasks:
+    - replicas: 1
+      name: ps
+      template:
+        spec:
+          containers:
+            - name: tensorflow
+              image: tensorflow/tensorflow:latest-gpu
+```
+
+#### 2. Kubernetes Pod
+
+对于普通的`Kubernetes Pod`，可以通过添加特定注解来指定队列：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ml-inference
+  annotations:
+    volcano.sh/queue-name: "inference-queue"  # 指定队列名称
+spec:
+  schedulerName: volcano  # 必须指定使用volcano调度器
+  containers:
+  - name: inference-container
+    image: ml-model:v1
+```
+
+#### 3. Kubernetes Deployment
+
+对于`Deployment`，需要在`Pod`模板中添加相关注解：
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+      annotations:
+        volcano.sh/queue-name: "web-queue"  # 指定队列名称
+    spec:
+      schedulerName: volcano  # 必须指定使用volcano调度器
+      containers:
+      - name: nginx
+        image: nginx:latest
+```
+
+#### 4. Kubernetes StatefulSet
+
+`StatefulSet`的配置方式与`Deployment`类似：
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database
+spec:
+  serviceName: "db"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+      annotations:
+        volcano.sh/queue-name: "db-queue"  # 指定队列名称
+    spec:
+      schedulerName: volcano  # 必须指定使用volcano调度器
+      containers:
+      - name: mysql
+        image: mysql:5.7
+```
+
+#### 5. PodGroup
+
+`PodGroup`是`Volcano`提供的一种自定义资源，用于将多个`Pod`作为一个组进行调度：
+
+```yaml
+apiVersion: scheduling.volcano.sh/v1beta1
+kind: PodGroup
+metadata:
+  name: ml-training-group
+spec:
+  queue: high-priority  # 指定队列名称
+  minMember: 3
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: training-worker-1
+  labels:
+    podgroup: ml-training-group  # 关联到PodGroup
+spec:
+  schedulerName: volcano
+  containers:
+  - name: training
+    image: ml-training:v1
+```
+
+#### 注意事项
+
+1. **调度器指定**：无论使用哪种方式，都必须将`schedulerName`设置为`volcano`，否则`Pod`不会被`Volcano`调度器处理
+
+2. **队列存在性**：指定的队列必须已经创建，否则`Pod`将无法被成功调度
+
+3. **权限控制**：在多租户环境中，通常需要配置`RBAC`权限，限制用户只能使用特定的队列
+
+4. **默认队列**：如果未指定队列，`Pod`将被分配到默认队列（通常名为`default`）
+
+
 ## Job
 
 `Volcano Job`是`Volcano`调度系统中的核心工作负载对象，用于定义和管理复杂的分布式、批处理和高性能计算任务。与原生`Kubernetes Job`相比，`Volcano Job`提供了更丰富的功能和更灵活的调度策略，特别适合机器学习、大数据分析、科学计算等领域。
@@ -600,6 +855,33 @@ spec:
                   memory: 4Gi
                   nvidia.com/gpu: 1
 ```
+
+### Job状态
+
+`Volcano Job`是一个更高级别的抽象，它包含一个或多个`Task`，每个`Task`可以有多个`Pod`副本。`Job`有以下几种状态：
+
+1. **Pending（等待中）**：`Job`正在队列中等待，等待调度决策。
+
+2. **Inqueue（入队）**：`Job`已入队，等待调度。
+
+3. **Aborting（中止中）**：`Job`正在被中止，等待释放`Pod`。
+
+3. **Aborted（已中止）**：`Job`已被中止，所有`Pod`已被释放。
+
+4. **Running（运行中）**：`Job`中的`Pod`正在运行。
+
+5. **Restarting（重启中）**：`Job`正在重启，等待`Pod`终止。
+
+6. **Completing（完成中）**：`Job`正在完成，等待`Pod`终止。
+
+7. **Completed（已完成）**：`Job`已成功完成，所有`Pod`都已成功运行并终止。
+
+8. **Terminating（终止中）**：`Job`正在终止，等待`Pod`终止。
+
+9. **Terminated（已终止）**：`Job`已终止，所有`Pod`已被终止。
+
+10. **Failed（失败）**：`Job`已失败，无法继续运行。
+
 
 ### 批量调度
 
