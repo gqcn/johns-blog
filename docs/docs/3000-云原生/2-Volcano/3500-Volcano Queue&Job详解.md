@@ -718,14 +718,21 @@ spec:
     metadata:
       labels:
         app: web
-      annotations:
-        volcano.sh/queue-name: "web-queue"  # 指定队列名称
+        volcano.sh/queue-name: "web-queue"  # 通过labels指定队列名称（推荐方式，便于查询）
+      # 也可以通过annotations指定队列名称
+      # annotations:
+      #   volcano.sh/queue-name: "web-queue"  
     spec:
       schedulerName: volcano  # 必须指定使用volcano调度器
       containers:
       - name: nginx
         image: nginx:latest
 ```
+
+> 注意：使用labels方式关联队列有助于通过标签选择器快速查询属于特定队列的Pod，例如：
+> ```bash
+> kubectl get pods -l volcano.sh/queue-name=web-queue
+> ```
 
 #### 4. Kubernetes StatefulSet
 
@@ -860,27 +867,19 @@ spec:
 
 `Volcano Job`是一个更高级别的抽象，它包含一个或多个`Task`，每个`Task`可以有多个`Pod`副本。`Job`有以下几种状态：
 
-1. **Pending（等待中）**：`Job`正在队列中等待，等待调度决策。
-
-2. **Inqueue（入队）**：`Job`已入队，等待调度。
-
-3. **Aborting（中止中）**：`Job`正在被中止，等待释放`Pod`。
-
-3. **Aborted（已中止）**：`Job`已被中止，所有`Pod`已被释放。
-
-4. **Running（运行中）**：`Job`中的`Pod`正在运行。
-
-5. **Restarting（重启中）**：`Job`正在重启，等待`Pod`终止。
-
-6. **Completing（完成中）**：`Job`正在完成，等待`Pod`终止。
-
-7. **Completed（已完成）**：`Job`已成功完成，所有`Pod`都已成功运行并终止。
-
-8. **Terminating（终止中）**：`Job`正在终止，等待`Pod`终止。
-
-9. **Terminated（已终止）**：`Job`已终止，所有`Pod`已被终止。
-
-10. **Failed（失败）**：`Job`已失败，无法继续运行。
+| 状态 | 说明 | 描述 |
+| --- | --- | --- |
+| `Pending` | 等待中 | `Job`正在队列中等待，等待调度决策 |
+| `Inqueue` | 入队 | `Job`已入队，等待调度 |
+| `Aborting` | 中止中 | `Job`正在被中止，等待释放`Pod` |
+| `Aborted` | 已中止 | `Job`已被中止，所有`Pod`已被释放 |
+| `Running` | 运行中 | `Job`中的`Pod`正在运行 |
+| `Restarting` | 重启中 | `Job`正在重启，等待`Pod`终止 |
+| `Completing` | 完成中 | `Job`正在完成，等待`Pod`终止 |
+| `Completed` | 已完成 | `Job`已成功完成，所有`Pod`都已成功运行并终止 |
+| `Terminating` | 终止中 | `Job`正在终止，等待`Pod`终止 |
+| `Terminated` | 已终止 | `Job`已终止，所有`Pod`已被终止 |
+| `Failed` | 失败 | `Job`已失败，无法继续运行 |
 
 
 ### 批量调度
@@ -1062,9 +1061,9 @@ spec:
 
 #### 与其他特性的结合
 
-- **与minAvailable的结合**：当Pod失败导致可用Pod数量小于`minAvailable`时，可以触发重试
+- **与minAvailable的结合**：当`Pod`失败导致可用`Pod`数量小于`minAvailable`时，可以触发重试
 
-- **与minSuccess的结合**：当成功的Pod数量无法达到`minSuccess`时，可以触发重试
+- **与minSuccess的结合**：当成功的`Pod`数量无法达到`minSuccess`时，可以触发重试
 
 - **与插件的结合**：重试时会重新应用插件配置，确保环境变量、SSH密钥等正确重新配置
 
