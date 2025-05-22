@@ -6,7 +6,7 @@ keywords:
   [
     "GPU监控", "DCGM", "Prometheus", "Kubernetes", "云原生", "AI算力", "GPU指标", "性能监控", "资源管理"
   ]
-description: "本文详细介绍NVIDIA DCGM-Exporter监控方案，提供完整的监控指标列表和Prometheus配置示例，帮助用户构建高效的GPU监控系统。"
+description: "本文详细介绍GPU DCGM-Exporter监控方案，提供完整的监控指标列表和Prometheus配置示例，帮助用户构建高效的GPU监控系统。"
 ---
 
 
