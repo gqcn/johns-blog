@@ -89,7 +89,7 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
        nodeSelectorTerms:
        - matchExpressions:
          - key: nvidia.com/gpu.compute.major
-           operator: Gt
+           operator: gt
            values: ["7"]  # 需要计算能力7.0以上的GPU
    ```
 
@@ -653,18 +653,19 @@ spec:
 3. **部署协同**：两者通常一起部署，特别是在`NVIDIA GPU Operator`中，它会自动部署和配置这两个组件
 4. **调度协同**：调度器可以同时使用`NFD`和`GFD`提供的标签来做出更精确的调度决策
 
-## 4. 使用场景
 
-`NFD`和`GFD`在以下场景中特别有用：
+## 4. 参考资料
 
-1. **AI/ML工作负载**：需要特定`GPU`型号或特性的深度学习训练和推理任务
-2. **高性能计算**：需要特定`CPU`指令集或内存配置的科学计算工作负载
-3. **混合集群管理**：管理包含不同硬件配置的节点的集群
-4. **资源优化**：通过精确匹配工作负载和硬件特性，提高资源利用率
-5. **自动化部署**：在`CI/CD`流程中自动选择合适的节点运行特定工作负载
-
-## 5. 参考资料
+### 4.1 NFD相关资料
 - [Node Feature Discovery 官方文档](https://nfd.sigs.k8s.io/)
+- [Node Feature Discovery GitHub 仓库](https://github.com/kubernetes-sigs/node-feature-discovery)
+- [NFD 安装指南](https://kubernetes-sigs.github.io/node-feature-discovery/stable/get-started/deployment-and-usage.html)
+
+### 4.2 NVIDIA相关资料
 - [GPU Feature Discovery GitHub 仓库](https://github.com/NVIDIA/gpu-feature-discovery)
 - [NVIDIA GPU Operator 文档](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
+- [NVIDIA Device Plugin GitHub 仓库](https://github.com/NVIDIA/k8s-device-plugin)
+
+### 4.3 Kubernetes官方资料
 - [Kubernetes 官方文档 - 调度 GPU](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/)
+- [Kubernetes Device Plugin 机制](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/)
