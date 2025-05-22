@@ -54,13 +54,13 @@ description: "本文详细介绍NVIDIA GPU Operator的主要作用、组件构�
 
 | 功能 | `GPU DevicePlugin` | GPU Operator |
 |------|-----------------|------------|
-| 暴露GPU资源 | ✓ | ✓ (包含`DevicePlugin`) |
-| GPU驱动安装 | ✗ | ✓ |
+| 暴露`GPU`资源 | ✓ | ✓ (包含`DevicePlugin`) |
+| `GPU`驱动安装 | ✗ | ✓ |
 | 容器运行时配置 | ✗ | ✓ |
 | 自动节点标签 | ✗ | ✓ |
 | 监控集成 | ✗ | ✓ |
 | 版本管理 | ✗ | ✓ |
-| MIG支持 | 有限 | 完整支持 |
+| `MIG`支持 | 有限 | 完整支持 |
 
 `GPU Operator`实际上将`GPU DevicePlugin`作为其管理的组件之一，同时负责整个`GPU`软件栈的生命周期管理。可以将两者的关系理解为：`GPU DevicePlugin`是`GPU Operator`管理的众多组件之一。
 
