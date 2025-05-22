@@ -12,11 +12,11 @@ description: "本文详细介绍GPU DCGM-Exporter监控方案，提供完整的�
 
 ## 1. DCGM-Exporter简介
 
-`NVIDIA DCGM-Exporter`是一个专为`GPU`监控设计的强大工具，它基于`DCGM (Data Center GPU Manager) API`，能够收集`NVIDIA GPU`的详细指标并以`Prometheus`格式暴露。它是`NVIDIA GPU Operator`的一部分，但也可以独立部署使用。
+`DCGM-Exporter`是一个专为`GPU`监控设计的强大工具，它基于`DCGM (Data Center GPU Manager) API`，能够收集`NVIDIA GPU`的详细指标并以`Prometheus`格式暴露。它是`NVIDIA GPU Operator`的一部分，但也可以独立部署使用。
 
 作为目前最全面、最易于集成的`GPU监控解决方案`，`DCGM-Exporter`特别适合在`Kubernetes`环境中部署，为`AI训练`和`高性能计算`提供可靠的监控支持。
 
-> **重要说明：** `NVIDIA DCGM-Exporter`仅适用于`NVIDIA`品牌的`GPU硬件`，如`Tesla`、`Quadro`、`GeForce`等系列。它不支持其他厂商的`GPU`产品，如`AMD`的`Radeon`系列、`Intel`的`Xe`系列、`华为`的`昇腾`系列或`寒武纪`的`MLU`系列等。如果您的环境中使用了非`NVIDIA`的`GPU`，需要采用相应厂商提供的监控解决方案。
+> **重要说明：** `DCGM-Exporter`仅适用于`NVIDIA`品牌的`GPU硬件`，如`Tesla`、`Quadro`、`GeForce`等系列。它不支持其他厂商的`GPU`产品，如`AMD`的`Radeon`系列、`Intel`的`Xe`系列、`华为`的`昇腾`系列或`寒武纪`的`MLU`系列等。如果您的环境中使用了非`NVIDIA`的`GPU`，需要采用相应厂商提供的监控解决方案。
 
 ## 2. 主要特点
 
