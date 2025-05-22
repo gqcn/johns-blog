@@ -1,6 +1,6 @@
 ---
 slug: "/ai/gpu-operator"
-title: "GPU Operator介绍"
+title: "GPU Operator技术介绍"
 hide_title: true
 keywords:
   [
@@ -13,7 +13,7 @@ description: "本文详细介绍NVIDIA GPU Operator的主要作用、组件构�
 
 ## 1. GPU Operator的主要作用
 
-![alt text](<assets/GPU Operator介绍/image.png>)
+![alt text](<assets/GPU Operator技术介绍/image.png>)
 
 `NVIDIA GPU Operator`是一个基于`Kubernetes Operator`框架开发的解决方案，旨在简化`Kubernetes`集群中`NVIDIA GPU`的管理和使用。在传统的`Kubernetes`环境中，要使用`GPU`资源，管理员需要手动完成多个复杂的配置步骤，包括：
 
@@ -72,7 +72,7 @@ description: "本文详细介绍NVIDIA GPU Operator的主要作用、组件构�
 
 `GPU Operator`使用状态机模式来管理其生命周期，主要包括以下状态转换过程：
 
-![alt text](<assets/GPU Operator介绍/image-1.png>)
+![alt text](<assets/GPU Operator技术介绍/image-1.png>)
 
 状态机按照以下顺序执行：
 
@@ -111,6 +111,8 @@ feature.node.kubernetes.io/pci-10de.present=true
 
 ## 4. GPU Operator包含的组件
 
+![alt text](./assets/GPU%20Operator技术介绍/image-2.png)
+
 `GPU Operator`采用容器化方式部署和管理以下核心组件：
 
 ### 4.1 NVIDIA驱动容器 (Driver Container)
@@ -139,17 +141,23 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **作用**：识别具有`GPU`的节点，为其添加标签如``feature.node.kubernetes.io/pci-10de.present=true``
 - **优势**：简化节点选择和工作负载调度
 
-### 3.5 DCGM导出器 (DCGM Exporter)
+详细介绍请参考文章：[NFD&GFD技术介绍](./NFD&GFD技术介绍.md)
+
+### 3.5 GPU特性发现 (GPU Feature Discovery, GFD)
+
+- **功能**：为节点添加详细的`GPU`特性标签
+- **标签示例**：`GPU`型号、架构、`CUDA`版本等
+- **用途**：支持基于特定`GPU`特性的精细化调度
+
+详细介绍请参考文章：[NFD&GFD技术介绍](./NFD&GFD技术介绍.md)
+
+### 3.6 DCGM导出器 (DCGM Exporter)
 
 - **功能**：收集`GPU`指标并以`Prometheus`格式导出
 - **监控内容**：`GPU`利用率、内存使用、温度、功耗等
 - **集成**：可与`Prometheus`和`Grafana`等监控系统集成
 
-### 3.6 GPU特性发现 (GPU Feature Discovery, GFD)
-
-- **功能**：为节点添加详细的`GPU`特性标签
-- **标签示例**：`GPU`型号、架构、`CUDA`版本等
-- **用途**：支持基于特定`GPU`特性的精细化调度
+详细介绍请参考文章：[GPU监控方案](./GPU监控方案.md)
 
 ### 3.7 MIG管理器 (MIG Manager)
 
