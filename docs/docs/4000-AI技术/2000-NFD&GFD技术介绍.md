@@ -435,7 +435,7 @@ scrape_configs:
 | `nvidia.com/gpu.count` | `integer` | 节点上的`GPU`数量 | `8` |
 | `nvidia.com/gpu.present` | `boolean` | 节点上是否存在`NVIDIA GPU` | `true` |
 | `nvidia.com/gpu.product` | `string` | `GPU`型号的完整名称 | `NVIDIA-A100-SXM4-40GB` |
-| `nvidia.com/gpu.memory` | `integer` | `GPU`内存大小（MiB，单卡） | `40960` |
+| `nvidia.com/gpu.memory` | `integer` | `GPU`内存大小（`MiB`，单卡） | `40960` |
 | `nvidia.com/gpu.family` | `string` | `GPU`架构系列 | `ampere` |
 | `nvidia.com/gpu.compute.major` | `integer` | `GPU`计算能力主版本 | `8` |
 | `nvidia.com/gpu.compute.minor` | `integer` | `GPU`计算能力次版本 | `0` |
