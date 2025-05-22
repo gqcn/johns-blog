@@ -157,7 +157,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **监控内容**：`GPU`利用率、内存使用、温度、功耗等
 - **集成**：可与`Prometheus`和`Grafana`等监控系统集成
 
-详细介绍请参考文章：[GPU监控方案](./GPU监控方案.md)
+详细介绍请参考文章：[NVIDIA GPU DCGM-Exporter监控方案](./NVIDIA%20GPU%20DCGM-Exporter监控方案.md)
 
 ### 3.7 MIG管理器 (MIG Manager)
 
