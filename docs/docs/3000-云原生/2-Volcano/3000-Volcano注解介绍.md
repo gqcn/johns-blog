@@ -19,11 +19,13 @@ description: "本文详细介绍了Volcano提供的各种注解（Annotations）
 |`volcano.sh/queue-name`|`Pod, PodGroup`| 指定资源应该被分配到哪个队列 |`"default"`|
 |`volcano.sh/preemptable`|`Pod`| 标记`Pod`是否可被抢占 |`"true"`,`"false"`|
 |`volcano.sh/task-spec`|`Pod`| 指定`Pod`所属的任务类型 |`"default"`|
-|`volcano.sh/num-pods`|`PodGroup`| 指定`PodGroup`中需要的`Pod`数量 |`"5"`|
 |`volcano.sh/min-available`|`PodGroup`| 指定`PodGroup`最小可用`Pod`数量 |`"3"`|
 |`volcano.sh/priorityClassName`|`PodGroup`| 指定`PodGroup`的优先级类名 |`"high-priority"`|
-|`volcano.sh/resource-reservation`|`PodGroup`| 是否为`PodGroup`预留资源 |`"true"`,`"false"`|
-|`volcano.sh/job-type`|`PodGroup`| 指定作业类型，影响调度策略 |`"MPI"`,`"TensorFlow"`|
+|`volcano.sh/task-priority`|`Pod`| 指定`Pod`在任务中的优先级 |`"10"`|
+|`volcano.sh/closed-by-parent`|`Queue`| 标记队列是否由父队列关闭 |`"true"`|
+|`volcano.sh/createdByJobTemplate`|`Job`| 标记`Job`是否由作业模板创建 |`"template-name"`|
+|`volcano.sh/createdByJobFlow`|`Job`| 标记`Job`是否由作业流创建 |`"flow-name"`|
+|`scheduling.volcano.sh/preemptable`|`Pod`| 标记`Pod`是否可被抢占（调度器插件使用） |`"true"`,`"false"`|
 
 ## 注解使用示例
 
@@ -91,4 +93,3 @@ description: "本文详细介绍了Volcano提供的各种注解（Annotations）
 4. **动态调整**：可以通过更新注解动态调整调度行为，而无需重启组件
 
 通过合理使用这些注解，用户可以更精细地控制`Volcano`的调度行为，满足不同场景下的资源分配和调度需求。
-
