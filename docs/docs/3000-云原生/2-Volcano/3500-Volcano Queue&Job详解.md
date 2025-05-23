@@ -304,7 +304,9 @@ func closeQueue(client *versioned.Clientset, queueName string) error {
 
 在`Volcano`中，资源抢占有两种主要实现方式：基于`Queue`属性的抢占和基于`PriorityClass`的抢占。
 
-> **注意：** 要使`queue`的`reclaimable`配置真正生效，必须在`Volcano`调度器配置中同时启用`preempt`动作（`action`）和`reclaim`动作（`action`）。
+**注意事项：** 
+
+要使`queue`的`reclaimable`配置真正生效，必须在`Volcano`调度器配置中同时启用`preempt`动作（`action`）和`reclaim`动作（`action`）。
 
 **调度器配置示例：**
 ```yaml
@@ -340,6 +342,10 @@ actions: "enqueue, allocate, preempt, reclaim, backfill"
 **2. 基于 PriorityClass 的抢占**
 
 虽然`Queue`对象本身没有`priorityClassName`属性，但`Volcano`与`Kubernetes`的`PriorityClass`机制集成，在`PodGroup`（作业组）级别支持基于优先级的抢占。
+
+**注意事项：** 
+- 要使`PodGroup`基于`PriorityClass`的强占生效，必须要`Volcano`调度器启用`preempt`动作（`action`），因为`PodGroup`是`Volcano`的自定义资源。
+- 如果是其他`Kubernetes`原生资源如`Pod`，则不需要`Volcano`调度器，`Kubernetes`原生能力已支持。当高优先级`Pod`无法调度时，`kube-scheduler`会尝试抢占低优先级`Pod`。
 
 **工作原理**：
 

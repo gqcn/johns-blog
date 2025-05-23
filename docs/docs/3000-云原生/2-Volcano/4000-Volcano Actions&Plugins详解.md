@@ -138,7 +138,7 @@ tiers:
 
 1. **Pending（等待中）**：`PodGroup`已被系统接受，但调度器无法为其分配足够的资源。这是`PodGroup`的初始状态。
 
-2. **Inqueue（入队）**：控制器可以开始创建`Pod`，这是`PodGroup`从`Pending`到`Running`之间的一个中间状态。当`enqueue` action执行成功后，`PodGroup`会从`Pending`转变为`Inqueue`状态。
+2. **Inqueue（入队）**：控制器可以开始创建`Pod`，这是`PodGroup`从`Pending`到`Running`之间的一个中间状态。当`enqueue action`执行成功后，`PodGroup`会从`Pending`转变为`Inqueue`状态。
 
 3. **Running（运行中）**：`PodGroup`中的`spec.minMember`数量的`Pod`已经处于运行状态。
 
@@ -1873,7 +1873,7 @@ tiers:
 
 | 特性 | `Queue` 资源配额 | `resourcequota` 插件 | 
 |------|--------------|-------------------| 
-|** 作用范围** | 仅限 `Volcano Queue `| 可跨命名空间、跨队列 | 
+|**作用范围** | 仅限 `Volcano Queue `| 可跨命名空间、跨队列 | 
 | **限制粒度** | 队列级别 | 可自定义分组（如项目、部门等） | 
 | **资源类型** | 主要限制计算资源 | 支持更多资源类型（如存储、对象数量等） | 
 | **灵活性** | 相对固定 | 支持自定义资源组和复杂策略 | 
