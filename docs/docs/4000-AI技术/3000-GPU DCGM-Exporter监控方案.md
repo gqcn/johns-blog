@@ -30,7 +30,7 @@ description: "本文详细介绍GPU DCGM-Exporter监控方案，提供完整的�
 
 `DCGM-Exporter`的基本架构如下：
 
-```
+```text
 +------------------+    +---------------+    +-------------+    +------------+
 | NVIDIA GPU(s)    |<---| NVIDIA Driver |<---| DCGM        |<---| DCGM       |
 | (Tesla, Quadro,  |    | (440.xx+)     |    | (2.0+)      |    | Exporter   |

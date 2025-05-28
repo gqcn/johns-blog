@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/volcano-annotations"
-title: "Volcano注解介绍"
+title: "Volcano注解详解"
 hide_title: true
 keywords:
   [
@@ -31,7 +31,7 @@ description: "本文详细介绍了Volcano提供的各种注解（Annotations）
 
 下面是每个注解的详细说明和使用示例。
 
-### 1. `volcano.sh/queue-name`
+### `volcano.sh/queue-name`
 
 **作用**：指定资源应该被分配到哪个队列。这个注解可以应用于`Pod`或`PodGroup`。
 
@@ -66,7 +66,7 @@ spec:
   minMember: 3
 ```
 
-### 2. `volcano.sh/preemptable`
+### `volcano.sh/preemptable`
 
 **作用**：标记`Pod`是否可被抢占。当设置为`"true"`时，表示该`Pod`可以被高优先级的`Pod`抢占资源。
 
@@ -88,7 +88,7 @@ spec:
     image: nginx
 ```
 
-### 3. `volcano.sh/task-spec`
+### `volcano.sh/task-spec`
 
 **作用**：指定`Pod`所属的任务类型。在分布式训练任务中，不同的`Pod`可能有不同的角色（如参数服务器、工作节点等）。
 
@@ -110,7 +110,7 @@ spec:
     image: tensorflow/tensorflow:latest-gpu
 ```
 
-### 4. `volcano.sh/min-available`
+### `volcano.sh/min-available`
 
 **作用**：指定`PodGroup`最小可用`Pod`数量。只有当可用的`Pod`数量达到或超过这个值时，`PodGroup`才会被调度。
 
@@ -127,7 +127,7 @@ spec:
   minMember: 3  # 等同于使用 volcano.sh/min-available: "3" 注解
 ```
 
-### 5. `volcano.sh/priorityClassName`
+### `volcano.sh/priorityClassName`
 
 **作用**：指定`PodGroup`的优先级类名。这个类名对应于`Kubernetes`中定义的`PriorityClass`资源。
 
@@ -156,11 +156,25 @@ spec:
   minMember: 3
 ```
 
-### 6. `volcano.sh/task-priority`
+### `volcano.sh/task-priority`
 
 **作用**：指定`Pod`在任务中的优先级。这个优先级值是一个整数，值越高表示优先级越高。
 
 **重要性**：在复杂的工作流中，某些`Pod`可能需要先于其他`Pod`运行。这个注解允许在同一任务内设置不同的优先级。
+
+**与`priorityClass`的区别**：
+- `volcano.sh/task-priority`：仅在同一个`Volcano`任务（`Job`）内部的`Pod`之间生效，用于设置同一任务内（`Job`）不同`Pod`的优先级关系
+- `priorityClass`：在整个`Kubernetes`集群范围内生效，影响 不同的 `Job`/`Pod` 之间的全局优先级
+
+**资源抢占机制**：
+1. **跨任务抢占**：当不同任务之间发生资源竞争时，`Volcano`使用`Job`级别的优先级（来自`priorityClass`）决定抢占顺序
+2. **任务内部抢占**：同一任务内部的`Pod`之间发生资源竞争时，`Volcano`使用`Pod`级别的优先级（通过`volcano.sh/task-priority`设置）决定抢占顺序
+
+**优先级设置顺序**：`Volcano`首先使用`Pod`的`.spec.priority`（来自`priorityClass`），然后如果存在`volcano.sh/task-priority`注解，则会覆盖前者的值。
+
+**实际应用**：
+- 在大型机器学习工作流中，可以给数据预处理`Pod`较高的`task-priority`，确保它们优先获取资源
+- 在同一个分布式应用中，可以给主节点较高的`task-priority`，确保它先于从节点启动
 
 **示例**：
 
@@ -178,7 +192,7 @@ spec:
     image: my-task-image
 ```
 
-### 7. `volcano.sh/closed-by-parent`
+### `volcano.sh/closed-by-parent`
 
 **作用**：标记队列是否由父队列关闭。当设置为`"true"`时，表示该队列是因为其父队列关闭而关闭的。
 
@@ -197,7 +211,7 @@ spec:
   weight: 1
 ```
 
-### 8. `volcano.sh/createdByJobTemplate`
+### `volcano.sh/createdByJobTemplate`
 
 **作用**：标记`Job`是否由作业模板创建。当设置为特定值时，表示该`Job`是由指定的模板创建的。
 
@@ -218,7 +232,7 @@ spec:
   # 其他作业配置...
 ```
 
-### 9. `volcano.sh/createdByJobFlow`
+### `volcano.sh/createdByJobFlow`
 
 **作用**：标记`Job`是否由作业流创建。当设置为特定值时，表示该`Job`是由指定的作业流创建的。
 
@@ -239,7 +253,7 @@ spec:
   # 其他作业配置...
 ```
 
-### 10. `scheduling.volcano.sh/preemptable`
+### `scheduling.volcano.sh/preemptable`
 
 **作用**：标记`Pod`是否可被抢占（调度器插件使用）。这个注解与`volcano.sh/preemptable`类似，但是由调度器插件直接使用。
 
