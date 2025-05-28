@@ -1,12 +1,12 @@
 ---
-slug: "/cloud-native/kubernettes-kind-ai-test-cluster"
-title: "使用Kubernetes Kind搭建AI算力测试集群"
+slug: "/cloud-native/kubernettes-kind-mock-ai-test-cluster"
+title: "使用Kubernetes Kind模拟AI算力测试集群"
 hide_title: true
 keywords:
   [
     "Kubernetes", "Kind", "Volcano", "AI算力", "资源调度", "测试集群", "Docker", "k8s", "云原生", "高性能计算"
   ]
-description: "本文详细介绍了如何使用Kind工具快速搭建Kubernetes本地AI算力测试集群，并安装Volcano调度器进行资源管理。适用于需要在本地环境中测试AI训练任务调度和资源抢占机制的开发者。"
+description: "本文详细介绍了如何使用Kind工具快速搭建模拟AI算力场景的Kubernetes本地测试集群，并安装Volcano调度器进行资源管理。适用于需要在本地环境中测试AI训练任务调度和资源抢占机制的开发者。"
 ---
 
 在开发和测试`AI`应用时，我们常需要一个能模拟生产环境的本地`Kubernetes`集群。特别是对于`AI`训练任务，需要测试不同类型的`GPU`资源调度和抢占机制。`Kind`（`Kubernetes IN Docker`）是一个使用`Docker`容器作为节点运行`Kubernetes`集群的工具，非常适合在本地快速搭建测试环境。结合`Volcano`调度器，我们可以实现对`AI`训练任务的高级调度和资源管理。
