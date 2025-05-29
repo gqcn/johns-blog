@@ -166,7 +166,7 @@ Events:
 
 ## 模拟NFD&GFD标签
 
-`Volcano`安装完成后，我们需要模拟节点特征发现（`Node Feature Discovery`，`NFD`）和GPU特征发现（`GPU Feature Discovery`，`GFD`）的标签。在真实集群中，这些标签会由`NFD`和`GFD`自动发现并添加到节点上，但在我们的模拟环境中，需要手动添加这些标签。这些标签将用于让调度器识别不同节点的硬件特性，便于进行精准调度：
+`Volcano`安装完成后，我们需要模拟节点特征发现（`Node Feature Discovery`，`NFD`）和`GPU`特征发现（`GPU Feature Discovery`，`GFD`）的标签。在真实集群中，这些标签会由`NFD`和`GFD`自动发现并添加到节点上，但在我们的模拟环境中，需要手动添加这些标签。这些标签将用于让调度器识别不同节点的硬件特性，便于进行精准调度：
 
 关于`NFD&GFD`的介绍请参考我另一篇文章：[NFD&GFD技术介绍](../4000-AI技术/2000-NFD&GFD技术介绍.md)
 
@@ -440,9 +440,9 @@ kubectl describe node ai-cluster-worker
 
 ## 模拟GPU资源类型
 
-添加节点标签后，我们还需要模拟节点上的GPU资源。在真实集群中，GPU资源会由NVIDIA设备插件自动注册，但在我们的模拟环境中，需要手动添加这些资源。我们将为不同节点添加不同数量和类型的GPU资源：
+添加节点标签后，我们还需要模拟节点上的`GPU`资源。在真实集群中，`GPU`资源会由`NVIDIA`设备插件自动注册，但在我们的模拟环境中，需要手动添加这些资源。我们将为不同节点添加不同数量和类型的`GPU`资源：
 
-为节点模拟GPU资源类型，这里模拟的是`NVIDIA`的卡，因此需要加上`nvidia.com/gpu`的资源。
+为节点模拟`GPU`资源类型，这里模拟的是`NVIDIA`的卡，因此需要加上`nvidia.com/gpu`的资源。
 
 ### 模拟GPU资源脚本
 ```shell title="add-gpu-resources.sh"
