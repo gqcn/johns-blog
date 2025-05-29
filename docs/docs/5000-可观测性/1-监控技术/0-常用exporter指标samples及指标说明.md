@@ -11,6 +11,8 @@ description: "收集和整理常用 Prometheus Exporter 的监控指标样例，
 
 使用`node-exporter`实现。
 
+组件源码仓库：https://github.com/prometheus/node_exporter
+
 Sample文件：[nodes.txt](/attachments/nodes.txt)
 
 | 名称 | 类型 | 描述 |
@@ -89,6 +91,8 @@ Sample文件：[nodes.txt](/attachments/nodes.txt)
 
 使用`cadvisor`实现，在新版本`Kubernetes`中已经内置。
 
+组件源码地址：https://github.com/kubernetes/kubernetes/tree/master/vendor/github.com/google/cadvisor
+
 Sample文件：[cadvisor.txt](/attachments/cadvisor.txt)
 
 | 名称 | 类型 | 描述 |
@@ -165,6 +169,8 @@ Sample文件：[cadvisor.txt](/attachments/cadvisor.txt)
 ## Kubernetes状态指标
 
 使用`kube-state-metrics`实现，集群中各个资源的快照值，比较大。
+
+组件源码仓库：https://github.com/kubernetes/kube-state-metrics
 
 Sample文件：[kube-state.txt](/attachments/kube-state.txt)
 
@@ -255,6 +261,8 @@ Sample文件：[kube-state.txt](/attachments/kube-state.txt)
 ## Kubernetes内部指标
 
 集群的内部指标，大部分场景下没什么用，常用于管控类指标监控。
+
+组件源码地址：https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io/apiserver
 
 Sample文件：[kube-internal.txt](/attachments/kube-internal.txt)
 
