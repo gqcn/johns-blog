@@ -432,65 +432,59 @@ scrape_configs:
 
 `GFD`生成的所有标签都使用`nvidia.com/`前缀，这与`NFD`使用的`feature.node.kubernetes.io/`前缀不同。这种命名方式可以清晰地区分不同来源的标签，并确保标签的唯一性。
 
+
+##### 2.4.1.1 基础标签
+
 | 标签 | 类型 | 说明 | 示例值 |
 | --- | --- | --- | --- |
-| `nvidia.com/gpu.count` | `integer` | 节点上的`GPU`数量 | `8` |
-| `nvidia.com/gpu.present` | `boolean` | 节点上是否存在`NVIDIA GPU` | `true` |
+| `nvidia.com/gpu.count` | `string` | 节点上的`GPU`数量 | `8` |
 | `nvidia.com/gpu.product` | `string` | `GPU`型号的完整名称 | `NVIDIA-A100-SXM4-40GB` |
-| `nvidia.com/gpu.memory` | `integer` | `GPU`内存大小（`MiB`，单卡） | `40960` |
+| `nvidia.com/gpu.memory` | `string` | `GPU`内存大小（`MiB`，单卡） | `40960` |
 | `nvidia.com/gpu.family` | `string` | `GPU`架构系列 | `ampere` |
-| `nvidia.com/gpu.compute.major` | `integer` | `GPU`计算能力主版本 | `8` |
-| `nvidia.com/gpu.compute.minor` | `integer` | `GPU`计算能力次版本 | `0` |
+| `nvidia.com/gpu.compute.major` | `string` | `GPU`计算能力主版本 | `8` |
+| `nvidia.com/gpu.compute.minor` | `string` | `GPU`计算能力次版本 | `0` |
 | `nvidia.com/gpu.machine` | `string` | 节点机器型号 | `NVIDIA-DGX-A100` |
-| `nvidia.com/gpu.mode` | `string` | `GPU`工作模式（`compute`或`display`） | `compute` |
-| `nvidia.com/gpu.replicas` | `integer` | `GPU`副本数量（用于时间切片时会大于1） | `1` |
-| `nvidia.com/gpu.clique` | `string` | `GPUFabric`集群`UUID`和群组ID | `7b968a6d-c8aa-45e1-9e07-e1e51be99c31.1` |
+| `nvidia.com/gpu.replicas` | `string` | `GPU`副本数量（用于时间切片时会大于1） | `1` |
+| `nvidia.com/gpu.sharing-strategy` | `string` | `GPU`共享策略类型 | `none`、`mps`或`time-slicing` |
+| `nvidia.com/gpu.mode` | `string` | `GPU`工作模式 | `compute`或`graphics` |
 
-**CUDA相关标签**：
-
-| 标签 | 类型 | 说明 | 示例值 |
-| --- | --- | --- | --- |
-| `nvidia.com/cuda.driver-version.major` | `integer` | `CUDA`驱动主版本 | `550` |
-| `nvidia.com/cuda.driver-version.minor` | `integer` | `CUDA`驱动次版本 | `107` |
-| `nvidia.com/cuda.driver-version.revision` | `integer` | `CUDA`驱动修订版本 | `02` |
-| `nvidia.com/cuda.driver-version.full` | `string` | `CUDA`驱动完整版本 | `550.107.02` |
-| `nvidia.com/cuda.runtime-version.major` | `integer` | `CUDA`运行时主版本 | `12` |
-| `nvidia.com/cuda.runtime-version.minor` | `integer` | `CUDA`运行时次版本 | `5` |
-| `nvidia.com/cuda.runtime-version.full` | `string` | `CUDA`运行时完整版本 | `12.5` |
-
-**废弃的CUDA标签**（向后兼容）：
+##### 2.4.1.2 CUDA相关标签
 
 | 标签 | 类型 | 说明 | 示例值 |
 | --- | --- | --- | --- |
-| `nvidia.com/cuda.driver.major` | `integer` | （已废弃）`CUDA`驱动主版本 | `550` |
-| `nvidia.com/cuda.driver.minor` | `integer` | （已废弃）`CUDA`驱动次版本 | `107` |
-| `nvidia.com/cuda.driver.rev` | `integer` | （已废弃）`CUDA`驱动修订版本 | `02` |
-| `nvidia.com/cuda.runtime.major` | `integer` | （已废弃）`CUDA`运行时主版本 | `12` |
-| `nvidia.com/cuda.runtime.minor` | `integer` | （已废弃）`CUDA`运行时次版本 | `5` |
+| `nvidia.com/cuda.driver.major` | `string` | `CUDA`驱动主版本 | `550` |
+| `nvidia.com/cuda.driver.minor` | `string` | `CUDA`驱动次版本 | `107` |
+| `nvidia.com/cuda.driver.rev` | `string` | `CUDA`驱动修订版本 | `02` |
+| `nvidia.com/cuda.runtime.major` | `string` | `CUDA`运行时主版本 | `12` |
+| `nvidia.com/cuda.runtime.minor` | `string` | `CUDA`运行时次版本 | `5` |
 
-**特性支持标签**：
 
-| 标签 | 类型 | 说明 | 示例值 |
-| --- | --- | --- | --- |
-| `nvidia.com/mig.capable` | `boolean` | 是否支持`MIG`（多实例 `GPU`）功能 | `true` |
-| `nvidia.com/mps.capable` | `boolean` | 是否支持`MPS`（多进程服务）功能 | `true` |
-| `nvidia.com/vgpu.present` | `boolean` | 是否支持`vGPU`功能 | `false` |
-| `nvidia.com/gpu.sharing-strategy` | `string` | `GPU`共享策略类型 | `none` |
-| `nvidia.com/gfd.timestamp` | `integer` | `GPU`特征发现的时间戳 | `1736224460` |
 
-**MIG相关标签**（当启用`MIG`功能时）：
+##### 2.4.1.3 特性支持标签
 
 | 标签 | 类型 | 说明 | 示例值 |
 | --- | --- | --- | --- |
-| `nvidia.com/mig.strategy` | `string` | 使用的`MIG`策略（`single`或`mixed`） | `single` |
-| `nvidia.com/gpu.multiprocessors` | `integer` | `MIG`设备的流处理器数量 | `14` |
-| `nvidia.com/gpu.slices.gi` | `integer` | `GPU`实例切片数量 | `1` |
-| `nvidia.com/gpu.slices.ci` | `integer` | 计算实例切片数量 | `1` |
-| `nvidia.com/gpu.engines.copy` | `integer` | `MIG`设备的`DMA`引擎数量 | `1` |
-| `nvidia.com/gpu.engines.decoder` | `integer` | `MIG`设备的解码器数量 | `1` |
-| `nvidia.com/gpu.engines.encoder` | `integer` | `MIG`设备的编码器数量 | `1` |
-| `nvidia.com/gpu.engines.jpeg` | `integer` | `MIG`设备的`JPEG`引擎数量 | `0` |
-| `nvidia.com/gpu.engines.ofa` | `integer` | `MIG`设备的`OFA`引擎数量 | `0` |
+| `nvidia.com/mig.capable` | `string` | 是否支持`MIG`（多实例 `GPU`）功能 | `true` |
+| `nvidia.com/mps.capable` | `string` | 是否支持`MPS`（多进程服务）功能 | `true` |
+| `nvidia.com/vgpu.present` | `string` | 是否存在`vGPU` | `true` |
+| `nvidia.com/vgpu.host-driver-version` | `string` | `vGPU`主机驱动版本 | `525.85.07` |
+| `nvidia.com/vgpu.host-driver-branch` | `string` | `vGPU`主机驱动分支 | `r525` |
+| `nvidia.com/gfd.timestamp` | `string` | `GPU`特征发现的时间戳 | `1736224460` |
+
+##### 2.4.1.4 MIG相关标签（当启用`MIG`功能时）
+
+| 标签 | 类型 | 说明 | 示例值 |
+| --- | --- | --- | --- |
+| `nvidia.com/mig.strategy` | `string` | 使用的`MIG`策略（`none`、`single`或`mixed`） | `single` |
+| `nvidia.com/mig.config` | `string` | `MIG`设备的配置标识符 | `1g.5gb` |
+| `nvidia.com/gpu.multiprocessors` | `string` | `MIG`设备的流处理器数量 | `14` |
+| `nvidia.com/gpu.slices.gi` | `string` | `GPU`实例切片数量 | `1` |
+| `nvidia.com/gpu.slices.ci` | `string` | 计算实例切片数量 | `1` |
+| `nvidia.com/gpu.engines.copy` | `string` | `MIG`设备的`DMA`引擎数量 | `1` |
+| `nvidia.com/gpu.engines.decoder` | `string` | `MIG`设备的解码器数量 | `1` |
+| `nvidia.com/gpu.engines.encoder` | `string` | `MIG`设备的编码器数量 | `1` |
+| `nvidia.com/gpu.engines.jpeg` | `string` | `MIG`设备的`JPEG`引擎数量 | `0` |
+| `nvidia.com/gpu.engines.ofa` | `string` | `MIG`设备的`OFA`引擎数量 | `0` |
 
 
 
@@ -540,10 +534,15 @@ nvidia.com/gpu.memory: "16384"
 nvidia.com/gpu.family: "volta"
 nvidia.com/gpu.compute.major: "7"
 nvidia.com/gpu.compute.minor: "0"
-nvidia.com/gpu.driver.version: "460.32.03"
-nvidia.com/gpu.cuda.version: "11.2"
-nvidia.com/gpu.arch: "Volta"
+nvidia.com/cuda.driver.major: "460"
+nvidia.com/cuda.driver.minor: "32"
+nvidia.com/cuda.driver.rev: "03"
+nvidia.com/cuda.runtime.major: "11"
+nvidia.com/cuda.runtime.minor: "2"
 nvidia.com/gpu.machine: "DGX-1"
+nvidia.com/gpu.sharing-strategy: "none"
+nvidia.com/gpu.mode: "compute"
+nvidia.com/mps.capable: "true"
 ```
 
 ##### A100 GPU标签示例（启用MIG）
@@ -555,19 +554,20 @@ nvidia.com/gpu.memory: "40960"
 nvidia.com/gpu.family: "ampere"
 nvidia.com/gpu.compute.major: "8"
 nvidia.com/gpu.compute.minor: "0"
-nvidia.com/gpu.driver.version: "535.104.05"
-nvidia.com/gpu.cuda.version: "12.2"
-nvidia.com/gpu.arch: "Ampere"
+nvidia.com/cuda.driver.major: "535"
+nvidia.com/cuda.driver.minor: "104"
+nvidia.com/cuda.driver.rev: "05"
+nvidia.com/cuda.runtime.major: "12"
+nvidia.com/cuda.runtime.minor: "2"
 nvidia.com/gpu.machine: "HGX"
-nvidia.com/mig.capable: "1"
+nvidia.com/gpu.sharing-strategy: "none"
+nvidia.com/gpu.mode: "compute"
+nvidia.com/mig.capable: "true"
+nvidia.com/mps.capable: "false"
 nvidia.com/mig.strategy: "single"
 nvidia.com/gpu.slices.gi: "7"
 nvidia.com/gpu.slices.ci: "7"
 nvidia.com/gpu.multiprocessors: "108"
-nvidia.com/gpu.slices.gi.1: "7"
-nvidia.com/gpu.slices.gi.2: "3"
-nvidia.com/gpu.slices.gi.3: "2"
-nvidia.com/gpu.slices.gi.7: "1"
 nvidia.com/gpu.engines.copy: "4"
 nvidia.com/gpu.engines.decoder: "5"
 nvidia.com/gpu.engines.encoder: "1"
@@ -582,11 +582,16 @@ nvidia.com/gpu.memory: "81920"
 nvidia.com/gpu.family: "hopper"
 nvidia.com/gpu.compute.major: "9"
 nvidia.com/gpu.compute.minor: "0"
-nvidia.com/gpu.driver.version: "535.129.03"
-nvidia.com/gpu.cuda.version: "12.2"
-nvidia.com/gpu.arch: "Hopper"
+nvidia.com/cuda.driver.major: "535"
+nvidia.com/cuda.driver.minor: "129"
+nvidia.com/cuda.driver.rev: "03"
+nvidia.com/cuda.runtime.major: "12"
+nvidia.com/cuda.runtime.minor: "2"
 nvidia.com/gpu.machine: "HGX-H100"
-nvidia.com/mig.capable: "1"
+nvidia.com/gpu.sharing-strategy: "none"
+nvidia.com/gpu.mode: "compute"
+nvidia.com/mig.capable: "true"
+nvidia.com/mps.capable: "true"
 nvidia.com/gpu.multiprocessors: "132"
 nvidia.com/gpu.engines.copy: "8"
 nvidia.com/gpu.engines.decoder: "8"
