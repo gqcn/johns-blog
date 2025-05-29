@@ -276,6 +276,8 @@ feature.node.kubernetes.io/system-os_release.id: "ubuntu"
 - `AMD`: `1022`
 - `Mellanox/NVIDIA`网络: `15b3`
 
+更多供应商ID请参考网站：https://admin.pci-ids.ucw.cz/read/PC/
+
 这种基于供应商ID的标签方式使`Kubernetes`能够精确识别节点上的硬件设备，从而实现更精细的工作负载调度。
 
 ### 1.8 监控指标
