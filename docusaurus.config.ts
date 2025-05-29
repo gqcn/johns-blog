@@ -112,6 +112,12 @@ const config: Config = {
         },
         {
           position: 'left',
+          label: 'AI技术',
+          sidebarId: 'mainSidebar',
+          to: '/ai',
+        },
+        {
+          position: 'left',
           label: '可观测性',
           sidebarId: 'mainSidebar',
           to: '/observability',
