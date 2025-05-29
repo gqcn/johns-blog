@@ -118,7 +118,7 @@ replicaset.apps/volcano-scheduler-9b977dd77      1         1         1       3m4
 
 ### 常见问题解决
 
-#### 本地VPN环境变量代理引起Kind镜像拉取失败
+#### 本地VPN环境变量代理引起Kind拉取镜像失败
 
 如果本地有启用`VPN`的环境变量代理，比如使用了：
 ```bash
