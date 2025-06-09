@@ -65,17 +65,17 @@ Sample文件：[nodes.txt](/attachments/nodes.txt)
 | `node_network_transmit_errs_total` | `counter` | node_network_transmit_errs_total Network device statistic transmit_errs. |
 | `node_network_transmit_multicast_total` | `counter` | node_network_transmit_multicast_total Network device statistic transmit_multicast. |
 | `node_network_transmit_packets_total` | `counter` | node_network_transmit_packets_total Network device statistic transmit_packets. |
-| `node_power_supply_battery_health` | `gauge` | node_power_supply_battery_health IOKit Power Source information field battery_health for <power_supply>. |
-| `node_power_supply_charged` | `gauge` | node_power_supply_charged IOKit Power Source information field charged for <power_supply>. |
-| `node_power_supply_charging` | `gauge` | node_power_supply_charging IOKit Power Source information field charging for <power_supply>. |
-| `node_power_supply_current_ampere` | `gauge` | node_power_supply_current_ampere IOKit Power Source information field current_ampere for <power_supply>. |
-| `node_power_supply_current_capacity` | `gauge` | node_power_supply_current_capacity IOKit Power Source information field current_capacity for <power_supply>. |
-| `node_power_supply_info` | `gauge` | node_power_supply_info IOKit Power Source information for <power_supply>. |
-| `node_power_supply_max_capacity` | `gauge` | node_power_supply_max_capacity IOKit Power Source information field max_capacity for <power_supply>. |
-| `node_power_supply_power_source_state` | `gauge` | node_power_supply_power_source_state IOKit Power Source information field power_source_state for <power_supply>. |
-| `node_power_supply_present` | `gauge` | node_power_supply_present IOKit Power Source information field present for <power_supply>. |
-| `node_power_supply_time_to_empty_seconds` | `gauge` | node_power_supply_time_to_empty_seconds IOKit Power Source information field time_to_empty_seconds for <power_supply>. |
-| `node_power_supply_time_to_full_seconds` | `gauge` | node_power_supply_time_to_full_seconds IOKit Power Source information field time_to_full_seconds for <power_supply>. |
+| `node_power_supply_battery_health` | `gauge` | node_power_supply_battery_health IOKit Power Source information field battery_health for `power_supply`. |
+| `node_power_supply_charged` | `gauge` | node_power_supply_charged IOKit Power Source information field charged for `power_supply`. |
+| `node_power_supply_charging` | `gauge` | node_power_supply_charging IOKit Power Source information field charging for `power_supply`. |
+| `node_power_supply_current_ampere` | `gauge` | node_power_supply_current_ampere IOKit Power Source information field current_ampere for `power_supply`. |
+| `node_power_supply_current_capacity` | `gauge` | node_power_supply_current_capacity IOKit Power Source information field current_capacity for `power_supply`. |
+| `node_power_supply_info` | `gauge` | node_power_supply_info IOKit Power Source information for `power_supply`. |
+| `node_power_supply_max_capacity` | `gauge` | node_power_supply_max_capacity IOKit Power Source information field max_capacity for `power_supply`. |
+| `node_power_supply_power_source_state` | `gauge` | node_power_supply_power_source_state IOKit Power Source information field power_source_state for `power_supply`. |
+| `node_power_supply_present` | `gauge` | node_power_supply_present IOKit Power Source information field present for `power_supply`. |
+| `node_power_supply_time_to_empty_seconds` | `gauge` | node_power_supply_time_to_empty_seconds IOKit Power Source information field time_to_empty_seconds for `power_supply`. |
+| `node_power_supply_time_to_full_seconds` | `gauge` | node_power_supply_time_to_full_seconds IOKit Power Source information field time_to_full_seconds for `power_supply`. |
 | `node_scrape_collector_duration_seconds` | `gauge` | node_scrape_collector_duration_seconds node_exporter: Duration of a collector scrape. |
 | `node_scrape_collector_success` | `gauge` | node_scrape_collector_success node_exporter: Whether a collector succeeded. |
 | `node_textfile_scrape_error` | `gauge` | node_textfile_scrape_error 1 if there was an error opening or reading a file, 0 otherwise |
