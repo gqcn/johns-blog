@@ -13,7 +13,7 @@ description: "详细介绍NVIDIA GPU共享技术MPS和MIG的原理、优缺点�
 
 **MIG**：`Multi-Instance GPU (MIG)` 是`NVIDIA`针对`Ampere`架构之后和的系列卡推出的`GPU`虚拟化技术，它实现了物理卡的拆分，可以将一张`GPU`，按照特定规格拆分成多个子实例：https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html
 
-MPS与MIG技术对比：
+`MPS`与`MIG`技术对比：
 
 | 特性 | MPS (Multi-Process Service) | MIG (Multi-Instance GPU) |
 |------|----------------------------|-------------------------|
