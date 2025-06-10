@@ -37,7 +37,7 @@ description: "本文详细介绍NVIDIA GPU Operator的主要作用、组件构�
 
 理解`GPU Operator`与`GPU DevicePlugin`的区别对于正确选择和使用这些工具至关重要。
 
-### 2.1 `GPU DevicePlugin`
+### 2.1 GPU DevicePlugin
 
 `GPU DevicePlugin`是`Kubernetes`的一个组件，其主要功能是：
 
