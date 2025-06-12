@@ -15,11 +15,11 @@ description: "Volcano是基于Kubernetes的高性能批处理系统，为机器�
 
 ![Volcano架构](../assets/arch_2.PNG)
 
-相较于原生的调度器，`Volcano`具有的显著特点有：
+相较于`Kubernetes`原生的调度器，`Volcano`具有的显著特点有：
 
 - **支持 `Gang Scheduling`**
 
-  对于批量作业的调度，容易碰到死锁的问题，比如两个作业都需要同时运行 10 个 Pod 才能启动，当两个作业同时提交时，可能都只有部分 Pod 被调度，两个作业都无法正常运行，而处于互相等待状态。`Gang Scheduling` 就是为了解决这个问题。
+  对于批量作业的调度，容易碰到死锁的问题，比如两个作业都需要同时运行`10`个`Pod`才能启动，当两个作业同时提交时，可能都只有部分`Pod`被调度，两个作业都无法正常运行，而处于互相等待状态。`Gang Scheduling` 就是为了解决这个问题。
 
 - **调度队列**
 
@@ -31,7 +31,7 @@ description: "Volcano是基于Kubernetes的高性能批处理系统，为机器�
 
 `Volcano`是在 `Kubernetes`原生调度能力的基础上进行的扩展和优化，因此，对于基本的 `nodeSelector`、`nodeAffinity`等也是支持的。同时也支持 `Extended Resource`，这点对于`GPU`、`IB`网卡等资源的在调度层面的感知非常重要。
 
-> `Volcano`是业界首个云原生批量计算项目，`2019`年由华为云捐献给云原生计算基金会（`CNCF`），也是`CNCF`首个和唯一的孵化级容器批量计算项目。它源自于华为云AI容器，在支撑华为云一站式AI开发平台`ModelArts`、容器服务`CCI`等服务稳定运行中发挥重要作用。
+> `Volcano`是业界首个云原生批量计算项目，`2019`年由华为云捐献给云原生计算基金会（`CNCF`），也是`CNCF`首个和唯一的孵化级容器批量计算项目。它源自于华为云`AI`容器，在支撑华为云一站式`AI`开发平台`ModelArts`、容器服务`CCI`等服务稳定运行中发挥重要作用。
 
 ### 核心组件
 
@@ -45,7 +45,7 @@ description: "Volcano是基于Kubernetes的高性能批处理系统，为机器�
 
 4. **`Volcano MutatingAdmission`**：修改资源对象的配置，如添加标签、注解等，自动注入环境变量和配置信息。
 
-5. **`Volcano Agent`**（可选组件）：在节点上收集资源使用情况和硬件信息，为调度器提供更精确的节点资源信息，支持 GPU、FPGA 等异构资源的管理。
+5. **`Volcano Agent`**（可选组件）：在节点上收集资源使用情况和硬件信息，为调度器提供更精确的节点资源信息，支持`GPU`、`FPGA`等异构资源的管理。
 
 ### 组件交互关系
 
@@ -84,30 +84,30 @@ graph TD
 1. **用户提交流程**：用户提交作业→`Admission`验证 →`Controller`处理 →`Scheduler`调度 →`Kubelet`执行
 
 2. **状态监控与管理**：
-   -`Controller Manager`监控所有`Volcano`自定义资源的状态变化
+   - `Controller Manager`监控所有`Volcano`自定义资源的状态变化
    - 根据资源状态变化，触发相应的事件处理
    - 当需要重调度或清理资源时，通知`Scheduler`进行相应操作
 
 3. **调度决策过程**：
-   -`Scheduler`根据`Queue`配置和系统状态，为`PodGroup`分配资源
+   - `Scheduler`根据`Queue`配置和系统状态，为`PodGroup`分配资源
    - 通过插件化架构，实现不同的调度策略和算法
    - 支持`Gang Scheduling`，确保相关联的`Pod`要么全部调度成功，要么全部失败
 
 4. **资源信息收集**：
-   -`Agent`(如果启用) 提供节点资源信息，辅助调度决策
-   - 特别是对于 GPU、FPGA 等异构资源，提供更精确的资源状态
+   - `Agent`(如果启用) 提供节点资源信息，辅助调度决策
+   - 特别是对于`GPU`、`FPGA`等异构资源，提供更精确的资源状态
 
 5. **资源对象之间的关系**：
-   -`Job`包含多个`Task`，每个`Task`对应一组相同角色的`Pod`
-   -`PodGroup`作为调度的基本单位，表示一组需要同时调度的`Pod`
-   -`Queue`容纳多个`PodGroup`，并控制这些`PodGroup`的资源分配和调度策略
+   - `Job`包含多个`Task`，每个`Task`对应一组相同角色的`Pod`
+   - `PodGroup`作为调度的基本单位，表示一组需要同时调度的`Pod`
+   - `Queue`容纳多个`PodGroup`，并控制这些`PodGroup`的资源分配和调度策略
 
 这种组件化设计使`Volcano`能够灵活应对不同的工作负载需求，并且可以通过扩展插件来增强系统能力。
 
 ## Scheduler
 
 ### Kubernetes Scheduler
-`kubernetes`当然有默认的pod调度器，但是其并不适应AI作业任务需求。在多机训练任务中，一个AI作业可能需要同时创建上千个甚至上万个pod，而只有当所有pod当创建完成后，AI作业才能开始运行，而如果有几个pod创建失败，已经创建成功的pod就应该退出并释放资源，否则便会产生资源浪费的情况。因此Ai作业的pod调度应该遵循`All or nothing`的理念，即要不全部调度成功，否则应一个也不调度。这便是`Volcano`项目的由来（前身是`kube-batch`项目），接下来便来介绍`Volcano`的调度。
+`kubernetes`当然有默认的`pod`调度器，但是其并不适应`AI`作业任务需求。在多机训练任务中，一个`AI`作业可能需要同时创建上千个甚至上万个`pod`，而只有当所有`pod`当创建完成后，`AI`作业才能开始运行，而如果有几个`pod`创建失败，已经创建成功的`pod`就应该退出并释放资源，否则便会产生资源浪费的情况。因此`AI`作业的`pod`调度应该遵循`All or nothing`的理念，即要不全部调度成功，否则应一个也不调度。这便是`Volcano`项目的由来（前身是`kube-batch`项目），接下来便来介绍`Volcano`的调度。
 
 ![](../assets/20240330125540.png)
 
@@ -153,7 +153,7 @@ graph TD
 - **绿色部分**是`session`级别的状态，一个调度周期，`Volcano Scheduler`会创建一个`session`，它只在调度周期内发挥作用，一旦过了调度周期，这几个状态它是失效的。
 - **黄色部分**的状态是放在`Cache`内的。
 
-我们加这些状态的目的是减少调度和API之间的一个交互，从而来优化调度性能。
+加这些状态的目的是减少调度和`API`之间的一个交互，从而来优化调度性能。
 
 `Pod`的这些状态为调度器提供了更多优化的可能。例如，当进行`Pod`驱逐时，驱逐在`Binding`和`Bound`状态的`Pod`要比较驱逐`Running`状态的`Pod`的代价要小；并且状态都是记录在`Volcano`调度内部，减少了与`kube-apiserver`的通信。但目前`Volcano`调度器仅使用了状态的部分功能，比如现在的`preemption/reclaim`仅会驱逐`Running`状态下的`Pod`；这主要是由于分布式系统中很难做到完全的状态同步，在驱逐`Binding`和`Bound`状态的`Pod`会有很多的状态竞争。
 
@@ -304,8 +304,8 @@ kind: Queue
 metadata:
   name: development
 spec:
-  weight: 5        # 中等权重
-  reclaimable: true   # 资源可被回收
+  weight: 5         # 中等权重
+  reclaimable: true # 资源可被回收
   capability:
     cpu: 50        # 最多使用 50 核 CPU
     memory: 200Gi  # 最多使用 200Gi 内存
@@ -317,8 +317,8 @@ kind: Queue
 metadata:
   name: testing
 spec:
-  weight: 2        # 低权重
-  reclaimable: true   # 资源可被回收
+  weight: 2         # 低权重
+  reclaimable: true # 资源可被回收
   capability:
     cpu: 20        # 最多使用 20 核 CPU
     memory: 100Gi  # 最多使用 100Gi 内存
@@ -377,219 +377,6 @@ spec:
 
 `Queue`机制是`Volcano`实现多租户资源管理和公平调度的关键组件，它使得集群管理员可以更精细地控制资源分配策略，提高集群资源利用率和用户满意度。
 
-
-
-
-#### Queue 对象详解
-
-```yaml
-apiVersion: scheduling.volcano.sh/v1beta1
-kind: Queue
-metadata:
-  name: default-queue  # 队列名称
-  namespace: default   # 命名空间，可选
-  labels:              # 标签，可选
-    type: production   # 自定义标签
-  annotations:         # 注释，可选
-    description: "Production workloads queue"  # 自定义注释
-spec:
-  weight: 1            # 队列权重，影响资源分配优先级，数值越大优先级越高
-  capability:          # 队列资源容量限制（上限）
-    cpu: 100           # CPU资源上限，单位为核心数
-    memory: 100Gi      # 内存资源上限
-    nvidia.com/gpu: 4  # GPU资源上限
-    huawei.com/npu: 2  # NPU资源上限（如华为Ascend NPU）
-    ephemeral-storage: 500Gi  # 临时存储资源上限
-  deserved:            # 应得资源量（多队列竞争时的资源分配基准）
-    cpu: 80            # 应得的CPU资源量
-    memory: 80Gi       # 应得的内存资源量
-    nvidia.com/gpu: 3  # 应得的GPU资源量
-  guarantee:           # 队列保障资源，即使在资源紧张情况下也会保证分配
-    cpu: 50            # 保障的CPU资源量
-    memory: 50Gi       # 保障的内存资源量
-    nvidia.com/gpu: 2  # 保障的GPU资源量
-  minResources:        # 队列最小资源，队列启动时必须满足的最小资源需求
-    cpu: 10            # 最小CPU资源量
-    memory: 10Gi       # 最小内存资源量
-  maxResources:        # 队列最大资源，队列能够使用的最大资源上限
-    cpu: 200           # 最大CPU资源量
-    memory: 200Gi      # 最大内存资源量
-    nvidia.com/gpu: 8  # 最大GPU资源量
-  reclaimable: true    # 是否允许回收资源，设为true时允许其他队列在空闲时借用该队列资源
-  state: Open          # 队列状态，可选值：Open(开放)、Closed(关闭)、Unknown(未知)
-  hierarchy: root.production.team-a  # 层级队列结构，定义队列在层级结构中的位置
-  priorityClassName: high-priority   # 优先级类名，引用集群中定义的PriorityClass
-  preemptable: true    # 是否允许被抢占，设为true时允许高优先级队列抢占该队列资源
-  jobOrderPolicy: FIFO # 作业排序策略，可选值：FIFO(先进先出)、Priority(按优先级)
-  timeToLiveSeconds: 3600  # 队列生存时间，超时后自动清理，单位为秒
-  resourceLimitPercent: 80  # 资源限制百分比，控制队列可使用的集群资源比例
-  podGroupMinAvailable: 2   # PodGroup最小可用数，指定该队列中的PodGroup至少需要多少Pod可用
-  shareWeight: 5       # 共享权重，影响队列在共享资源时的优先级
-```
-
-
-##### 三级资源配置机制
-
-`Volcano`的`Queue`资源对象采用了一个灵活的三级资源配置机制，这三个级别分别是：`capability`（资源上限）、`deserved`（应得资源）和`guarantee`（保障资源）。这种设计允许集群管理员精细控制资源分配，特别适合多租户环境下的资源管理。
-
-**1. capability（资源上限）**
-
-**定义**：队列能够使用的资源上限，队列中的所有作业使用的资源总和不能超过这个上限。
-
-**特点**：
-
-- 代表队列能够使用的最大资源量
-- 设置了资源使用的硬限制，防止单个队列过度消耗集群资源
-- 可以针对多种资源类型设置（`CPU`、内存、`GPU`等）
-
-**示例场景**： 假设一个生产队列设置了`capability.cpu=100`，那么即使集群有更多空闲资源，该队列中的所有作业使用的`CPU`总和也不能超过`100`核。
-
-**2. deserved（应得资源）**
-
-**定义**：队列在资源竞争情况下应该获得的资源量，是资源分配和回收的基准线。
-
-**特点**：
-
-- 当集群资源充足时，队列可以使用超过`deserved`的资源（但不超过`capability`）
-- 当集群资源紧张时，超过`deserved`的资源可能被回收给其他队列使用
-- 是资源借用和回收机制的核心参考值
-
-**配置建议**：
-
-- 在同级队列场景下，所有队列的`deserved`值总和应等于集群总资源
-- 在层级队列场景下，子队列的`deserved`值总和应等于父队列的`deserved`值
-
-**示例场景**： 假设队列`A`设置了`deserved.cpu=80`，当资源充足时，它可以使用多达`100`核（`capability`上限）；但当资源紧张时，它只能保证获得`80`核，超出部分可能被回收。当资源极度紧张时，会保证后续介绍的队列`guarantee`资源，
-
-**3. guarantee（保障资源）**
-
-**定义**：队列被保证能够使用的最小资源量，即使在集群资源紧张的情况下也不会被回收。
-
-**特点**：
-
-- 提供了资源使用的最低保障
-- 这部分资源专属于该队列，不会被其他队列借用或抢占
-- 即使在资源紧张的情况下，调度器也会确保队列能获得这些资源
-
-**示例场景**： 假设关键业务队列设置了`guarantee.cpu=50`，即使集群资源非常紧张，该队列也能保证获得`50`核CPU资源用于运行关键业务。
-
-**三者之间的关系**
-
-1. **资源层级关系：guarantee ≤ deserved ≤ capability**
-- `guarantee`是最低保障
-- `deserved`是正常情况下（资源不是极度紧张情况下）应得的资源
-- `capability`是最高上限
-
-2. **资源分配优先级**：
-- 首先保证所有队列的`guarantee`资源
-- 然后按照`deserved`值和权重分配剩余资源
-- 最后允许队列使用空闲资源，但不超过`capability`
-
-3. **资源回收顺序**：
-
-    1. 首先回收超出`capability`的资源
-    - 这种情况通常不会发生，因为调度器会确保队列使用的资源不超过`capability`上限
-
-    2. 然后回收超出`deserved`但未超出`capability`的资源
-    - 当资源紧张时，队列使用的超过`deserved`值的资源可能被回收
-    - 这部分资源被视为"借用"的资源，在资源紧张时需要"归还"
-
-    3. 最后考虑回收超出`guarantee`但未超出`deserved`的资源
-    - 只有在极度资源紧张的情况下，且有更高优先级的队列需要资源时
-    - 这种回收通常通过抢占（`preemption`）机制实现，而不是简单的资源回收
-
-    4. `guarantee`资源永远不会被回收
-    - `guarantee`资源是队列的最低保障，即使在极度资源紧张的情况下也不会被回收
-    - 这是保证关键业务稳定运行的基础
-
-##### 资源抢占机制
-
-在`Volcano`中，队列的资源抢占（强占）机制主要基于`priorityClassName`属性配置，而不是`weight`属性。这两个属性在资源管理中有不同的作用。
-
-**1. priorityClassName与资源抢占**
-
-**定义**：`priorityClassName`是`Queue`对象中用于定义队列优先级的属性，它直接关联到`Kubernetes`的`PriorityClass`资源。
-
-**特点**：
-
-- 当集群资源紧张时，高优先级队列可以抢占低优先级队列的资源
-- 抢占决策主要基于队列的`priorityClassName`所指定的优先级值
-- 优先级值越高的队列可以抢占优先级值较低的队列资源
-
-**工作原理**：
-
-- 每个`priorityClassName`对应一个整数值，这个值在`PriorityClass`资源中定义
-- 调度器在资源紧张时，会比较不同队列的优先级值
-- 高优先级队列的作业可以抢占低优先级队列中的作业资源
-
-**抢占条件**：
-
-- 被抢占队列的`preemptable`属性必须设置为`true`
-- 抢占通常只发生在资源极度紧张且无法满足高优先级队列需求的情况下
-
-**2. weight与资源分配**
-
-**定义**：`weight`属性主要用于正常资源分配过程中的权重计算。
-
-**特点**：
-
-- `weight`影响队列在正常资源分配过程中的权重
-- 当有多个队列竞争资源但资源足够分配时，`weight`值较高的队列会获得更多资源
-- 这主要应用于`deserved`资源的分配过程
-
-**非抢占性质**：
-
-- `weight`不直接触发资源抢占
-- 它只影响资源分配的比例，而不会导致已分配资源的重新分配
-
-**3. 两者的区别与联系**
-
-**作用时机不同**：
-
-- `priorityClassName`在资源紧张需要抢占时起作用
-- `weight`在正常资源分配过程中起作用
-
-**影响方式不同**：
-
-- `priorityClassName`可能导致已运行作业被终止（抢占）
-- `weight`只影响新资源的分配比例，不会终止已运行的作业
-
-**配合使用**：
-
-- 在完整的资源管理策略中，这两个属性通常配合使用
-- 高优先级队列通常也会设置较高的`weight`值
-- 但它们解决的是不同的资源管理问题
-
-**4. 实际应用示例**
-
-假设有三个队列：
-
-1. **关键业务队列**：
-   ```yaml
-   priorityClassName: high-priority  # 对应优先级值1000
-   weight: 10
-   preemptable: false  # 不允许被抢占
-   ```
-
-2. **常规业务队列**：
-   ```yaml
-   priorityClassName: normal-priority  # 对应优先级值500
-   weight: 5
-   preemptable: true  # 允许被抢占
-   ```
-
-3. **批处理队列**：
-   ```yaml
-   priorityClassName: low-priority  # 对应优先级值100
-   weight: 2
-   preemptable: true  # 允许被抢占
-   ```
-
-**资源分配与抢占行为**：
-
-- 在资源充足时，三个队列按照`10:5:2`的比例分配资源（基于`weight`）
-- 在资源紧张时，关键业务队列可以抢占常规业务队列和批处理队列的资源（基于`priorityClassName`）
-- 常规业务队列可以抢占批处理队列的资源，但不能抢占关键业务队列的资源
 
 ### Job 资源任务
 
@@ -658,7 +445,7 @@ spec:
             requests:
               cpu: 4
               memory: 8Gi
-              nvidia.com/gpu: 1
+              nvidia.com/gpu: 2
 ```
 
 #### Volcano Job 的特性
