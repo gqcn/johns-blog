@@ -19,7 +19,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 资源抢占是解决资源竞争问题的关键技术，特别是在以下场景中尤为重要：
 
 - **资源紧张环境**：在计算资源有限的集群中，需要确保关键业务获得足够资源
-- **混合负载场景**：同一集群中同时运行在线服务和批处理作业时，需要保证在线服务的资源优先级
+- **混合负载场景**：同一集群中同时运行**在线服务**和**批处理作业**时，需要保证在线服务的资源优先级
 - **弹性计算**：在需求波动较大的环境中，通过优先级机制实现资源的动态分配
 - **多租户环境**：在多用户共享集群的情况下，通过优先级和抢占机制实现资源隔离和公平分配
 
@@ -28,12 +28,13 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 `Kubernetes`原生的抢占机制主要基于`Pod`级别的`PriorityClass`实现，虽然提供了基本的资源抢占能力，但在复杂的高性能计算和`AI/ML`工作负载场景中存在以下局限性：
 
 1. **层级抢占机制不完善**：
-   - 虽然`Job`可以通过`PriorityClass`设置优先级，但缺乏队列级别的资源管理
+   - 虽然原生的`Job`可以通过`PriorityClass`设置优先级，但缺乏队列级别的资源管理
    - 无法实现多层级、多维度的资源抢占策略
 
 2. **缺乏作业感知**：
-   - 无法识别同一作业中不同`Pod`之间的关系
-   - 在资源紧张时可能导致`Gang`调度失败，造成资源碎片
+   - 无法识别同一作业中不同`Pod`之间的关联关系
+   - 在资源紧张时，可能导致需要同时运行的`Pod`无法同时获得资源（资源死锁，缺乏`Gang`调度）
+   - 造成资源碎片化，降低资源利用效率
 
 3. **抢占策略单一**：
    - 仅支持基于优先级的简单抢占
@@ -63,9 +64,13 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 
 `Queue`是`Volcano`中最高层级的资源管理单位，代表一个租户或一个业务线。`Queue`级别的抢占主要基于以下原则：
 
-1. **优先级机制**：每个`Queue`可以设置优先级(`priority`)，高优先级`Queue`可以抢占低优先级`Queue`的资源
+1. **优先级机制**：每个`Queue`可以设置优先级(`priority`)，高优先级`Queue`可以抢占低优先级`Queue`的资源。
 2. **资源配额**：`Queue`可以设置最小保障资源(`guarantee`)和最大资源上限(`capacity`)
 3. **权重分配**：当多个`Queue`优先级相同时，可以通过权重(`weight`)决定资源分配比例
+
+注意事项：
+- `Queue`级别的抢占机制从`Volcano v1.10.0`版本开始支持。
+- `Queue`并不支持`PriorityClass`，而是通过`priority`属性来设置优先级。
 
 #### 2.1.2 实现方式
 
@@ -74,39 +79,37 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 1. **`reclaim action`**：资源回收动作，是实现不同队列间资源抢占的核心机制
 2. **队列`priority`属性**：在`Queue`定义中设置的优先级值，决定了队列间的抢占顺序
 
-下面是`Volcano`调度器的配置示例，展示了资源抢占相关的动作：
+    下面是`Volcano`调度器的配置示例，展示了资源抢占相关的动作：
 
-```yaml
-# volcano-scheduler-configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: volcano-scheduler-config
-  namespace: volcano-system
-data:
-  volcano-scheduler.conf: |
-    # 调度器执行的动作序列，包含资源回收和抢占动作
-    actions: "enqueue, allocate, preempt, reclaim, backfill"
-    # 其他插件配置...
-```
+    ```yaml
+    # volcano-scheduler-configmap.yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: volcano-scheduler-config
+      namespace: volcano-system
+    data:
+      volcano-scheduler.conf: |
+        # 调度器执行的动作序列，包含资源回收和抢占动作
+        actions: "enqueue, allocate, preempt, reclaim, backfill"
+        # 其他插件配置...
+    ```
 
-上述配置中，资源抢占相关的核心动作是：
+    上述配置中，资源抢占相关的核心动作是`reclaim`。使用示例如下：
 
-- **`reclaim`**：实现不同队列间的资源抢占，高优先级队列可以从低优先级队列抢占资源
-
-  ```yaml
-  apiVersion: scheduling.volcano.sh/v1beta1
-  kind: Queue
-  metadata:
-    name: high-priority-queue
-  spec:
-    weight: 10
-    capability:
-      cpu: 100
-      memory: 100Gi
-    reclaimable: true  # 允许其他Queue抢占此Queue的资源
-    priority: 100      # 队列优先级，值越大优先级越高
-  ```
+    ```yaml
+    apiVersion: scheduling.volcano.sh/v1beta1
+    kind: Queue
+    metadata:
+      name: high-priority-queue
+    spec:
+      weight: 10
+      capability:
+        cpu: 100
+        memory: 100Gi
+      reclaimable: true  # 允许其他Queue抢占此Queue的资源
+      priority: 100      # 队列优先级，值越大优先级越高
+    ```
 
 ### 2.2 Job级别抢占
 
@@ -134,24 +137,24 @@ data:
 1. **`preempt action`**：资源抢占动作，是实现同一队列内不同作业间资源抢占的核心机制
 2. **`priorityClassName`**：与`Job`关联的优先级类，决定了作业间的抢占顺序
 
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: high-priority-job
-spec:
-  minAvailable: 3
-  priorityClassName: high-priority  # 关联PriorityClass设置作业优先级
-  queue: research                   # 指定所属队列
-  tasks:
-    - replicas: 3
-      name: worker
-      template:
-        spec:
-          containers:
-            - image: training-image
-              name: worker
-```
+    ```yaml
+    apiVersion: batch.volcano.sh/v1alpha1
+    kind: Job
+    metadata:
+      name: high-priority-job
+    spec:
+      minAvailable: 3
+      priorityClassName: high-priority  # 关联PriorityClass设置作业优先级
+      queue: research                   # 指定所属队列
+      tasks:
+        - replicas: 3
+          name: worker
+          template:
+            spec:
+              containers:
+                - image: training-image
+                  name: worker
+    ```
 
 ### 2.3 Pod级别抢占
 
@@ -167,22 +170,27 @@ spec:
 
 `Volcano`主要通过以下核心组件实现`Pod`级别的抢占：
 
-1. **`volcano.sh/task-priority`注解**：设置同一`Job`内不同`Pod`的优先级，是实现`Pod`间抢占的核心
-2. **`volcano.sh/preemptable`注解**：标记`Pod`是否可被抢占，控制`Pod`的可抢占性
-3. **`PreemptionPolicy`**：控制`Pod`的抢占策略，可设置为`PreemptLowerPriority`或`Never`
+1. **`priorityClassName`属性**：当`Pod`使用`Volcano`调度器时，`priorityClassName`的优先级影响范围取决于`Pod`所属的`Job`和`Queue`：
+   - 如果`Pod`属于某个`Volcano Job`，其`priorityClassName`优先级仅在同一个`Queue`内的不同`Job`之间生效。
+   - 如果`Pod`不属于任何`Volcano Job`，其`priorityClassName`优先级在整个集群范围内生效。
+   - 优先级值越大，`Pod`的优先级越高，在资源竞争时优先获得资源。
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: high-priority-pod
-  annotations:
-    volcano.sh/task-priority: "10"       # 设置Pod在Job内的优先级
-    volcano.sh/preemptable: "false"      # 标记Pod不可被抢占
-spec:
-  priorityClassName: high-priority        # 设置Pod的全局优先级
-  schedulerName: volcano                  # 使用Volcano调度器
-```
+2. **`volcano.sh/task-priority`注解**：设置同一`Job`内不同`Pod`的优先级，是实现`Pod`间抢占的核心
+3. **`volcano.sh/preemptable`注解**：标记`Pod`是否可被抢占，控制`Pod`的可抢占性
+4. **`PreemptionPolicy`**：控制`Pod`的抢占策略，可设置为`PreemptLowerPriority`或`Never`
+
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: high-priority-pod
+      annotations:
+        volcano.sh/task-priority: "10"       # 设置Pod在Job内的优先级
+        volcano.sh/preemptable: "false"      # 标记Pod不可被抢占
+    spec:
+      priorityClassName: high-priority        # 设置Pod的全局优先级
+      schedulerName: volcano                  # 使用Volcano调度器
+    ```
 
 ## 3. 资源抢占的层级关系
 
@@ -192,8 +200,8 @@ spec:
 
 当集群资源紧张时，`Queue`之间的抢占遵循以下规则：
 
-1. **优先级决定性**：高优先级`Queue`可以抢占低优先级`Queue`的资源
-2. **权重影响**：当优先级相同时，权重较高的`Queue`可以获得更多资源
+1. **优先级决定性**：高优先级`Queue`可以抢占低优先级`Queue`的资源(`priority`属性)
+2. **权重影响**：当优先级相同时，权重(`weight`属性)较高的`Queue`可以获得更多资源
 3. **最小保障**：每个`Queue`的`guarantee`资源是受保护的，不会被抢占
 4. **资源回收**：当高优先级`Queue`不需要资源时，被抢占的`Queue`可以重新获得资源
 
@@ -242,116 +250,4 @@ spec:
 3. **Pod优先级最低**：同一`Job`内不同`Pod`之间的优先级最低
 
 这意味着：
-- 即使是低优先级`Queue`中的高优先级`Job`，也会被高优先级`Queue`中的低优先级`Job`抢占
-- 即使是低优先级`Job`中的高`task-priority` `Pod`，也会被高优先级`Job`中的低`task-priority` `Pod`抢占
-
-> **重要说明**：要实现这种层级化的资源抢占机制，**必须统一使用Volcano调度器**。在所有需要参与这种资源管理的`Job`中指定`schedulerName: volcano`。如果混用不同的调度器（如`Kubernetes`默认调度器），将无法保证这种层级化的资源抢占机制正常工作，因为其他调度器不理解`Queue`概念和层级关系。
-
-## 4. 实际应用场景与最佳实践
-
-### 4.1 多租户资源管理
-
-在多租户环境中，可以为不同部门或团队创建独立的`Queue`，通过优先级和资源配额实现资源隔离和保障：
-
-```yaml
-apiVersion: scheduling.volcano.sh/v1beta1
-kind: Queue
-metadata:
-  name: production
-spec:
-  weight: 20
-  capability:
-    cpu: 1000
-    memory: 2000Gi
-  guarantee:
-    cpu: 500
-    memory: 1000Gi
-  priority: 100
----
-apiVersion: scheduling.volcano.sh/v1beta1
-kind: Queue
-metadata:
-  name: development
-spec:
-  weight: 10
-  capability:
-    cpu: 500
-    memory: 1000Gi
-  priority: 50
-```
-
-### 4.2 关键业务保障
-
-对于关键业务，可以设置高优先级和不可抢占属性，确保资源稳定性：
-
-```yaml
-apiVersion: scheduling.k8s.io/v1
-kind: PriorityClass
-metadata:
-  name: critical-service
-value: 1000000
-globalDefault: false
-description: "Critical business services"
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: critical-service-pod
-  annotations:
-    volcano.sh/preemptable: "false"
-spec:
-  priorityClassName: critical-service
-  schedulerName: volcano
-```
-
-### 4.3 AI训练任务优化
-
-对于`AI`训练任务，可以通过`Gang`调度和任务内部优先级优化资源利用：
-
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: training-job
-spec:
-  minAvailable: 4
-  priorityClassName: high-priority
-  queue: research
-  tasks:
-    - replicas: 1
-      name: ps
-      template:
-        metadata:
-          annotations:
-            volcano.sh/task-priority: "10"  # 参数服务器优先级高
-            volcano.sh/preemptable: "false" # 参数服务器不可抢占
-    - replicas: 3
-      name: worker
-      template:
-        metadata:
-          annotations:
-            volcano.sh/task-priority: "5"    # 工作节点优先级低
-            volcano.sh/preemptable: "true"   # 工作节点可被抢占
-```
-
-### 4.4 混合负载管理
-
-在同时运行在线服务和批处理作业的环境中，可以通过优先级和抢占机制实现资源平衡：
-
-- 为在线服务创建高优先级`Queue`，设置适当的`guarantee`资源
-- 为批处理作业创建低优先级`Queue`，允许被抢占
-- 对关键批处理作业设置较高的`Job`优先级，但低于在线服务`Queue`的优先级
-
-## 5. 总结
-
-`Volcano`的资源抢占设计提供了一个层级化、灵活且强大的资源管理机制，通过`Queue`、`Job`和`Pod`三个层级的抢占关系，满足了复杂环境下的资源调度需求。
-
-核心优势包括：
-
-1. **多层级抢占**：支持从`Queue`到`Pod`的完整抢占体系
-2. **灵活配置**：提供丰富的配置选项，适应不同场景需求
-3. **公平性保障**：通过多种算法确保资源分配的公平性
-4. **作业感知**：理解批处理作业的特性，支持Gang调度等高级特性
-5. **多租户支持**：为多租户环境提供资源隔离和保障机制
-
-通过合理配置`Volcano`的资源抢占机制，可以显著提高集群资源利用率，同时确保关键业务的资源保障，为AI训练、高性能计算和混合负载环境提供强大的调度支持。
+- 即使是低优先级`Queue`中的高优先级`Job`
