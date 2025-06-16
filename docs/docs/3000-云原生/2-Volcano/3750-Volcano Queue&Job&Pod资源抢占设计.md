@@ -62,7 +62,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 
 #### 2.1.1 设计原理
 
-`Queue`是`Volcano`中最高层级的资源管理单位，代表一个租户或一个业务线。`Queue`级别的抢占主要基于以下原则：
+`Queue`是`Volcano`中最高层级的资源管理单位，比如在业务上可以代表一个租户或一个业务线。`Queue`级别的抢占主要基于以下原则：
 
 1. **优先级机制**：每个`Queue`可以设置优先级(`priority`)，高优先级`Queue`可以抢占低优先级`Queue`的资源。
 2. **资源配额**：`Queue`可以设置最小保障资源(`guarantee`)和最大资源上限(`capacity`)
@@ -71,6 +71,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 注意事项：
 - `Queue`级别的抢占机制从`Volcano v1.10.0`版本开始支持。
 - `Queue`并不支持`PriorityClass`，而是通过`priority`属性来设置优先级。
+- 低优先级的`Queue`如果显式设置了`reclaimable: false`，那么该`Queue`不能被高优先级`Queue`抢占(`reclaimable`默认值为`true`)。
 
 #### 2.1.2 实现方式
 
@@ -172,12 +173,11 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 
 1. **`priorityClassName`属性**：当`Pod`使用`Volcano`调度器时，`priorityClassName`的优先级影响范围取决于`Pod`所属的`Job`和`Queue`：
    - 如果`Pod`属于某个`Volcano Job`，其`priorityClassName`优先级仅在同一个`Queue`内的不同`Job`之间生效。
-   - 如果`Pod`不属于任何`Volcano Job`，其`priorityClassName`优先级在整个集群范围内生效。
+   - 如果`Pod`不属于任何`Volcano Job`，其`priorityClassName`优先级在整个集群范围内生效（不管该`Pod`是否属于某个`Queue`）。
    - 优先级值越大，`Pod`的优先级越高，在资源竞争时优先获得资源。
 
 2. **`volcano.sh/task-priority`注解**：设置同一`Job`内不同`Pod`的优先级，是实现`Pod`间抢占的核心
-3. **`volcano.sh/preemptable`注解**：标记`Pod`是否可被抢占，控制`Pod`的可抢占性
-4. **`PreemptionPolicy`**：控制`Pod`的抢占策略，可设置为`PreemptLowerPriority`或`Never`
+3. **`volcano.sh/preemptable`注解**：标记`Pod`是否可被抢占，控制`Pod`的可抢占性，即便`Pod`的`priorityClassName`优先级较低，只要没有设置`volcano.sh/preemptable`注解为`true`，就不能被高优先级的`Pod`抢占。
 
     ```yaml
     apiVersion: v1
@@ -186,10 +186,10 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
       name: high-priority-pod
       annotations:
         volcano.sh/task-priority: "10"       # 设置Pod在Job内的优先级
-        volcano.sh/preemptable: "false"      # 标记Pod不可被抢占
+        volcano.sh/preemptable: "true"       # 标记Pod可被抢占
     spec:
-      priorityClassName: high-priority        # 设置Pod的全局优先级
-      schedulerName: volcano                  # 使用Volcano调度器
+      priorityClassName: high-priority       # 设置Pod的全局优先级
+      schedulerName: volcano                 # 使用Volcano调度器
     ```
 
 ## 3. 资源抢占的层级关系
@@ -204,12 +204,14 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 2. **权重影响**：当优先级相同时，权重(`weight`属性)较高的`Queue`可以获得更多资源
 3. **最小保障**：每个`Queue`的`guarantee`资源是受保护的，不会被抢占
 4. **资源回收**：当高优先级`Queue`不需要资源时，被抢占的`Queue`可以重新获得资源
+5. **可回收标识**：设置了`reclaimable: true`或者没有设置`reclaimable`属性（默认值为`true`）的`Queue`才能被高优先级`Queue`抢占资源。如果`Queue`的`reclaimable`属性设置为`false`，即使其优先级较低，也不会被高优先级`Queue`抢占资源。
 
 抢占过程：
 1. `Volcano`调度器检测到高优先级`Queue`资源不足
 2. 根据优先级和权重策略选择低优先级的`Queue`
-3. 从低优先级`Queue`中选择可抢占的`Job`和`Pod`
-4. 驱逐选中的`Pod`，释放资源给高优先级`Queue`
+3. 检查低优先级`Queue`的`reclaimable`属性，只有设置为`true`的`Queue`才能被抢占
+4. 从可抢占的低优先级`Queue`中选择可抢占的`Job`和`Pod`
+5. 驱逐选中的`Pod`，释放资源给高优先级`Queue`
 
 ### 3.2 `Job`与`Job`之间的抢占
 
@@ -231,8 +233,8 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 在同一`Job`内，`Pod`之间的抢占遵循以下规则：
 
 1. **task-priority决定性**：高`task-priority`的`Pod`可以抢占低`task-priority`的`Pod`
-2. **可抢占性**：只有标记为可抢占(`preemptable=true`)的`Pod`才能被抢占
-3. **BestEffort限制**：`BestEffort Pod`不能抢占非`BestEffort Pod`
+2. **可抢占性**：只有标记为可抢占(`volcano.sh/preemptable: "true"`注解)的`Pod`才能被抢占
+3. **BestEffort限制**：`BestEffort Pod`不能抢占非`BestEffort Pod`（`BestEffort Pod`是没有明确设置资源请求`requests`和限制`limits`的`Pod`，在资源紧张时是最先被终止的）。
 4. **状态限制**：只有处于`Running`状态的`Pod`才能被抢占
 
 抢占过程：
@@ -250,4 +252,18 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 3. **Pod优先级最低**：同一`Job`内不同`Pod`之间的优先级最低
 
 这意味着：
-- 即使是低优先级`Queue`中的高优先级`Job`
+- 即使是低优先级`Queue`中的高优先级`Job`，也无法抢占高优先级`Queue`中的低优先级`Job`
+- 即使是低优先级`Job`中的高优先级`Pod`，也无法抢占高优先级`Job`中的低优先级`Pod`
+- 这种设计确保了资源抢占的层次性和可预测性
+
+这种分层优先级设计的优势：
+1. **资源隔离**：确保高优先级`Queue`的资源不会被低优先级`Queue`抢占
+2. **可预测性**：资源抢占行为更加可预测，便于资源规划
+3. **业务保障**：重要业务可以通过`Queue`优先级得到保障
+4. **灵活性**：在保证优先级层次的同时，仍然允许同层级的资源抢占
+
+使用建议：
+1. 根据业务重要性设置合适的`Queue`优先级
+2. 在`Queue`内部，根据任务紧急程度设置`Job`优先级
+3. 在`Job`内部，根据任务依赖关系设置`Pod`优先级
+4. 合理使用`Queue reclaimable`属性和`Pod volcano.sh/preemptable`注解，进一步控制资源抢占行为
