@@ -399,24 +399,6 @@ func closeQueue(client *versioned.Clientset, queueName string) error {
 ```
 
 
-### 资源分配机制
-
-在`Volcano`中，队列的资源分配主要基于`weight`属性配置，而资源抢占机制则是通过内置的调度策略实现的。
-
-**定义**：`weight`属性用于定义队列在资源分配过程中的权重。
-
-**特点**：
-
-- `weight`值越高，队列在资源分配中的优先级越高
-- 当多个队列竞争资源时，资源分配比例与队列的`weight`值成正比
-- 这主要应用于`deserved`资源的分配过程
-
-**工作原理**：
-
-- 当集群资源充足时，所有队列可以获得其`deserved`资源
-- 当集群资源不足以满足所有队列的`deserved`资源时，按照`weight`比例分配资源
-- 例如，如果队列A的`weight`是队列B的两倍，那么队列A获得的资源也将是队列B的两倍
-
 ### 资源抢占机制
 
 在`Volcano`中，资源抢占有两种主要实现方式：基于`Queue`属性的抢占和基于`PriorityClass`的抢占。
