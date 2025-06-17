@@ -36,42 +36,41 @@ description: "详细介绍Volcano调度系统中Queue和Job两个核心对象的
 apiVersion: scheduling.volcano.sh/v1beta1
 kind: Queue
 metadata:
-  name: default-queue  # 队列名称
-  annotations:         # 注释，可选
-    description: "Production workloads queue"  # 自定义注释
+  name: gpu-queue
 spec:
-  weight: 1            # 队列权重，在优先级相同时影响资源分配比例，数值越大分配比例越高
-  priority: 100        # 队列优先级，决定队列间资源抢占顺序，数值越大优先级越高
-  capability:          # 队列资源容量限制（上限）
-    cpu: 100           # CPU资源上限，单位为核心数
-    memory: 100Gi      # 内存资源上限
-    nvidia.com/gpu: 4  # GPU资源上限
-  deserved:            # 应得资源量（多队列竞争时的资源分配基准）
-    cpu: 80            # 应得的CPU资源量
-    memory: 80Gi       # 应得的内存资源量
-    nvidia.com/gpu: 3  # 应得的GPU资源量
-  guarantee:           # 队列保障资源，即使在资源紧张情况下也会保证分配
-    resource:          # 保障的资源量
-      cpu: 50          # 保障的CPU资源量
-      memory: 50Gi     # 保障的内存资源量
-      nvidia.com/gpu: 2  # 保障的GPU资源量
-  reclaimable: true    # 是否允许回收资源，设为true时允许其他队列在空闲时借用该队列资源
-  parent: "root.eng"   # 父队列，用于层级队列结构
-  affinity:            # 队列亲和性配置，控制队列中的Pod调度到哪些节点
-    nodeGroupAffinity:  # 节点组亲和性
-      requiredDuringSchedulingIgnoredDuringExecution:  # 必须满足的亲和性规则
-        - "gpu-nodes"  # 节点组名称
-      preferredDuringSchedulingIgnoredDuringExecution:  # 优先满足的亲和性规则
-        - "high-memory-nodes"  # 节点组名称
-    nodeGroupAntiAffinity:  # 节点组反亲和性
-      requiredDuringSchedulingIgnoredDuringExecution:  # 必须满足的反亲和性规则
-        - "test-nodes"  # 节点组名称
-  extendClusters:      # 扩展集群配置，指示队列中的作业将被调度到这些集群
-    - name: "cluster-1"  # 集群名称
-      weight: 5          # 集群权重
-      capacity:          # 集群容量
-        cpu: 1000        # CPU容量
-        memory: 1000Gi   # 内存容量
+  weight: 1                                      # 队列权重，范围1-65535
+  priority: 100                                  # 队列优先级
+  capability:                                    # 队列资源容量
+    cpu: "100"
+    memory: "1000Gi"
+    nvidia.com/gpu: "10"
+  deserved:                                      # 应得资源量
+    cpu: "80"
+    memory: "800Gi"
+    nvidia.com/gpu: "8"
+  guarantee:                                     # 资源保障配置
+    resource:                                    # 保障的资源量
+      cpu: "50"
+      memory: "500Gi"
+      nvidia.com/gpu: "5"
+  reclaimable: true                              # 是否允许资源回收
+  parent: "root"                                 # 父队列
+  affinity:                                      # 队列亲和性配置
+    nodeGroupAffinity:                           # 节点组亲和性
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - "gpu-nodes"                            # 必须调度到GPU节点
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - "high-memory-nodes"                    # 优先调度到高内存节点
+    nodeGroupAntiAffinity:                       # 节点组反亲和性
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - "npu-nodes"                            # 不能调度到NPU节点
+  extendClusters:                                # 扩展集群配置
+    - name: "cluster-1"
+      weight: 1
+      capacity:                                  # 集群容量
+        cpu: "1000"
+        memory: "1000Gi"
+        nvidia.com/gpu: "20"
 ```
 
 在该队列对象上，我去掉了没有太大意义的一些配置项，以便更好理解队列功能。去掉的配置项如下：
@@ -531,6 +530,80 @@ spec:
 
 > **注意**：`Queue`的`affinity`配置**必须**启用`nodegroup`插件才能生效。该插件负责解析队列的亲和性配置并在调度过程中应用这些规则。如果未启用`nodegroup`插件，即使在`Queue`对象中配置了`affinity`，这些配置也不会影响调度决策。
 
+
+#### 节点组介绍
+
+节点组是`Volcano`中的一个逻辑概念，用于将具有相似特性或用途的节点归类管理。节点组通过节点标签 `volcano.sh/nodegroup-name` 来定义。
+
+**核心原理：**
+
+1. **标签驱动分组**：`Volcano`通过读取节点上的 `volcano.sh/nodegroup-name` 标签值来识别节点所属的组
+2. **调度时匹配**：当调度器处理带有 `nodeGroupAffinity` 的队列时，会根据节点组名称进行匹配过滤
+3. **动态管理**：节点组是动态的，可以随时通过修改节点标签来调整节点的分组归属
+
+**节点标签定义示例：**
+
+以下是不同类型节点的标签配置示例，展示了如何通过标签将节点分配到不同的节点组：
+
+```yaml
+# GPU 计算节点 - 属于 gpu-nodes 节点组
+apiVersion: v1
+kind: Node
+metadata:
+  name: gpu-node-1
+  labels:
+    volcano.sh/nodegroup-name: gpu-nodes    # 关键标签：定义节点组
+    nvidia.com/gpu.present: "true"
+    nvidia.com/gpu.count: "8"
+    # 其他标签...
+spec:
+  # ... 节点规格配置
+---
+# NPU 计算节点 - 属于 npu-nodes 节点组（用于反亲和性排除）
+apiVersion: v1
+kind: Node
+metadata:
+  name: npu-node-1
+  labels:
+    volcano.sh/nodegroup-name: npu-nodes    # 关键标签：定义节点组
+    # 其他标签...
+spec:
+  # ... 节点规格配置
+---
+# 测试节点 - 属于 test-nodes 节点组（用于反亲和性排除）
+apiVersion: v1
+kind: Node
+metadata:
+  name: test-node-1
+  labels:
+    volcano.sh/nodegroup-name: test-nodes    # 关键标签：定义节点组
+    # 其他标签...
+spec:
+  # ... 节点规格配置
+```
+
+**工作流程：**
+
+1. **节点注册**：节点启动时，通过标签 `volcano.sh/nodegroup-name` 声明自己属于哪个节点组
+2. **队列配置**：管理员在`Queue`中配置`nodeGroupAffinity`，指定允许或禁止的节点组
+3. **调度决策**：当`Pod`需要调度时，`Volcano`调度器会：
+   - 读取`Pod`所属队列的`nodeGroupAffinity`配置
+   - 遍历候选节点，检查每个节点的 `volcano.sh/nodegroup-name` 标签
+   - 根据亲和性规则过滤节点，只保留符合要求的节点
+   - 在符合条件的节点中进行最终调度选择
+
+**与 nodeAffinity 的区别：**
+
+| 特性 | nodeGroupAffinity | nodeAffinity |
+|------|------------------|--------------|
+| **抽象层次** | 节点组级别，基于逻辑分组 | 节点级别，基于具体标签 |
+| **配置复杂度** | 简单，直接指定组名 | 复杂，需要`matchExpressions` |
+| **管理方式** | 统一管理节点组，便于批量操作 | 需要管理具体的节点标签规则 |
+| **适用场景** | 大规模集群的节点分组管理 | 精确的节点选择控制 |
+| **配置示例** | `["gpu-nodes", "npu-nodes"]` | `matchExpressions: [{key: "nvidia.com/gpu.present", operator: In, values: ["true"]}]` |
+
+这种设计使得节点组管理更加灵活和可扩展，特别适合大规模、多租户的集群环境。
+
 #### 亲和性类型
 
 `Queue`的`affinity`配置支持两种主要类型：
@@ -563,10 +636,6 @@ spec:
       requiredDuringSchedulingIgnoredDuringExecution:
         - "gpu-nodes"        # 必须调度到标记为 gpu-nodes 的节点组
 
-      # 优先满足的亲和性规则
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - "high-memory-nodes" # 优先调度到标记为 high-memory-nodes 的节点组
-    
     # 节点组反亲和性配置
     nodeGroupAntiAffinity:
       # 必须满足的反亲和性规则
@@ -595,6 +664,7 @@ spec:
    - `Pod`自身的亲和性规则优先级最高
    - `Queue`的亲和性规则是额外的约束条件
    - 两者都必须满足才能完成调度
+
 
 ### 扩展集群（extendClusters）
 
@@ -937,7 +1007,7 @@ spec:
 
 ### 批量调度
 
-`minAvailable`属性是`Volcano Job`中的核心功能之一，用于实现“批量调度”或“整体调度”机制。这一机制在分布式计算、机器学习等领域特别重要，因为这些应用通常需要多个`Pod`同时启动才能正常工作。
+`minAvailable`属性是`Volcano Job`中的核心功能之一，用于实现"批量调度"或"整体调度"机制。这一机制在分布式计算、机器学习等领域特别重要，因为这些应用通常需要多个`Pod`同时启动才能正常工作。
 
 #### 工作原理
 

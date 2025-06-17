@@ -192,100 +192,13 @@ graph TD
 
 ## Volcano自定义资源
 
-* `PodGroup`：`Pod`组是`Volcano`自定义资源类型，代表一组强关联`Pod`的集合，主要用于批处理工作负载场景，比如`Tensorflow`中的一组`ps`和`worker`。这主要解决了`Kubernetes`原生调度器中单个`Pod`调度的限制。
 
 * `Queue`：容纳一组`PodGroup`的队列，也是该组`PodGroup`获取集群资源的划分依据。它允许用户根据业务需求或优先级，将作业分组到不同的队列中。
   ![](../assets/20240420124730.png)
 
 *  `Volcano Job`(`vcjob`）：`Volcano`自定义的`Job`资源类型，它扩展了`Kubernetes`的`Job`资源。区别于`Kubernetes Job`，`vcjob`提供了更多高级功能，如可指定调度器、支持最小运行`Pod`数、支持`task`、支持生命周期管理、支持指定队列、支持优先级调度等。`Volcano Job`更加适用于机器学习、大数据、科学计算等高性能计算场景。
 
-### PodGroup 资源组
-
-`PodGroup` 是 `Volcano` 中实现`Gang Scheduling`的核心资源对象，它将一组相关的 `Pod` 视为一个整体进行调度。
-
-
-
-#### PodGroup 的作用
-
-1. **整体调度**
-   - 确保一组相关的 `Pod` 要么全部调度成功，要么全部不调度
-   - 防止部分 `Pod` 调度成功而其他失败导致资源浪费
-
-2. **资源预留**
-   - 可以为 `PodGroup` 设置最小成员数（`minMember`）
-   - 当可用资源不足以调度最小成员数时，整个组将等待而不是部分调度
-
-3. **状态跟踪**
-   - 提供 `PodGroup` 的整体状态信息
-   - 包括已调度数量、运行状态等
-
-#### PodGroup 配置示例
-
-下面是一个基本的 `PodGroup` 定义示例：
-
-```yaml
-apiVersion: scheduling.volcano.sh/v1beta1
-kind: PodGroup
-metadata:
-  name: tf-training-group
-spec:
-  minMember: 4  # 最小需要 4 个 Pod 同时调度
-  queue: ml-jobs  # 指定队列
-  priorityClassName: high-priority  # 指定优先级
-  minResources:  # 最小资源需求
-    cpu: 8
-    memory: 16Gi
-    nvidia.com/gpu: 2
-```
-
-#### 使用 PodGroup 的方法
-
-1. **直接创建 PodGroup 资源**
-
-   先创建 `PodGroup`，然后在 `Pod` 中引用它：
-   ```yaml
-   apiVersion: v1
-   kind: Pod
-   metadata:
-     name: tf-worker-1
-     annotations:
-       volcano.sh/pod-group: "tf-training-group"  # 引用 PodGroup 名称
-   spec:
-     schedulerName: volcano  # 使用 Volcano 调度器
-     containers:
-     - name: tensorflow
-       image: tensorflow/tensorflow:latest-gpu
-   ```
-
-2. **通过 Volcano Job 自动创建**
-
-   `Volcano Job` 会自动创建并管理 `PodGroup`：
-   ```yaml
-   apiVersion: batch.volcano.sh/v1alpha1
-   kind: Job
-   metadata:
-     name: tensorflow-training
-   spec:
-     minAvailable: 4
-     schedulerName: volcano
-     queue: ml-jobs
-   ```
-
-#### PodGroup 的实际应用场景
-
-1. **分布式机器学习**
-   - 确保参数服务器和工作节点同时启动
-   - 避免资源浪费和训练任务失败
-
-2. **大数据处理**
-   - 确保`Spark`或`Flink`集群的所有组件同时启动
-   - 提高数据处理效率
-
-3. **高性能计算**
-   - 为`MPI`等高性能计算任务提供同步启动能力
-   - 确保计算节点的一致性
-
-`PodGroup` 是 `Volcano` 实现`Gang Scheduling`的基础，它使得复杂的分布式工作负载可以更可靠地运行在 `Kubernetes` 集群上。
+* `PodGroup`：`Pod`组是`Volcano`自定义资源类型，代表一组强关联`Pod`的集合，主要用于批处理工作负载场景，比如`Tensorflow`中的一组`ps`和`worker`。这主要解决了`Kubernetes`原生调度器中单个`Pod`调度的限制。
 
 
 ### Queue 资源队列
@@ -511,6 +424,95 @@ spec:
 
 `Volcano Job` 为复杂的分布式工作负载提供了完整的生命周期管理和调度能力，是 `Volcano` 系统中最强大的资源类型之一。
 
+
+
+### PodGroup 资源组
+
+`PodGroup` 是 `Volcano` 中实现`Gang Scheduling`的核心资源对象，它将一组相关的 `Pod` 视为一个整体进行调度。
+
+
+
+#### PodGroup 的作用
+
+1. **整体调度**
+   - 确保一组相关的 `Pod` 要么全部调度成功，要么全部不调度
+   - 防止部分 `Pod` 调度成功而其他失败导致资源浪费
+
+2. **资源预留**
+   - 可以为 `PodGroup` 设置最小成员数（`minMember`）
+   - 当可用资源不足以调度最小成员数时，整个组将等待而不是部分调度
+
+3. **状态跟踪**
+   - 提供 `PodGroup` 的整体状态信息
+   - 包括已调度数量、运行状态等
+
+#### PodGroup 配置示例
+
+下面是一个基本的 `PodGroup` 定义示例：
+
+```yaml
+apiVersion: scheduling.volcano.sh/v1beta1
+kind: PodGroup
+metadata:
+  name: tf-training-group
+spec:
+  minMember: 4    # 最小需要 4 个 Pod 同时调度
+  queue: ml-jobs  # 指定队列
+  priorityClassName: high-priority  # 指定优先级
+  minResources:  # 最小资源需求
+    cpu: 8
+    memory: 16Gi
+    nvidia.com/gpu: 2
+```
+
+#### 使用 PodGroup 的方法
+
+1. **直接创建 PodGroup 资源**
+
+   先创建 `PodGroup`，然后在 `Pod` 中引用它：
+   ```yaml
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: tf-worker-1
+     annotations:
+       volcano.sh/pod-group: "tf-training-group"  # 引用 PodGroup 名称
+   spec:
+     schedulerName: volcano  # 使用 Volcano 调度器
+     containers:
+     - name: tensorflow
+       image: tensorflow/tensorflow:latest-gpu
+   ```
+
+2. **通过 Volcano Job 自动创建**
+
+   `Volcano Job` 会自动创建并管理 `PodGroup`：
+   ```yaml
+   apiVersion: batch.volcano.sh/v1alpha1
+   kind: Job
+   metadata:
+     name: tensorflow-training
+   spec:
+     minAvailable: 4
+     schedulerName: volcano
+     queue: ml-jobs
+   ```
+
+#### PodGroup 的实际应用场景
+
+1. **分布式机器学习**
+   - 确保参数服务器和工作节点同时启动
+   - 避免资源浪费和训练任务失败
+
+2. **大数据处理**
+   - 确保`Spark`或`Flink`集群的所有组件同时启动
+   - 提高数据处理效率
+
+3. **高性能计算**
+   - 为`MPI`等高性能计算任务提供同步启动能力
+   - 确保计算节点的一致性
+
+`PodGroup` 是 `Volcano` 实现`Gang Scheduling`的基础，它使得复杂的分布式工作负载可以更可靠地运行在 `Kubernetes` 集群上。
 
 
 ## 参考资料
