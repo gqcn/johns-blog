@@ -66,12 +66,15 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 
 1. **优先级机制**：每个`Queue`可以设置优先级(`priority`)，高优先级`Queue`可以抢占低优先级`Queue`的资源。
 2. **资源配额**：`Queue`可以设置最小保障资源(`guarantee`)和最大资源上限(`capacity`)
-3. **权重分配**：当多个`Queue`优先级相同时，可以通过权重(`weight`)决定资源分配比例
+3. **权重分配**：当多个`Queue`优先级相同时，可以通过权重(`weight`)决定资源分配比例和抢占顺序
 
 注意事项：
 - `Queue`级别的抢占机制从`Volcano v1.10.0`版本开始支持。
 - `Queue`并不支持`PriorityClass`，而是通过`priority`属性来设置优先级。
 - 低优先级的`Queue`如果显式设置了`reclaimable: false`，那么该`Queue`不能被高优先级`Queue`抢占(`reclaimable`默认值为`true`)。
+- 不同资源管理插件(`proportion`和`capacity`)会影响资源的分配和抢占：
+  - `proportion`插件会根据`Queue`的`weight`属性决定资源分配比例和抢占顺序。每个队列的`deserved`资源 = 剩余资源 × (队列`weight` / 总`weight`)
+  - `capacity`插件会根据`Queue`的`deserved`属性决定资源分配比例和抢占顺序。当`priority`相同时，按照`allocated/deserved`的比率排序。
 
 #### 2.1.2 实现方式
 
