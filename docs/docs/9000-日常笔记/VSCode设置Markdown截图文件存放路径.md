@@ -13,7 +13,12 @@ keywords: [VSCode, Markdown, 截图, 图片路径, 文件管理]
     ![alt text](assets/VSCode设置截图文件存放路径/image.png)
 
 2. 输入`markdown.copy`, 找到 `Markdown> Copy Files:Destination`
+
 3. 新增项:
     - Key为: `**/*.md`, Value为目标路径：`assets/${documentBaseName}/${fileName}`
     - Key为: `**/*.MD`, Value为目标路径：`assets/${documentBaseName}/${fileName}`
     ![alt text](assets/VSCode设置截图文件存放路径/image-1.png)
+
+4. 如果以上方式仍旧无效，那么可以尝试搜索`paste`，找到`Paste As: Enabled`选项，打勾：
+
+    ![alt text](assets/VSCode设置截图文件存放路径/image-2.png)
