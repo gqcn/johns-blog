@@ -1,10 +1,10 @@
 ---
 slug: "/ai/gpu-share-mps-mig"
-title: "GPU Share MPS&MIG具体操作步骤"
+title: "GPU Share MPS&MIG具体操作与注意事项"
 hide_title: true
 keywords:
   ["GPU共享", "MPS", "MIG", "NVIDIA", "GPU虚拟化", "Kubernetes", "GPU Operator", "资源隔离", "多租户", "高性能计算"]
-description: "详细介绍NVIDIA GPU共享技术MPS和MIG的原理、优缺点、适用场景以及在Kubernetes环境中的具体配置和操作步骤，帮助用户实现GPU资源的高效利用"
+description: "详细介绍NVIDIA GPU共享技术MPS和MIG的原理、优缺点、适用场景以及在Kubernetes环境中的具体配置和操作步骤，帮助用户实现GPU资源的高效利用" 
 ---
 
 ## 1. 基本介绍
