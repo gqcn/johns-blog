@@ -608,6 +608,20 @@ nvidia.com/mig-1g.24gb: "1"
 nvidia.com/mig-3g.48gb: "1"
 ```
 
-## 4. 总结
+## 4. 注意事项
+
+1. 在`MPS`拆卡中，`failRequestsGreaterThanOne`参数配置默认为`true`(无法配置)，因此在使用`nvidia.com/gpu.shared`资源时，如果申请的资源数量大于`1`，则会导致请求失败，具体请参考GitHub首页介绍：https://github.com/NVIDIA/k8s-device-plugin
+2. `MIG`拆卡会引发GPU Pod的重启，甚至Node的重启，具体请参考官方文档：https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html
+
+    > MIG Manager is designed as a controller within Kubernetes. It watches for changes to the nvidia.com/mig.config label on the node and then applies the user-requested MIG configuration When the label changes, MIG Manager first stops all GPU pods, including device plugin, GPU feature discovery, and DCGM exporter. MIG Manager then stops all host GPU clients listed in the clients.yaml config map if drivers are preinstalled. Finally, it applies the MIG reconfiguration and restarts the GPU pods and possibly, host GPU clients. The MIG reconfiguration can also involve rebooting a node if a reboot is required to enable MIG mode.
+    >
+    > The default MIG profiles are specified in the default-mig-parted-config config map. You can specify one of these profiles to apply to the mig.config label to trigger a reconfiguration of the MIG geometry.
+    >
+    > MIG Manager uses the mig-parted tool to apply the configuration changes to the GPU, including enabling MIG mode, with a node reboot as required by some scenarios.
+
+    ![alt text](<assets/6000-GPU Share MPS&MIG具体操作步骤/image.png>)
+
+## 5. 总结
 
 `NVIDIA`的`MPS`和`MIG`技术为解决`GPU`资源利用率低下和多租户隔离的问题提供了有效的解决方案。`MPS`采用软件级隔离，支持动态资源分配，适合多副本推理服务和轻量级训练场景；而`MIG`提供硬件级隔离，确保完全的性能隔离和故障隔离，更适合多租户环境和需要强隔离的业务场景。选择哪种技术应基于业务需求、硬件条件、运维复杂度和应用场景等因素综合考量。在实际部署中，应注重资源监控、自动化配置和安全防护，以确保系统的稳定性和性能。通过合理应用这些`GPU`共享技术，企业可以显著提高`GPU`资源利用率，降低`AI`应用部署成本，同时满足不同业务场景的需求。
+
