@@ -610,8 +610,8 @@ nvidia.com/mig-3g.48gb: "1"
 
 ## 4. 注意事项
 
-1. 在`MPS`拆卡中，`failRequestsGreaterThanOne`参数配置默认为`true`(无法配置)，因此在使用`nvidia.com/gpu.shared`资源时，如果申请的资源数量大于`1`，则会导致请求失败，具体请参考GitHub首页介绍：https://github.com/NVIDIA/k8s-device-plugin
-2. `MIG`拆卡会引发GPU Pod的重启，甚至Node的重启，具体请参考官方文档：https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html
+1. 在`MPS`拆卡中，`failRequestsGreaterThanOne`参数配置默认为`true`(无法配置)，因此在使用`nvidia.com/gpu.shared`资源时，如果申请的资源数量大于`1`，则会导致请求失败，具体请参考`GitHub`首页介绍：https://github.com/NVIDIA/k8s-device-plugin
+2. `MIG`拆卡会引发`GPU Pod`的重启，甚至`Node`的重启，具体请参考官方文档：https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html
 
     > MIG Manager is designed as a controller within Kubernetes. It watches for changes to the nvidia.com/mig.config label on the node and then applies the user-requested MIG configuration When the label changes, MIG Manager first stops all GPU pods, including device plugin, GPU feature discovery, and DCGM exporter. MIG Manager then stops all host GPU clients listed in the clients.yaml config map if drivers are preinstalled. Finally, it applies the MIG reconfiguration and restarts the GPU pods and possibly, host GPU clients. The MIG reconfiguration can also involve rebooting a node if a reboot is required to enable MIG mode.
     >
