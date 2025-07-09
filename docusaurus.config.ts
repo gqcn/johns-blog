@@ -94,18 +94,6 @@ const config: Config = {
       items: [
         {
           position: 'left',
-          label: '技术架构',
-          sidebarId: 'mainSidebar',
-          to: '/architecture',
-        },
-        {
-          position: 'left',
-          label: '开发语言',
-          sidebarId: 'mainSidebar',
-          to: '/programming',
-        },
-        {
-          position: 'left',
           label: '云原生',
           sidebarId: 'mainSidebar',
           to: '/cloud-native',
@@ -115,6 +103,18 @@ const config: Config = {
           label: 'AI技术',
           sidebarId: 'mainSidebar',
           to: '/ai',
+        },
+        {
+          position: 'left',
+          label: '开发语言',
+          sidebarId: 'mainSidebar',
+          to: '/programming',
+        },
+        {
+          position: 'left',
+          label: '技术架构',
+          sidebarId: 'mainSidebar',
+          to: '/architecture',
         },
         {
           position: 'left',
