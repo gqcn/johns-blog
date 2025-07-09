@@ -11,22 +11,22 @@ description: "详细介绍Helm的背景、用途、安装配置以及常用指�
 
 ## 什么是Helm？
 
-Helm是Kubernetes的包管理工具，被称为"Kubernetes的包管理器"。它通过Chart（图表）的概念来打包、配置和部署应用程序到Kubernetes集群中。
+`Helm`是`Kubernetes`的包管理工具，被称为"Kubernetes的包管理器"。它通过`Chart`（图表）的概念来打包、配置和部署应用程序到`Kubernetes`集群中。
 
 ### Helm的背景
 
-在Kubernetes生态系统中，部署复杂的应用往往需要创建多个相关的资源对象，如Deployment、Service、ConfigMap、Secret等。手动管理这些YAML文件既繁琐又容易出错。Helm应运而生，它提供了：
+在`Kubernetes`生态系统中，部署复杂的应用往往需要创建多个相关的资源对象，如`Deployment`、`Service`、`ConfigMap`、`Secret`等。手动管理这些`YAML`文件既繁琐又容易出错。`Helm`应运而生，它提供了：
 
-- **模板化**：使用Go模板语法创建可重用的配置
+- **模板化**：使用`Go`模板语法创建可重用的配置
 - **版本控制**：支持应用的版本管理和回滚
 - **依赖管理**：处理复杂应用之间的依赖关系
-- **打包分发**：将应用打包成Chart，便于分享和部署
+- **打包分发**：将应用打包成`Chart`，便于分享和部署
 
 ### Helm的核心概念
 
-- **Chart**：Helm的包格式，包含运行应用所需的所有资源定义
-- **Release**：Chart在Kubernetes集群中的一个实例
-- **Repository**：存储和分享Chart的地方
+- **Chart**：`Helm`的包格式，包含运行应用所需的所有资源定义
+- **Release**：`Chart`在`Kubernetes`集群中的一个实例
+- **Repository**：存储和分享`Chart`的地方
 
 ## Helm的安装和配置
 
@@ -554,7 +554,7 @@ helm install my-nginx ./custom-charts/nginx
 
 ## 总结
 
-Helm作为Kubernetes的包管理工具，极大地简化了应用的部署和管理。通过Chart的模板化特性，我们可以轻松地在不同环境中部署相同的应用，并通过版本控制实现应用的升级和回滚。掌握Helm的使用对于Kubernetes运维和开发人员来说是非常重要的技能。
+`Helm`作为`Kubernetes`的包管理工具，极大地简化了应用的部署和管理。通过`Chart`的模板化特性，我们可以轻松地在不同环境中部署相同的应用，并通过版本控制实现应用的升级和回滚。掌握`Helm`的使用对于`Kubernetes`运维和开发人员来说是非常重要的技能。
 
-随着云原生技术的发展，Helm已经成为Kubernetes生态系统中不可或缺的工具之一，值得每个从事云原生开发的工程师深入学习和掌握。
+随着云原生技术的发展，`Helm`已经成为`Kubernetes`生态系统中不可或缺的工具之一，值得每个从事云原生开发的工程师深入学习和掌握。
 
