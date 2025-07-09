@@ -175,6 +175,52 @@ helm search repo nginx
 helm search hub nginx
 ```
 
+#### 查看仓库中所有Chart包
+```bash
+
+# 查看所有仓库中的所有Chart（显示所有可用的包）
+helm search repo --versions
+
+# 查看指定仓库中的所有Chart
+helm search repo <仓库名>/
+
+# 示例：查看bitnami仓库中的所有Chart
+helm search repo bitnami/
+
+# 查看所有仓库中的所有Chart（显示所有可用的包）
+helm search repo ""
+
+# 显示更多信息（包括Chart版本、应用版本、描述等）
+helm search repo bitnami/ --versions
+
+# 显示包含已废弃的Chart
+helm search repo bitnami/ --devel
+
+# 输出JSON格式
+helm search repo bitnami/ -o json
+
+# 输出YAML格式
+helm search repo bitnami/ -o yaml
+
+# 限制显示结果数量
+helm search repo bitnami/ --max-col-width 50
+
+# 正则表达式搜索
+helm search repo "bitnami/.*sql"
+```
+
+#### 查看特定Chart的所有版本
+```bash
+# 查看Chart的所有可用版本
+helm search repo <仓库名>/<Chart名> --versions
+
+# 示例：查看nginx的所有版本
+helm search repo bitnami/nginx --versions
+
+# 显示详细版本信息
+helm search repo bitnami/nginx --versions -o json
+```
+
 #### 查看Chart信息
 ```bash
 # 查看Chart详细信息
@@ -513,6 +559,43 @@ helm template my-nginx ./custom-charts/nginx --dry-run --debug
 
 # 从本地定制的Chart安装
 helm install my-nginx ./custom-charts/nginx
+```
+
+### 场景6：浏览和管理仓库Chart包
+
+```bash
+# 查看当前配置的所有仓库
+helm repo list
+
+# 更新所有仓库索引
+helm repo update
+
+# 浏览bitnami仓库中所有可用的Chart
+helm search repo bitnami/
+
+# 查找所有数据库相关的Chart
+helm search repo database
+helm search repo ".*sql"
+helm search repo ".*db"
+
+# 查看具体Chart的多个版本，选择合适的版本
+helm search repo bitnami/mysql --versions
+
+# 比较不同仓库中相同应用的Chart
+helm search repo mysql
+helm search repo nginx
+
+# 查看Chart的详细信息再决定是否使用
+helm show chart bitnami/mysql
+helm show values bitnami/mysql
+
+# 下载多个版本进行比较
+helm pull bitnami/mysql --version 9.4.6 --destination ./charts/mysql-9.4.6
+helm pull bitnami/mysql --version 9.4.5 --destination ./charts/mysql-9.4.5
+
+# 查看仓库统计信息
+helm search repo bitnami/ | wc -l  # 统计bitnami仓库Chart数量
+helm search repo "" | wc -l        # 统计所有仓库Chart总数
 ```
 
 ## 最佳实践
