@@ -17,7 +17,7 @@ function HomepageHeader() {
 export default function Home(): JSX.Element {
     return (
         <Layout>
-        <HomepageHeader />
+            <HomepageHeader />
             <div className="mt-20"></div>
         </Layout>
     );

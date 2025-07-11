@@ -9,7 +9,7 @@ export default function AboutMe(): JSX.Element {
                 <div className="row">
                     <div className="col col--8 col--offset-2">
                         <div className={styles.aboutSection}>
-                            <h2>技术之路</h2>
+                            <h2>关于我</h2>
                             <p>
                                 从<code>2011</code>年入行，对技术有着浓厚的热情。
                                 对<code>Go</code>语言有着深入研究，
