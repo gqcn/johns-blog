@@ -106,6 +106,12 @@ const config: Config = {
         },
         {
           position: 'left',
+          label: '日常笔记',
+          sidebarId: 'mainSidebar',
+          to: '/notes',
+        },
+        {
+          position: 'left',
           label: '开发语言',
           sidebarId: 'mainSidebar',
           to: '/programming',
@@ -127,12 +133,6 @@ const config: Config = {
           label: '数据库与中间件',
           sidebarId: 'mainSidebar',
           to: '/database-and-middleware',
-        },
-        {
-          position: 'left',
-          label: '日常笔记',
-          sidebarId: 'mainSidebar',
-          to: '/notes',
         },
         {
           position: 'left',
