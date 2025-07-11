@@ -94,15 +94,15 @@ const config: Config = {
       items: [
         {
           position: 'left',
-          label: '云原生',
-          sidebarId: 'mainSidebar',
-          to: '/cloud-native',
-        },
-        {
-          position: 'left',
           label: 'AI技术',
           sidebarId: 'mainSidebar',
           to: '/ai',
+        },
+        {
+          position: 'left',
+          label: '云原生',
+          sidebarId: 'mainSidebar',
+          to: '/cloud-native',
         },
         {
           position: 'left',
