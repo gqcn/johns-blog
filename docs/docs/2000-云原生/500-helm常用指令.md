@@ -280,7 +280,7 @@ helm pull https://example.com/charts/my-app-1.0.0.tgz --verify
 #### 安装应用
 ```bash
 # 基本安装
-helm install <release名称> <Chart>
+helm install <release名称> <Chart> -n 命名空间
 
 # 示例：安装nginx
 helm install my-nginx bitnami/nginx
@@ -324,40 +324,39 @@ helm status my-nginx
 #### 升级Release
 ```bash
 # 升级Release
-helm upgrade <release名称> <Chart>
+helm upgrade <release名称> <Chart> -n 命名空间
 
 # 示例：升级nginx
-helm upgrade my-nginx bitnami/nginx
+helm upgrade my-nginx bitnami/nginx -n my-apps
 
 # 升级并修改配置
-helm upgrade my-nginx bitnami/nginx --set replicaCount=3
+helm upgrade my-nginx bitnami/nginx -n my-apps --set replicaCount=3
 
 # 升级时重新使用之前的值
-helm upgrade my-nginx bitnami/nginx --reuse-values
+helm upgrade my-nginx bitnami/nginx -n my-apps --reuse-values
 ```
 
 #### 回滚Release
 ```bash
 # 查看Release历史
-helm history my-nginx
+helm history my-nginx -n my-apps
 
 # 回滚到上一个版本
-helm rollback my-nginx
+helm rollback my-nginx -n my-apps
 
 # 回滚到指定版本
-helm rollback my-nginx 2
+helm rollback my-nginx 2 -n my-apps
 ```
 
 #### 卸载Release
+
+
 ```bash
 # 卸载Release
-helm uninstall my-nginx
+helm uninstall my-nginx -n my-apps
 
 # 保留历史记录的卸载
-helm uninstall my-nginx --keep-history
-
-# 卸载并删除命名空间（如果为空）
-helm uninstall my-nginx -n web-apps
+helm uninstall my-nginx -n my-apps --keep-history
 ```
 
 ### 5. Chart开发
