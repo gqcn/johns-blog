@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/helm"
-title: "helm介绍及常用指令"
+title: "helm常用指令"
 hide_title: true
 keywords:
   [
@@ -11,7 +11,7 @@ description: "详细介绍Helm的背景、用途、安装配置以及常用指�
 
 ## 什么是Helm？
 
-`Helm`是`Kubernetes`的包管理工具，被称为"Kubernetes的包管理器"。它通过`Chart`（图表）的概念来打包、配置和部署应用程序到`Kubernetes`集群中。
+`Helm`是`Kubernetes`的包管理工具，被称为"`Kubernetes`的包管理器"。它通过`Chart`（图表）的概念来打包、配置和部署应用程序到`Kubernetes`集群中。
 
 ### Helm的背景
 
@@ -161,7 +161,7 @@ helm repo remove <仓库名称>
 helm repo remove stable
 ```
 
-### 2. Chart搜索和查看
+### 2. 搜索和查看
 
 #### 搜索Chart
 ```bash
@@ -304,7 +304,7 @@ helm install my-nginx bitnami/nginx --dry-run --debug
 helm template my-nginx bitnami/nginx > nginx-manifests.yaml
 ```
 
-### 4. Release管理
+### 4. 升级回滚卸载
 
 #### 查看Release
 ```bash
