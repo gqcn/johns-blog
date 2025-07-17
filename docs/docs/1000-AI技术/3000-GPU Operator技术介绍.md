@@ -329,7 +329,7 @@ $ kubectl run nvidia-smi --rm -t -i --restart=Never \
 
 对于任何需要在`Kubernetes`中大规模管理`GPU`资源的组织，`GPU Operator`都是一个值得考虑的工具，它能够显著降低运维复杂度，提高资源利用效率，并确保`GPU`工作负载的可靠运行。
 
-## 参考资料
+## 7. 参考资料
 
 - [NVIDIA GPU Operator: Simplifying GPU Management in Kubernetes](https://developer.nvidia.com/blog/nvidia-gpu-operator-simplifying-gpu-management-in-kubernetes/)
 - [NVIDIA GPU Operator官方文档](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html)

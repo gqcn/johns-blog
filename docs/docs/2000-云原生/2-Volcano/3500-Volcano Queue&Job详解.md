@@ -159,17 +159,16 @@ spec:
     1. 首先回收超出`capability`的资源
     - 这种情况通常不会发生，因为调度器会确保队列使用的资源不超过`capability`上限
 
-    2. 然后回收超出`deserved`但未超出`capability`的资源
+    2. 回收超出`deserved`但未超出`capability`的资源
     - 当资源紧张时，队列使用的超过`deserved`值的资源可能被回收
     - 这部分资源被视为"借用"的资源，在资源紧张时需要"归还"
 
-    3. 最后考虑回收超出`guarantee`但未超出`deserved`的资源
-    - 只有在极度资源紧张的情况下，且有更高优先级的队列需要资源时
-    - 这种回收通常通过抢占（`preemption`）机制实现，而不是简单的资源回收
-
-    4. `guarantee`资源永远不会被回收
+    3. `guarantee`资源永远不会被回收
     - `guarantee`资源是队列的最低保障，即使在极度资源紧张的情况下也不会被回收
     - 这是保证关键业务稳定运行的基础
+
+    以`capacity`插件为例，资源回收的实现源码如下：
+    ![alt text](<assets/3500-Volcano Queue&Job详解/image.png>)
 
 #### 使用 proportion 插件的资源管理机制
 
