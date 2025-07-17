@@ -166,8 +166,9 @@ spec:
     3. `guarantee`资源永远不会被回收
     - `guarantee`资源是队列的最低保障，即使在极度资源紧张的情况下也不会被回收
     - 这是保证关键业务稳定运行的基础
-
-    以`capacity`插件为例，资源回收的实现源码如下：
+    
+    
+    如果设置`deserved`但未设置`guarantee`，就以`deserved`来保护队列资源。以`capacity`插件为例，资源回收的实现源码如下：
     ![alt text](<assets/3500-Volcano Queue&Job详解/image.png>)
 
 #### 使用 proportion 插件的资源管理机制
