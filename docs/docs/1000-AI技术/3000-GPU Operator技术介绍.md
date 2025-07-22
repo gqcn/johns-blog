@@ -1,6 +1,6 @@
 ---
 slug: "/ai/gpu-operator"
-title: "GPU Operator技术介绍"
+title: "GPU Operator"
 hide_title: true
 keywords:
   [

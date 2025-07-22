@@ -1,6 +1,6 @@
 ---
 slug: "/ai/nfd-gfd"
-title: "NFD&GFD技术介绍"
+title: "NFD&GFD"
 hide_title: true
 keywords:
   [

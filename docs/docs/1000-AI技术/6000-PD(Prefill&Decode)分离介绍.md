@@ -1,6 +1,6 @@
 ---
 slug: "/ai/pd-separation"
-title: "PD(Prefill&Decode)分离介绍"
+title: "PD(Prefill&Decode)分离"
 hide_title: true
 keywords:
   [
