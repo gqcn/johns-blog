@@ -1,0 +1,628 @@
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-hidden/其他文档/RAG技术原理" data-has-hydrated=false><meta charset=UTF-8><meta name=generator content="Docusaurus v3.6.3"><title data-rh=true>RAG技术原理 | John's Blog</title><meta data-rh=true name=viewport content="width=device-width,initial-scale=1.0"><meta data-rh=true name=twitter:card content=summary_large_image><meta data-rh=true property=og:url content=https://johng.cn/hidden/其他文档/rag-technology-principles><meta data-rh=true property=og:locale content=en><meta data-rh=true name=docusaurus_locale content=en><meta data-rh=true name=docsearch:language content=en><meta data-rh=true name=docusaurus_version content=current><meta data-rh=true name=docusaurus_tag content=docs-default-current><meta data-rh=true name=docsearch:version content=current><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current><meta data-rh=true property=og:title content="RAG技术原理 | John's Blog"><meta data-rh=true name=description content=深入解析RAG（检索增强生成）技术的原理、实现方式和应用场景，探讨RAG在解决大语言模型知识局限性方面的关键作用。><meta data-rh=true property=og:description content=深入解析RAG（检索增强生成）技术的原理、实现方式和应用场景，探讨RAG在解决大语言模型知识局限性方面的关键作用。><meta data-rh=true name=keywords content="RAG,检索增强生成,Retrieval-Augmented Generation,大语言模型,LLM,向量检索,知识库,语义搜索,文档问答,AI应用"><link data-rh=true rel=icon href=/img/favicon.ico><link data-rh=true rel=canonical href=https://johng.cn/hidden/其他文档/rag-technology-principles><link data-rh=true rel=alternate href=https://johng.cn/hidden/其他文档/rag-technology-principles hreflang=en><link data-rh=true rel=alternate href=https://johng.cn/hidden/其他文档/rag-technology-principles hreflang=x-default><link data-rh=true rel=preconnect href=https://XGS1CPQERK-dsn.algolia.net crossorigin><link rel=search type=application/opensearchdescription+xml title="John's Blog" href=/opensearch.xml><script src=https://hm.baidu.com/hm.js?6b4ae23dc83ee5efe875b7172af6c7c1 async></script><script src=https://cdn.wwads.cn/js/makemoney.js async></script><link rel=stylesheet href=/assets/css/styles.208c11f9.css><script src=/assets/js/runtime~main.2488ebd0.js defer></script><script src=/assets/js/main.966ab8cd.js defer></script><body class=navigation-with-keyboard><script>!function(){var t,e=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();t=null!==e?e:"light",document.documentElement.setAttribute("data-theme",t)}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="navbar navbar--fixed-top"><div class=navbar__inner><div class=navbar__items><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><b class="navbar__title text--truncate">John's Blog</b></a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/ai>AI技术</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/cloud-native>云原生</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/notes>日常笔记</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/programming>开发语言</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/architecture>技术架构</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/observability>可观测性</a><a class="navbar__item navbar__link" sidebarid=mainSidebar href=/database-and-middleware>数据库与中间件</a><a class="navbar__item navbar__link" href=/aboutme>关于我</a></div><div class="navbar__items navbar__items--right"><a href=https://goframe.org/ target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-goframe-link"></a><a href=https://github.com/gqcn target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-github-link"></a><div class=navbarSearchContainer_Bca1><button type=button class="DocSearch DocSearch-Button" aria-label="Search (Command+K)"><span class=DocSearch-Button-Container><svg width=20 height=20 class=DocSearch-Search-Icon viewBox="0 0 20 20" aria-hidden=true><path d="M14.386 14.386l4.0877 4.0877-4.0877-4.0877c-2.9418 2.9419-7.7115 2.9419-10.6533 0-2.9419-2.9418-2.9419-7.7115 0-10.6533 2.9418-2.9419 7.7115-2.9419 10.6533 0 2.9419 2.9418 2.9419 7.7115 0 10.6533z" stroke=currentColor fill=none fill-rule=evenodd stroke-linecap=round stroke-linejoin=round /></svg><span class=DocSearch-Button-Placeholder>Search</span></span><span class=DocSearch-Button-Keys></span></button></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class=menu__link href=/hidden>隐藏目录</a><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/hidden/goframe>GoFrame</a><button aria-label="Expand sidebar category 'GoFrame'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/hidden/ideas>一些想法</a><button aria-label="Expand sidebar category '一些想法'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/hidden/resource-collection>资源收藏</a><button aria-label="Expand sidebar category '资源收藏'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--active" href=/hidden/other>其他文档</a><button aria-label="Collapse sidebar category '其他文档'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul style=display:block;overflow:visible;height:auto class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/hidden/interview-basic-knowledge>面试基础知识点记录</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/hidden/tencent-chai>云巢架构设计</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/hidden/其他文档/rag-technology-principles>RAG技术原理</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/ai/ai-computing-resource-fragmentation>AI算力管理挑战：资源碎片化的思考</a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/hidden/temp>临时文档</a><button aria-label="Expand sidebar category '临时文档'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/data-structures-and-algorithms>数据结构和算法</a><button aria-label="Expand sidebar category '数据结构和算法'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label=Breadcrumbs><ul class=breadcrumbs itemscope itemtype=https://schema.org/BreadcrumbList><li class=breadcrumbs__item><a aria-label="Home page" class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_YNFT><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class=breadcrumbs__item><a class=breadcrumbs__link itemprop=item href=/hidden/other><span itemprop=name>其他文档</span></a><meta itemprop=position content=1><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link itemprop=name>RAG技术原理</span><meta itemprop=position content=2></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>RAG技术原理</h1></header>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=1-什么是rag技术>1. 什么是RAG技术<a href=#1-什么是rag技术 class=hash-link aria-label="Direct link to 1. 什么是RAG技术" title="Direct link to 1. 什么是RAG技术">​</a></h2>
+<p><strong>RAG（Retrieval-Augmented Generation，检索增强生成）</strong> 是一种结合了信息检索和文本生成的AI技术架构。它通过在生成回答之前先检索相关的外部知识，来增强大语言模型（LLM）的回答能力。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=11-rag技术的核心思想>1.1 RAG技术的核心思想<a href=#11-rag技术的核心思想 class=hash-link aria-label="Direct link to 1.1 RAG技术的核心思想" title="Direct link to 1.1 RAG技术的核心思想">​</a></h3>
+<p>RAG的核心思想是：<strong>不是让模型记住所有知识，而是教会模型如何找到和使用相关知识</strong>。</p>
+<p>传统的大语言模型依赖于训练时学到的参数化知识，而RAG技术则允许模型在推理时动态地从外部知识库中检索相关信息，然后基于这些信息生成更准确、更具时效性的回答。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=2-rag技术的背景和用途>2. RAG技术的背景和用途<a href=#2-rag技术的背景和用途 class=hash-link aria-label="Direct link to 2. RAG技术的背景和用途" title="Direct link to 2. RAG技术的背景和用途">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=21-技术背景>2.1 技术背景<a href=#21-技术背景 class=hash-link aria-label="Direct link to 2.1 技术背景" title="Direct link to 2.1 技术背景">​</a></h3>
+<p>大语言模型虽然在自然语言处理方面取得了突破性进展，但仍面临以下关键挑战：</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=211-知识截止时间限制>2.1.1 知识截止时间限制<a href=#211-知识截止时间限制 class=hash-link aria-label="Direct link to 2.1.1 知识截止时间限制" title="Direct link to 2.1.1 知识截止时间限制">​</a></h4>
+<ul>
+<li><strong>问题</strong>：模型的知识被固化在训练时的数据中，无法获取训练后的新信息</li>
+<li><strong>影响</strong>：无法回答关于最新事件、技术发展或实时信息的问题</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=212-幻觉问题hallucination>2.1.2 幻觉问题（Hallucination）<a href=#212-幻觉问题hallucination class=hash-link aria-label="Direct link to 2.1.2 幻觉问题（Hallucination）" title="Direct link to 2.1.2 幻觉问题（Hallucination）">​</a></h4>
+<ul>
+<li><strong>问题</strong>：模型可能生成看似合理但实际错误的信息</li>
+<li><strong>影响</strong>：在专业领域或事实性问题上可能提供不准确的答案</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=213-领域专业知识不足>2.1.3 领域专业知识不足<a href=#213-领域专业知识不足 class=hash-link aria-label="Direct link to 2.1.3 领域专业知识不足" title="Direct link to 2.1.3 领域专业知识不足">​</a></h4>
+<ul>
+<li><strong>问题</strong>：通用模型在特定领域的深度知识有限</li>
+<li><strong>影响</strong>：难以满足企业级应用对专业知识的需求</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=214-可解释性和可追溯性缺失>2.1.4 可解释性和可追溯性缺失<a href=#214-可解释性和可追溯性缺失 class=hash-link aria-label="Direct link to 2.1.4 可解释性和可追溯性缺失" title="Direct link to 2.1.4 可解释性和可追溯性缺失">​</a></h4>
+<ul>
+<li><strong>问题</strong>：难以追踪答案的来源和依据</li>
+<li><strong>影响</strong>：在需要可信度和透明度的场景中应用受限</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=22-rag技术的主要用途>2.2 RAG技术的主要用途<a href=#22-rag技术的主要用途 class=hash-link aria-label="Direct link to 2.2 RAG技术的主要用途" title="Direct link to 2.2 RAG技术的主要用途">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=221-企业知识管理>2.2.1 企业知识管理<a href=#221-企业知识管理 class=hash-link aria-label="Direct link to 2.2.1 企业知识管理" title="Direct link to 2.2.1 企业知识管理">​</a></h4>
+<ul>
+<li><strong>文档问答系统</strong>：基于企业内部文档库回答员工问题</li>
+<li><strong>政策法规查询</strong>：快速检索和解释相关法规条文</li>
+<li><strong>技术支持</strong>：基于产品文档提供技术支持服务</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=222-教育与培训>2.2.2 教育与培训<a href=#222-教育与培训 class=hash-link aria-label="Direct link to 2.2.2 教育与培训" title="Direct link to 2.2.2 教育与培训">​</a></h4>
+<ul>
+<li><strong>智能教学助手</strong>：基于教材内容回答学生问题</li>
+<li><strong>在线学习平台</strong>：提供个性化的学习内容推荐和解答</li>
+<li><strong>专业培训</strong>：基于行业知识库进行专业技能培训</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=223-客户服务>2.2.3 客户服务<a href=#223-客户服务 class=hash-link aria-label="Direct link to 2.2.3 客户服务" title="Direct link to 2.2.3 客户服务">​</a></h4>
+<ul>
+<li><strong>智能客服</strong>：基于产品手册和FAQ提供客户支持</li>
+<li><strong>售前咨询</strong>：根据产品信息回答客户咨询</li>
+<li><strong>售后服务</strong>：基于服务记录提供个性化服务</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=224-内容创作与研究>2.2.4 内容创作与研究<a href=#224-内容创作与研究 class=hash-link aria-label="Direct link to 2.2.4 内容创作与研究" title="Direct link to 2.2.4 内容创作与研究">​</a></h4>
+<ul>
+<li><strong>学术研究助手</strong>：基于论文库提供研究支持</li>
+<li><strong>新闻写作</strong>：基于事实资料生成新闻报道</li>
+<li><strong>市场分析</strong>：基于行业报告进行市场分析</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=3-rag技术的实现原理>3. RAG技术的实现原理<a href=#3-rag技术的实现原理 class=hash-link aria-label="Direct link to 3. RAG技术的实现原理" title="Direct link to 3. RAG技术的实现原理">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=31-rag系统架构>3.1 RAG系统架构<a href=#31-rag系统架构 class=hash-link aria-label="Direct link to 3.1 RAG系统架构" title="Direct link to 3.1 RAG系统架构">​</a></h3>
+<p>RAG系统通常包含以下核心组件：</p>
+<div class="language-go codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-go codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">用户查询 → 查询处理 → 向量检索 → 文档排序 → 上下文构建 → LLM生成 → 结果输出</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    ↑                    ↓</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    └── 知识库 ← 文档处理 ← 向量化 ← 文档分块 ← 原始文档</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=32-详细实现流程>3.2 详细实现流程<a href=#32-详细实现流程 class=hash-link aria-label="Direct link to 3.2 详细实现流程" title="Direct link to 3.2 详细实现流程">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=321-知识库构建阶段>3.2.1 知识库构建阶段<a href=#321-知识库构建阶段 class=hash-link aria-label="Direct link to 3.2.1 知识库构建阶段" title="Direct link to 3.2.1 知识库构建阶段">​</a></h4>
+<p><strong>步骤1：文档收集与预处理</strong></p>
+<ul>
+<li>收集相关领域的文档、网页、数据库等信息源</li>
+<li>进行格式转换、去噪、标准化等预处理操作</li>
+<li>提取文本内容，保留结构化信息</li>
+</ul>
+<p><strong>步骤2：文档分块（Chunking）</strong></p>
+<ul>
+<li>将长文档切分成适合检索的小块</li>
+<li>常见策略：<!-- -->
+<ul>
+<li><strong>固定长度分块</strong>：按字符数或token数切分</li>
+<li><strong>语义分块</strong>：按段落、章节等语义单元切分</li>
+<li><strong>重叠分块</strong>：相邻块之间保持一定重叠，避免信息丢失</li>
+</ul>
+</li>
+</ul>
+<p><strong>步骤3：向量化（Embedding）</strong></p>
+<ul>
+<li>使用预训练的文本编码模型将文档块转换为向量表示</li>
+<li>常用模型：<code>text-embedding-ada-002</code>、<code>BGE</code>、<code>Sentence-BERT</code>等</li>
+<li>向量维度通常在512-1536之间</li>
+</ul>
+<p><strong>步骤4：向量存储</strong></p>
+<ul>
+<li>将向量和对应的文档块存储到向量数据库中</li>
+<li>常用向量数据库：<code>Pinecone</code>、<code>Weaviate</code>、<code>Chroma</code>、<code>Milvus</code>等</li>
+<li>建立高效的相似度搜索索引</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=322-查询处理阶段>3.2.2 查询处理阶段<a href=#322-查询处理阶段 class=hash-link aria-label="Direct link to 3.2.2 查询处理阶段" title="Direct link to 3.2.2 查询处理阶��段">​</a></h4>
+<p><strong>步骤1：查询理解</strong></p>
+<ul>
+<li>对用户查询进行预处理和标准化</li>
+<li>提取关键信息和意图</li>
+<li>必要时进行查询扩展或重写</li>
+</ul>
+<p><strong>步骤2：向量检索</strong></p>
+<ul>
+<li>将用户查询转换为向量表示</li>
+<li>在向量数据库中进行相似度搜索</li>
+<li>检索出最相关的Top-K个文档块</li>
+</ul>
+<p><strong>步骤3：重排序（Re-ranking）</strong></p>
+<ul>
+<li>使用更精确的相关性模型对检索结果进行重新排序</li>
+<li>考虑查询-文档的语义匹配度、文档质量等因素</li>
+<li>常用重排序模型：<code>Cross-Encoder</code>、<code>ColBERT</code>等</li>
+</ul>
+<p><strong>步骤4：上下文构建</strong></p>
+<ul>
+<li>选择最相关的文档块作为上下文</li>
+<li>控制上下文长度，避免超出LLM的输入限制</li>
+<li>组织上下文的结构和格式</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=323-生成阶段>3.2.3 生成阶段<a href=#323-生成阶段 class=hash-link aria-label="Direct link to 3.2.3 生成阶段" title="Direct link to 3.2.3 生成阶段">​</a></h4>
+<p><strong>步骤1：Prompt构建</strong></p>
+<ul>
+<li>将检索到的上下文和用户查询组合成完整的提示词</li>
+<li>设计合适的提示模板，指导模型如何使用上下文信息</li>
+<li>添加必要的指令和约束条件</li>
+</ul>
+<p><strong>步骤2：LLM生成</strong></p>
+<ul>
+<li>将构建好的Prompt输入到大语言模型</li>
+<li>模型基于上下文信息生成回答</li>
+<li>常用模型：<code>GPT-4</code>、<code>Claude</code>、<code>ChatGLM</code>等</li>
+</ul>
+<p><strong>步骤3：后处理</strong></p>
+<ul>
+<li>对生成的回答进行格式化和优化</li>
+<li>添加引用信息和来源标注</li>
+<li>进行事实性检查和质量评估</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=33-关键技术细节>3.3 关键技术细节<a href=#33-关键技术细节 class=hash-link aria-label="Direct link to 3.3 关键技术细节" title="Direct link to 3.3 关键技术细节">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=331-相似度计算>3.3.1 相似度计算<a href=#331-相似度计算 class=hash-link aria-label="Direct link to 3.3.1 相似度计算" title="Direct link to 3.3.1 相似度计算">​</a></h4>
+<ul>
+<li><strong>余弦相似度</strong>：最常用的向量相似度度量方法</li>
+<li><strong>欧几里得距离</strong>：适用于某些特定场景</li>
+<li><strong>点积相似度</strong>：计算效率高，适合大规模检索</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=332-检索策略>3.3.2 检索策略<a href=#332-检索策略 class=hash-link aria-label="Direct link to 3.3.2 检索策略" title="Direct link to 3.3.2 检索策略">​</a></h4>
+<ul>
+<li><strong>密集检索</strong>：基于向量相似度的检索方法</li>
+<li><strong>稀疏检索</strong>：基于关键词匹配的传统检索方法（如BM25）</li>
+<li><strong>混合检索</strong>：结合密集检索和稀疏检索的优势</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=333-上下文管理>3.3.3 上下文管理<a href=#333-上下文管理 class=hash-link aria-label="Direct link to 3.3.3 上下文管理" title="Direct link to 3.3.3 上下文管理">​</a></h4>
+<ul>
+<li><strong>上下文长度控制</strong>：根据模型的上下文窗口限制调整输入长度</li>
+<li><strong>上下文质量评估</strong>：评估检索到的文档与查询的相关性</li>
+<li><strong>上下文去重</strong>：避免重复信息影响生成质量</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=4-rag技术的实现方式>4. RAG技术的实现方式<a href=#4-rag技术的实现方式 class=hash-link aria-label="Direct link to 4. RAG技术的实现方式" title="Direct link to 4. RAG技术的实现方式">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=41-基础rag实现>4.1 基础RAG实现<a href=#41-基础rag实现 class=hash-link aria-label="Direct link to 4.1 基础RAG实现" title="Direct link to 4.1 基础RAG实现">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=411-简单rag流程>4.1.1 简单RAG流程<a href=#411-简单rag流程 class=hash-link aria-label="Direct link to 4.1.1 简单RAG流程" title="Direct link to 4.1.1 简单RAG流程">​</a></h4>
+<div class="language-python codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-python codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token comment" style=color:#8292a2;font-style:italic># 伪代码示例</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain"></span><span class="token keyword" style=color:#66d9ef>def</span><span class="token plain"> </span><span class="token function" style=color:#e6db74>simple_rag</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">query</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"> knowledge_base</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"> llm</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token punctuation" style=color:#f8f8f2>:</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 1. 向量化查询</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    query_vector </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> embed_text</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">query</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 2. 检索相关文档</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    relevant_docs </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> knowledge_base</span><span class="token punctuation" style=color:#f8f8f2>.</span><span class="token plain">search</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">query_vector</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"> top_k</span><span class="token operator" style=color:#66d9ef>=</span><span class="token number" style=color:#ae81ff>5</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 3. 构建上下文</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    context </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>"\n"</span><span class="token punctuation" style=color:#f8f8f2>.</span><span class="token plain">join</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token punctuation" style=color:#f8f8f2>[</span><span class="token plain">doc</span><span class="token punctuation" style=color:#f8f8f2>.</span><span class="token plain">content </span><span class="token keyword" style=color:#66d9ef>for</span><span class="token plain"> doc </span><span class="token keyword" style=color:#66d9ef>in</span><span class="token plain"> relevant_docs</span><span class="token punctuation" style=color:#f8f8f2>]</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 4. 生成回答</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    prompt </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> </span><span class="token string-interpolation string" style=color:#a6e22e>f"基于以下信息回答问题：\n</span><span class="token string-interpolation interpolation punctuation" style=color:#f8f8f2>{</span><span class="token string-interpolation interpolation">context</span><span class="token string-interpolation interpolation punctuation" style=color:#f8f8f2>}</span><span class="token string-interpolation string" style=color:#a6e22e>\n\n问题：</span><span class="token string-interpolation interpolation punctuation" style=color:#f8f8f2>{</span><span class="token string-interpolation interpolation">query</span><span class="token string-interpolation interpolation punctuation" style=color:#f8f8f2>}</span><span class="token string-interpolation string" style=color:#a6e22e>"</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    answer </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> llm</span><span class="token punctuation" style=color:#f8f8f2>.</span><span class="token plain">generate</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">prompt</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token keyword" style=color:#66d9ef>return</span><span class="token plain"> answer</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=412-技术栈选择>4.1.2 技术栈选择<a href=#412-技术栈选择 class=hash-link aria-label="Direct link to 4.1.2 技术栈选择" title="Direct link to 4.1.2 技术栈选择">​</a></h4>
+<ul>
+<li><strong>向量数据库</strong>：Chroma、Pinecone、Weaviate</li>
+<li><strong>嵌入模型</strong>：OpenAI Embeddings、Sentence-BERT</li>
+<li><strong>大语言模型</strong>：GPT-4、Claude、开源模型</li>
+<li><strong>框架工具</strong>：LangChain、LlamaIndex、Haystack</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=42-高级rag实现>4.2 高级RAG实现<a href=#42-高级rag实现 class=hash-link aria-label="Direct link to 4.2 高级RAG实现" title="Direct link to 4.2 高级RAG实现">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=421-多步骤检索multi-step-retrieval>4.2.1 多步骤检索（Multi-step Retrieval）<a href=#421-多步骤检索multi-step-retrieval class=hash-link aria-label="Direct link to 4.2.1 多步骤检索（Multi-step Retrieval）" title="Direct link to 4.2.1 多步骤检索（Multi-step Retrieval）">​</a></h4>
+<ul>
+<li><strong>迭代检索</strong>：根据初步答案进行二次检索</li>
+<li><strong>分解查询</strong>：将复杂查询分解为多个子查询</li>
+<li><strong>查询扩展</strong>：基于初始检索结果扩展查询范围</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=422-混合检索策略>4.2.2 混合检索策略<a href=#422-混合检索策略 class=hash-link aria-label="Direct link to 4.2.2 混合检索策略" title="Direct link to 4.2.2 混合检索策略">​</a></h4>
+<div class="language-python codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-python codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token comment" style=color:#8292a2;font-style:italic># 混合检索示例</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain"></span><span class="token keyword" style=color:#66d9ef>def</span><span class="token plain"> </span><span class="token function" style=color:#e6db74>hybrid_retrieval</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">query</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"> knowledge_base</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token punctuation" style=color:#f8f8f2>:</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 密集检索</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    dense_results </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> dense_search</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">query</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"> knowledge_base</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 稀疏检索（BM25）</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    sparse_results </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> bm25_search</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">query</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"> knowledge_base</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 结果融合</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    combined_results </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> merge_results</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">dense_results</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"> sparse_results</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token keyword" style=color:#66d9ef>return</span><span class="token plain"> combined_results</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=423-自适应rag>4.2.3 自适应RAG<a href=#423-自适应rag class=hash-link aria-label="Direct link to 4.2.3 自适应RAG" title="Direct link to 4.2.3 自适应RAG">​</a></h4>
+<ul>
+<li><strong>查询路由</strong>：根据查询类型选择不同的检索策略</li>
+<li><strong>动态上下文</strong>：根据查询复杂度调整上下文长度</li>
+<li><strong>置信度评估</strong>：评估生成答案的可信度</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=43-企业级rag实现>4.3 企业级RAG实现<a href=#43-企业级rag实现 class=hash-link aria-label="Direct link to 4.3 企业级RAG实现" title="Direct link to 4.3 企业级RAG实现">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=431-分布�式架构>4.3.1 分布式架构<a href=#431-分布式架构 class=hash-link aria-label="Direct link to 4.3.1 分布式架构" title="Direct link to 4.3.1 分布式架构">​</a></h4>
+<ul>
+<li><strong>微服务设计</strong>：将检索、生成等功能模块化</li>
+<li><strong>负载均衡</strong>：处理高并发查询请求</li>
+<li><strong>缓存机制</strong>：缓存常见查询的结果</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=432-数据管理>4.3.2 数据管理<a href=#432-数据管理 class=hash-link aria-label="Direct link to 4.3.2 数据管理" title="Direct link to 4.3.2 数据管理">​</a></h4>
+<ul>
+<li><strong>增量更新</strong>：支持知识库的实时更新</li>
+<li><strong>版本控制</strong>：管理知识库的不同版本</li>
+<li><strong>权限控制</strong>：基于用户角色控制知识访问权限</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=433-质量保障>4.3.3 质量保障<a href=#433-质量保障 class=hash-link aria-label="Direct link to 4.3.3 质量保障" title="Direct link to 4.3.3 质量保障">​</a></h4>
+<ul>
+<li><strong>答案评估</strong>：自动评估生成答案的质量</li>
+<li><strong>人工审核</strong>：关键场景下的人工质量把关</li>
+<li><strong>反馈循环</strong>：基于用户反馈持续优化系统</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=5-rag技术的应用场景>5. RAG技术的应用场景<a href=#5-rag技术的应用场景 class=hash-link aria-label="Direct link to 5. RAG技术的应用场景" title="Direct link to 5. RAG技术的应用场景">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=51-企业知识管理场景>5.1 企业知识管理场景<a href=#51-企业知识管理场景 class=hash-link aria-label="Direct link to 5.1 企业知识管理场景" title="Direct link to 5.1 企业知识管理场景">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=511-内部文档问答系统>5.1.1 内部文档问答系统<a href=#511-内部文档问答系统 class=hash-link aria-label="Direct link to 5.1.1 内部文档问答系统" title="Direct link to 5.1.1 内部文档问答系统">​</a></h4>
+<ul>
+<li>
+<p><strong>应用描述</strong>：员工可以通过自然语言查询企业内部文档、政策、流程等信息</p>
+</li>
+<li>
+<p><strong>技术实现</strong>：</p>
+<ul>
+<li>构建企业文档知识库（包括Word、PDF、Wiki等格式）</li>
+<li>使用RAG技术实现智能问答</li>
+<li>集成企业身份认证和权限管理系统</li>
+</ul>
+</li>
+<li>
+<p><strong>业务价值</strong>：</p>
+<ul>
+<li>提高员工工作效率，快速获取所需信息</li>
+<li>减少重复性咨询，降低人力成本</li>
+<li>确保信息的一致性和准确性</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=512-技术支持与运维>5.1.2 技术支持与运维<a href=#512-技术支持与运维 class=hash-link aria-label="Direct link to 5.1.2 技术支持与运维" title="Direct link to 5.1.2 技术支持与运维">​</a></h4>
+<ul>
+<li><strong>应用描述</strong>：基于技术文档和历史问题库提供自动化技术支持</li>
+<li><strong>技术实现</strong>：<!-- -->
+<ul>
+<li>整合产品手册、API文档、故障处理手册</li>
+<li>结合历史工单数据进行知识挖掘</li>
+<li>实现多轮对话和问题诊断</li>
+</ul>
+</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=52-客户服务场景>5.2 客户服务场景<a href=#52-客户服务场景 class=hash-link aria-label="Direct link to 5.2 客户服务场景" title="Direct link to 5.2 客户服务场景">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=521-智能客服系统>5.2.1 智能客服系统<a href=#521-智能客服系统 class=hash-link aria-label="Direct link to 5.2.1 智能客服系统" title="Direct link to 5.2.1 智能客服系统">​</a></h4>
+<ul>
+<li>
+<p><strong>应用描述</strong>：基于产品信息和FAQ提供24/7客户服务</p>
+</li>
+<li>
+<p><strong>技术实现</strong>：</p>
+<ul>
+<li>构建产品知识库和常见问题库</li>
+<li>集成多渠道接入（网页、微信、APP等）</li>
+<li>实现人机协作的客服模式</li>
+</ul>
+</li>
+<li>
+<p><strong>业务价值</strong>：</p>
+<ul>
+<li>降低客服成本，提高服务效率</li>
+<li>提供一致的服务质量</li>
+<li>支持多语言和跨时区服务</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=522-售前咨询助手>5.2.2 售前咨询助手<a href=#522-售前咨询助手 class=hash-link aria-label="Direct link to 5.2.2 售前咨询助手" title="Direct link to 5.2.2 售前咨询助手">​</a></h4>
+<ul>
+<li><strong>应用描述</strong>：基于产品资料为潜在客户提供专业咨询</li>
+<li><strong>技术实现</strong>：<!-- -->
+<ul>
+<li>整合产品介绍、技术规格、价格信息</li>
+<li>实现个性化推荐和比较分析</li>
+<li>集成CRM系统进行客户跟踪</li>
+</ul>
+</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=53-教育培训场景>5.3 教育培训场景<a href=#53-教育培训场景 class=hash-link aria-label="Direct link to 5.3 教育培训场景" title="Direct link to 5.3 教育培训场景">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=531-智能教学助手>5.3.1 智能教学助手<a href=#531-智能教学助手 class=hash-link aria-label="Direct link to 5.3.1 智能教学助手" title="Direct link to 5.3.1 智能教学助手">​</a></h4>
+<ul>
+<li><strong>应用描述</strong>：基于教材和课程资料为学生提供学习支持</li>
+<li><strong>技术实现</strong>：<!-- -->
+<ul>
+<li>构建课程知识库和题库</li>
+<li>实现个性化学习路径推荐</li>
+<li>提供实时答疑和学习指导</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=532-企业培训系统>5.3.2 企业培训系统<a href=#532-企业培训系统 class=hash-link aria-label="Direct link to 5.3.2 企业培训系统" title="Direct link to 5.3.2 企业培训系统">​</a></h4>
+<ul>
+<li><strong>应用描述</strong>：基于企业培训材料提供员工技能培训</li>
+<li><strong>技术实现</strong>：<!-- -->
+<ul>
+<li>整合培训手册、视频课程、考试题库</li>
+<li>实现学习进度跟踪和效果评估</li>
+<li>支持多媒体内容的智能检索</li>
+</ul>
+</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=54-专业服务场景>5.4 专业服务场景<a href=#54-专业服务场景 class=hash-link aria-label="Direct link to 5.4 专业服务场景" title="Direct link to 5.4 专业服务场景">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=541-法律咨询助手>5.4.1 法律咨询助手<a href=#541-法律咨询助手 class=hash-link aria-label="Direct link to 5.4.1 法律咨询助手" title="Direct link to 5.4.1 法律咨询助手">​</a></h4>
+<ul>
+<li><strong>应用描述</strong>：基于法律法规和案例库提供法律咨询服务</li>
+<li><strong>技术实现</strong>：<!-- -->
+<ul>
+<li>构建法律条文和判例知识库</li>
+<li>实现法律条文的语义检索和关联分析</li>
+<li>提供案例推荐和风险评估</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=542-医疗诊断辅助>5.4.2 医疗诊断辅助<a href=#542-医疗诊断辅助 class=hash-link aria-label="Direct link to 5.4.2 医疗诊断辅助" title="Direct link to 5.4.2 医疗诊断辅助">​</a></h4>
+<ul>
+<li><strong>应用描述</strong>：基于医学文献和诊疗指南辅助医生诊断</li>
+<li><strong>技术实现</strong>：<!-- -->
+<ul>
+<li>整合医学教科书、临床指南、研究论文</li>
+<li>实现症状-疾病的关联分析</li>
+<li>提供诊疗建议和用药指导</li>
+</ul>
+</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=55-内容创作场景>5.5 内容创作场景<a href=#55-内容创作场景 class=hash-link aria-label="Direct link to 5.5 内容创作场景" title="Direct link to 5.5 内容创作场景">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=551-�新闻写作助手>5.5.1 新闻写作助手<a href=#551-新闻写作助手 class=hash-link aria-label="Direct link to 5.5.1 新闻写作助手" title="Direct link to 5.5.1 新闻写作助手">​</a></h4>
+<ul>
+<li><strong>应用描述</strong>：基于新闻资料和背景信息辅助记者写作</li>
+<li><strong>技术实现</strong>：<!-- -->
+<ul>
+<li>构建新闻事件和背景资料库</li>
+<li>实现事实核查和信息验证</li>
+<li>提供写作建议和素材推荐</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=552-学术研究助手>5.5.2 学术研究助手<a href=#552-学术研究助手 class=hash-link aria-label="Direct link to 5.5.2 学术研究助手" title="Direct link to 5.5.2 学术研究助手">​</a></h4>
+<ul>
+<li><strong>应用描述</strong>：基于学术论文库为研究人员提供研究支持</li>
+<li><strong>技术实现</strong>：<!-- -->
+<ul>
+<li>整合学术数据库和论文资源</li>
+<li>实现文献综述和相关研究发现</li>
+<li>提供研究方法和实验设计建议</li>
+</ul>
+</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=6-实际业务场景中的痛点>6. 实际业务场景中的痛点<a href=#6-实际业务场景中的痛点 class=hash-link aria-label="Direct link to 6. 实际业务场景中的痛点" title="Direct link to 6. 实际业务场景中的痛点">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=61-技术实现痛点>6.1 技术实现痛点<a href=#61-技术实现痛点 class=hash-link aria-label="Direct link to 6.1 技术实现痛点" title="Direct link to 6.1 技术实现痛点">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=611-数据质量问题>6.1.1 数据质量问题<a href=#611-数据质量问题 class=hash-link aria-label="Direct link to 6.1.1 数据质量问题" title="Direct link to 6.1.1 数据质量问题">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>原始文档质量参差不齐，包含噪声、格式错误等</li>
+<li>文档更新不及时，导致信息过时</li>
+<li>多源数据整合困难，存在冲突和重复</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>建立数据质量评估和清洗流程</li>
+<li>实施数据治理和版本管理机制</li>
+<li>设计数据冲突检测和解决策略</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=612-检索精度不足>6.1.2 检索精度不足<a href=#612-检索精度不足 class=hash-link aria-label="Direct link to 6.1.2 检索精度不足" title="Direct link to 6.1.2 检索精度不足">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>语义理解偏差导致检索结果不准确</li>
+<li>长尾查询和专业术语处理困难</li>
+<li>多语言和跨领域检索效果差</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>使用领域特定的嵌入模型</li>
+<li>实施查询扩展和同义词处理</li>
+<li>采用混合检索策略提高召回率</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=613-上下文管理挑战>6.1.3 上下文管理挑战<a href=#613-上下文管理挑战 class=hash-link aria-label="Direct link to 6.1.3 上下文管理挑战" title="Direct link to 6.1.3 上下文管理挑战">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>上下文长度限制影响信息完整性</li>
+<li>多文档信息整合困难</li>
+<li>上下文相关性评估不准确</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>实施智能上下文压缩和摘要</li>
+<li>使用层次化信息组织方式</li>
+<li>引入上下文质量评估机制</li>
+</ul>
+</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=62-系统性能痛点>6.2 系统性能痛点<a href=#62-系统性能痛点 class=hash-link aria-label="Direct link to 6.2 系统性能痛点" title="Direct link to 6.2 系统性能痛点">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=621-响应时间过长>6.2.1 响应时间过长<a href=#621-响应时间过长 class=hash-link aria-label="Direct link to 6.2.1 响应时间过长" title="Direct link to 6.2.1 响应时间过长">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>向量检索耗时较长，影响用户体验</li>
+<li>LLM生成速度慢，特别是复杂查询</li>
+<li>系统整体延迟高，难以满足实时需求</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>优化向量索引和检索算法</li>
+<li>使用模型量化和推理加速技术</li>
+<li>实施多级缓存和预计算策略</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=622-资源消耗过大>6.2.2 资源消耗过大<a href=#622-资源消耗过大 class=hash-link aria-label="Direct link to 6.2.2 资源消耗过大" title="Direct link to 6.2.2 资源消耗过大">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>向量存储占用大量内存和存储空间</li>
+<li>LLM推理需要大量计算资源</li>
+<li>高并发场景下资源瓶颈明显</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>使用向量压缩和降维技术</li>
+<li>实施模型共享和资源池化</li>
+<li>采用弹性扩缩容和负载均衡</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=623-扩展性限制>6.2.3 扩展性限制<a href=#623-扩展性限制 class=hash-link aria-label="Direct link to 6.2.3 扩展性限制" title="Direct link to 6.2.3 扩展性限制">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>知识库规模增长时性能下降</li>
+<li>用户并发量增加时系统不稳定</li>
+<li>新功能集成困难，系统耦合度高</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>设计分布式和微服务架构</li>
+<li>实施水平扩展和分片策略</li>
+<li>采用插件化和模块化设计</li>
+</ul>
+</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=63-业务应用痛点>6.3 业务应用痛点<a href=#63-业务应用痛点 class=hash-link aria-label="Direct link to 6.3 业务应用痛点" title="Direct link to 6.3 业务应用痛点">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=631-答案质量不稳定>6.3.1 答案质量不稳定<a href=#631-答案质量不稳定 class=hash-link aria-label="Direct link to 6.3.1 答案质量不稳定" title="Direct link to 6.3.1 答案质量不稳定">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>生成答案的准确性和一致性难以保证</li>
+<li>对于复杂问题容易产生错误或不完整的回答</li>
+<li>缺乏有效的质量评估和控制机制</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>建立多层次的质量评估体系</li>
+<li>实施人工审核和反馈循环机制</li>
+<li>使用置信度评估和不确定性量化</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=632-领域适应性差>6.3.2 领域适应性差<a href=#632-领域适应性差 class=hash-link aria-label="Direct link to 6.3.2 领域适应性差" title="Direct link to 6.3.2 领域适应性差">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>通用模型在特定领域表现不佳</li>
+<li>专业术语和概念理解不准确</li>
+<li>行业特定的推理逻辑缺失</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>使用领域特定的预训练模型</li>
+<li>实施领域知识图谱集成</li>
+<li>采用少样本学习和微调技术</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=633-用户体验问题>6.3.3 用户体验问题<a href=#633-用户体验问题 class=hash-link aria-label="Direct link to 6.3.3 用户体验问题" title="Direct link to 6.3.3 用户体验问题">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>用户需要学习特定的查询方式</li>
+<li>系统无法理解模糊或不完整的查询</li>
+<li>缺乏交互式和多轮对话能力</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>实施查询理解和意图识别</li>
+<li>提供查询建议和自动补全</li>
+<li>设计对话式交互和上下文记忆</li>
+</ul>
+</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=64-运维管理痛点>6.4 运维管理痛点<a href=#64-运维管理痛点 class=hash-link aria-label="Direct link to 6.4 运维管理痛点" title="Direct link to 6.4 运维管理痛点">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=641-系统监控困难>6.4.1 系统监控困难<a href=#641-系统监控困难 class=hash-link aria-label="Direct link to 6.4.1 系统监控困难" title="Direct link to 6.4.1 系统监控困难">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>缺乏全面的系统性能监控</li>
+<li>难以追踪和分析用户查询模式</li>
+<li>问题定位和故障排查复杂</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>建立全链路监控和日志系统</li>
+<li>实施用户行为分析和查询挖掘</li>
+<li>设计自动化故障检测和恢复机制</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=642-知识库维护复杂>6.4.2 知识库维护复杂<a href=#642-知识库维护复杂 class=hash-link aria-label="Direct link to 6.4.2 知识库维护复杂" title="Direct link to 6.4.2 知识库维护复杂">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>知识库更新和同步工作量大</li>
+<li>版本管理和回滚机制不完善</li>
+<li>数据一致性和完整性难以保证</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>实施自动化数据采集和更新流程</li>
+<li>建立版本控制和变更管理机制</li>
+<li>设计数据验证和一致性检查</li>
+</ul>
+</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=643-成本控制挑战>6.4.3 成本控制挑战<a href=#643-成本控制挑战 class=hash-link aria-label="Direct link to 6.4.3 成本控制挑战" title="Direct link to 6.4.3 成本控制挑战">​</a></h4>
+<ul>
+<li>
+<p><strong>痛点描述</strong>：</p>
+<ul>
+<li>LLM API调用成本高昂</li>
+<li>存储和计算资源消耗持续增长</li>
+<li>ROI难以量化和评估</li>
+</ul>
+</li>
+<li>
+<p><strong>解决方案</strong>：</p>
+<ul>
+<li>实施智能缓存和结果复用</li>
+<li>采用成本优化的模型选择策略</li>
+<li>建立成本监控和预算管理机制</li>
+</ul>
+</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=7-rag技术的发展趋势>7. RAG技术的发展趋势<a href=#7-rag技术的发展趋势 class=hash-link aria-label="Direct link to 7. RAG技术的发展趋势" title="Direct link to 7. RAG技术的发展趋势">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=71-技术演进方向>7.1 技术演进方向<a href=#71-技术演进方向 class=hash-link aria-label="Direct link to 7.1 技术演进方向" title="Direct link to 7.1 技术演进方向">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=711-多模态rag>7.1.1 多模态RAG<a href=#711-多模态rag class=hash-link aria-label="Direct link to 7.1.1 多模态RAG" title="Direct link to 7.1.1 多模态RAG">​</a></h4>
+<ul>
+<li>支持文本、图像、音频等多种模态的检索和生成</li>
+<li>实现跨模态的语义理解和信息融合</li>
+<li>应用于更丰富的业务场景</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=712-自适应rag>7.1.2 自适应RAG<a href=#712-自适应rag class=hash-link aria-label="Direct link to 7.1.2 自适应RAG" title="Direct link to 7.1.2 自适应RAG">​</a></h4>
+<ul>
+<li>根据查询类型和用户偏好动态调整检索策略</li>
+<li>实现个性化的知识检索和答案生成</li>
+<li>提高系统的智能化水平</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=713-实时rag>7.1.3 实时RAG<a href=#713-实时rag class=hash-link aria-label="Direct link to 7.1.3 实时RAG" title="Direct link to 7.1.3 实时RAG">​</a></h4>
+<ul>
+<li>支持实时数据流的处理和检索</li>
+<li>实现动态知识更新和即时响应</li>
+<li>满足时效性要求高的应用场景</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=72-应用拓展趋势>7.2 应用拓展趋势<a href=#72-应用拓展趋势 class=hash-link aria-label="Direct link to 7.2 应用拓展趋势" title="Direct link to 7.2 应用拓展趋势">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=721-垂直领域深化>7.2.1 垂直领域深化<a href=#721-垂直领域深化 class=hash-link aria-label="Direct link to 7.2.1 垂直领域深化" title="Direct link to 7.2.1 垂直领域深化">​</a></h4>
+<ul>
+<li>在医疗、法律、金融等专业领域的深度应用</li>
+<li>结合领域知识图谱和专家系统</li>
+<li>提供更专业和精准的服务</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=722-企业级集成>7.2.2 企业级集成<a href=#722-企业级集成 class=hash-link aria-label="Direct link to 7.2.2 企业级集成" title="Direct link to 7.2.2 企业级集成">​</a></h4>
+<ul>
+<li>与企业现有系统的深度集成</li>
+<li>支持复杂的业务流程和决策支持</li>
+<li>实现知识驱动的智能化转型</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=723-边缘计算部署>7.2.3 边缘计算部署<a href=#723-边缘计算部署 class=hash-link aria-label="Direct link to 7.2.3 边缘计算部署" title="Direct link to 7.2.3 边缘计算部署">​</a></h4>
+<ul>
+<li>支持本地化和私有化部署</li>
+<li>降低延迟和提高数据安全性</li>
+<li>适应不同规模和场景的需求</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=8-总结>8. 总结<a href=#8-总结 class=hash-link aria-label="Direct link to 8. 总结" title="Direct link to 8. 总结">​</a></h2>
+<p>RAG技术作为连接大语言模型与外部知识的桥梁，有效解决了传统LLM在知识时效性、准确性和专业性方面的局限。通过检索增强生成的方式，RAG不仅提升了AI系统的回答质量，还为企业级AI应用提供了可行的技术路径。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=81-核心价值>8.1 核心价值<a href=#81-核心价值 class=hash-link aria-label="Direct link to 8.1 核心价值" title="Direct link to 8.1 核心价值">​</a></h3>
+<ol>
+<li><strong>知识时效性</strong>：通过外部知识库实现实时信息获取</li>
+<li><strong>答案准确性</strong>：基于可靠来源生成更准确的回答</li>
+<li><strong>可解释性</strong>：提供答案来源和依据，增强可信度</li>
+<li><strong>成本效益</strong>：相比重新训练模型，RAG提供了更经济的知识更新方案</li>
+</ol>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=82-应用前景>8.2 应用前景<a href=#82-应用前景 class=hash-link aria-label="Direct link to 8.2 应用前景" title="Direct link to 8.2 应用前景">​</a></h3>
+<p>随着大语言模型技术的不断发展和企业数字化转型的深入推进，RAG技术将在更多领域发挥重要作用。从简单的文档问答到复杂的决策支持，从通用场景到垂直领域，RAG技术正在成为构建智能化应用的核心技术之一。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=83-发展建议>8.3 发展建议<a href=#83-发展建议 class=hash-link aria-label="Direct link to 8.3 发展建议" title="Direct link to 8.3 发展建议">​</a></h3>
+<p>对于希望应用RAG技术的组织，建议：</p>
+<ol>
+<li><strong>从小规模试点开始</strong>：选择特定场景进行概念验证</li>
+<li><strong>重视数据质量</strong>：投入足够资源进行数据治理和清洗</li>
+<li><strong>建立评估体系</strong>：制定明确的质量评估和改进机制</li>
+<li><strong>关注用户体验</strong>：以用户需求为导向优化系统设计</li>
+<li><strong>持续迭代优化</strong>：基于反馈不断改进系统性能</li>
+</ol>
+<p>RAG技术的成功应用需要技术实现、数据管理、业务理解等多方面的协同配合。只有在充分理解业务需求和技术特点的基础上，才能构建出真正有价值的RAG应用系统。</div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-tags-row"><div class=col><b>Tags:</b><ul class="tags_jXut padding--none margin-left--sm"><li class=tag_QGVx><a class="tag_zVej tagRegular_sFm0" href=/tags/ai>AI</a><li class=tag_QGVx><a class="tag_zVej tagRegular_sFm0" href=/tags/rag>RAG</a><li class=tag_QGVx><a class="tag_zVej tagRegular_sFm0" href=/tags/检索增强生成>检索增强生成</a><li class=tag_QGVx><a class="tag_zVej tagRegular_sFm0" href=/tags/llm>LLM</a><li class=tag_QGVx><a class="tag_zVej tagRegular_sFm0" href=/tags/大语言模型>大语言模型</a><li class=tag_QGVx><a class="tag_zVej tagRegular_sFm0" href=/tags/向量数据库>向量数据库</a><li class=tag_QGVx><a class="tag_zVej tagRegular_sFm0" href=/tags/知识库>知识库</a></ul></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/hidden/tencent-chai><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>云巢架构设计</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/ai/ai-computing-resource-fragmentation><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>AI算力管理挑战：资源碎片化的思考</div></a></nav><div class=docusaurus-mt-lg></div></div></div><div class="col col--3"><div class=tocContainer_PXzm><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#1-什么是rag技术 class="table-of-contents__link toc-highlight">1. 什么是RAG技术</a><ul><li><a href=#11-rag技术的核心思想 class="table-of-contents__link toc-highlight">1.1 RAG技术的核心思想</a></ul><li><a href=#2-rag技术的背景和用途 class="table-of-contents__link toc-highlight">2. RAG技术的背景和用途</a><ul><li><a href=#21-技术背景 class="table-of-contents__link toc-highlight">2.1 技术背景</a><li><a href=#22-rag技术的主要用途 class="table-of-contents__link toc-highlight">2.2 RAG技术的主要用途</a></ul><li><a href=#3-rag技术的实现原理 class="table-of-contents__link toc-highlight">3. RAG技术的实现原理</a><ul><li><a href=#31-rag系统架构 class="table-of-contents__link toc-highlight">3.1 RAG系统架构</a><li><a href=#32-详细实现流程 class="table-of-contents__link toc-highlight">3.2 详细实现流程</a><li><a href=#33-关键技术细节 class="table-of-contents__link toc-highlight">3.3 关键技术细节</a></ul><li><a href=#4-rag技术的实现方式 class="table-of-contents__link toc-highlight">4. RAG技术的实现方式</a><ul><li><a href=#41-基础rag实现 class="table-of-contents__link toc-highlight">4.1 基础RAG实现</a><li><a href=#42-高级rag实现 class="table-of-contents__link toc-highlight">4.2 高级RAG实现</a><li><a href=#43-企业级rag实现 class="table-of-contents__link toc-highlight">4.3 企业级RAG实现</a></ul><li><a href=#5-rag技术的应用场景 class="table-of-contents__link toc-highlight">5. RAG技术的应用场景</a><ul><li><a href=#51-企业知识管理场景 class="table-of-contents__link toc-highlight">5.1 企业知识管理场景</a><li><a href=#52-客户服务场景 class="table-of-contents__link toc-highlight">5.2 客户服务场景</a><li><a href=#53-教育培训场景 class="table-of-contents__link toc-highlight">5.3 教育培训场景</a><li><a href=#54-专业服务场景 class="table-of-contents__link toc-highlight">5.4 专业服务场景</a><li><a href=#55-内容创作场景 class="table-of-contents__link toc-highlight">5.5 内容创作场景</a></ul><li><a href=#6-实际业务场景中的痛点 class="table-of-contents__link toc-highlight">6. 实际业务场景中的痛点</a><ul><li><a href=#61-技术实现痛点 class="table-of-contents__link toc-highlight">6.1 技术实现痛点</a><li><a href=#62-系统性能痛点 class="table-of-contents__link toc-highlight">6.2 系统性能痛点</a><li><a href=#63-业务应用痛点 class="table-of-contents__link toc-highlight">6.3 业务应用痛点</a><li><a href=#64-运维管理痛点 class="table-of-contents__link toc-highlight">6.4 运维管理痛点</a></ul><li><a href=#7-rag技术的发展趋势 class="table-of-contents__link toc-highlight">7. RAG技术的发展趋势</a><ul><li><a href=#71-技术演进方向 class="table-of-contents__link toc-highlight">7.1 技术演进方向</a><li><a href=#72-应用拓展趋势 class="table-of-contents__link toc-highlight">7.2 应用拓展趋势</a></ul><li><a href=#8-总结 class="table-of-contents__link toc-highlight">8. 总结</a><ul><li><a href=#81-核心价值 class="table-of-contents__link toc-highlight">8.1 核心价值</a><li><a href=#82-应用前景 class="table-of-contents__link toc-highlight">8.2 应用前景</a><li><a href=#83-发展建议 class="table-of-contents__link toc-highlight">8.3 发展建议</a></ul></ul></div><div class=tocAdBanner_imxD></div></div></div></div></div></main></div></div></div><footer class=footer><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright 2025 johng.cn</div></div></div></footer></div>
