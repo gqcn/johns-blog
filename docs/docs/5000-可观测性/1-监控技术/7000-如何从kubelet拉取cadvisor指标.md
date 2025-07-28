@@ -15,7 +15,7 @@ description: "详细介绍如何从 Kubelet 获取 cAdvisor 的容器监控指�
 
 ## 注意事项
 
-由于容器指标依赖于`kubelet`，扩展性受限于`kubernetes`版本，比如`kubelet`存在`bug`，那么可能难以修复，因为升级`kubernetes`版本是比较重的操作，特别是针对租户端的用户通常难以接受。具体可参考遇到的已知问题：[从kubelet获取cadvisor指标偶现丢失container\*相关指标](./6-从kubelet获取cadvisor指标偶现丢失container*相关指标.md)
+由于容器指标依赖于`kubelet`，扩展性受限于`kubernetes`版本，比如`kubelet`存在`bug`，那么可能难以修复，因为升级`kubernetes`版本是比较重的操作，特别是针对租户端的用户通常难以接受。具体可参考遇到的已知问题：[从kubelet获取cadvisor指标偶现丢失container\*相关指标](./6000-从kubelet获取cadvisor指标偶现丢失container*相关指标.md)
 
   
 
