@@ -133,7 +133,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **作用**：使`Kubernetes`调度器能够感知`GPU`资源并进行分配
 - **实现**：以`DaemonSet`形式在每个`GPU`节点上运行
 
-详细介绍请参考文章：[Decvice Plugin](../3000-云原生/0-Kubernetes/9000-Decvice%20Plugin.md)
+详细介绍请参考文章：[Decvice Plugin](../../2000-云原生/0-Kubernetes/9000-Decvice%20Plugin.md)
 
 ### 3.4 节点特性发现 (Node Feature Discovery, NFD)
 
@@ -141,7 +141,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **作用**：识别具有`GPU`的节点，为其添加标签如``feature.node.kubernetes.io/pci-10de.present=true``
 - **优势**：简化节点选择和工作负载调度
 
-详细介绍请参考文章：[NFD&GFD技术介绍](./NFD&GFD技术介绍.md)
+详细介绍请参考文章：[NFD&GFD技术介绍](../2000-NFD&GFD技术介绍.md)
 
 ### 3.5 GPU特性发现 (GPU Feature Discovery, GFD)
 
@@ -149,7 +149,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **标签示例**：`GPU`型号、架构、`CUDA`版本等
 - **用途**：支持基于特定`GPU`特性的精细化调度
 
-详细介绍请参考文章：[NFD&GFD技术介绍](./NFD&GFD技术介绍.md)
+详细介绍请参考文章：[NFD&GFD技术介绍](../2000-NFD&GFD技术介绍.md
 
 ### 3.6 DCGM导出器 (DCGM Exporter)
 
@@ -157,7 +157,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **监控内容**：`GPU`利用率、内存使用、温度、功耗等
 - **集成**：可与`Prometheus`和`Grafana`等监控系统集成
 
-详细介绍请参考文章：[NVIDIA GPU DCGM-Exporter监控方案](./NVIDIA%20GPU%20DCGM-Exporter监控方案.md)
+详细介绍请参考文章：[NVIDIA GPU DCGM-Exporter监控方案](./4000-GPU%20DCGM-Exporter监控方案.md)
 
 ### 3.7 MIG管理器 (MIG Manager)
 
