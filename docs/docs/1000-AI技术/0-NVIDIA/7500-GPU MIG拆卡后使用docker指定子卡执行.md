@@ -284,21 +284,28 @@ ValueError: No GPU memory values found.
 ```
 #### 3.1.2 问题原因
 根据社区检索和源码排查，最终确定问题出在`sglang`上，相关连接：https://github.com/sgl-project/sglang/pull/8167
-问题原因是`sglang`当前版本（`v0.4.8`）默认通过命令行的方式去获取GPU卡的内存信息，然后整卡的内存获取和`MIG`子卡的内存获取方式会不太一样，具体源码在这里：https://github.com/sgl-project/sglang/blob/7c3a12c0002e33fed1e72f4157e74a64a998f251/python/sglang/srt/utils.py#L1235
+
+问题原因是`sglang`当前版本（`v0.4.8`）默认通过命令行的方式去获取`GPU`卡的内存信息，然后整卡的内存获取和`MIG`子卡的内存获取方式会不太一样，具体源码在这里：https://github.com/sgl-project/sglang/blob/7c3a12c0002e33fed1e72f4157e74a64a998f251/python/sglang/srt/utils.py#L1235
+
+这种显存获取方式比较原始，通过命令行子进程的方式获取，感觉这里`sglang`的源码可以改进下，通过`nvml`获取靠谱一些。
+
 ![alt text](<assets/7500-GPU MIG拆卡后使用docker指定子卡执行/image.png>)
 
 #### 3.1.3 验证方式
-当前`sglang`版本或通过以下方式获取显存大小：
+
+根据源码分析，当前`sglang`版本也就是通过以下方式获取显存大小：
 ```bash
 docker run --rm --gpus '"device=MIG-b05c0034-4d0e-5d3c-a25c-e6795d1779df"'  aiharbor.msxf.local/test/sglang:0.4.8.post1-cu128 nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits
 ```
-当直接将该命令在节点上执行后，终端会输出`Insufficient Permissions`的错误，因此`sglang`获取显存就失败了，直接退出执行。
+
+当直接将该命令在节点上执行后，终端会输出`Insufficient Permissions`的错误，因此`sglang`源码中获取显存也就失败了，直接退出执行。
+
 可以通过以下方式验证`Github`上`PR`方案的可行性：
 1. 手动执行进入容器
     ```bash
     docker run -it --rm --gpus '"device=MIG-b05c0034-4d0e-5d3c-a25c-e6795d1779df"' aiharbor.msxf.local/test/sglang:0.4.8.post1-cu128 bash 
     ```
-2. 执行以下python脚本验证
+2. 执行以下`python`脚本验证
     ```python
     python3 -c "
     import torch
@@ -316,7 +323,7 @@ docker run --rm --gpus '"device=MIG-b05c0034-4d0e-5d3c-a25c-e6795d1779df"'  aiha
     Device name: NVIDIA H200 MIG 2g.35gb
     Memory: 32.5 GB
     ```
-3. 也可以通过另外python脚本验证，该脚本实现方式来源于PR提交内容
+3. 也可以通过另外`python`脚本验证，该脚本实现方式来源于`PR`提交内容
     ```python
     python3 -c "
     import torch
