@@ -11,7 +11,7 @@ description: "深入分析GPU MIG拆卡后Pod一直处于Pending或Terminating�
 
 
 
-## 1.背景描述
+## 1. 背景描述
 
 在对`GPU H20`加速卡进行`MIG`拆卡后，模型推理任务调度到该卡的节点上偶尔会阻塞在`Pending`的状态，无法正常启动。查看`Pod`的状态时，`Event`信息如下：
 ```text
