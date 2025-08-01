@@ -577,7 +577,7 @@ sudo apt-get upgrade nvidia-driver-570
 
 <hr>
 
-PS：至于`kubelet`假死的风险，目前`kubernetes`的最新版本也存在这个问题，`kubernetes`社区也有`issue`和`PR`在跟进：https://github.com/kubernetes/kubernetes/issues/130855 、 https://github.com/kubernetes/kubernetes/pull/131383 大家注意存在这个问题就好。
+PS：至于`kubelet`假死的风险，目前`kubernetes`的最新版本也存在这个问题，`kubernetes`社区也有`issue`和`PR`在跟进：https://github.com/kubernetes/kubernetes/issues/130855 、 https://github.com/kubernetes/kubernetes/pull/131383 大家注意存在这个问题即可。
 
 ## 5. 参考链接
 
