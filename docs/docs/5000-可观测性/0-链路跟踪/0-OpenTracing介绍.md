@@ -86,7 +86,7 @@ span.LogFields(
 )
 ```
 
-::: info
+:::info
 `Opentracing`列举了一些惯用的`Tags`和`Logs`：[https://github.com/opentracing/specification/blob/master/semantic\_conventions.md](https://github.com/opentracing/specification/blob/master/semantic_conventions.md)
 :::
 
@@ -111,7 +111,7 @@ span.LogFields(
 
 对`Opentracing`的概念有初步了解后，下面使用`Jaeger`来演示如何在程序中使用实现链路追踪。
 
-::: tip
+:::tip
 为方便演示，以下示例为进程内部方法的链路跟踪记录，更多详细的示例可参考： [Opentracing Go Tutorial](https://github.com/yurishkuro/opentracing-tutorial/tree/master/go)
 :::
   

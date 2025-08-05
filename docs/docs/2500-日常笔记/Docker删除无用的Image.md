@@ -14,7 +14,7 @@ description: "介绍如何有效清理和管理Docker系统中的无用镜像，
 docker system prune -a --volumes
 ```
 
-::: warning
+:::warning
 当您的`docker`占用过多的空间时，该命令执行可能会比较耗时。
 :::
 

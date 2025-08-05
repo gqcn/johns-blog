@@ -36,7 +36,7 @@ Informer In Kubernetes
 
 我们再来看一张经典的架构图，来自于client-go的官方介绍，展示了client-go与自定义Controller之间的相关组件以及数据交互流程。原文地址：[https://github.com/kubernetes/sample-controller/blob/master/docs/controller-client-go.md](https://github.com/kubernetes/sample-controller/blob/master/docs/controller-client-go.md)
 
-::: tip
+:::tip
 client-go项目地址：[https://github.com/kubernetes/client-go](https://github.com/kubernetes/client-go)
 :::
 

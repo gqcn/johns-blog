@@ -76,7 +76,7 @@ total = used + free + buff/cache
 *   `file_rss`：表示映射到文件的内存量。如果一个进程打开了一个文件并将其映射到内存，那么这部分内存就会被计入`file_rss`。
 *   `shmem_rss`：表示共享内存量。如果多个进程共享一部分内存，那么这部分内存就会被计入`shmem_rss`。
 
-::: tip
+:::tip
 `RSS( resident set size)`：驻留集大小。表示进程已装入内存的页面的集合。
 :::
 
@@ -84,7 +84,7 @@ total = used + free + buff/cache
 
 ###### top
 
-::: tip
+:::tip
 该命令展示的内存单位默认为`KB`。
 :::
 
@@ -99,7 +99,7 @@ total = used + free + buff/cache
 
 ###### ps
 
-::: tip
+:::tip
 该命令展示的内存单位默认为`KB`。
 :::
 
@@ -113,7 +113,7 @@ total = used + free + buff/cache
 
 ###### smem
 
-::: tip
+:::tip
 该命令需要单独安装。
 :::
 
@@ -129,7 +129,7 @@ total = used + free + buff/cache
 
 ![](/attachments/p623795.png)
 
-::: tip
+:::tip
 `WSS(Memoy Working Set Size)`指标：一种更为合理评估进程内存真实使用内存的计算方式。
 但是受限于`Linux Page Reclaim`机制，这个概念目前还只是概念，并没有哪一个工具可以正确统计出`WSS`，只能是趋近。
 :::
@@ -208,7 +208,7 @@ memory.numa_stat           ## 显示numa相关的内存
 *   `LIMIT`对应控制组的`memory.limit_in_bytes`
 *   `MEM USAGE`对应控制组的`memory.usage_in_bytes - memory.stat[total_cache]`
 
-::: tip
+:::tip
 `docker stat`命令查询原理，请参见[官方文档](https://github.com/docker/cli/blob/37f9a88c696ae81be14c1697bd083d6421b4933c/cli/command/container/stats_helpers.go##L233)。
 :::
 

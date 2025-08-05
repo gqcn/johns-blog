@@ -9,7 +9,7 @@ description: "详细介绍 Kubernetes 常用命令的使用方法，包括 creat
 
 `kubernetes`通过`kube-apiserver`作为整个集群管理的入口。`apiserver`是整个集群的主管理节点，用户通过`apiserver`配置和组织集群，同时集群中各个节点同`etcd`存储的交互也是通过`apiserver`进行交互。`apiserver`实现了一套`RESTfull`的接口，用户可以直接使用`API`同`apiserver`交互。另外官方还提供了一个客户端`kubectl`随工具集打包，用于可直接通过`kubectl`以命令行的方式同集群交互。
 
-::: tip
+:::tip
 本文只介绍平时工作中常用到的`kubectl`命令，更详细的命令介绍可以参考官方文档：[http://docs.kubernetes.org.cn/683.html](http://docs.kubernetes.org.cn/683.html)
 :::
 

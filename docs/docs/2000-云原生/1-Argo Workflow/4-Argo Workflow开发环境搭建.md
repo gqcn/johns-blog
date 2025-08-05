@@ -23,7 +23,7 @@ description: "详细介绍如何搭建 Argo Workflow 的本地开发环境，包
 ## 一、服务准备
 
 
-::: warning
+:::warning
 `MacOS`环境先安装好`brew`命令：[https://brew.sh/](https://brew.sh/)
 :::
 
@@ -96,7 +96,7 @@ make start PROFILE=mysql
 
 编译将会使用`mysql`服务（默认使用的是`pgsql`）。
 
-::: tip
+:::tip
 当argo相关服务启动后，可以发现argo数据库被初始化了相关数据表。
 ![](/attachments/image2021-8-9_16-36-46.png)
 :::
@@ -107,7 +107,7 @@ make start PROFILE=mysql
 
 [http://localhost:2746](http://localhost:2746)
 
-::: warning
+:::warning
 注意查看终端日志输出信息，不是HTTPS访问。
 :::
 
@@ -115,7 +115,7 @@ make start PROFILE=mysql
 
 [http://localhost:8080](http://localhost:8080)
 
-::: warning
+:::warning
 初次访问的时候会比较慢，注意查看终端日志输出信息。
 :::
 
@@ -129,7 +129,7 @@ make start PROFILE=mysql
 
 ## 六、构建Image镜像
 
-::: info
+:::info
 正常完整编译约5分钟左右。
 :::
 
@@ -141,7 +141,7 @@ make start PROFILE=mysql
 eval $(minikube -p minikube docker-env) && make build
 ```
 
-::: tip
+:::tip
 其中的 `eval $(minikube -p minikube docker-env)` 命令用以设置当前的`Docker`为`Minikube`的`Docker`，后续常见错误中有介绍。
 :::
 
