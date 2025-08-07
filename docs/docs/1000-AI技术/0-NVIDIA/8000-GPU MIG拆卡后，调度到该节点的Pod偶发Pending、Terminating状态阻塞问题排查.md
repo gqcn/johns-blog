@@ -579,7 +579,94 @@ sudo apt-get upgrade nvidia-driver-570
 
 PS：至于`kubelet`假死的风险，目前`kubernetes`的最新版本也存在这个问题，`kubernetes`社区也有`issue`和`PR`在跟进：https://github.com/kubernetes/kubernetes/issues/130855 、 https://github.com/kubernetes/kubernetes/pull/131383 大家注意存在这个问题即可。
 
-## 5. 参考链接
+
+## 5. 常见问题
+
+### 5.1 升级驱动后MPS拆卡失败
+如果升级驱动后出现`MPS`拆卡失败，具体现象为`MPS`的`nvidia-device-plugin-mps-control-daemon`组件处于`CrashLoopBackOff`状态：
+
+```bash
+$ kubectl get pod -n gpu-operator
+...
+nvidia-device-plugin-daemonset-85lzp                     2/2     Running            0               25h
+nvidia-device-plugin-daemonset-gsp8d                     2/2     Running            0               26h
+nvidia-device-plugin-daemonset-rghb5                     2/2     Running            1 (46m ago)     66m
+nvidia-device-plugin-mps-control-daemon-rpm7r            1/2     CrashLoopBackOff   12 (2m5s ago)   46m
+nvidia-mig-manager-275td                                 1/1     Running            0               82m
+nvidia-mig-manager-bmt75                                 1/1     Running            0               82m
+...
+```
+
+查看`nvidia-device-plugin-mps-control-daemon`组件中的`mps-control-daemon-ctr`容器的日志，报错信息如下：
+
+```bash
+I0805 08:40:16.021509     303 main.go:197] Retrieving MPS daemons.
+I0805 08:40:16.157726     303 manager.go:88] "Resource is not shared" resource="resource" nvidia.com/gpu="(MISSING)"
+I0805 08:40:16.431605     303 daemon.go:100] "Staring MPS daemon" resource="nvidia.com/gpu.shared"
+I0805 08:40:16.431671     303 daemon.go:153] "SELinux disabled, not updating context" path="/mps/nvidia.com/gpu.shared/pipe"
+E0805 08:40:16.431856     303 main.go:213] Failed to start MPS daemon: exec: "nvidia-cuda-mps-control": executable file not found in $PATH
+I0805 08:40:16.431895     303 main.go:132] Failed to start one or more MPS deamons. Retrying in 30s...
+W0805 08:40:46.441659     303 main.go:228] Failed to remove .ready file: remove /mps/.ready: no such file or directory
+I0805 08:40:46.441705     303 main.go:230] Stopping MPS daemons.
+E0805 08:40:46.441879     303 main.go:84] error stopping plugins from previous run: error sending quit message: failed to start NVIDIA MPS command: exec: "nvidia-cuda-mps-control": executable file not found in $PATH
+```
+说明容器找不到`nvidia-cuda-mps-control`二进制文件。
+
+经过排查发现`nvidia-device-plugin-mps-control-daemon`组件中的`mps-control-daemon-ctr`容器使用了特权模式，能够使用宿主机上的二进制文件：
+
+```yaml
+ ...
+  containers:
+  - command:
+    - mps-control-daemon
+    env:
+    - name: NODE_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: spec.nodeName
+    - name: NVIDIA_VISIBLE_DEVICES
+      value: all
+    - name: NVIDIA_DRIVER_CAPABILITIES
+      value: compute,utility
+    - name: CONFIG_FILE
+      value: /config/config.yaml
+    - name: MIG_STRATEGY
+      value: mixed
+    - name: NVIDIA_MIG_MONITOR_DEVICES
+      value: all
+    image: aiharbor.msxf.local/mirror-stuff/nvidia/k8s-device-plugin:v0.16.2-msxf.27
+    imagePullPolicy: IfNotPresent
+    name: mps-control-daemon-ctr
+    resources: {}
+    securityContext:
+      privileged: true
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /dev/shm
+      name: mps-shm
+    - mountPath: /mps
+      name: mps-root
+    - mountPath: /config
+      name: config
+    - mountPath: /available-configs
+      name: device-plugin-config
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-skcwm
+      readOnly: true
+...
+```
+
+因此去宿主机上查看，发现确实不存在`nvidia-cuda-mps-control`二进制文件。估计是升级驱动的时候自动把相关旧版本的工具删掉了？正常安装完成驱动后，也应该安装相应的工具，这里重新安装对应驱动版本工具即可：
+
+```bash
+sudo apt-get install nvidia-compute-utils-570
+```
+
+
+
+## 6. 参考链接
 
 - https://github.com/NVIDIA/gpu-operator/issues/1361
 - https://github.com/kubernetes/kubernetes/issues/130855
