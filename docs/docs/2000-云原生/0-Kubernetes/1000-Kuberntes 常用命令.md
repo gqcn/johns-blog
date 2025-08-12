@@ -293,15 +293,6 @@ Forwarding from 10.0.8.101:8090 -> 80
 Handling connection for 8090
 ```
 
-  
-[![复制代码](https://assets.cnblogs.com/images/copycode.gif)
-
-]
-
-```
-  
-
-```
 
   
    
