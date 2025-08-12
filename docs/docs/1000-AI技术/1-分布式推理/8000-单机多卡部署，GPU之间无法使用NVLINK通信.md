@@ -1,9 +1,9 @@
 ---
 slug: "/ai/single-node-multi-gpu-nvlink-communication-issue"
-title: 单机多卡部署，Pod的GPU之间无法使用NVLINK通信
-tags: [AI技术, 分布式推理, NVLINK, GPU通信, Kubernetes, PD分离, NCCL, UCX, 容器化部署, GPU拓扑, 特权容器]
+title: 单机多卡部署，GPU之间无法使用NVLINK通信
+hide_title: true
 keywords: [单机多卡, NVLINK通信, Pod GPU通信, 分布式推理, PD分离, Prefill Decode, GPU拓扑结构, NCCL NVLINK, 容器GPU隔离, privileged容器, NVIDIA_VISIBLE_DEVICES, CUDA_VISIBLE_DEVICES, GPU device plugin, Kubernetes GPU调度, UCX性能测试, GPU通信优化, 高性能计算, AI推理加速]
-description: 详细分析和解决单机多卡部署中Pod的GPU之间无法使用NVLINK通信的问题。以PD分离技术为例，深入探讨GPU资源隔离机制、容器特权模式配置、GPU拓扑结构发现等关键技术，提供可供参考的解决方案。
+description: 详细分析和解决单机多卡部署中GPU之间无法使用NVLINK通信的问题。以PD分离技术为例，深入探讨GPU资源隔离机制、容器特权模式配置、GPU拓扑结构发现等关键技术，提供可供参考的解决方案。
 ---
 
 本章节使用`PD`分离作为示例，排查和演示单机多卡部署，`Pod`的`GPU`之间无法使用`NVLINK`通信的问题。
