@@ -8,6 +8,8 @@ description: 详细分析和解决单机多卡部署中GPU之间无法使用NVLI
 
 本章节使用`PD`分离作为示例，排查和演示单机多卡部署，`Pod`的`GPU`之间无法使用`NVLINK`通信的问题。
 
+> `PD`分离的部署架构正常应当是多机多卡部署，本文主要是基于测试目的，使用了单机多卡部署。
+
 
 ## 1. 问题介绍
 `PD（Prefill & Decode）`分离技术中，如果`Prefill`和`Decode`部署到同节点下，`Prefill`和`Decode`两个`Pod`无法使用`NVLINK`通信，导致`Prefill`和`Decode`之间的通信性能较差。
