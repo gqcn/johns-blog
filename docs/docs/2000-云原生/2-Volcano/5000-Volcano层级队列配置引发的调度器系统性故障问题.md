@@ -1,5 +1,5 @@
 ---
-slug: "/cloud-native/volcano-hierarchy-queue-issue"
+slug: "/cloud-native/volcano-hierarchy-queue-scheduling-issue"
 title: "Volcano层级队列配置引发的调度器系统性故障问题"
 hide_title: true
 keywords:
