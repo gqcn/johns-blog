@@ -95,6 +95,18 @@ docker run test:latest
 docker exec -it <container_id> ps -ef
 ```
 
+执行结果如下：
+```bash
+% docker ps               
+CONTAINER ID   IMAGE                  COMMAND                  CREATED         STATUS         PORTS                       NAMES
+250eee54c30a   test:latest            "/app/script.sh"         6 seconds ago   Up 5 seconds                               clever_hertz
+% docker exec -it 250eee54c30a ps -ef
+PID   USER     TIME  COMMAND
+    1 root      0:00 {script.sh} /bin/sh /app/script.sh
+    6 root      0:00 sleep 1d
+    7 root      0:00 ps -ef
+```
+
 ### 3.2 使用exec启用服务进程
 
 启动脚本如下：
@@ -129,4 +141,15 @@ docker run test:latest
 查看容器`root`进程：
 ```bash
 docker exec -it <container_id> ps -ef
+```
+
+执行结果如下：
+```bash
+% docker ps
+CONTAINER ID   IMAGE                  COMMAND                  CREATED          STATUS          PORTS                       NAMES
+244f81cd64f2   test:latest            "/app/script-exec.sh"    6 seconds ago    Up 5 seconds                                happy_kapitsa
+% docker exec -it 244f81cd64f2 ps -ef  
+PID   USER     TIME  COMMAND
+    1 root      0:00 sleep 1d
+   13 root      0:00 ps -ef
 ```
