@@ -360,7 +360,7 @@ docker run --rm --gpus all nvidia/cuda:12.0.1-runtime-ubuntu22.04 nvidia-smi
 
 ### 安装 device-plugin
 
-`device-plugin`一般由对应的`GPU`厂家提供，比如`NVIDIA`的 [K8S-device-plugin](https://github.com/NVIDIA/K8S-device-plugin)
+`device-plugin`一般由对应的`GPU`厂家提供，比如`NVIDIA`的 [k8s-device-plugin](https://github.com/NVIDIA/k8s-device-plugin)
 
 安装其实很简单，将对应的`yaml` `apply`到集群即可。
 
@@ -464,4 +464,4 @@ spec:
 *   对应`K8S`环境，需要额外安装对应的 `device-plugin` 使得`kubelet`能够感知到节点上的`GPU`设备，以便`K8S`能够进行`GPU`管理。
     
 
-现在一般都是在`K8S`环境中使用，为了简化安装步骤，`NVIDIA`也提供了 `gpu-operator`来简化安装部署，这里的安装步骤仅供参考学习。
+现在一般都是在`K8S`环境中使用，为了简化安装步骤，`NVIDIA`也提供了 `gpu-operator`来简化安装部署，本文的安装步骤仅供参考学习。
