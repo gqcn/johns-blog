@@ -1,5 +1,5 @@
 ---
-slug: /notes/docker-permission-issue
+slug: /cloud-native/docker-permission-issue
 title: 解决非root用户没有权限运行docker命令的问题
 hide_title: true
 description: 解决非root用户没有权限运行docker命令的问题，包括添加用户到docker组的方法

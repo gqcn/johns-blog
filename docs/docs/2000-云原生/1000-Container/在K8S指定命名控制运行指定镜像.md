@@ -1,5 +1,5 @@
 ---
-slug: "/notes/kubernetes-namespace-deployment"
+slug: "/cloud-native/kubernetes-namespace-deployment"
 title: "在K8S指定命名控制运行指定镜像"
 hide_title: true
 keywords: ["Kubernetes", "K8S", "命名空间", "镜像部署", "容器编排", "运维管理"]
