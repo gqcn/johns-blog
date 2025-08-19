@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/specify-root-process-using-exec"
-title: "通过exec指令指定容器root进程(wip)"
+title: "通过exec指令指定容器root进程"
 hide_title: true
 keywords: ["Docker", "容器技术", "exec指令", "root进程", "PID 1", "信号处理", "僵尸进程", "容器最佳实践", "tini"]
 description: "详细介绍容器中root进程的重要性，以及如何通过exec指令正确指定容器root进程，避免信号处理和僵尸进程问题"

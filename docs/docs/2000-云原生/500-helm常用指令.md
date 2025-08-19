@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/helm"
-title: "helm常用指令"
+title: "Helm常用指令"
 hide_title: true
 keywords:
   [
