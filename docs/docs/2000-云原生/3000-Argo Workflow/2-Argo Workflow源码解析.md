@@ -73,7 +73,7 @@ description: "深入分析 Argo Workflow 的源代码实现，探讨其核心组
 
 ## 四、Workflow Controller
 
-`Argo`中最核心也最复杂的便是`Workflow Controller`的实现。`Argo Workflow Controller`的主要职责是`CRD`的实现，以及`Pod`的创建创建。由于`Argo`采用的是`Kubernetes CRD`设计，因此整体架构以及流程控制采用的是`Kubernetes Informer`实现，相关背景知识可以参考之前的两篇文章：[Kubernetes Informer及client-go资料](../0-Kubernetes/3000-Kubernetes%20Informer及client-go资料.md)、[Kubernetes CRD, Controller, Operator](../0-Kubernetes/5000-Kubernetes%20CRD,%20Controller,%20Operator.md)。
+`Argo`中最核心也最复杂的便是`Workflow Controller`的实现。`Argo Workflow Controller`的主要职责是`CRD`的实现，以及`Pod`的创建创建。由于`Argo`采用的是`Kubernetes CRD`设计，因此整体架构以及流程控制采用的是`Kubernetes Informer`实现，相关背景知识可以参考之前的两篇文章：[Kubernetes Informer及client-go资料](../2000-Kubernetes/3000-Kubernetes%20Informer及client-go资料.md)、[Kubernetes CRD, Controller, Operator](../2000-Kubernetes/5000-Kubernetes%20CRD,%20Controller,%20Operator.md)。
 
 ### 1、基本架构
 

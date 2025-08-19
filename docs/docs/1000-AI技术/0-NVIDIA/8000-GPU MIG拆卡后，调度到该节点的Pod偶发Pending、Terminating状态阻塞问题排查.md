@@ -341,7 +341,7 @@ Jul 30 20:39:03 ai-app-8-1-msxf kubelet[45878]: I0730 20:39:03.753013   45878 ma
 
 从前面的日志排查来看，关键突破口在`Issuing a GetPreferredAllocation call for container`这个日志这个地方。该日志是由`kubelet`的`DeviceManager`打印的，该`DeviceManager`负责与注册的`DevicePlugin`交互。
 
-`DevicePlugin`是`kubenetes`的插件机制，负责与`kubelet`进行交互，管理扩展设备，比如`GPU`、`NPU`、`PPU`等`AI`模型训练中常用的加速卡设备。关于`Kubernetes DevicePlugin`机制的详细介绍，请参考我另一篇文章：[Kubernetes DevicePlugin](../../2000-云原生/0-Kubernetes/9000-Decvice%20Plugin.md)
+`DevicePlugin`是`kubenetes`的插件机制，负责与`kubelet`进行交互，管理扩展设备，比如`GPU`、`NPU`、`PPU`等`AI`模型训练中常用的加速卡设备。关于`Kubernetes DevicePlugin`机制的详细介绍，请参考我另一篇文章：[Kubernetes DevicePlugin](../../2000-云原生/2000-Kubernetes/9000-Decvice%20Plugin.md)
 
 #### 3.2.1 kubelet与DevicePlugin交互流程
 
