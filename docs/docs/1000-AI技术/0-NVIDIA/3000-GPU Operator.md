@@ -133,7 +133,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **作用**：使`Kubernetes`调度器能够感知`GPU`资源并进行分配
 - **实现**：以`DaemonSet`形式在每个`GPU`节点上运行
 
-详细介绍请参考文章：[Decvice Plugin](../../2000-云原生/2000-Kubernetes/9000-Decvice%20Plugin.md)
+详细介绍请参考文章：[Decvice Plugin](../../2000-云原生/200-Kubernetes/9000-Decvice%20Plugin.md)
 
 ### 3.4 节点特性发现 (Node Feature Discovery, NFD)
 
