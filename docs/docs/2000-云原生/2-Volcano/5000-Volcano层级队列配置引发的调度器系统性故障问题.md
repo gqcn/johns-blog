@@ -38,7 +38,7 @@ description: "详细分析Volcano调度器中层级队列配置不当导致的�
 ### 1.2 问题描述
 
 
-`Volcano Job`一致处于`Pending`状态，`Pod`没有创建出来。查看对应`PodGroup`的状态，也是处于`Pending`状态，且存在报错信息：
+`Volcano Job`一直处于`Pending`状态，`Pod`没有创建出来。查看对应`PodGroup`的状态，也是处于`Pending`状态，且存在报错信息：
 ```yaml
 status:
   conditions:
@@ -73,19 +73,19 @@ E0815 05:55:34.455546 1 capacity.go:612] Failed to check queue's hierarchical st
 
 通过错误日志所指向的源码文件，去理解源码的实现逻辑，关键代码在这里：https://github.com/volcano-sh/volcano/blob/f7acc998d1b23f045b3e3f53cdccff1695bbff37/pkg/scheduler/plugins/capacity/capacity.go#L659
 
-针对`capacity`插件的实现逻辑分析，发现在启用`capacity`插件后，当层级队列中配置的队列`capacity`、`deserved`或`guarantee`资源配额大于父队列的资源配额时，会导致`volcano`调度器系统性无法正常工作。由于是触发系统性的故障，因此即便其他队列的资源配额配置正确，调度器也无法为其他队列分配资源。
+针对`capacity`插件的实现逻辑分析，发现在启用`capacity`插件后，当层级队列中配置的队列`capacity`、`deserved`或`guarantee`任一资源配额大于父队列的资源配额时，会导致`volcano`调度器系统性无法正常工作。由于是触发系统性的故障，因此即便其他队列的资源配额配置正确，调度器也无法为其他队列分配资源。
 
-以下是针对该插件的一些关键逻辑：
+以下是针对该插件的一些关键逻辑介绍：
 
 1. `volcano`调度器对每次任务（`volcano job`）的创建、修改都会调用`capability`插件进行处理。
-2. `capacity`插件会递归检查所有队列下的子级队列的`capability`、`deserved`和`guarantee`资源配额是否大于父队列的资源配额（任一资源）。如果发现有队列的资源配额大于父队列的资源配额，则会返回错误信息，并停止调度。
-3. `volcano`资源队列默认的`root`队列资源配额是集群的所有资源的总和（`nodes allocatable`）：https://github.com/volcano-sh/volcano/blob/f7acc998d1b23f045b3e3f53cdccff1695bbff37/pkg/scheduler/plugins/capacity/capacity.go#L503
+2. `capacity`插件会递归检查所有队列下的子级队列的`capability`、`deserved`和`guarantee`任一资源配额是否大于父队列的资源配额（任一资源）。如果发现有队列的资源配额大于父队列的资源配额，则会返回错误信息，并停止调度。
+3. `volcano`资源队列默认的`root`队列资源配额是集群的所有资源的总和（`nodes allocatable`），并且会随着节点变化或节点资源的变化而自动改变：https://github.com/volcano-sh/volcano/blob/f7acc998d1b23f045b3e3f53cdccff1695bbff37/pkg/scheduler/plugins/capacity/capacity.go#L503
 
 ### 2.2 为何子级队列配额会大于父级队列配额？
 
 大致可分为以下几种情况：
 
-1. **队列配额设置不合理**：子级配额资源配额的总量大于父级队列配额资源。在资源队列创建时，`volcano`没有对子级队列的资源配额做严格的、同步的资源检查，导致异常的子级队列被创建到了集群中。
+1. **队列配额设置不合理**：子级配额资源配额的总量大于父级队列配额资源。在资源队列创建时，`volcano`没有对子级队列的资源配额做严格的、同步的资源检查，导致异常的子级队列被创建到了集群中（也许未来`volcano`对这块会有所改进）。
 2. **集群节点异常导致队列可用资源变少**：由于`volcano`的`root`队列默认是使用的集群的总资源大小（`nodes allocatable`，每次`session open`时重新计算），当集群的节点异常、节点被移除时，实际上`root`队列的可用资源会变少，导致子级队列的可用资源配额可能会大于父级队列的可用资源配额：https://github.com/volcano-sh/volcano/blob/36e949025f1abff74f2f18b080c6f91bde84db0a/pkg/scheduler/framework/session.go#L206
 
 
@@ -150,7 +150,7 @@ metadata:
 
 1. 在`volcano`默认的调度器配置，`overcommit`插件是默认启用的，该插件允许集群的资源能够超额分配，默认超额比例（`overcommitRatio`）是`1.2`，例如`10`核CPU资源的集群，那么`overcommit`插件会允许调度器调度`12`核CPU的任务。
 
-2. `overcommit`插件还有一个隐藏功能，当队列的`capability`资源不够调度时，`overcommit`插件会阻止任务创建对应的`Pod`，以减少Pending的`Pod`数量。否则，即便队列资源不够，也会创建`Pod`，导致`Pending`的`Pod`数量不断增加。
+2. `overcommit`插件还有一个隐藏功能，当队列的`capability`资源不够调度时，`overcommit`插件会阻止任务创建对应的`Pod`，以减少`Pending`的`Pod`数量。否则，即便队列资源不够，也会创建`Pod`，导致`Pending`的`Pod`数量不断增加。
 
 ### 4.2 队列配置
 
