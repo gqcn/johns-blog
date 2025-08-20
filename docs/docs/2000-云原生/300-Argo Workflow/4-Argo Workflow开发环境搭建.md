@@ -175,7 +175,7 @@ golang.org/x/sys => github.com/golang/sys v0.0.0-20200317113312-5766fd39f98d
 
 我花了数个小时没有解决通该问题，由于本次开发不会涉及到UI的修改，因此可以把`Dockerfile`中涉及到`ui`的部分注释掉。随后重新执行编译命令即可。
 
-`![](/attachments/image2021-8-25_19-41-24.png)  `
+![](/attachments/image2021-8-25_19-41-24.png)
 
 ![](/attachments/image2021-8-25_19-41-14.png)
 

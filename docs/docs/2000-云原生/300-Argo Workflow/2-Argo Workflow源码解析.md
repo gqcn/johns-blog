@@ -145,7 +145,7 @@ description: "深入分析 Argo Workflow 的源代码实现，探讨其核心组
 
 #### `1）WorkflowController`
 
-*   `![](/attachments/image2021-7-2_10-6-9.png)  `
+*   ![](/attachments/image2021-7-2_10-6-9.png)
 
 `Controller`启动是由`Cobra`命令行组件管理，通过`workflow-controller`命令执行启动。启动后创建`WorkflowController`对象，并执行该对象的`Run`方法将流程的控制交给了该对象维护。这里同时会创建一个`HTTP Serever:``6060/healthz`，用于`Controller容器`的健康检查。不过，从执行结果来看，`6060`端口的健康检查服务并没有被使用，而是使用的后续开启的`Metrics Http Server`作为健康检查的地址。
 
@@ -312,7 +312,7 @@ d）`woc.addInputArtifactsVolumes` 对于`artifacts`功能特性来说是一个
 
 在使用`artifacts`配置的时候，它会创建一个名称为 `inputs-artifacts` 的`emptyDir`类型volume供`Init/Wait/Main  Containers共享artifacts数据。我们来看一个官方的例子(artifacts-passing.yaml)：`
 
-`![](/attachments/image2021-7-5_19-48-52.png)  `
+![](/attachments/image2021-7-5_19-48-52.png)
 
 e）`addInitContainers &  addSidecars &  ` `addOutputArtifactsVolumes` 将`Main Containers`中的`Volume`同步挂载到`Init/Wait Containers`中，以便于共享数据。从一个示例可以看到，`Main Containers`中的`Volume`在`Init/Wait Containers`中都有。
 
@@ -362,7 +362,7 @@ h）`kubeclientset.CoreV1.Pods.Create` 将之前创建的`Pod`提交到`Kubernet
 
 此外，大家可能会对于为何能与`Pod`内部的`Container`交互，并且如何获取到`Docker`的输出内容感觉好奇。那我们`describe`一个`Pod`来看大家也许就明白了：
 
-`![](/attachments/image2021-7-3_11-56-38.png)  `
+![](/attachments/image2021-7-3_11-56-38.png)
 
 可以看到，容器中挂载了`docker.dock`文件到本地，以便本地可以通过`docker`命令与`docker`进行交互。当然`Init Container`不会直接与`Docker`交互，往往只有`Wait Container`才会，所以`Init Container`中并没有挂载该`docker.sock`文件。
 
