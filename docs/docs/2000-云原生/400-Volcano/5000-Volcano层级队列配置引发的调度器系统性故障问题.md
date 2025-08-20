@@ -87,6 +87,7 @@ E0815 05:55:34.455546 1 capacity.go:612] Failed to check queue's hierarchical st
 
 1. **队列配额设置不合理**：子级配额资源配额的总量大于父级队列配额资源。在资源队列创建时，`volcano`没有对子级队列的资源配额做严格的、同步的资源检查，导致异常的子级队列被创建到了集群中（也许未来`volcano`对这块会有所改进）。
 2. **集群节点异常导致队列可用资源变少**：由于`volcano`的`root`队列默认是使用的集群的总资源大小（`nodes allocatable`，每次`session open`时重新计算），当集群的节点异常、节点被移除时，实际上`root`队列的可用资源会变少，导致子级队列的可用资源配额可能会大于父级队列的可用资源配额：https://github.com/volcano-sh/volcano/blob/36e949025f1abff74f2f18b080c6f91bde84db0a/pkg/scheduler/framework/session.go#L206
+3. **在GPU Share场景中，对GPU进行拆卡后，整卡资源减少**：在AI智算场景中，以`GPU`为例，当对`GPU`卡进行`MPS/MIG`拆卡后，会产生新的资源类型，但是原有的`GPU`整卡资源类型数量会减少。例如，原有节点有`8`张整卡的`nvidia.com/gpu`资源，对其中`4`张卡进行`MIG`拆卡后，原有的`nvidia.com/gpu`资源数量就会变为`4`，如果资源队列中有指定配额为`8`张卡，这个时候也会触发调度问题。
 
 
 ## 3. 解决方案
@@ -131,13 +132,12 @@ data:
         enablePreemptable: false
       - name: conformance
     - plugins:
-      - name: capacity
-        enableHierarchy: true
       - name: overcommit
       - name: drf
         enablePreemptable: false
       - name: predicates
-      - name: proportion
+      - name: capacity
+        enableHierarchy: true
       - name: nodeorder
       - name: binpack
 kind: ConfigMap
@@ -151,6 +151,8 @@ metadata:
 1. 在`volcano`默认的调度器配置，`overcommit`插件是默认启用的，该插件允许集群的资源能够超额分配，默认超额比例（`overcommitRatio`）是`1.2`，例如`10`核CPU资源的集群，那么`overcommit`插件会允许调度器调度`12`核CPU的任务。
 
 2. `overcommit`插件还有一个隐藏功能，当队列的`capability`资源不够调度时，`overcommit`插件会阻止任务创建对应的`Pod`，以减少`Pending`的`Pod`数量。否则，即便队列资源不够，也会创建`Pod`，导致`Pending`的`Pod`数量不断增加。
+
+3. `capacity`插件和`proportion`插件是互斥的，两者只留其一。其中`proportion`插件是默认启用的，建议将`capacity`插件的配置位置修改到`proportion`位置处。
 
 ### 4.2 队列配置
 
