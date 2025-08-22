@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/volcano-annotations"
-title: "Volcano注解详解"
+title: "Volcano常用注解"
 hide_title: true
 keywords:
   [
@@ -16,7 +16,7 @@ description: "本文详细介绍了Volcano提供的各种注解（Annotations）
 
 | 注解 | 适用对象 | 作用 | 示例值 |
 |------|---------|------|--------|
-|`volcano.sh/queue-name`|`Pod, PodGroup`| 指定资源应该被分配到哪个队列 |`"default"`|
+|`scheduling.volcano.sh/queue-name`|`Pod`| 指定资源应该被分配到哪个队列 |`"default"`|
 |`volcano.sh/preemptable`|`Pod`| 标记`Pod`是否可被抢占 |`"true"`,`"false"`|
 |`volcano.sh/task-spec`|`Pod`| 指定`Pod`所属的任务类型 |`"worker"`|
 |`volcano.sh/min-available`|`PodGroup`| 指定`PodGroup`最小可用`Pod`数量 |`"3"`|
@@ -31,22 +31,44 @@ description: "本文详细介绍了Volcano提供的各种注解（Annotations）
 
 下面是每个注解的详细说明和使用示例。
 
-### `volcano.sh/queue-name`
+### `scheduling.volcano.sh/queue-name`
 
-**作用**：指定资源应该被分配到哪个队列。这个注解可以应用于`Pod`或`PodGroup`。
+**作用**：指定资源应该被分配到哪个队列。这个注解可以应用于`Pod`，不能用于`deployment/statefulset`等其他资源。
+
+**原理**：使用该注解的关键前提是需要设置调度器名称为`volcano`（`schedulerName: volcano`），随后`PodGroup Controller`会监听`Pod`的创建，并为所有的`Pod`创建对应的`PodGroup`。在此流程中会通过`Pod`的`scheduling.volcano.sh/queue-name`注解来确定`PodGroup`的队列名称，随后`PodGroup`会使用队列的各种功能特性，如资源配额、优先级、抢占等。
 
 **重要性**：队列是`Volcano`资源管理的基本单位，指定队列可以确保资源被正确分配并遵循队列的资源配额和策略。
 
+**注意事项**：
+
+
+1. 截止`v1.12.1`版本，只能通过`annotations`来设置队列，不能通过`labels`来设置队列。
+2. 截止`v1.12.1`版本，针对常用的`Deployment`资源，只能在`spec.template.metadata.annotations`中设置队列名称，不能在`metadata.annotations`中设置队列名称。
+
 **示例**：
 
-```yaml
-# 在Pod上使用
+创建测试队列：
+```yaml title="test-queue.yaml"
+apiVersion: scheduling.volcano.sh/v1beta1
+kind: Queue
+metadata:
+  name: test-queue
+spec:
+  capability:
+    cpu: 10
+    memory: 10Gi
+```
+
+通过`Pod`测试：
+```yaml title="example-pod.yaml"
 apiVersion: v1
 kind: Pod
 metadata:
   name: example-pod
   annotations:
-    volcano.sh/queue-name: "high-priority-queue"
+    # 需要注意，只能使用annotations，不能使用labels指定队列，
+    # 否则无法设置队列，生成的PodGroup的队列名称为默认的default
+    scheduling.volcano.sh/queue-name: "test-queue"
 spec:
   schedulerName: volcano
   containers:
@@ -54,17 +76,32 @@ spec:
     image: nginx
 ```
 
-```yaml
-# 在PodGroup上使用
-apiVersion: scheduling.volcano.sh/v1beta1
-kind: PodGroup
+通过`Deployment`测试：
+```yaml title="example-deployment.yaml"
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: example-podgroup
-  annotations:
-    volcano.sh/queue-name: "high-priority-queue"
+  name: example-deployment
 spec:
-  minMember: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+      annotations:
+        # 只能在annotations中设置队列名称，不能在labels中设置
+        # 只能这里设置队列名称，不能在Deployment的annotations中设置
+        scheduling.volcano.sh/queue-name: "test-queue"
+    spec:
+      schedulerName: volcano
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
 ```
+
 
 ### `volcano.sh/preemptable`
 
