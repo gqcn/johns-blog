@@ -169,7 +169,9 @@ spec:
 ```
 该`root`队列的资源配额是是远超于集群的总资源大小，这样保证了`capacity`插件不会因为资源配额检查失败而停止调度。
 
-**注意事项**：只能修改`root`队列的`capability`资源配额，不能修改`deserved`资源配额，在创建任务后会被调度器自动覆盖为`0`（不知是否为一个`BUG`）。
+**注意事项**：
+1. 只能修改`root`队列的`capability`资源配额，不能设置/修改`deserved`资源配额，在创建任务后会被调度器自动覆盖为`0`（不知是否为一个`BUG`）。也不能设置/修改`guarantee`资源配额。
+2. 在层级队列中，如果子队列带有`guarantee`配额设置，父队列不带`guarantee`配额只带有`capability`配额设置，任务依然能创建成功。
 
 创建一个`test-queue`队列，配置如下：
 ```yaml title="test-queue.yaml"
