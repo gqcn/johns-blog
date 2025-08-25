@@ -42,7 +42,7 @@ alias k=kubectl
 
 ### ns
 
-`ns`是一个可以在kubernetes集群里面切换命名空间的插件。你是否厌烦了每次敲`kubectl`命令时都要加上`-n <namespaces>`的参数，又不想在`config`里面维护大量`context`。那么`ns`插件就是来解救你的，它会在切换命名空间时修改当前`config`里面的`context`到当前命名空间，这样你就不用再加`-n`参数了。
+`ns`是一个可以在`kubernetes`集群里面切换命名空间的插件。你是否厌烦了每次敲`kubectl`命令时都要加上`-n <namespaces>`的参数，又不想在`config`里面维护大量`context`。那么`ns`插件就是来解救你的，它会在切换命名空间时修改当前`config`里面的`context`到当前命名空间，这样你就不用再加`-n`参数了。
 
 > `ns`插件仓库与`ctx`插件源码仓库是同一个。
 
@@ -194,6 +194,31 @@ $ k view-allocations
   └─ john-worker2                                       (3%) 3.0      (3%) 3.0        110.0   107.0
 ```
 
+该命令在智算资源管控场景中，常用来查看智算资源的使用情况，常与`-r`参数结合使用，例如：
+```bash
+$ k view-allocations -r nvidia.com/gpu
+ Resource                                           Requested       Limit  Allocatable  Free 
+  nvidia.com/gpu                                   (28%) 13.0  (28%) 13.0         47.0  34.0 
+  ├─ ai-app-2-151-msxf                                     __          __          8.0    __ 
+  ├─ ai-app-64-40-msxf                              (12%) 1.0   (12%) 1.0          8.0   7.0 
+  │  └─ neal-httpsingleport-0411-7fc454c8fb-bdpfk         1.0         1.0           __    __ 
+  ├─ ai-app-8-1-msxf                                (25%) 2.0   (25%) 2.0          8.0   6.0 
+  │  ├─ pd-qwen3-8b-decoder-7c6ddcd474-gnj5b              1.0         1.0           __    __ 
+  │  └─ pd-qwen3-8b-prefill-559b45d46b-g4zhv              1.0         1.0           __    __ 
+  ├─ msxf-app-2-149                                 (62%) 5.0   (62%) 5.0          8.0   3.0 
+  │  ├─ ces-6c4f56d6c6-7fcbb                              1.0         1.0           __    __ 
+  │  ├─ itsmceshi0806-865568b845-jcn66                    1.0         1.0           __    __ 
+  │  ├─ itsmceshi0806-865568b845-zdvs6                    1.0         1.0           __    __ 
+  │  ├─ msv91211-dep-7c5ccb6854-gtkcd                     1.0         1.0           __    __ 
+  │  └─ neal-0819-6bb79d4569-bhfp7                        1.0         1.0           __    __ 
+  ├─ msxf-hpc-37-2-ai                               (62%) 5.0   (62%) 5.0          8.0   3.0 
+  │  ├─ pd-qwen3-30b-decoder-d46b576dc-gglfh              1.0         1.0           __    __ 
+  │  ├─ pd-qwen3-30b-prefill-746d9fc77f-kb5gw             1.0         1.0           __    __ 
+  │  ├─ pd-qwen3-32b-decoder-75c6d96c4-qhkl9              1.0         1.0           __    __ 
+  │  ├─ pd-qwen3-32b-prefill-75d6cd57fd-45vzd             1.0         1.0           __    __ 
+  │  └─ qwen25-72b-int4-bz-6d6546b9f7-p2wm9               1.0         1.0           __    __ 
+  └─ msxf-hpc-64-5-ai                                      __          __          7.0    __ 
+```
 
 ### tree
 
@@ -233,12 +258,40 @@ volcano-system  └─ReplicaSet/volcano-scheduler-986f77795   -              9d
 
 项目地址：https://github.com/kvaps/kubectl-node-shell
 
+实现原理：该命令会创建一个`nsenter-xxx`的`Pod`，该Pod会带有一个`privileged: true`的高权限容器，默认使用`alpine:latest`镜像。
+
+注意事项：由于默认会拉取外网镜像，在某些外网不通的网络环境下会无法执行成功，可以使用`--image`参数指定需要使用的镜像。
+
+
 安装命令：
 ```bash
 k krew install node-shell
 ```
 
 使用示例：
+```bash
+# Get standard bash shell
+kubectl node-shell <node>
+
+# Use custom image for pod
+kubectl node-shell <node> --image <image>
+
+# Use X-mode (mount /host, and do not enter host namespace)
+kubectl node-shell -x <node>
+
+# Skip specific namespace types to enter, choose any of ipc, mount, pid, net, uts
+kubectl node-shell <node> --no-ipc
+
+# Execute custom command
+kubectl node-shell <node> -- echo 123
+
+# Use stdin
+cat /etc/passwd | kubectl node-shell <node> -- sh -c 'cat > /tmp/passwd'
+
+# Run oneliner script
+kubectl node-shell <node> -- sh -c 'cat /tmp/passwd; rm -f /tmp/passwd'
+```
+
 ```bash
 $ k get node
 NAME                 STATUS   ROLES           AGE   VERSION
@@ -251,6 +304,19 @@ spawning "nsenter-8xhpq5" on "john-worker"
 If you don't see a command prompt, try pressing enter.
 root@john-worker:/# 
 ```
+
+其实`kubectl`工具也提供了`debug`命令，用于实现类似的功能。该`debug`命令功能更强大一些，除了支持`node`，也支持`pod`的`debug`，具体可以参考：https://kubernetes.io/docs/tasks/debug/debug-cluster/kubectl-node-debug/
+
+使用示例：
+
+```bash
+$ k debug node/john-worker -it --image=ubuntu --profile=general
+Creating debugging pod node-debugger-john-worker-hcr2q with container debugger on node john-worker.
+If you don't see a command prompt, try pressing enter.
+root@john-worker:/# 
+```
+
+
 
 ### images
 
