@@ -230,27 +230,27 @@ metadata:
     // 根据Pod生成TaskStatus
     func getTaskStatus(pod *v1.Pod) TaskStatus {
       switch pod.Status.Phase {
-      case v1.PodRunning:
-        if pod.DeletionTimestamp != nil {
-          return Releasing
-        }
+        case v1.PodRunning:
+          if pod.DeletionTimestamp != nil {
+            return Releasing
+          }
 
-        return Running
-      case v1.PodPending:
-        if pod.DeletionTimestamp != nil {
-          return Releasing
-        }
+          return Running
+        case v1.PodPending:
+          if pod.DeletionTimestamp != nil {
+            return Releasing
+          }
 
-        if len(pod.Spec.NodeName) == 0 {
-          return Pending
-        }
-        return Bound
-      case v1.PodUnknown:
-        return Unknown
-      case v1.PodSucceeded:
-        return Succeeded
-      case v1.PodFailed:
-        return Failed
+          if len(pod.Spec.NodeName) == 0 {
+            return Pending
+          }
+          return Bound
+        case v1.PodUnknown:
+          return Unknown
+        case v1.PodSucceeded:
+          return Succeeded
+        case v1.PodFailed:
+          return Failed
       }
 
       return Unknown
@@ -259,10 +259,10 @@ metadata:
     // AllocatedStatus判断Pod是否计入队列使用量
     func AllocatedStatus(status TaskStatus) bool {
       switch status {
-      case Bound, Binding, Running, Allocated:
-        return true
-      default:
-        return false
+        case Bound, Binding, Running, Allocated:
+          return true
+        default:
+          return false
       }
     }
     ```
