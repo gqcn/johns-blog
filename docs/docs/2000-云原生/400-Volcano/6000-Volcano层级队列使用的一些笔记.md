@@ -229,41 +229,41 @@ metadata:
     ```go
     // 根据Pod生成TaskStatus
     func getTaskStatus(pod *v1.Pod) TaskStatus {
-      switch pod.Status.Phase {
+        switch pod.Status.Phase {
         case v1.PodRunning:
-          if pod.DeletionTimestamp != nil {
-            return Releasing
-          }
+            if pod.DeletionTimestamp != nil {
+                return Releasing
+            }
 
-          return Running
+            return Running
         case v1.PodPending:
-          if pod.DeletionTimestamp != nil {
-            return Releasing
-          }
+            if pod.DeletionTimestamp != nil {
+                return Releasing
+            }
 
-          if len(pod.Spec.NodeName) == 0 {
-            return Pending
-          }
-          return Bound
+            if len(pod.Spec.NodeName) == 0 {
+                return Pending
+            }
+            return Bound
         case v1.PodUnknown:
-          return Unknown
+            return Unknown
         case v1.PodSucceeded:
-          return Succeeded
+            return Succeeded
         case v1.PodFailed:
-          return Failed
-      }
+            return Failed
+        }
 
-      return Unknown
+        return Unknown
     }
 
     // AllocatedStatus判断Pod是否计入队列使用量
     func AllocatedStatus(status TaskStatus) bool {
-      switch status {
+        switch status {
         case Bound, Binding, Running, Allocated:
-          return true
+            return true
         default:
-          return false
-      }
+            return false
+        }
     }
     ```
 
