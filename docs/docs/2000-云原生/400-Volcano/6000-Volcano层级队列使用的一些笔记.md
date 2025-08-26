@@ -29,9 +29,9 @@ description: "基于Volcano源码分析和实践经验总结的层级队列使�
 ---
 
 
-以下笔记是在工作使用中，通过分析`volcano`源码，并且实践得到的经验。`volcano`源码版本为 `commit: 80eea1df4b922773c47ac4f8e483b48a3ccc7090`，最新提交时间：`Wed Aug 13 10:17:58 2025 +0800`。
+> 以下笔记是在工作使用中，通过分析`volcano`源码，并且实践得到的经验。`volcano`源码版本为 `commit: 80eea1df4b922773c47ac4f8e483b48a3ccc7090`，最新提交时间：`Wed Aug 13 10:17:58 2025 +0800`。
 
-## root队列
+## 默认root队列问题
 
 1. `volcano`默认情况下会给创建的一级队列设置默认的父级队列为`root`队列。
 2. `volcano`资源队列默认的`root`队列资源配额是集群的所有资源的总和（`nodes allocatable`），并且会随着节点变化或节点资源的变化而自动改变。
@@ -225,7 +225,7 @@ metadata:
       Unknown
     )
     ```
-2. 只有`Bound, Binding, Running, Allocated`四种TaskStatus的Pod才会被计入队列使用量。关键的源码如下：
+2. 只有`Bound, Binding, Running, Allocated`四种`TaskStatus`的`Pod`才会被计入队列使用量。关键的源码如下：
     ```go
     // 根据Pod生成TaskStatus
     func getTaskStatus(pod *v1.Pod) TaskStatus {
