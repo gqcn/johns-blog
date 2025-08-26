@@ -258,7 +258,7 @@ volcano-system  └─ReplicaSet/volcano-scheduler-986f77795   -              9d
 
 项目地址：https://github.com/kvaps/kubectl-node-shell
 
-实现原理：该命令会创建一个`nsenter-xxx`的`Pod`，该Pod会带有一个`privileged: true`的高权限容器，默认使用`alpine:latest`镜像。
+实现原理：该命令会创建一个`nsenter-xxx`的`Pod`，该`Pod`会带有一个`privileged: true`的高权限容器，默认使用`alpine:latest`镜像。
 
 注意事项：由于该命令默认会拉取外网镜像，在某些外网不通的网络环境下会无法执行成功，可以使用`--image`参数指定需要使用的镜像。
 
