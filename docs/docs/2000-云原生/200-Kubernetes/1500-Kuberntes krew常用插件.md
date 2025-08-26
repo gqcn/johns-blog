@@ -118,7 +118,7 @@ Active namespace is "not-found-namespace".
 
 `stern`是一个可以同时查看多个`pod`日志的工具。
 
-> 另外还有一个域`stern`类似的`tail`插件，用于获取最新的流式的日志输出。
+> 另外还有一个与`stern`类似的`tail`插件，用于获取最新的流式的日志输出。
 
 项目地址：https://github.com/stern/stern
 
@@ -260,7 +260,7 @@ volcano-system  └─ReplicaSet/volcano-scheduler-986f77795   -              9d
 
 实现原理：该命令会创建一个`nsenter-xxx`的`Pod`，该Pod会带有一个`privileged: true`的高权限容器，默认使用`alpine:latest`镜像。
 
-注意事项：由于默认会拉取外网镜像，在某些外网不通的网络环境下会无法执行成功，可以使用`--image`参数指定需要使用的镜像。
+注意事项：由于该命令默认会拉取外网镜像，在某些外网不通的网络环境下会无法执行成功，可以使用`--image`参数指定需要使用的镜像。
 
 
 安装命令：
