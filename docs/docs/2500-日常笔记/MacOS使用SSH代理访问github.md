@@ -15,7 +15,7 @@ description: "解决MacOS环境下通过SSH代理访问GitHub超时问题的完�
 ## 解决方案
 
 
-### 前提
+### 前置工具
 
 本地需要安装有梯子。
 
@@ -24,6 +24,7 @@ description: "解决MacOS环境下通过SSH代理访问GitHub超时问题的完�
 brew install connect
 ```
 
+### 全局SSH代理配置
 创建该文件`~/.ssh/config`，内容如下：
 ```bash title="config"
 Host github.com
@@ -38,6 +39,7 @@ Host github.com
   # ProxyCommand connect -H 127.0.0.1:7890 %h %p
 ```
 
+### 连接测试
 执行以下命令测试结果：
 ```bash
 % ssh -T git@github.com
