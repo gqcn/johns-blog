@@ -9,7 +9,8 @@ description: "解决MacOS环境下通过SSH代理访问GitHub超时问题的完�
 
 ## 背景
 
-某一天，通过`ssh`方式拉取和推送`github`的代码超时失败。DDDD。
+- 由于`github`的安全限制，只能通过`SSH`方式推送代码，并且在`github`的`Profile Settings`中已经配置好`SSH`秘钥。
+- 某一天，通过`ssh`方式拉取和推送`github`的代码超时失败。DDDD。
 
 ## 解决方案
 
@@ -48,3 +49,4 @@ Hi gqcn! You've successfully authenticated, but GitHub does not provide shell ac
 
 - https://github.com/orgs/community/discussions/73011
 - https://bannirui.github.io/2024/01/24/%E4%BB%A3%E7%90%86git%E7%9A%84ssh%E5%8D%8F%E8%AE%AE/
+- https://docs.github.com/en/authentication/troubleshooting-ssh/using-ssh-over-the-https-port
