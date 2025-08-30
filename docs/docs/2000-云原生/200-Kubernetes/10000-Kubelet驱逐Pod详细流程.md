@@ -40,6 +40,8 @@ description: "深入解析Kubernetes中kubelet的Pod驱逐机制，包括驱逐�
 
 ## 2. 驱逐信号和阈值：什么时候会驱逐 Pod?
 
+首先，新的`Pod`调度不会引发驱逐动作，驱逐动作只会在节点资源紧张时才会发生，例如某些`Pod`的资源使用率（`CPU/Memory/Disk/PID`等）飙升（因为`Container limits`可以超过节点可分配资源总量），或者节点上其他进程引发的节点资源压力。
+
 `kubelet`使用各种参数来做出驱逐决定，具体包含以下`3`个部分：
 
 *   1）驱逐信号
@@ -81,7 +83,7 @@ description: "深入解析Kubernetes中kubelet的Pod驱逐机制，包括驱逐�
 | Node Condition | Eviction Signal | Description |
 | --- | --- | --- |
 | `MemoryPressure` | `memory.available` | 节点可用内存余量满足驱逐阈值 |
-| `DiskPressure` | `nodefs.available, nodefs.inodesFree, imagefs.available, or imagefs.inodesFree` | 节点主文件系统或者镜像文件系统剩余磁盘空间或者 inodes 数量满足驱逐阈值 |
+| `DiskPressure` | `nodefs.available, nodefs.inodesFree, imagefs.available, or imagefs.inodesFree` | 节点主文件系统或者镜像文件系统剩余磁盘空间或者`inodes`数量满足驱逐阈值 |
 | `PIDPressure` | `pid.available` | 节点上可用进程标识符(`processes identifiers`) 低于驱逐阈值 |
 
 总的来说就是节点上对应资源不足时`kubelet`就会被节点打上对应的标记。

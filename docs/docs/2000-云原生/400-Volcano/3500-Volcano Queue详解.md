@@ -1,31 +1,33 @@
 ---
-slug: "/cloud-native/volcano-queue-job"
-title: "Volcano Queue&Job详解"
+slug: "/cloud-native/volcano-queue"
+title: "Volcano Queue详解"
 hide_title: true
 keywords:
   [
+    "Volcano Queue",
     "Volcano",
-    "Queue",
-    "Job",
-    "云原生",
-    "批处理",
-    "调度系统",
     "资源管理",
     "多租户",
+    "队列权重",
+    "优先级",
+    "capability",
+    "deserved",
+    "guarantee",
+    "资源抢占",
+    "层级队列",
+    "节点亲和性",
+    "reclaimable",
+    "proportion插件",
+    "capacity插件",
+    "云原生",
     "Kubernetes",
-    "高性能计算",
-    "任务依赖",
-    "重试策略",
-    "资源隔离",
-    "亲和性",
-    "队列权重"
+    "资源隔离"
   ]
-description: "详细介绍Volcano调度系统中Queue和Job两个核心对象的设计与使用，包括资源管理、队列配置、作业定义、重试策略、任务依赖关系等高级特性，帮助用户充分利用Volcano进行高效的批处理任务调度。"
+description: "深入解析Volcano Queue的核心功能与配置方法，包括三级资源管理机制(capability/deserved/guarantee)、优先级与权重策略、队列状态控制、资源抢占机制、层级队列结构、节点组亲和性配置等高级特性。详细介绍capacity和proportion两种插件的资源分配策略，帮助用户构建高效的多租户资源管理体系。"
 ---
 
-本文详细介绍`Volcano`中`Queue`和`Job`核心对象的关键设计以及使用。关于这两个对象的基础介绍，请参考`Volcano`基本介绍章节 [Volcano介绍](./1000-Volcano介绍.md)。
+本文详细介绍`Volcano`中`Queue`核心对象的关键设计以及使用。关于`Queue`的基础介绍，请参考`Volcano`基本介绍章节 [Volcano介绍](./1000-Volcano介绍.md)。
 
-## Queue
 
 `Queue`是`Volcano`调度系统中的核心概念，用于管理和分配集群资源。
 它充当了资源池的角色，允许管理员将集群资源划分给不同的用户组或应用场景。该自定义资源可以很好地用于多租户场景下的资源隔离。
@@ -84,7 +86,7 @@ spec:
 
 
 
-### 资源管理机制
+## 资源管理机制
 
 `Volcano`的`Queue`资源对象采用了一个灵活的三级资源管理机制，这三个级别分别是：`capability`（资源上限）、`deserved`（应得资源）和`guarantee`（保障资源）。这种设计允许集群管理员精细控制资源分配，特别适合多租户环境下的资源管理。
 
@@ -95,7 +97,7 @@ spec:
 > - 使用 `proportion` 插件时：主要使用 `weight` 动态计算 `deserved`，`capability` 和 `guarantee` 仍然有效。
 > - 两种插件不能同时启用，需要根据实际需求选择合适的资源管理策略。
 
-#### 使用 capacity 插件的资源管理机制
+### 使用 capacity 插件的资源管理机制
 
 当启用 `capacity` 插件时，`Queue`的三级资源配置（`capability`、`deserved`、`guarantee`）会严格按照预设值进行资源管理。
 
@@ -171,7 +173,7 @@ spec:
     如果设置`deserved`但未设置`guarantee`，就以`deserved`来保护队列资源。以`capacity`插件为例，资源回收的实现源码如下：
     ![alt text](<assets/3500-Volcano Queue&Job详解/image.png>)
 
-#### 使用 proportion 插件的资源管理机制
+### 使用 proportion 插件的资源管理机制
 
 当启用 `proportion` 插件时，资源管理机制发生了重要变化，主要基于 `weight`（权重）进行动态资源分配。
 
@@ -232,7 +234,7 @@ spec:
 
 
 
-### 优先级与权重
+## 优先级与权重
 
 `Volcano`队列系统中的`priority`（优先级）和`weight`（权重）是两个不同的概念，它们在资源分配和抢占机制中扮演不同的角色：
 
@@ -283,11 +285,28 @@ spec:
 - 如果队列`C`和队列`D`的优先级都是`100`，权重分别是`2`和`1`，那么在资源分配时，队列`C`会获得约`2/3`的资源，队列`D`获得约`1/3`的资源。
 - 当队列`A`和队列`B`的优先级都为`100`时，队列`A`的权重为`1`，队列`B`的权重为`2`，当有很多任务处于`Pending`状态时，那么队列`B`会优先获得调度。
 
-### 队列状态
+## Queue状态
 
 `Volcano Queue`有四种状态，用于控制队列的行为和作业调度。这些状态在集群维护和资源管理中非常重要。
 
-#### 状态状态类型
+
+```go
+// QueueState is state type of queue.
+type QueueState string
+
+const (
+	// QueueStateOpen indicate `Open` state of queue
+	QueueStateOpen QueueState = "Open"
+	// QueueStateClosed indicate `Closed` state of queue
+	QueueStateClosed QueueState = "Closed"
+	// QueueStateClosing indicate `Closing` state of queue
+	QueueStateClosing QueueState = "Closing"
+	// QueueStateUnknown indicate `Unknown` state of queue
+	QueueStateUnknown QueueState = "Unknown"
+)
+```
+
+### 状态状态类型
 
 1. **Open（开放）**：
    - 队列处于正常工作状态
@@ -312,7 +331,7 @@ spec:
    - 通常是由于系统错误或通信问题导致
    - 控制器会尝试将队列恢复到已知状态
 
-#### 检查队列状态
+### 检查队列状态
 
 要检查队列的当前状态，可以使用以下命令：
 
@@ -324,11 +343,11 @@ kubectl get queue <队列名称> -o jsonpath='{.status.state}'
 kubectl get queue -o custom-columns=NAME:.metadata.name,STATE:.status.state
 ```
 
-#### 状态控制
+### 状态控制
 
 `Volcano`使用命令（Command）机制来控制队列的状态，而不是通过直接修改`Queue`对象的字段。以下是控制队列状态的方法：
 
-##### 方式一：使用`kubectl vc`命令行工具（推荐）
+#### 方式一：使用`kubectl vc`命令行工具（推荐）
 
 `Volcano`提供了专门的命令行工具来操作队列：
 
@@ -340,7 +359,7 @@ kubectl vc queue operate --action close --name <队列名称>
 kubectl vc queue operate --action open --name <队列名称>
 ```
 
-##### 方式二：创建`Command`资源
+#### 方式二：创建`Command`资源
 
 如果需要以编程方式或在自动化脚本中控制队列状态，可以创建`Command`资源：
 
@@ -363,7 +382,7 @@ targetObject:
 action: CloseQueue  # 或 OpenQueue
 ```
 
-##### 方式三：使用Volcano API客户端
+#### 方式三：使用Volcano API客户端
 
 在`Go`程序中，可以使用`Volcano`的客户端库：
 
@@ -404,7 +423,7 @@ func closeQueue(client *versioned.Clientset, queueName string) error {
 ```
 
 
-### 资源抢占机制
+## 资源抢占机制
 
 在`Volcano`中，资源抢占有两种主要实现方式：基于`Queue`属性的抢占和基于`PriorityClass`的抢占。
 
@@ -503,11 +522,11 @@ spec:
 - 首先基于`Queue`属性进行队列级别的资源分配
 - 然后基于`PriorityClass`在队列内部或跨队列进行细粒度的作业优先级管理
 
-### 层级队列
+## 层级队列
 
 在`Volcano`中，层级队列结构是一种特殊的资源管理方式，允许将队列组织成树形结构，实现更精细的资源分配和控制。`Volcano`支持层级队列结构，允许根据组织结构或业务需求创建多层次的队列体系。
 
-#### 层级队列的配置方式
+### 层级队列的配置方式
 
 在`Volcano`中，通过`spec.parent`属性可以简单直接地配置层级队列关系：
 
@@ -522,7 +541,7 @@ spec:
   parent: "root.eng"  # 指定父队列，使用点号分隔层级
 ```
 
-#### 层级队列的使用示例
+### 层级队列的使用示例
 
 下面是一个使用`parent`属性创建三层队列结构的示例：
 
@@ -557,7 +576,7 @@ spec:
   parent: "root.eng"  # 指定父队列为root.eng
 ```
 
-#### 层级队列的工作原理
+### 层级队列的工作原理
 
 层级队列的资源分配遵循以下原则：
 
@@ -566,7 +585,7 @@ spec:
 - **资源限制**：子队列的`deserved`资源总和不能超过父队列的`deserved`资源
 - **资源继承**：如果子队列没有设置`capability`，它会继承父队列的`capability`值
 
-#### 层级队列的资源回收与抢占
+### 层级队列的资源回收与抢占
 
 层级队列中的资源回收遵循特定的规则：
 
@@ -574,14 +593,14 @@ spec:
 - **层级传递**：如果同级队列的资源回收不足，会向上传递资源需求，由父队列协调资源
 - **保障机制**：即使在资源紧张时，也会保证队列的`guarantee`资源不被回收
 
-#### 层级队列的优势
+### 层级队列的优势
 
 - **组织结构映射**：可以直接映射企业的组织结构，如部门/团队/项目
 - **精细化资源管理**：实现多层次的资源配额和限制
 - **灵活的资源共享**：同一父队列下的子队列可以共享资源
 - **简化管理**：可以在父队列级别设置策略，自动应用到所有子队列
 
-### 队列亲和性（affinity）
+## 队列亲和性（affinity）
 
 `Volcano`的`Queue`对象提供了强大的亲和性配置功能，允许管理员控制队列中的任务应该调度到哪些节点上。这一功能特别适用于需要特定硬件资源（如`GPU`、高内存节点）的工作负载。
 
@@ -589,7 +608,7 @@ spec:
 > **注意**：`Queue`的`affinity`配置**必须**启用`nodegroup`插件才能生效。该插件负责解析队列的亲和性配置并在调度过程中应用这些规则。如果未启用`nodegroup`插件，即使在`Queue`对象中配置了`affinity`，这些配置也不会影响调度决策。
 
 
-#### 节点组介绍
+### 节点组介绍
 
 节点组是`Volcano`中的一个逻辑概念，用于将具有相似特性或用途的节点归类管理。节点组通过节点标签 `volcano.sh/nodegroup-name` 来定义。
 
@@ -662,7 +681,7 @@ spec:
 
 这种设计使得节点组管理更加灵活和可扩展，特别适合大规模、多租户的集群环境。
 
-#### 亲和性类型
+### 亲和性类型
 
 `Queue`的`affinity`配置支持两种主要类型：
 
@@ -675,7 +694,7 @@ spec:
 - **`requiredDuringSchedulingIgnoredDuringExecution`**：必须满足的亲和性规则，如果不满足，任务将不会被调度
 - **`preferredDuringSchedulingIgnoredDuringExecution`**：优先满足的亲和性规则，如果不满足，任务仍然可以被调度到其他节点
 
-#### 配置示例
+### 配置示例
 
 下面是一个完整的`Queue`亲和性配置示例：
 
@@ -701,7 +720,7 @@ spec:
         - "test-nodes"       # 不能调度到标记为 test-nodes 的节点组
 ```
 
-#### 工作原理
+### 工作原理
 
 当`Volcano`调度器为队列中的任务选择节点时，会根据队列的`affinity`配置进行过滤：
 
@@ -724,13 +743,13 @@ spec:
    - 两者都必须满足才能完成调度
 
 
-### 扩展集群（extendClusters）
+## 扩展集群（extendClusters）
 
 `Volcano`的`Queue`对象提供了`extendClusters`配置，允许将队列中的作业调度到多个集群中。这一功能在多集群管理和混合云场景中特别有用。
 
 > **注意**：要使`Queue`的`extendClusters`配置生效，需要启用`Volcano`的多集群调度功能，并配置相应的集群连接信息。
 
-#### 配置结构
+### 配置结构
 
 `extendClusters`字段是一个数组，每个元素定义了一个扩展集群及其相关属性：
 
@@ -760,7 +779,7 @@ extendClusters:
    - 可以指定多种资源类型，如CPU、内存、GPU等
    - 队列中的作业在该集群上使用的资源总和不能超过这个限制
 
-#### 工作原理
+### 工作原理
 
 当启用多集群调度功能时，`Volcano`调度器会根据以下流程处理队列的`extendClusters`配置：
 
@@ -776,7 +795,7 @@ extendClusters:
    - 将作业调度到选中的集群中执行
    - 维护作业与集群的映射关系
 
-#### 应用场景
+### 应用场景
 
 1. **资源池扩展**：当主集群资源不足时，可以将作业调度到其他集群，扩展资源池
 
@@ -786,7 +805,7 @@ extendClusters:
 
 4. **特定资源类型的分配**：将需要特定硬件（如GPU、FPGA）的作业调度到配备这些资源的集群
 
-#### 配置示例
+### 配置示例
 
 下面是一个完整的使用`extendClusters`的`Queue`配置示例：
 
@@ -827,7 +846,7 @@ spec:
 - 当本地集群资源不足或不满足作业要求时，会考虑调度到公有云集群
 - 每个集群都有各自的资源限制，确保队列不会过度使用某一集群的资源
 
-#### 使用注意事项
+### 使用注意事项
 
 1. **多集群配置**：使用`extendClusters`前，需要先在`Volcano`调度器中配置多集群环境
 
@@ -837,11 +856,11 @@ spec:
 
 4. **性能影响**：跨集群调度可能引入额外的网络延迟和性能开销，需要考虑这些因素
 
-### 队列使用方式
+## 队列使用方式
 
 `Volcano Queue`可以与多种`Kubernetes`工作负载类型结合使用。以下是不同工作负载类型如何关联到指定队列的示例：
 
-#### 1. Volcano Job
+### 1. Volcano Job
 
 `Volcano Job`可以直接在定义中指定队列名称：
 
@@ -863,7 +882,7 @@ spec:
               image: tensorflow/tensorflow:latest-gpu
 ```
 
-#### 2. Kubernetes Pod
+### 2. Kubernetes Pod
 
 对于普通的`Kubernetes Pod`，可以通过添加特定注解来指定队列：
 
@@ -881,7 +900,7 @@ spec:
     image: ml-model:v1
 ```
 
-#### 3. Kubernetes Deployment
+### 3. Kubernetes Deployment
 
 对于`Deployment`，需要在`Pod`模板中添加相关注解：
 
@@ -915,7 +934,7 @@ spec:
 > kubectl get pods -l volcano.sh/queue-name=web-queue
 > ```
 
-#### 4. Kubernetes StatefulSet
+### 4. Kubernetes StatefulSet
 
 `StatefulSet`的配置方式与`Deployment`类似：
 
@@ -943,7 +962,7 @@ spec:
         image: mysql:5.7
 ```
 
-#### 5. PodGroup
+### 5. PodGroup
 
 `PodGroup`是`Volcano`提供的一种自定义资源，用于将多个`Pod`作为一个组进行调度：
 
@@ -969,7 +988,7 @@ spec:
     image: ml-training:v1
 ```
 
-#### 注意事项
+### 注意事项
 
 1. **调度器指定**：无论使用哪种方式，都必须将`schedulerName`设置为`volcano`，否则`Pod`不会被`Volcano`调度器处理
 
@@ -979,401 +998,3 @@ spec:
 
 4. **默认队列**：如果未指定队列，`Pod`将被分配到默认队列（通常名为`default`）
 
-
-## Job
-
-`Volcano Job`是`Volcano`调度系统中的核心工作负载对象，用于定义和管理复杂的分布式、批处理和高性能计算任务。与原生`Kubernetes Job`相比，`Volcano Job`提供了更丰富的功能和更灵活的调度策略，特别适合机器学习、大数据分析、科学计算等领域。
-
-### 基本结构
-
-`Volcano Job`的数据结构如下：
-
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: distributed-training  # 作业名称
-spec:
-  minAvailable: 3             # 最小可用Pod数量，作业启动所需的最小资源数量
-  minSuccess: 2               # 最小成功Pod数量，任务被认为完成所需的最小成功数量
-  schedulerName: volcano      # 指定使用volcano调度器
-  priorityClassName: high     # 作业优先级（可选）
-  queue: ai-training          # 所属队列
-  maxRetry: 5                 # 最大重试次数
-  ttlSecondsAfterFinished: 3600  # 作业完成后保留时间（秒）
-  plugins:                    # 使用的插件
-    ssh: []                   # SSH插件配置
-    env: []                   # 环境变量插件配置
-    svc: []                   # 服务插件配置
-  policies:                   # 策略配置
-    - event: PodEvicted       # 触发事件
-      action: RestartJob      # 对应动作
-  tasks:                      # 任务定义，一个Job可以包含多个任务
-    - replicas: 1             # 副本数
-      name: ps                # 任务名称
-      policies:               # 任务级别策略
-        - event: TaskCompleted # 触发事件
-          action: CompleteJob # 对应动作
-      template:               # Pod模板
-        metadata:
-          labels:
-            role: ps
-        spec:
-          containers:
-            - name: tensorflow
-              image: tensorflow/tensorflow:2.4.0-gpu
-              resources:
-                limits:
-                  cpu: 4
-                  memory: 8Gi
-                  nvidia.com/gpu: 1
-    - replicas: 4             # 副本数
-      name: worker            # 任务名称
-      template:               # Pod模板
-        metadata:
-          labels:
-            role: worker
-        spec:
-          containers:
-            - name: tensorflow
-              image: tensorflow/tensorflow:2.4.0-gpu
-              resources:
-                limits:
-                  cpu: 2
-                  memory: 4Gi
-                  nvidia.com/gpu: 1
-```
-
-### Job状态
-
-`Volcano Job`是一个更高级别的抽象，它包含一个或多个`Task`，每个`Task`可以有多个`Pod`副本。`Job`有以下几种状态：
-
-| 状态 | 说明 | 描述 |
-| --- | --- | --- |
-| `Pending` | 等待中 | `Job`正在队列中等待，等待调度决策 |
-| `Inqueue` | 入队 | `Job`已入队，等待调度 |
-| `Aborting` | 中止中 | `Job`正在被中止，等待释放`Pod` |
-| `Aborted` | 已中止 | `Job`已被中止，所有`Pod`已被释放 |
-| `Running` | 运行中 | `Job`中的`Pod`正在运行 |
-| `Restarting` | 重启中 | `Job`正在重启，等待`Pod`终止 |
-| `Completing` | 完成中 | `Job`正在完成，等待`Pod`终止 |
-| `Completed` | 已完成 | `Job`已成功完成，所有`Pod`都已成功运行并终止 |
-| `Terminating` | 终止中 | `Job`正在终止，等待`Pod`终止 |
-| `Terminated` | 已终止 | `Job`已终止，所有`Pod`已被终止 |
-| `Failed` | 失败 | `Job`已失败，无法继续运行 |
-
-
-### 批量调度
-
-`minAvailable`属性是`Volcano Job`中的核心功能之一，用于实现"批量调度"或"整体调度"机制。这一机制在分布式计算、机器学习等领域特别重要，因为这些应用通常需要多个`Pod`同时启动才能正常工作。
-
-#### 工作原理
-
-1. **调度保证**：
-   - 当设置`minAvailable=N`时，`Volcano`调度器会确保至少有`N`个`Pod`同时被调度
-   - 如果集群资源不足以满足这一要求，所有`Pod`将保持在`Pending`状态，而不是部分调度
-
-2. **PodGroup集成**：
-   - `Volcano`会为每个`Job`创建一个`PodGroup`对象
-   - `minAvailable`值会设置到`PodGroup`中，用于指导调度决策
-
-3. **资源等待机制**：
-   - 当资源不足时，作业将进入等待状态
-   - 一旦有足够资源可以满足`minAvailable`要求，作业将被调度
-
-#### 应用场景示例
-
-1. **分布式机器学习**：
-
-    ```yaml
-    apiVersion: batch.volcano.sh/v1alpha1
-    kind: Job
-    metadata:
-      name: tf-training
-    spec:
-      minAvailable: 3  # 1个PS + 2个Worker最小要求
-      tasks:
-        - replicas: 1
-          name: ps
-        - replicas: 4
-          name: worker
-    ```
-
-2. **MPI并行计算**：
-
-    ```yaml
-    apiVersion: batch.volcano.sh/v1alpha1
-    kind: Job
-    metadata:
-      name: mpi-job
-    spec:
-      minAvailable: 5  # 1个Launcher + 4个Worker
-      tasks:
-        - replicas: 1
-          name: launcher
-        - replicas: 4
-          name: worker
-    ```
-
-#### 与其他属性的配合
-
-- **与minSuccess的区别**：`minAvailable`关注的是**调度启动**时的最小要求，而`minSuccess`关注的是**任务成功**所需的最小成功`Pod`数量。这里的成功是指Pod处于`Succeeded`状态（即`Pod`内所有容器都成功终止，退出码为`0`）
-
-- **与policies的结合**：可以配合`PodFailed`策略，当`Pod`失败导致可用`Pod`数量小于`minAvailable`时触发重启或终止操作
-
-### 重试策略
-
-`Volcano Job`提供了灵活的重试机制，允许用户配置在作业失败时的处理方式。这一机制对于提高分布式任务的可靠性和容错能力至关重要。
-
-#### 重试控制参数
-
-1. **maxRetry**：
-   - 定义作业失败时的最大重试次数
-   - 当作业失败次数超过该值时，作业将被标记为最终失败状态
-   - 默认值为`3`
-
-2. **policies**：
-   - 通过`event`和`action`对定义特定事件发生时的处理方式
-   - 可以在作业级别或任务级别配置
-
-#### 支持的事件类型(event)
-
-`Volcano`支持以下事件类型来触发重试策略：
-
-| 事件 | 描述 | 备注 |
-| :--- | :--- | :--- |
-| `PodFailed` | 当`Pod`失败时触发 | 适用于容器崩溃、内存溢出等异常情况 |
-| `PodEvicted` | 当`Pod`被驱逐时触发 | 适用于资源抢占、节点维护等情况 |
-| `PodPending` | 当`Pod`处于等待状态时触发 | 通常与`timeout`参数配合使用，适用于检测调度卡住的情况 |
-| `PodRunning` | 当`Pod`进入运行状态时触发 | 适用于监控`Pod`状态变化，可用于取消其他延迟操作 |
-| `JobUnknown` (`Unknown`) | 当作业状态未知时触发 | 适用于处理异常情况，如部分Pod无法调度而其他已运行 |
-| `TaskCompleted` | 当任务中所有Pod成功完成时触发 | 适用于一个任务完成后触发作业级别的动作 |
-| `TaskFailed` | 当任务意外失败时触发 | 适用于检测任务级别的失败 |
-| `OutOfSync` | 当`Pod`或`Job`状态更新时触发 | 系统内部事件，用于处理添加/更新/删除操作 |
-| `CommandIssued` | 当用户发出命令时触发 | 系统内部事件，用于响应外部命令 |
-| `JobUpdated` | 当`Job`被更新时触发 | 系统内部事件，主要用于扩容/缩容操作 |
-| `*` (`AnyEvent`) | 匹配任何事件 | 通配符，可用于捕获所有类型的事件 |
-
-#### 支持的动作类型(action)
-
-`Volcano`支持以下动作类型来处理重试：
-
-| 动作 | 描述 | 备注 |
-| :--- | :--- | :--- |
-| `AbortJob` | 中止作业，但不清理资源 | 作业可以恢复 |
-| `RestartJob` | 重启整个作业 | 所有`Pod`将被终止并重新创建 |
-| `RestartTask` | 只重启特定任务 | 只能用于任务级别的策略 |
-| `RestartPod` | 只重启特定的`Pod` | 提供更精细的重启控制 |
-| `TerminateJob` | 终止作业并清理所有资源 | 作业将无法恢复 |
-| `CompleteJob` | 将作业标记为完成 | 适用于关键任务完成时结束整个作业 |
-
-#### 重试策略配置示例
-
-1. **基本重试配置**：
-
-    ```yaml
-    apiVersion: batch.volcano.sh/v1alpha1
-    kind: Job
-    metadata:
-      name: job-retry-example
-    spec:
-      minAvailable: 3
-      maxRetry: 5  # 最多重试五次
-      policies:
-        - event: PodFailed  # 当Pod失败时
-          action: RestartJob  # 重启整个作业
-    ```
-
-2. **任务级别重试策略**：
-
-    ```yaml
-    apiVersion: batch.volcano.sh/v1alpha1
-    kind: Job
-    metadata:
-      name: task-retry-example
-    spec:
-      minAvailable: 3
-      maxRetry: 3
-      tasks:
-        - replicas: 1
-          name: master
-          policies:
-            - event: PodFailed  # 当master失败时
-              action: RestartJob  # 重启整个作业
-        - replicas: 3
-          name: worker
-          policies:
-            - event: PodFailed  # 当worker失败时
-              action: RestartTask  # 只重启该任务
-    ```
-
-3. **带超时的重试策略**：
-
-    ```yaml
-    apiVersion: batch.volcano.sh/v1alpha1
-    kind: Job
-    metadata:
-      name: timeout-retry-example
-    spec:
-      minAvailable: 3
-      policies:
-        - event: PodPending  # 当Pod长时间处于等待状态
-          action: AbortJob  # 中止作业
-          timeout: 1h  # 超过1小时后触发
-    ```
-
-#### 重试策略最佳实践
-
-1. **区分关键任务和非关键任务**：
-   - 对于关键任务（如主节点）的失败，应触发`RestartJob`
-   - 对于非关键任务（如工作节点）的失败，可以使用`RestartTask`或`RestartPod`
-
-2. **考虑超时设置**：
-   - 对于可能长时间卡住的情况，添加`timeout`参数
-   - 超时时间应根据任务的复杂度和资源需求合理设置
-
-3. **限制最大重试次数**：
-   - `maxRetry`值不应设置过大，避免资源浪费
-   - 对于大型作业，建议设置为`3-5`次
-
-4. **与队列策略的协调**：
-   - 考虑队列的`reclaimable`属性对重试策略的影响
-   - 如果作业在可回收的队列中，可能需要更强大的重试策略
-
-#### 与其他特性的结合
-
-- **与minAvailable的结合**：当`Pod`失败导致可用`Pod`数量小于`minAvailable`时，可以触发重试
-
-- **与minSuccess的结合**：当成功的`Pod`数量无法达到`minSuccess`时，可以触发重试
-
-- **与插件的结合**：重试时会重新应用插件配置，确保环境变量、SSH密钥等正确重新配置
-
-### 任务依赖关系
-
-`Volcano Job`支持在不同任务之间定义依赖关系，这一功能在复杂的工作流程中非常有用，如数据处理管道、模型训练和评估流程等。
-
-#### 依赖关系配置
-
-`Volcano Job`使用`dependsOn`字段定义任务之间的依赖关系：
-
-```yaml
-tasks:
-  - name: task-A
-    replicas: 1
-    template:
-      # ...
-  - name: task-B
-    replicas: 2
-    dependsOn:
-      name: ["task-A"]  # task-B依赖于task-A
-    template:
-      # ...
-  - name: task-C
-    replicas: 3
-    dependsOn:
-      name: ["task-A", "task-B"]  # task-C依赖于task-A和task-B
-    template:
-      # ...
-```
-
-#### 工作原理
-
-1. **依赖解析**：
-   - `Volcano Job`控制器在创建作业时解析任务之间的依赖关系
-   - 构建一个有向无环图（DAG）来表示任务执行顺序
-
-2. **执行顺序**：
-   - 只有当所有依赖的任务完成后，一个任务才会启动
-   - 没有依赖关系的任务可以并行启动
-
-3. **状态传递**：
-   - 当一个任务失败时，依赖于它的任务不会启动
-   - 这确保了工作流程的完整性
-
-#### 应用场景
-
-1. **数据处理管道**：
-
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: data-pipeline
-spec:
-  minAvailable: 1
-  tasks:
-    - name: data-collection
-      replicas: 1
-      template:
-        # ...
-    - name: data-preprocessing
-      replicas: 3
-      dependsOn:
-        name: ["data-collection"]
-      template:
-        # ...
-    - name: model-training
-      replicas: 2
-      dependsOn:
-        name: ["data-preprocessing"]
-      template:
-        # ...
-```
-
-2. **复杂的模型训练流程**：
-
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: ml-workflow
-spec:
-  minAvailable: 1
-  tasks:
-    - name: data-preparation
-      replicas: 1
-      template:
-        # ...
-    - name: feature-extraction
-      replicas: 2
-      dependsOn:
-        name: ["data-preparation"]
-      template:
-        # ...
-    - name: model-training
-      replicas: 1
-      dependsOn:
-        name: ["feature-extraction"]
-      template:
-        # ...
-    - name: model-evaluation
-      replicas: 1
-      dependsOn:
-        name: ["model-training"]
-      template:
-        # ...
-    - name: model-deployment
-      replicas: 1
-      dependsOn:
-        name: ["model-evaluation"]
-      template:
-        # ...
-```
-
-#### 注意事项与最佳实践
-
-1. **避免循环依赖**：
-   - 不能创建循环依赖，如A依赖B，B依赖C，C依赖A
-   - 这将导致作业创建失败
-
-2. **考虑资源需求**：
-   - 当使用依赖关系时，要考虑`minAvailable`的设置
-   - 如果同时运行的任务很少，可以将`minAvailable`设置得较小
-
-3. **与重试策略的结合**：
-   - 当使用依赖关系时，要为关键任务配置适当的重试策略
-   - 关键任务的失败可能会导致整个工作流程卡住
-
-4. **使用有意义的任务名称**：
-   - 任务名称应清晰地反映其功能和在工作流程中的位置
-   - 这有助于理解和维护复杂的依赖关系
