@@ -322,6 +322,8 @@ for i := 0; i <= 3; i++ {
     // 由于webhook的报错可能不会带有NotFound的错误码，因此这里同时通过错误字符串关键字匹配
     if k8serr.IsNotFound(err) || strings.Contains(err.Error(), "not found") {
         time.Sleep(time.Millisecond * 500 * time.Duration(i+1))
+    } else {
+        break
     }
 }
 ```
