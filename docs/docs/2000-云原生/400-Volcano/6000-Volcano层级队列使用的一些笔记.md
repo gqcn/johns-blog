@@ -270,16 +270,58 @@ metadata:
 3. 其中`Binding`和`Allocated`的状态计算较复杂，如果需要粗略计算，可以只关注`Bound`和`Running`状态即可。
 
 
-## 常见调度问题排查
+## 常见问题
 
-1. 队列配额设置不合理。如：
-    - 父级队列有设置`guarantee`配额，并且该配额值小于所有子级队列的`guarantee`配额值之和
-    - 父级队列有设置`capability`配额，并且该配额值小于所有子级队列的`capability`配额值之和
-    - 这个时候可以查看`volcano`调度器日志，并通过`grep`关键字`than`来查看是否出现该问题，以及出现配额设置不正确的队列名称
+### 队列配额设置不合理
+如：
+- 父级队列有设置`guarantee`配额，并且该配额值小于所有子级队列的`guarantee`配额值之和
+- 父级队列有设置`capability`配额，并且该配额值小于所有子级队列的`capability`配额值之和
+- 这个时候可以查看`volcano`调度器日志，并通过`grep`关键字`than`来查看是否出现该问题，以及出现配额设置不正确的队列名称
 
-2. 调度器系统性不工作。这个时候查看`volcano`调度器日志即可，默认每隔`1`秒钟就会执行`Session`的创建和关闭，会有大量的错误日志输出。
+### 调度器系统性不工作
+这个时候查看`volcano`调度器日志即可，默认每隔`1`秒钟就会执行`Session`的创建和关闭，会有大量的错误日志输出。
 
-2. 队列资源确实不够用，`Pod`无法调度。如：
-    - 其他队列使用了大量的`guarantee`配置，占用了集群资源，导致其他队列没有配置`guarantee`时，无法调度`Pod`。
-    - 队列配置的`capability`资源确实不够用了，导致无法调度`Pod`。
+### 队列资源确实不够用，Pod无法调度
+如：
+- 其他队列使用了大量的`guarantee`配置，占用了集群资源，导致其他队列没有配置`guarantee`时，无法调度`Pod`。
+- 队列配置的`capability`资源确实不够用了，导致无法调度`Pod`。
     - 这种场景的问题不是很好排查，`volcano`调度器的日志不是很友好，只有自己编写工具排查并确定资源问题。
+
+### 连续创建层级队列WebHook报错，子级队列创建时找不到父级
+
+先创建父级队列`xxx`，再创建子级队列`yyy`，有可能会触发`volcano`的`webhook`的以下报错：
+```text
+admission webhook "validatequeue.volcano.sh" denied the request: failed to get parent queue of queue yyy: queue.scheduling.volcano.sh "xxx" not found
+```
+
+既然父级队列创建接口调用成功，那么表示数据肯定是已经落到了`etcd`中。
+
+通过查看`volcano`的`webhook`的源码，位置：https://github.com/volcano-sh/volcano/blob/ad7386527362627d2817d0867c8fb5c2e20a787c/pkg/webhooks/admission/queues/validate/validate_queue.go#L278 发现是由于`webhook`是通过`informer`机制来查找队列信息的，在连续创建队列时，`webhook`中的`indexer`内存数据还没有更新，导致找不到数据。
+
+这里在业务程序中使用`retry`机制来保证接口调用成功，参考源码：
+```go
+var (
+    unstructuredQueue = &unstructured.Unstructured{Object: unstructuredObj}
+    resource          = schedulingv1beta1.SchemeGroupVersion.WithResource("queues")
+)
+// 连续创建队列可能会引发volcano webhook报错，例如：
+// admission webhook "validatequeue.volcano.sh" denied the request:
+// failed to get parent queue of queue yyy: queue.scheduling.volcano.sh "xxx" not found
+// 原因是webhook那边的校验使用的是informer机制查看的队列信息，webhook可能还未来得及更新本地内存数据。
+// 因此这里直接重试机制来保障创建成功
+for i := 0; i <= 3; i++ {
+    retryMark := ""
+    if i > 0 {
+        retryMark = fmt.Sprintf(`, retry %d`, i)
+    }
+    logger.Infof(ctx, `create queue "%s"%s`, req.Name, retryMark)
+    _, err = q.client.Resource(resource).Create(ctx, unstructuredQueue, metav1.CreateOptions{})
+    if err == nil {
+        break
+    }
+    // 由于webhook的报错可能不会带有NotFound的错误码，因此这里同时通过错误字符串关键字匹配
+    if k8serr.IsNotFound(err) || strings.Contains(err.Error(), "not found") {
+        time.Sleep(time.Millisecond * 500 * time.Duration(i+1))
+    }
+}
+```
