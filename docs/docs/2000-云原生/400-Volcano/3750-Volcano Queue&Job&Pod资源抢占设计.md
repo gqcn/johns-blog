@@ -71,7 +71,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 注意事项：
 - `Queue`级别的抢占机制从`Volcano v1.10.0`版本开始支持。
 - `Queue`并不支持`PriorityClass`，而是通过`priority`属性来设置优先级。
-- 低优先级的`Queue`如果显式设置了`reclaimable: false`，那么该`Queue`不能被高优先级`Queue`抢占(`reclaimable`默认值为`true`)。
+- 低优先级的`Queue`如果显式设置了`reclaimable: false`，那么该`Queue`不能被高优先级`Queue`抢占(**`reclaimable`默认值为`true`**)。
 - 不同资源管理插件(`proportion`和`capacity`)会影响资源的分配和抢占：
   - `proportion`插件会根据`Queue`的`weight`属性决定资源分配比例和抢占顺序。每个队列的`deserved`资源 = 剩余资源 × (队列`weight` / 总`weight`)
   - `capacity`插件会根据`Queue`的`deserved`属性决定资源分配比例和抢占顺序。当`priority`相同时，按照`allocated/deserved`的比率排序。
@@ -207,7 +207,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 2. **权重影响**：当优先级相同时，权重(`weight`属性)较高的`Queue`可以获得更多资源
 3. **最小保障**：每个`Queue`的`guarantee`资源是受保护的，不会被抢占
 4. **资源回收**：当高优先级`Queue`不需要资源时，被抢占的`Queue`可以重新获得资源
-5. **可回收标识**：设置了`reclaimable: true`或者没有设置`reclaimable`属性（默认值为`true`）的`Queue`才能被高优先级`Queue`抢占资源。如果`Queue`的`reclaimable`属性设置为`false`，即使其优先级较低，也不会被高优先级`Queue`抢占资源。
+5. **可回收标识**：设置了`reclaimable: true`或者没有设置`reclaimable`属性（**默认值为`true`**）的`Queue`才能被高优先级`Queue`抢占资源。如果`Queue`的`reclaimable`属性设置为`false`，即使其优先级较低，也不会被高优先级`Queue`抢占资源。
 
 抢占过程：
 1. `Volcano`调度器检测到高优先级`Queue`资源不足
