@@ -146,7 +146,7 @@ graph TD
 1.  客户端提交的`Job`被调度器识别到并缓存起来。
 2.  周期性开启会话（`Session`），一个调度周期开始。
 3.  将没有被调度的`Job`发送到会话的待调度队列中。
-4.  遍历所有的待调度`Job`，按照定义的次序依次执行`enqueue`、`allocate`、`preempt`、`reclaim`、`backfill`等动作，为每个`Job`找到一个最合适的节点。将该`Job`绑定到这个节点。`action`中执行的具体算法逻辑取决于注册的`plugin`中各函数的实现。
+4.  遍历所有的待调度`Job`，按照定义的次序依次执行`enqueue`、`allocate`、`preempt`、`reclaim`、`backfill`等动作，为每个`Job`找到一个最合适的节点。将该`Job`绑定到这个节点。**`action`中执行的具体算法逻辑取决于注册的`plugin`中各函数的实现。**
 5.  关闭本次会话。
 
 具体流程、`Actions`和`Plugins`介绍请参考：
