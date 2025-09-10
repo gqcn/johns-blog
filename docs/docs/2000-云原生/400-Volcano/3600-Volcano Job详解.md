@@ -91,6 +91,40 @@ spec:
                   nvidia.com/gpu: 1
 ```
 
+
+## Job、PodGroup、Task、Pod关系模型
+
+- `Job` ← 直接管理 → `Task`（定义、创建、管理`Pod`）
+- `Job` ← 创建 → `PodGroup`（调度协调）
+- `PodGroup` ← 存储 → `Task`元信息（`MinTaskMember`字段）
+
+关系模型如下：
+```text
+Job (控制器层面)
+├── PodGroup (调度层面) - 存储Task的调度元信息
+└── Tasks (逻辑分组) - Job直接管理
+    └── Pods (实际资源) - 由Task创建
+```
+
+
+以`tensorflow-training`为例：
+```text
+Job (tensorflow-training)
+├── PodGroup (tensorflow-training-abc123def456) [1:1关系]
+│   ├── minAvailable: 4
+│   ├── minTaskMember: {ps: 2, worker: 3}  ← Task信息存储在这里
+│   ├── queue: default
+│   └── status: Running
+├── Task: ps (replicas: 2) [Job直接管理]
+│   ├── Pod: tensorflow-training-ps-0
+│   └── Pod: tensorflow-training-ps-1
+└── Task: worker (replicas: 3) [Job直接管理]
+    ├── Pod: tensorflow-training-worker-0
+    ├── Pod: tensorflow-training-worker-1
+    └── Pod: tensorflow-training-worker-2
+```
+
+
 ## Job、PodGroup、Task状态
 
 ### Job状态
@@ -245,38 +279,6 @@ const (
 | `Succeeded` | 成功 | `Pod`中所有容器都以退出码0自愿终止，系统不会重启这些容器 |
 | `Failed` | 失败 | `Pod`中所有容器都已终止，至少一个容器以非零退出码终止或被系统停止 |
 | `Unknown` | 未知 | `Task/Pod`的状态对调度器来说是未知的 |
-
-## Job、PodGroup、Task、Pod关系模型
-
-- `Job` ← 直接管理 → `Task`（定义、创建、管理`Pod`）
-- `Job` ← 创建 → `PodGroup`（调度协调）
-- `PodGroup` ← 存储 → `Task`元信息（`MinTaskMember`字段）
-
-关系模型如下：
-```text
-Job (控制器层面)
-├── PodGroup (调度层面) - 存储Task的调度元信息
-└── Tasks (逻辑分组) - Job直接管理
-    └── Pods (实际资源) - 由Task创建
-```
-
-
-以`tensorflow-training`为例：
-```text
-Job (tensorflow-training)
-├── PodGroup (tensorflow-training-abc123def456) [1:1关系]
-│   ├── minAvailable: 4
-│   ├── minTaskMember: {ps: 2, worker: 3}  ← Task信息存储在这里
-│   ├── queue: default
-│   └── status: Running
-├── Task: ps (replicas: 2) [Job直接管理]
-│   ├── Pod: tensorflow-training-ps-0
-│   └── Pod: tensorflow-training-ps-1
-└── Task: worker (replicas: 3) [Job直接管理]
-    ├── Pod: tensorflow-training-worker-0
-    ├── Pod: tensorflow-training-worker-1
-    └── Pod: tensorflow-training-worker-2
-```
 
 ## 批量调度
 
