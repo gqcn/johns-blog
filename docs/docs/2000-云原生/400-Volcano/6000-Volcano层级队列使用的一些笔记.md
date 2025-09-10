@@ -272,6 +272,18 @@ metadata:
 
 ## 常见问题
 
+
+### 多副本部署时，注意默认选主参数是false
+`scheduler`和`controller`多副本部署时，注意默认选主参数是`false`，需要设置为`true`。
+以下是默认的显式指定的选主启动参数：
+```bash
+--leader-elect=false
+```
+需要修改为：
+```bash
+--leader-elect=true
+```
+
 ### 队列配额设置不合理
 如：
 - 父级队列有设置`guarantee`配额，并且该配额值小于所有子级队列的`guarantee`配额值之和
