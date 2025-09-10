@@ -1,0 +1,1257 @@
+---
+slug: "/cloud-native/volcano-session-plugins-fns"
+title: "Volcano Session Plugins方法介绍"
+hide_title: true
+keywords:
+  [
+    "Volcano", "Kubernetes", "Session", "Plugins", "调度器", "AddFn", "插件开发", "调度逻辑", "扩展点", "PredicateFn", "NodeOrderFn", "JobOrderFn"
+  ]
+description: "本文详细介绍了Volcano调度器框架中Session对象的31个Add*Fn方法，包括排序、调度决策、抢占回收、作业状态检查等各类插件扩展点的作用、使用场景和代码示例，为Volcano插件开发提供完整的技术参考。"
+---
+
+`Volcano`调度器框架中的`Session`对象提供了丰富的插件扩展点，通过各种`Add*Fn`方法允许插件注册自定义的调度逻辑。这些方法是`Volcano`调度器插件开发的核心接口，本文档详细介绍每个方法的作用、使用场景和代码示例。
+
+
+## 1. 排序相关方法
+
+### 1.1 AddJobOrderFn - 作业排序函数
+**作用**: 注册作业排序函数，用于确定作业的调度优先级顺序。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddJobOrderFn(name string, cf api.CompareFn)
+```
+
+**使用场景**: 
+- 实现基于优先级的作业调度
+- 实现基于资源需求的作业排序
+- 实现基于提交时间的`FIFO`调度
+
+**代码示例**:
+```go
+// 在插件的OnSessionOpen方法中注册
+func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册基于优先级的作业排序函数
+    ssn.AddJobOrderFn(pp.Name(), func(l, r interface{}) int {
+        lv := l.(*api.JobInfo)
+        rv := r.(*api.JobInfo)
+        
+        // 获取作业优先级
+        lPriority := lv.PodGroup.Spec.PriorityClassName
+        rPriority := rv.PodGroup.Spec.PriorityClassName
+        
+        // 高优先级作业排在前面
+        if lPriority > rPriority {
+            return -1
+        } else if lPriority < rPriority {
+            return 1
+        }
+        return 0
+    })
+}
+```
+
+### 1.2 AddQueueOrderFn - 队列排序函数
+**作用**: 注册队列排序函数，用于确定队列的调度优先级顺序。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddQueueOrderFn(name string, qf api.CompareFn)
+```
+
+**使用场景**: 
+- 实现基于权重的队列调度
+- 实现基于资源使用率的队列排序
+- 实现多租户资源公平分配
+
+**代码示例**:
+```go
+func (dp *drfPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册基于DRF算法的队列排序函数
+    ssn.AddQueueOrderFn(dp.Name(), func(l, r interface{}) int {
+        lv := l.(*api.QueueInfo)
+        rv := r.(*api.QueueInfo)
+        
+        // 计算队列的主导资源份额
+        lShare := calculateDominantResourceShare(lv)
+        rShare := calculateDominantResourceShare(rv)
+        
+        // 主导资源份额小的队列优先调度
+        if lShare < rShare {
+            return -1
+        } else if lShare > rShare {
+            return 1
+        }
+        return 0
+    })
+}
+
+func calculateDominantResourceShare(queue *api.QueueInfo) float64 {
+    // DRF算法实现逻辑
+    // 计算CPU和内存的资源份额，返回较大值
+    cpuShare := float64(queue.Used.MilliCPU) / float64(queue.Capability.MilliCPU)
+    memShare := float64(queue.Used.Memory) / float64(queue.Capability.Memory)
+    
+    if cpuShare > memShare {
+        return cpuShare
+    }
+    return memShare
+}
+```
+
+### 1.3 AddVictimQueueOrderFn - 受害者队列排序函数
+**作用**: 注册受害者队列排序函数，用于在抢占场景中确定队列的优先级顺序。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddVictimQueueOrderFn(name string, vcf api.VictimCompareFn)
+```
+
+**使用场景**: 
+- 实现抢占时的队列选择策略
+- 实现多租户抢占优先级
+- 实现基于资源使用情况的抢占顺序
+
+**代码示例**:
+```go
+func (pp *preemptPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册受害者队列排序函数
+    ssn.AddVictimQueueOrderFn(pp.Name(), func(l, r, preemptor interface{}) int {
+        lQueue := l.(*api.QueueInfo)
+        rQueue := r.(*api.QueueInfo)
+        preemptorQueue := preemptor.(*api.QueueInfo)
+        
+        // 优先抢占资源使用超出保证的队列
+        lOverGuarantee := isQueueOverGuarantee(lQueue)
+        rOverGuarantee := isQueueOverGuarantee(rQueue)
+        
+        if lOverGuarantee && !rOverGuarantee {
+            return -1
+        } else if !lOverGuarantee && rOverGuarantee {
+            return 1
+        }
+        
+        return 0
+    })
+}
+```
+
+### 1.4 AddClusterOrderFn - 集群排序函数
+**作用**: 注册集群排序函数，用于多集群调度场景中确定集群的优先级顺序。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddClusterOrderFn(name string, qf api.CompareFn)
+```
+
+**使用场景**: 
+- 实现多集群资源调度
+- 实现集群负载均衡
+- 实现基于集群性能的排序
+
+**代码示例**:
+```go
+func (cp *clusterPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册集群排序函数
+    ssn.AddClusterOrderFn(cp.Name(), func(l, r interface{}) int {
+        lCluster := l.(*scheduling.Cluster)
+        rCluster := r.(*scheduling.Cluster)
+        
+        // 基于集群资源利用率排序
+        lUtilization := getClusterUtilization(lCluster)
+        rUtilization := getClusterUtilization(rCluster)
+        
+        // 优先选择利用率较低的集群
+        if lUtilization < rUtilization {
+            return -1
+        } else if lUtilization > rUtilization {
+            return 1
+        }
+        return 0
+    })
+}
+```
+
+### 1.5 AddTaskOrderFn - 任务排序函数
+**作用**: 注册任务排序函数，用于确定同一作业内任务的调度顺序。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddTaskOrderFn(name string, cf api.CompareFn)
+```
+
+**使用场景**: 
+- 实现基于任务类型的排序（如`master`优先于`worker`）
+- 实现基于资源需求的任务排序
+- 实现基于任务依赖关系的排序
+
+**代码示例**:
+```go
+func (gp *gangPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册基于任务角色的排序函数
+    ssn.AddTaskOrderFn(gp.Name(), func(l, r interface{}) int {
+        lv := l.(*api.TaskInfo)
+        rv := r.(*api.TaskInfo)
+        
+        // 获取任务角色
+        lRole := getTaskRole(lv)
+        rRole := getTaskRole(rv)
+        
+        // master任务优先调度
+        if lRole == "master" && rRole != "master" {
+            return -1
+        } else if lRole != "master" && rRole == "master" {
+            return 1
+        }
+        return 0
+    })
+}
+
+func getTaskRole(task *api.TaskInfo) string {
+    if role, exists := task.Pod.Labels["role"]; exists {
+        return role
+    }
+    return "worker"
+}
+```
+
+## 2. 调度决策相关方法
+
+### 2.1 AddPredicateFn - 节点过滤函数
+**作用**: 注册节点过滤函数，用于判断任务是否可以调度到特定节点。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddPredicateFn(name string, pf api.PredicateFn)
+```
+
+**使用场景**: 
+- 实现节点资源充足性检查
+- 实现节点亲和性和反亲和性
+- 实现`GPU`类型匹配检查
+
+**代码示例**:
+```go
+func (np *nodeAffinityPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册节点亲和性检查函数
+    ssn.AddPredicateFn(np.Name(), func(task *api.TaskInfo, node *api.NodeInfo) error {
+        // 检查节点标签是否满足任务要求
+        if requiredLabels, exists := task.Pod.Spec.NodeSelector; exists {
+            for key, value := range requiredLabels {
+                if nodeValue, hasLabel := node.Node.Labels[key]; !hasLabel || nodeValue != value {
+                    return fmt.Errorf("node %s doesn't match required label %s=%s", 
+                        node.Name, key, value)
+                }
+            }
+        }
+        
+        // 检查GPU类型匹配
+        if gpuType := getRequiredGPUType(task); gpuType != "" {
+            nodeGPUType := getNodeGPUType(node)
+            if nodeGPUType != gpuType {
+                return fmt.Errorf("node %s GPU type %s doesn't match required %s", 
+                    node.Name, nodeGPUType, gpuType)
+            }
+        }
+        
+        return nil
+    })
+}
+
+func getRequiredGPUType(task *api.TaskInfo) string {
+    if gpuType, exists := task.Pod.Annotations["volcano.sh/gpu-type"]; exists {
+        return gpuType
+    }
+    return ""
+}
+
+func getNodeGPUType(node *api.NodeInfo) string {
+    if gpuType, exists := node.Node.Labels["accelerator"]; exists {
+        return gpuType
+    }
+    return ""
+}
+```
+
+### 2.2 AddPrePredicateFn - 预过滤函数
+**作用**: 注册预过滤函数，在节点过滤之前进行任务级别的预检查。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddPrePredicateFn(name string, pf api.PrePredicateFn)
+```
+
+**使用场景**: 
+- 实现任务级别的资源检查
+- 实现任务状态预验证
+- 实现调度前的快速过滤
+
+**代码示例**:
+```go
+func (rp *resourcePlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册预过滤函数
+    ssn.AddPrePredicateFn(rp.Name(), func(task *api.TaskInfo) error {
+        // 检查任务资源请求是否合理
+        if task.Resreq.MilliCPU <= 0 && task.Resreq.Memory <= 0 {
+            return fmt.Errorf("task %s has invalid resource request", task.Name)
+        }
+        
+        // 检查任务状态
+        if task.Status != api.Pending {
+            return fmt.Errorf("task %s is not in pending state", task.Name)
+        }
+        
+        return nil
+    })
+}
+```
+
+### 2.3 AddBestNodeFn - 最佳节点选择函数
+**作用**: 注册最佳节点选择函数，从候选节点中选择最优节点。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddBestNodeFn(name string, pf api.BestNodeFn)
+```
+
+**使用场景**: 
+- 实现自定义节点选择策略
+- 实现基于业务逻辑的节点选择
+- 实现多维度节点评估
+
+**代码示例**:
+```go
+func (bp *bestNodePlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册最佳节点选择函数
+    ssn.AddBestNodeFn(bp.Name(), func(task *api.TaskInfo, nodeScores map[float64][]*api.NodeInfo) *api.NodeInfo {
+        // 从最高分的节点中选择CPU利用率最低的
+        var bestScore float64 = -1
+        for score := range nodeScores {
+            if score > bestScore {
+                bestScore = score
+            }
+        }
+        
+        if bestScore < 0 {
+            return nil
+        }
+        
+        bestNodes := nodeScores[bestScore]
+        if len(bestNodes) == 0 {
+            return nil
+        }
+        
+        // 选择CPU利用率最低的节点
+        var bestNode *api.NodeInfo
+        var minCPUUtilization float64 = 1.0
+        
+        for _, node := range bestNodes {
+            utilization := float64(node.Used.MilliCPU) / float64(node.Allocatable.MilliCPU)
+            if utilization < minCPUUtilization {
+                minCPUUtilization = utilization
+                bestNode = node
+            }
+        }
+        
+        return bestNode
+    })
+}
+```
+
+### 2.4 AddNodeOrderFn - 节点打分函数
+**作用**: 注册节点打分函数，用于为节点计算优先级分数。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddNodeOrderFn(name string, pf api.NodeOrderFn)
+```
+
+**使用场景**: 
+- 实现基于资源利用率的节点打分
+- 实现基于网络拓扑的节点打分
+- 实现负载均衡策略
+
+**代码示例**:
+```go
+func (bp *binpackPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册BinPack节点打分函数
+    ssn.AddNodeOrderFn(bp.Name(), func(task *api.TaskInfo, node *api.NodeInfo) (float64, error) {
+        // 计算资源利用率分数，优先选择资源利用率高的节点
+        cpuScore := calculateResourceScore(
+            task.Resreq.MilliCPU, 
+            node.Allocatable.MilliCPU, 
+            node.Used.MilliCPU,
+        )
+        
+        memScore := calculateResourceScore(
+            task.Resreq.Memory,
+            node.Allocatable.Memory,
+            node.Used.Memory,
+        )
+        
+        // 返回加权平均分数
+        return (cpuScore + memScore) / 2.0, nil
+    })
+}
+
+func calculateResourceScore(requested, allocatable, used int64) float64 {
+    if allocatable == 0 {
+        return 0
+    }
+    
+    // 计算调度后的利用率
+    utilization := float64(used+requested) / float64(allocatable)
+    
+    // BinPack策略：利用率越高分数越高
+    if utilization <= 1.0 {
+        return utilization * 100
+    }
+    
+    // 超出容量则返回负分
+    return -100
+}
+```
+
+### 2.5 AddHyperNodeOrderFn - 超级节点排序函数
+**作用**: 注册超级节点排序函数，用于对超级节点组进行排序和打分。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddHyperNodeOrderFn(name string, fn api.HyperNodeOrderFn)
+```
+
+**使用场景**: 
+- 实现多节点组合的调度策略
+- 实现拓扑感知的节点组选择
+- 实现大规模分布式任务的节点分配
+
+**代码示例**:
+```go
+func (tp *topologyPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册超级节点排序函数
+    ssn.AddHyperNodeOrderFn(tp.Name(), func(job *api.JobInfo, hyperNodes map[string][]*api.NodeInfo) (map[string]float64, error) {
+        scores := make(map[string]float64)
+        
+        for groupName, nodes := range hyperNodes {
+            // 计算节点组的拓扑分数
+            topologyScore := calculateTopologyScore(nodes)
+            // 计算节点组的资源利用率分数
+            utilizationScore := calculateGroupUtilization(nodes)
+            
+            // 综合评分
+            scores[groupName] = topologyScore*0.6 + utilizationScore*0.4
+        }
+        
+        return scores, nil
+    })
+}
+```
+
+### 2.6 AddBatchNodeOrderFn - 批量节点排序函数
+**作用**: 注册批量节点排序函数，用于批量计算多个节点的优先级分数。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddBatchNodeOrderFn(name string, pf api.BatchNodeOrderFn)
+```
+
+**使用场景**: 
+- 实现批量节点评分优化
+- 实现并行节点打分计算
+- 实现大规模集群的性能优化
+
+**代码示例**:
+```go
+func (bp *batchPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册批量节点排序函数
+    ssn.AddBatchNodeOrderFn(bp.Name(), func(task *api.TaskInfo, nodes []*api.NodeInfo) (map[string]float64, error) {
+        scores := make(map[string]float64, len(nodes))
+        
+        // 并行计算所有节点的分数
+        for _, node := range nodes {
+            scores[node.Name] = calculateBatchNodeScore(task, node)
+        }
+        
+        return scores, nil
+    })
+}
+```
+
+### 2.7 AddNodeMapFn - 节点映射函数
+**作用**: 注册节点映射函数，用于将节点信息映射为特定的分数值。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddNodeMapFn(name string, pf api.NodeMapFn)
+```
+
+**使用场景**: 
+- 实现节点特征提取
+- 实现自定义节点评分维度
+- 实现节点分类和标记
+
+**代码示例**:
+```go
+func (mp *mapPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册节点映射函数
+    ssn.AddNodeMapFn(mp.Name(), func(task *api.TaskInfo, node *api.NodeInfo) (float64, error) {
+        score := 0.0
+        
+        // GPU节点加分
+        if gpuCount, exists := node.Node.Status.Capacity["nvidia.com/gpu"]; exists {
+            if gpuCount.Value() > 0 {
+                score += 20.0
+            }
+        }
+        
+        return score, nil
+    })
+}
+```
+
+### 2.8 AddNodeReduceFn - 节点归约函数
+**作用**: 注册节点归约函数，用于将多个节点分数归约为最终结果。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddNodeReduceFn(name string, pf api.NodeReduceFn)
+```
+
+**使用场景**: 
+- 实现多维度分数的聚合
+- 实现分数标准化处理
+- 实现最终节点排序逻辑
+
+**代码示例**:
+```go
+func (rp *reducePlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册节点归约函数
+    ssn.AddNodeReduceFn(rp.Name(), func(task *api.TaskInfo, nodeScores k8sframework.NodeScoreList) error {
+        // 标准化分数处理
+        return nil
+    })
+}
+```
+
+### 2.9 AddAllocatableFn - 资源分配检查函数
+**作用**: 注册资源分配检查函数，用于判断队列是否可以为任务分配资源。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddAllocatableFn(name string, fn api.AllocatableFn)
+```
+
+**使用场景**: 
+- 实现队列容量检查
+- 实现资源配额管理
+- 实现多租户资源隔离
+
+**代码示例**:
+```go
+func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册资源分配检查函数
+    ssn.AddAllocatableFn(cp.Name(), func(queue *api.QueueInfo, candidate *api.TaskInfo) bool {
+        // 检查队列是否超出容量限制
+        afterCPU := queue.Used.MilliCPU + candidate.Resreq.MilliCPU
+        afterMemory := queue.Used.Memory + candidate.Resreq.Memory
+        
+        if afterCPU > queue.Capability.MilliCPU {
+            return false
+        }
+        
+        if afterMemory > queue.Capability.Memory {
+            return false
+        }
+        
+        return true
+    })
+}
+```
+
+### 2.10 AddOverusedFn - 队列超用检查函数
+**作用**: 注册队列超用检查函数，用于判断队列是否超出资源使用限制。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddOverusedFn(name string, fn api.ValidateFn)
+```
+
+**使用场景**: 
+- 实现队列资源监控
+- 实现资源回收触发条件
+- 实现弹性资源管理
+
+**代码示例**:
+```go
+func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册队列超用检查函数
+    ssn.AddOverusedFn(cp.Name(), func(obj interface{}) bool {
+        queue := obj.(*api.QueueInfo)
+        
+        // 检查是否超出保证资源的150%
+        cpuOverused := queue.Used.MilliCPU > queue.Guarantee.MilliCPU*3/2
+        memOverused := queue.Used.Memory > queue.Guarantee.Memory*3/2
+        
+        return cpuOverused || memOverused
+    })
+}
+```
+
+### 2.11 AddPreemptiveFn - 抢占能力检查函数
+**作用**: 注册抢占能力检查函数，用于判断队列是否具备抢占其他任务的能力。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddPreemptiveFn(name string, fn api.ValidateWithCandidateFn)
+```
+
+**使用场景**: 
+- 实现抢占权限控制
+- 实现基于优先级的抢占策略
+- 实现多租户抢占管理
+
+**代码示例**:
+```go
+func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册抢占能力检查函数
+    ssn.AddPreemptiveFn(pp.Name(), func(queue *api.QueueInfo, candidate *api.TaskInfo) bool {
+        // 检查队列是否有抢占权限
+        if preemptive, exists := queue.Queue.Annotations["volcano.sh/preemptive"]; exists {
+            if preemptive != "true" {
+                return false
+            }
+        }
+        
+        // 检查任务优先级是否足够高
+        if candidate.Pod.Spec.Priority == nil || *candidate.Pod.Spec.Priority < 1000 {
+            return false
+        }
+        
+        return true
+    })
+}
+```
+
+## 3. 抢占和回收相关方法
+
+### 3.1 AddPreemptableFn - 抢占判断函数
+**作用**: 注册抢占判断函数，用于确定哪些任务可以被抢占。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddPreemptableFn(name string, cf api.EvictableFn)
+```
+
+**使用场景**: 
+- 实现基于优先级的任务抢占
+- 实现基于资源使用时间的抢占策略
+- 实现多租户间的资源抢占
+
+**代码示例**:
+```go
+func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册基于优先级的抢占函数
+    ssn.AddPreemptableFn(pp.Name(), func(preemptor *api.TaskInfo, preemptees []*api.TaskInfo) ([]*api.TaskInfo, int) {
+        var victims []*api.TaskInfo
+        preemptorPriority := getTaskPriority(preemptor)
+        
+        for _, preemptee := range preemptees {
+            preempteePriority := getTaskPriority(preemptee)
+            
+            // 只能抢占优先级更低的任务
+            if preemptorPriority > preempteePriority {
+                // 检查是否标记为可抢占
+                if isPreemptable(preemptee) {
+                    victims = append(victims, preemptee)
+                }
+            }
+        }
+        
+        // 返回可抢占的任务列表和投票权重
+        return victims, 1
+    })
+}
+
+func getTaskPriority(task *api.TaskInfo) int32 {
+    if task.Pod.Spec.Priority != nil {
+        return *task.Pod.Spec.Priority
+    }
+    return 0
+}
+
+func isPreemptable(task *api.TaskInfo) bool {
+    if preemptable, exists := task.Pod.Annotations["volcano.sh/preemptable"]; exists {
+        return preemptable == "true"
+    }
+    return false
+}
+```
+
+### 3.2 AddReclaimableFn - 资源回收函数
+**作用**: 注册资源回收函数，用于确定哪些任务的资源可以被回收。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddReclaimableFn(name string, rf api.EvictableFn)
+```
+
+**使用场景**: 
+- 实现队列间的资源回收
+- 实现基于资源保证的回收策略
+- 实现弹性资源管理
+
+**代码示例**:
+```go
+func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册资源回收函数
+    ssn.AddReclaimableFn(cp.Name(), func(reclaimer *api.TaskInfo, reclaimees []*api.TaskInfo) ([]*api.TaskInfo, int) {
+        var victims []*api.TaskInfo
+        reclaimerQueue := ssn.Jobs[reclaimer.Job].Queue
+        
+        for _, reclaimee := range reclaimees {
+            reclaimeeQueue := ssn.Jobs[reclaimee.Job].Queue
+            
+            // 不能回收同一队列的资源
+            if reclaimerQueue == reclaimeeQueue {
+                continue
+            }
+            
+            // 检查队列是否超出保证资源
+            queueInfo := ssn.Queues[reclaimeeQueue]
+            if isQueueOverGuarantee(queueInfo) {
+                victims = append(victims, reclaimee)
+            }
+        }
+        
+        return victims, 1
+    })
+}
+
+func isQueueOverGuarantee(queue *api.QueueInfo) bool {
+    // 检查队列是否超出保证资源
+    if queue.Used.MilliCPU > queue.Guarantee.MilliCPU {
+        return true
+    }
+    if queue.Used.Memory > queue.Guarantee.Memory {
+        return true
+    }
+    return false
+}
+```
+
+## 4. 作业状态检查相关方法
+
+### 4.1 AddJobPipelinedFn - 作业流水线检查函数
+**作用**: 注册作业流水线检查函数，用于判断作业是否获得足够资源可以进行流水线调度。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddJobPipelinedFn(name string, vf api.VoteFn)
+```
+
+**使用场景**: 
+- 实现流水线作业调度
+- 实现资源预分配检查
+- 实现作业启动条件控制
+
+**代码示例**:
+```go
+func (pp *pipelinePlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册作业流水线检查函数
+    ssn.AddJobPipelinedFn(pp.Name(), func(obj interface{}) int {
+        job := obj.(*api.JobInfo)
+        
+        // 检查作业是否满足流水线调度条件
+        minResource := calculateMinResourceForPipeline(job)
+        availableResource := getAvailableResourceForJob(ssn, job)
+        
+        if availableResource.MilliCPU >= minResource.MilliCPU && 
+           availableResource.Memory >= minResource.Memory {
+            return 1 // 允许流水线调度
+        }
+        
+        return 0 // 暂不允许
+    })
+}
+
+func calculateMinResourceForPipeline(job *api.JobInfo) *api.Resource {
+    // 计算流水线调度所需的最小资源
+    return &api.Resource{
+        MilliCPU: job.MinAvailable * 100, // 每个任务最少100m CPU
+        Memory:   job.MinAvailable * 128 * 1024 * 1024, // 每个任务最少128Mi内存
+    }
+}
+```
+
+### 4.2 AddJobValidFn - 作业有效性检查函数
+**作用**: 注册作业有效性检查函数，用于验证作业配置的合法性。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddJobValidFn(name string, fn api.ValidateExFn)
+```
+
+**使用场景**: 
+- 实现作业配置验证
+- 实现资源请求合理性检查
+- 实现业务规则验证
+
+**代码示例**:
+```go
+func (vp *validationPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册作业有效性检查函数
+    ssn.AddJobValidFn(vp.Name(), func(obj interface{}) *api.ValidateResult {
+        job := obj.(*api.JobInfo)
+        
+        // 检查作业资源请求是否合理
+        totalCPU := int64(0)
+        totalMemory := int64(0)
+        
+        for _, task := range job.Tasks {
+            totalCPU += task.Resreq.MilliCPU
+            totalMemory += task.Resreq.Memory
+        }
+        
+        // 检查是否超出队列限制
+        queue := ssn.Queues[job.Queue]
+        if totalCPU > queue.Capability.MilliCPU {
+            return &api.ValidateResult{
+                Pass:   false,
+                Reason: fmt.Sprintf("Job CPU request %d exceeds queue capability %d", 
+                    totalCPU, queue.Capability.MilliCPU),
+            }
+        }
+        
+        return &api.ValidateResult{Pass: true}
+    })
+}
+```
+
+### 4.3 AddJobStarvingFns - 作业饥饿检查函数
+**作用**: 注册作业饥饿检查函数，用于判断作业是否处于资源饥饿状态。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddJobStarvingFns(name string, fn api.ValidateFn)
+```
+
+**使用场景**: 
+- 实现作业饥饿检测
+- 实现优先级提升策略
+- 实现公平调度保障
+
+**代码示例**:
+```go
+func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册作业饥饿检查函数
+    ssn.AddJobStarvingFns(sp.Name(), func(obj interface{}) bool {
+        job := obj.(*api.JobInfo)
+        
+        // 检查作业等待时间
+        waitTime := time.Since(job.CreationTimestamp.Time)
+        starvationThreshold := 10 * time.Minute
+        
+        if waitTime > starvationThreshold {
+            // 检查是否有任务在运行
+            runningTasks := len(job.TaskStatusIndex[api.Running])
+            if runningTasks == 0 {
+                return true // 作业处于饥饿状态
+            }
+        }
+        
+        return false
+    })
+}
+```
+
+### 4.4 AddJobReadyFn - 作业就绪检查函数
+**作用**: 注册作业就绪检查函数，用于判断作业是否准备好进行调度。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddJobReadyFn(name string, vf api.ValidateFn)
+```
+
+**使用场景**: 
+- 实现Gang调度的就绪检查
+- 实现依赖作业的状态检查
+- 实现资源预检查
+
+**代码示例**:
+```go
+func (gp *gangPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册Gang调度就绪检查函数
+    ssn.AddJobReadyFn(gp.Name(), func(obj interface{}) bool {
+        job := obj.(*api.JobInfo)
+        
+        // 检查是否达到最小运行任务数
+        if job.MinAvailable == 0 {
+            return true
+        }
+        
+        // 统计可调度的任务数量
+        schedulableCount := 0
+        for _, task := range job.TaskStatusIndex[api.Pending] {
+            if canScheduleTask(ssn, task) {
+                schedulableCount++
+            }
+        }
+        
+        // 检查是否满足Gang调度条件
+        return schedulableCount >= int(job.MinAvailable)
+    })
+}
+
+func canScheduleTask(ssn *framework.Session, task *api.TaskInfo) bool {
+    // 检查是否有节点可以调度该任务
+    for _, node := range ssn.Nodes {
+        if node.State != api.Ready {
+            continue
+        }
+        
+        // 执行预选检查
+        if err := ssn.PredicateFn(task, node); err != nil {
+            continue
+        }
+        
+        return true
+    }
+    return false
+}
+```
+
+## 5. 高级调度功能方法
+
+### 5.1 AddJobEnqueuedFn - 作业入队完成回调函数
+**作用**: 注册作业入队完成回调函数，在作业成功入队后执行相关操作。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddJobEnqueuedFn(name string, fn api.JobEnqueuedFn)
+```
+
+**使用场景**: 
+- 实现作业入队后的状态更新
+- 实现作业入队统计和监控
+- 实现作业入队后的资源预留
+
+**代码示例**:
+```go
+func (mp *monitorPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册作业入队完成回调函数
+    ssn.AddJobEnqueuedFn(mp.Name(), func(obj interface{}) {
+        job := obj.(*api.JobInfo)
+        
+        // 记录作业入队时间
+        if job.PodGroup.Annotations == nil {
+            job.PodGroup.Annotations = make(map[string]string)
+        }
+        job.PodGroup.Annotations["volcano.sh/enqueued-time"] = time.Now().Format(time.RFC3339)
+        
+        // 发送入队事件
+        klog.V(3).Infof("Job %s/%s has been enqueued to queue %s", 
+            job.Namespace, job.Name, job.Queue)
+    })
+}
+```
+
+### 5.2 AddReservedNodesFn - 节点预留函数
+**作用**: 注册节点预留函数，用于为特定作业预留节点资源。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddReservedNodesFn(name string, fn api.ReservedNodesFn)
+```
+
+**使用场景**: 
+- 实现节点资源预留
+- 实现专用节点管理
+- 实现资源隔离策略
+
+**代码示例**:
+```go
+func (rp *reservationPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册节点预留函数
+    ssn.AddReservedNodesFn(rp.Name(), func() {
+        // 为高优先级队列预留节点
+        for _, queue := range ssn.Queues {
+            if isHighPriorityQueue(queue) {
+                reserveNodesForQueue(ssn, queue)
+            }
+        }
+    })
+}
+
+func reserveNodesForQueue(ssn *framework.Session, queue *api.QueueInfo) {
+    reservedCount := 0
+    targetReserved := calculateReservedNodes(queue)
+    
+    for _, node := range ssn.Nodes {
+        if reservedCount >= targetReserved {
+            break
+        }
+        
+        if canReserveNode(node, queue) {
+            // 标记节点为预留状态
+            if node.Node.Annotations == nil {
+                node.Node.Annotations = make(map[string]string)
+            }
+            node.Node.Annotations["volcano.sh/reserved-for"] = queue.Name
+            reservedCount++
+        }
+    }
+}
+```
+
+### 5.3 AddVictimTasksFns - 受害者任务选择函数
+**作用**: 注册受害者任务选择函数，用于选择需要被抢占或回收的任务。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddVictimTasksFns(name string, fns []api.VictimTasksFn)
+```
+
+**使用场景**: 
+- 实现任务抢占策略
+- 实现资源回收策略
+- 实现多维度任务选择
+
+**代码示例**:
+```go
+func (vp *victimPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册受害者任务选择函数
+    victimFns := []api.VictimTasksFn{
+        // 按优先级选择受害者
+        func(tasks []*api.TaskInfo) []*api.TaskInfo {
+            var victims []*api.TaskInfo
+            minPriority := int32(1000)
+            
+            for _, task := range tasks {
+                priority := getTaskPriority(task)
+                if priority < minPriority {
+                    minPriority = priority
+                    victims = []*api.TaskInfo{task}
+                } else if priority == minPriority {
+                    victims = append(victims, task)
+                }
+            }
+            return victims
+        },
+        // 按运行时间选择受害者
+        func(tasks []*api.TaskInfo) []*api.TaskInfo {
+            var victims []*api.TaskInfo
+            var shortestRunTime time.Duration = time.Hour * 24
+            
+            for _, task := range tasks {
+                runTime := getTaskRunTime(task)
+                if runTime < shortestRunTime {
+                    shortestRunTime = runTime
+                    victims = []*api.TaskInfo{task}
+                } else if runTime == shortestRunTime {
+                    victims = append(victims, task)
+                }
+            }
+            return victims
+        },
+    }
+    
+    ssn.AddVictimTasksFns(vp.Name(), victimFns)
+}
+```
+
+### 5.4 AddJobEnqueueableFn - 作业入队检查函数
+**作用**: 注册作业入队检查函数，用于判断作业是否可以进入调度队列。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddJobEnqueueableFn(name string, fn api.VoteFn)
+```
+
+**使用场景**: 
+- 实现作业依赖检查
+- 实现资源预分配检查
+- 实现调度策略控制
+
+**代码示例**:
+```go
+func (dp *dependencyPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册作业依赖检查函数
+    ssn.AddJobEnqueueableFn(dp.Name(), func(obj interface{}) int {
+        job := obj.(*api.JobInfo)
+        
+        // 检查作业依赖
+        dependencies := getJobDependencies(job)
+        for _, dep := range dependencies {
+            depJob := findJobByName(ssn, dep)
+            if depJob == nil {
+                return -1 // 拒绝入队
+            }
+        }
+        
+        return 1 // 允许入队
+    })
+}
+```
+
+### 5.5 AddTargetJobFn - 目标作业选择函数
+**作用**: 注册目标作业选择函数，用于从作业列表中选择特定的目标作业。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddTargetJobFn(name string, fn api.TargetJobFn)
+```
+
+**使用场景**: 
+- 实现作业优先级选择
+- 实现负载均衡策略
+- 实现特殊调度策略
+
+**代码示例**:
+```go
+func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册饥饿作业选择函数
+    ssn.AddTargetJobFn(sp.Name(), func(jobs []*api.JobInfo) *api.JobInfo {
+        var targetJob *api.JobInfo
+        maxWaitTime := time.Duration(0)
+        
+        for _, job := range jobs {
+            // 计算作业等待时间
+            waitTime := time.Since(job.CreationTimestamp.Time)
+            
+            // 检查是否为饥饿作业
+            if waitTime > maxWaitTime {
+                targetJob = job
+                maxWaitTime = waitTime
+            }
+        }
+        
+        return targetJob
+    })
+}
+```
+
+### 6.1 AddSimulateAddTaskFn - 模拟添加任务函数
+**作用**: 注册模拟添加任务函数，用于在不实际调度的情况下模拟任务添加的效果。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddSimulateAddTaskFn(name string, fn api.SimulateAddTaskFn)
+```
+
+**使用场景**: 
+- 实现抢占场景的模拟调度
+- 实现调度决策的预演
+- 实现资源分配的影响评估
+
+**代码示例**:
+```go
+func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册模拟添加任务函数
+    ssn.AddSimulateAddTaskFn(sp.Name(), func(ctx context.Context, state *k8sframework.CycleState, taskToSchedule *api.TaskInfo, taskToAdd *api.TaskInfo, nodeInfo *api.NodeInfo) error {
+        // 模拟将任务添加到节点
+        nodeInfo.AddTask(taskToAdd)
+        
+        // 检查资源是否足够
+        if nodeInfo.Used.MilliCPU > nodeInfo.Allocatable.MilliCPU {
+            return fmt.Errorf("simulated CPU overcommit on node %s", nodeInfo.Name)
+        }
+        
+        return nil
+    })
+}
+```
+
+### 6.2 AddSimulateRemoveTaskFn - 模拟移除任务函数
+**作用**: 注册模拟移除任务函数，用于在不实际移除的情况下模拟任务移除的效果。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddSimulateRemoveTaskFn(name string, fn api.SimulateRemoveTaskFn)
+```
+
+**使用场景**: 
+- 实现抢占任务的模拟移除
+- 实现资源回收的影响评估
+- 实现调度优化的预演
+
+**代码示例**:
+```go
+func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册模拟移除任务函数
+    ssn.AddSimulateRemoveTaskFn(sp.Name(), func(ctx context.Context, state *k8sframework.CycleState, taskToSchedule *api.TaskInfo, taskToRemove *api.TaskInfo, nodeInfo *api.NodeInfo) error {
+        // 模拟从节点移除任务
+        nodeInfo.RemoveTask(taskToRemove)
+        
+        return nil
+    })
+}
+```
+
+### 6.3 AddSimulateAllocatableFn - 模拟资源分配函数
+**作用**: 注册模拟资源分配函数，用于在模拟环境中检查资源分配的可行性。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddSimulateAllocatableFn(name string, fn api.SimulateAllocatableFn)
+```
+
+**使用场景**: 
+- 实现模拟环境下的资源检查
+- 实现抢占场景的资源验证
+- 实现调度决策的可行性分析
+
+**代码示例**:
+```go
+func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册模拟资源分配函数
+    ssn.AddSimulateAllocatableFn(sp.Name(), func(ctx context.Context, state *k8sframework.CycleState, queue *api.QueueInfo, task *api.TaskInfo) bool {
+        // 在模拟环境中检查队列资源分配
+        simulatedUsed := &api.Resource{
+            MilliCPU: queue.Used.MilliCPU + task.Resreq.MilliCPU,
+            Memory:   queue.Used.Memory + task.Resreq.Memory,
+        }
+        
+        // 检查是否超出队列容量
+        return simulatedUsed.MilliCPU <= queue.Capability.MilliCPU && 
+               simulatedUsed.Memory <= queue.Capability.Memory
+    })
+}
+```
+
+### 6.4 AddSimulatePredicateFn - 模拟预选函数
+**作用**: 注册模拟预选函数，用于在模拟环境中进行节点过滤检查。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddSimulatePredicateFn(name string, fn api.SimulatePredicateFn)
+```
+
+**使用场景**: 
+- 实现模拟环境下的节点过滤
+- 实现抢占场景的节点适配性检查
+- 实现调度决策的节点验证
+
+**代码示例**:
+```go
+func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册模拟预选函数
+    ssn.AddSimulatePredicateFn(sp.Name(), func(ctx context.Context, state *k8sframework.CycleState, task *api.TaskInfo, node *api.NodeInfo) error {
+        // 在模拟环境中检查节点适配性
+        availableCPU := node.Allocatable.MilliCPU - node.Used.MilliCPU
+        availableMemory := node.Allocatable.Memory - node.Used.Memory
+        
+        if task.Resreq.MilliCPU > availableCPU {
+            return fmt.Errorf("simulated CPU insufficient on node %s", node.Name)
+        }
+        
+        if task.Resreq.Memory > availableMemory {
+            return fmt.Errorf("simulated memory insufficient on node %s", node.Name)
+        }
+        
+        return nil
+    })
+}
+```
+
+
+
