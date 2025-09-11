@@ -12,9 +12,9 @@ description: "本文详细介绍了Volcano调度器框架中Session对象的31�
 `Volcano`调度器框架中的`Session`对象提供了丰富的插件扩展点，通过各种`Add*Fn`方法允许插件注册自定义的调度逻辑。这些方法是`Volcano`调度器插件开发的核心接口，本文档详细介绍每个方法的作用、使用场景和代码示例。
 
 
-## 1. 排序相关方法
+## 排序相关方法
 
-### 1.1 AddJobOrderFn - 作业排序函数
+### AddJobOrderFn - 作业排序函数
 **作用**: 注册作业排序函数，用于确定作业的调度优先级顺序。
 
 **函数签名**: 
@@ -51,7 +51,7 @@ func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 1.2 AddQueueOrderFn - 队列排序函数
+### AddQueueOrderFn - 队列排序函数
 **作用**: 注册队列排序函数，用于确定队列的调度优先级顺序。
 
 **函数签名**: 
@@ -99,7 +99,7 @@ func calculateDominantResourceShare(queue *api.QueueInfo) float64 {
 }
 ```
 
-### 1.3 AddVictimQueueOrderFn - 受害者队列排序函数
+### AddVictimQueueOrderFn - 受害者队列排序函数
 **作用**: 注册受害者队列排序函数，用于在抢占场景中确定队列的优先级顺序。
 
 **函数签名**: 
@@ -136,7 +136,7 @@ func (pp *preemptPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 1.4 AddClusterOrderFn - 集群排序函数
+### AddClusterOrderFn - 集群排序函数
 **作用**: 注册集群排序函数，用于多集群调度场景中确定集群的优先级顺序。
 
 **函数签名**: 
@@ -172,7 +172,7 @@ func (cp *clusterPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 1.5 AddTaskOrderFn - 任务排序函数
+### AddTaskOrderFn - 任务排序函数
 **作用**: 注册任务排序函数，用于确定同一作业内任务的调度顺序。
 
 **函数签名**: 
@@ -215,9 +215,9 @@ func getTaskRole(task *api.TaskInfo) string {
 }
 ```
 
-## 2. 调度决策相关方法
+## 调度决策相关方法
 
-### 2.1 AddPredicateFn - 节点过滤函数
+### AddPredicateFn - 节点过滤函数
 **作用**: 注册节点过滤函数，用于判断任务是否可以调度到特定节点。
 
 **函数签名**: 
@@ -273,7 +273,7 @@ func getNodeGPUType(node *api.NodeInfo) string {
 }
 ```
 
-### 2.2 AddPrePredicateFn - 预过滤函数
+### AddPrePredicateFn - 预过滤函数
 **作用**: 注册预过滤函数，在节点过滤之前进行任务级别的预检查。
 
 **函数签名**: 
@@ -306,7 +306,7 @@ func (rp *resourcePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 2.3 AddBestNodeFn - 最佳节点选择函数
+### AddBestNodeFn - 最佳节点选择函数
 **作用**: 注册最佳节点选择函数，从候选节点中选择最优节点。
 
 **函数签名**: 
@@ -358,7 +358,7 @@ func (bp *bestNodePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 2.4 AddNodeOrderFn - 节点打分函数
+### AddNodeOrderFn - 节点打分函数
 **作用**: 注册节点打分函数，用于为节点计算优先级分数。
 
 **函数签名**: 
@@ -412,7 +412,7 @@ func calculateResourceScore(requested, allocatable, used int64) float64 {
 }
 ```
 
-### 2.5 AddHyperNodeOrderFn - 超级节点排序函数
+### AddHyperNodeOrderFn - 超级节点排序函数
 **作用**: 注册超级节点排序函数，用于对超级节点组进行排序和打分。
 
 **函数签名**: 
@@ -447,7 +447,7 @@ func (tp *topologyPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 2.6 AddBatchNodeOrderFn - 批量节点排序函数
+### AddBatchNodeOrderFn - 批量节点排序函数
 **作用**: 注册批量节点排序函数，用于批量计算多个节点的优先级分数。
 
 **函数签名**: 
@@ -477,7 +477,7 @@ func (bp *batchPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 2.7 AddNodeMapFn - 节点映射函数
+### AddNodeMapFn - 节点映射函数
 **作用**: 注册节点映射函数，用于将节点信息映射为特定的分数值。
 
 **函数签名**: 
@@ -509,7 +509,7 @@ func (mp *mapPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 2.8 AddNodeReduceFn - 节点归约函数
+### AddNodeReduceFn - 节点归约函数
 **作用**: 注册节点归约函数，用于将多个节点分数归约为最终结果。
 
 **函数签名**: 
@@ -533,7 +533,7 @@ func (rp *reducePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 2.9 AddAllocatableFn - 资源分配检查函数
+### AddAllocatableFn - 资源分配检查函数
 **作用**: 注册资源分配检查函数，用于判断队列是否可以为任务分配资源。
 
 **函数签名**: 
@@ -568,7 +568,7 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 2.10 AddOverusedFn - 队列超用检查函数
+### AddOverusedFn - 队列超用检查函数
 **作用**: 注册队列超用检查函数，用于判断队列是否超出资源使用限制。
 
 **函数签名**: 
@@ -597,7 +597,7 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 2.11 AddPreemptiveFn - 抢占能力检查函数
+### AddPreemptiveFn - 抢占能力检查函数
 **作用**: 注册抢占能力检查函数，用于判断队列是否具备抢占其他任务的能力。
 
 **函数签名**: 
@@ -632,9 +632,9 @@ func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-## 3. 抢占和回收相关方法
+## 抢占和回收相关方法
 
-### 3.1 AddPreemptableFn - 抢占判断函数
+### AddPreemptableFn - 抢占判断函数
 **作用**: 注册抢占判断函数，用于确定哪些任务可以被抢占。
 
 **函数签名**: 
@@ -687,7 +687,7 @@ func isPreemptable(task *api.TaskInfo) bool {
 }
 ```
 
-### 3.2 AddReclaimableFn - 资源回收函数
+### AddReclaimableFn - 资源回收函数
 **作用**: 注册资源回收函数，用于确定哪些任务的资源可以被回收。
 
 **函数签名**: 
@@ -739,9 +739,9 @@ func isQueueOverGuarantee(queue *api.QueueInfo) bool {
 }
 ```
 
-## 4. 作业状态检查相关方法
+## 作业状态检查相关方法
 
-### 4.1 AddJobPipelinedFn - 作业流水线检查函数
+### AddJobPipelinedFn - 作业流水线检查函数
 **作用**: 注册作业流水线检查函数，用于判断作业是否获得足够资源可以进行流水线调度。
 
 **函数签名**: 
@@ -783,7 +783,7 @@ func calculateMinResourceForPipeline(job *api.JobInfo) *api.Resource {
 }
 ```
 
-### 4.2 AddJobValidFn - 作业有效性检查函数
+### AddJobValidFn - 作业有效性检查函数
 **作用**: 注册作业有效性检查函数，用于验证作业配置的合法性。
 
 **函数签名**: 
@@ -827,7 +827,7 @@ func (vp *validationPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 4.3 AddJobStarvingFns - 作业饥饿检查函数
+### AddJobStarvingFns - 作业饥饿检查函数
 **作用**: 注册作业饥饿检查函数，用于判断作业是否处于资源饥饿状态。
 
 **函数签名**: 
@@ -864,7 +864,7 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 4.4 AddJobReadyFn - 作业就绪检查函数
+### AddJobReadyFn - 作业就绪检查函数
 **作用**: 注册作业就绪检查函数，用于判断作业是否准备好进行调度。
 
 **函数签名**: 
@@ -920,9 +920,9 @@ func canScheduleTask(ssn *framework.Session, task *api.TaskInfo) bool {
 }
 ```
 
-## 5. 高级调度功能方法
+## 高级调度功能方法
 
-### 5.1 AddJobEnqueuedFn - 作业入队完成回调函数
+### AddJobEnqueuedFn - 作业入队完成回调函数
 **作用**: 注册作业入队完成回调函数，在作业成功入队后执行相关操作。
 
 **函数签名**: 
@@ -955,7 +955,7 @@ func (mp *monitorPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 5.2 AddReservedNodesFn - 节点预留函数
+### AddReservedNodesFn - 节点预留函数
 **作用**: 注册节点预留函数，用于为特定作业预留节点资源。
 
 **函数签名**: 
@@ -1003,7 +1003,7 @@ func reserveNodesForQueue(ssn *framework.Session, queue *api.QueueInfo) {
 }
 ```
 
-### 5.3 AddVictimTasksFns - 受害者任务选择函数
+### AddVictimTasksFns - 受害者任务选择函数
 **作用**: 注册受害者任务选择函数，用于选择需要被抢占或回收的任务。
 
 **函数签名**: 
@@ -1059,7 +1059,7 @@ func (vp *victimPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 5.4 AddJobEnqueueableFn - 作业入队检查函数
+### AddJobEnqueueableFn - 作业入队检查函数
 **作用**: 注册作业入队检查函数，用于判断作业是否可以进入调度队列。
 
 **函数签名**: 
@@ -1093,7 +1093,7 @@ func (dp *dependencyPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 5.5 AddTargetJobFn - 目标作业选择函数
+### AddTargetJobFn - 目标作业选择函数
 **作用**: 注册目标作业选择函数，用于从作业列表中选择特定的目标作业。
 
 **函数签名**: 
@@ -1130,7 +1130,7 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 6.1 AddSimulateAddTaskFn - 模拟添加任务函数
+### AddSimulateAddTaskFn - 模拟添加任务函数
 **作用**: 注册模拟添加任务函数，用于在不实际调度的情况下模拟任务添加的效果。
 
 **函数签名**: 
@@ -1161,7 +1161,7 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 6.2 AddSimulateRemoveTaskFn - 模拟移除任务函数
+### AddSimulateRemoveTaskFn - 模拟移除任务函数
 **作用**: 注册模拟移除任务函数，用于在不实际移除的情况下模拟任务移除的效果。
 
 **函数签名**: 
@@ -1187,7 +1187,7 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 6.3 AddSimulateAllocatableFn - 模拟资源分配函数
+### AddSimulateAllocatableFn - 模拟资源分配函数
 **作用**: 注册模拟资源分配函数，用于在模拟环境中检查资源分配的可行性。
 
 **函数签名**: 
@@ -1218,7 +1218,7 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### 6.4 AddSimulatePredicateFn - 模拟预选函数
+### AddSimulatePredicateFn - 模拟预选函数
 **作用**: 注册模拟预选函数，用于在模拟环境中进行节点过滤检查。
 
 **函数签名**: 
