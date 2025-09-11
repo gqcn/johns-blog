@@ -922,6 +922,40 @@ func canScheduleTask(ssn *framework.Session, task *api.TaskInfo) bool {
 
 ## 高级调度功能方法
 
+### AddJobEnqueueableFn - 作业入队检查函数
+**作用**: 注册作业入队检查函数，用于判断作业是否可以进入调度队列。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddJobEnqueueableFn(name string, fn api.VoteFn)
+```
+
+**使用场景**: 
+- 实现作业依赖检查
+- 实现资源预分配检查
+- 实现调度策略控制
+
+**代码示例**:
+```go
+func (dp *dependencyPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册作业依赖检查函数
+    ssn.AddJobEnqueueableFn(dp.Name(), func(obj interface{}) int {
+        job := obj.(*api.JobInfo)
+        
+        // 检查作业依赖
+        dependencies := getJobDependencies(job)
+        for _, dep := range dependencies {
+            depJob := findJobByName(ssn, dep)
+            if depJob == nil {
+                return -1 // 拒绝入队
+            }
+        }
+        
+        return 1 // 允许入队
+    })
+}
+```
+
 ### AddJobEnqueuedFn - 作业入队完成回调函数
 **作用**: 注册作业入队完成回调函数，在作业成功入队后执行相关操作。
 
@@ -1059,39 +1093,7 @@ func (vp *victimPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddJobEnqueueableFn - 作业入队检查函数
-**作用**: 注册作业入队检查函数，用于判断作业是否可以进入调度队列。
 
-**函数签名**: 
-```go
-func (ssn *Session) AddJobEnqueueableFn(name string, fn api.VoteFn)
-```
-
-**使用场景**: 
-- 实现作业依赖检查
-- 实现资源预分配检查
-- 实现调度策略控制
-
-**代码示例**:
-```go
-func (dp *dependencyPlugin) OnSessionOpen(ssn *framework.Session) {
-    // 注册作业依赖检查函数
-    ssn.AddJobEnqueueableFn(dp.Name(), func(obj interface{}) int {
-        job := obj.(*api.JobInfo)
-        
-        // 检查作业依赖
-        dependencies := getJobDependencies(job)
-        for _, dep := range dependencies {
-            depJob := findJobByName(ssn, dep)
-            if depJob == nil {
-                return -1 // 拒绝入队
-            }
-        }
-        
-        return 1 // 允许入队
-    })
-}
-```
 
 ### AddTargetJobFn - 目标作业选择函数
 **作用**: 注册目标作业选择函数，用于从作业列表中选择特定的目标作业。
