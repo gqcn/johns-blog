@@ -1131,6 +1131,7 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 ### AddSimulateAddTaskFn - 模拟添加任务函数
+
 **作用**: 注册模拟添加任务函数，用于在不实际调度的情况下模拟任务添加的效果。
 
 **函数签名**: 
@@ -1138,10 +1139,10 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddSimulateAddTaskFn(name string, fn api.SimulateAddTaskFn)
 ```
 
-**使用场景**: 
-- 实现抢占场景的模拟调度
-- 实现调度决策的预演
-- 实现资源分配的影响评估
+**核心使用场景**: 
+- **抢占调度验证**：在`preempt action`中验证高优先级任务是否能在释放资源后成功调度
+- **避免实际操作副作用**：在确定抢占策略前，不实际执行`Pod`调度操作
+- **提高抢占决策准确性**：通过模拟验证抢占方案的可行性
 
 **代码示例**:
 ```go
@@ -1162,6 +1163,7 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 ### AddSimulateRemoveTaskFn - 模拟移除任务函数
+
 **作用**: 注册模拟移除任务函数，用于在不实际移除的情况下模拟任务移除的效果。
 
 **函数签名**: 
@@ -1169,10 +1171,10 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddSimulateRemoveTaskFn(name string, fn api.SimulateRemoveTaskFn)
 ```
 
-**使用场景**: 
-- 实现抢占任务的模拟移除
-- 实现资源回收的影响评估
-- 实现调度优化的预演
+**核心使用场景**: 
+- **抢占资源释放模拟**：在`preempt action`中模拟驱逐低优先级任务后的资源状态
+- **避免不必要的Pod驱逐**：验证移除某些任务后是否能释放足够资源
+- **减少资源浪费**：避免驱逐Pod后发现无法调度目标任务的情况
 
 **代码示例**:
 ```go
@@ -1188,6 +1190,7 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 ### AddSimulateAllocatableFn - 模拟资源分配函数
+
 **作用**: 注册模拟资源分配函数，用于在模拟环境中检查资源分配的可行性。
 
 **函数签名**: 
@@ -1195,10 +1198,10 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddSimulateAllocatableFn(name string, fn api.SimulateAllocatableFn)
 ```
 
-**使用场景**: 
-- 实现模拟环境下的资源检查
-- 实现抢占场景的资源验证
-- 实现调度决策的可行性分析
+**核心使用场景**: 
+- **队列资源配额验证**：在`preempt action`抢占过程中验证队列是否有足够配额来调度任务
+- **多轮抢占决策支持**：为复杂的抢占算法提供模拟环境
+- **资源分配预检查**：确保只有在确认可以成功调度时才执行实际抢占操作
 
 **代码示例**:
 ```go
@@ -1219,6 +1222,7 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 ### AddSimulatePredicateFn - 模拟预选函数
+
 **作用**: 注册模拟预选函数，用于在模拟环境中进行节点过滤检查。
 
 **函数签名**: 
@@ -1226,10 +1230,10 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddSimulatePredicateFn(name string, fn api.SimulatePredicateFn)
 ```
 
-**使用场景**: 
-- 实现模拟环境下的节点过滤
-- 实现抢占场景的节点适配性检查
-- 实现调度决策的节点验证
+**核心使用场景**: 
+- **抢占节点约束验证**：在`preempt action`抢占过程中验证任务在模拟环境中是否满足节点约束条件
+- **拓扑约束检查**：在抢占场景中维护拓扑约束的同时验证调度可行性
+- **智能抢占决策**：确保抢占后的任务能满足所有节点级别的调度要求
 
 **代码示例**:
 ```go
@@ -1253,5 +1257,120 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
+## 事件处理相关方法
 
+### AddEventHandler - 事件处理器注册函数
 
+**作用**: 注册事件处理器，用于在任务分配和释放过程中执行自定义的回调逻辑。这是插件中对资源分配管理的关键方法。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddEventHandler(eh *EventHandler)
+```
+
+**EventHandler结构**:
+```go
+type EventHandler struct {
+    AllocateFunc   func(event *Event)
+    DeallocateFunc func(event *Event)
+}
+
+type Event struct {
+    Task *api.TaskInfo
+    Err  error
+}
+```
+
+**核心使用场景**: 
+- **资源分配跟踪**：在任务成功分配到节点时执行资源统计和状态更新
+- **资源释放管理**：在任务从节点释放时执行资源清理和状态恢复
+- **插件状态同步**：维护插件内部的资源分配状态与调度器状态一致
+- **多租户资源管理**：实现队列级别的资源使用统计和配额管理
+
+**调用时机**:
+- `AllocateFunc`：在`ssn.Allocate()`、`ssn.Pipeline()`等分配操作成功后调用
+- `DeallocateFunc`：在`ssn.Evict()`、`ssn.UpdateTaskStatus()`等释放操作后调用
+
+**代码示例**:
+```go
+func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册事件处理器
+    ssn.AddEventHandler(&framework.EventHandler{
+        AllocateFunc: func(event *framework.Event) {
+            job := ssn.Jobs[event.Task.Job]
+            attr := cp.queueOpts[job.Queue]
+            
+            // 更新队列已使用资源
+            attr.allocated.Add(event.Task.Resreq)
+            
+            klog.V(4).Infof("Capacity allocated <%v> to queue <%v>, total allocated <%v>",
+                event.Task.Resreq, job.Queue, attr.allocated)
+        },
+        DeallocateFunc: func(event *framework.Event) {
+            job := ssn.Jobs[event.Task.Job]
+            attr := cp.queueOpts[job.Queue]
+            
+            // 释放队列已使用资源
+            attr.allocated.Sub(event.Task.Resreq)
+            
+            klog.V(4).Infof("Capacity deallocated <%v> from queue <%v>, total allocated <%v>",
+                event.Task.Resreq, job.Queue, attr.allocated)
+        },
+    })
+}
+```
+
+**实际应用场景**:
+
+1. **DRF插件中的资源份额管理**:
+
+    ```go
+    ssn.AddEventHandler(&framework.EventHandler{
+        AllocateFunc: func(event *framework.Event) {
+            attr := drf.jobAttrs[event.Task.Job]
+            attr.allocated.Add(event.Task.Resreq)
+            
+            // 重新计算主导资源份额
+            attr.share = drf.calculateShare(attr.allocated, attr.request)
+        },
+    })
+    ```
+
+2. **Proportion插件中的权重调整**:
+
+    ```go
+    ssn.AddEventHandler(&framework.EventHandler{
+        AllocateFunc: func(event *framework.Event) {
+            job := ssn.Jobs[event.Task.Job]
+            attr := pp.queueOpts[job.Queue]
+            
+            // 更新队列资源使用情况
+            attr.allocated.Add(event.Task.Resreq)
+            
+            // 重新计算队列权重
+            pp.updateQueueWeight(job.Queue, attr)
+        },
+    })
+    ```
+
+3. **NUMA感知插件中的拓扑状态管理**:
+
+    ```go
+    ssn.AddEventHandler(&framework.EventHandler{
+        AllocateFunc: func(event *framework.Event) {
+            node := pp.nodeResSets[event.Task.NodeName]
+            
+            // 更新NUMA节点资源分配状态
+            pp.assignRes[event.Task.UID] = pp.allocateNumaResource(node, event.Task)
+            
+            klog.V(4).Infof("NUMA resource allocated for task %s on node %s", 
+                event.Task.Name, event.Task.NodeName)
+        },
+    })
+    ```
+
+**重要特性**:
+- **自动触发**：无需手动调用，调度器在资源分配/释放时自动触发
+- **状态同步**：确保插件内部状态与调度器实际状态保持一致
+- **错误处理**：`Event`结构包含错误信息，支持异常情况处理
+- **多插件支持**：多个插件可以注册不同的事件处理器，按注册顺序执行
