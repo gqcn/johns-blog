@@ -172,59 +172,16 @@ Events:
 
 ### 模拟标签脚本
 
-```shell title="kind-label.sh"
+通过以下命令可以给指定节点模拟`GPU`相关标签：
+
+```shell title="gpu-labels.sh"
 #!/bin/sh
 
-# 设置颜色输出
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-echo "${GREEN}开始为Kind集群节点添加NFD和GFD标签...${NC}"
-
-# 确保脚本有执行权限
-chmod +x "$0"
-
-# 检查kubectl是否可用
-if ! command -v kubectl &> /dev/null; then
-    echo "错误: kubectl命令未找到，请确保已安装kubectl并配置正确"
-    exit 1
-fi
-
-# 检查集群连接
-if ! kubectl cluster-info &> /dev/null; then
-    echo "错误: 无法连接到Kubernetes集群，请确保集群已启动"
-    exit 1
-fi
-
-# 等待所有节点就绪
-echo "等待所有节点就绪..."
-kubectl wait --for=condition=Ready nodes --all --timeout=300s
-
-# 获取工作节点列表
-WORKER_NODES=($(kubectl get nodes --no-headers | grep -v control-plane | awk '{print $1}'))
-
-if [ ${#WORKER_NODES[@]} -ne 3 ]; then
-    echo "警告: 预期有3个工作节点，但实际找到 ${#WORKER_NODES[@]} 个"
-fi
-
-echo "${YELLOW}找到以下工作节点:${NC}"
-for node in "${WORKER_NODES[@]}"; do
-    echo " - $node"
-done
-
-# 为每个节点添加标签
-# 如果没有足够的工作节点，则退出
-if [ ${#WORKER_NODES[@]} -lt 3 ]; then
-    echo "${YELLOW}错误: 需要至少3个工作节点，但只找到 ${#WORKER_NODES[@]} 个${NC}"
-    exit 1
-fi
-
-# 节点1: 模拟A100 GPU节点
-echo "${GREEN}为节点 ${WORKER_NODES[0]} 添加NFD和GFD标签 (A100 GPU)...${NC}"
+NODE_NAME="john-worker2"
+GPU_PRODUCT="NVIDIA-H200"
 
 # NFD标签 - CPU相关
-kubectl label node ${WORKER_NODES[0]} \
+kubectl label node ${NODE_NAME} \
     feature.node.kubernetes.io/cpu-model.vendor_id=GenuineIntel \
     feature.node.kubernetes.io/cpu-model.family=6 \
     feature.node.kubernetes.io/cpu-model.id=85 \
@@ -241,7 +198,7 @@ kubectl label node ${WORKER_NODES[0]} \
     --overwrite
 
 # NFD标签 - 内核相关
-kubectl label node ${WORKER_NODES[0]} \
+kubectl label node ${NODE_NAME} \
     feature.node.kubernetes.io/kernel-version.full=5.15.0-76-generic \
     feature.node.kubernetes.io/kernel-version.major=5 \
     feature.node.kubernetes.io/kernel-version.minor=15 \
@@ -249,26 +206,24 @@ kubectl label node ${WORKER_NODES[0]} \
     --overwrite
 
 # NFD标签 - 内存相关
-kubectl label node ${WORKER_NODES[0]} \
+kubectl label node ${NODE_NAME} \
     feature.node.kubernetes.io/memory-numa=true \
     feature.node.kubernetes.io/memory-nv.present=true \
     --overwrite
 
 # NFD标签 - PCI设备相关 (NVIDIA GPU)
-kubectl label node ${WORKER_NODES[0]} \
+kubectl label node ${NODE_NAME} \
     feature.node.kubernetes.io/pci-10de.present=true \
-    feature.node.kubernetes.io/pci-10de.device-10de.model-name=NVIDIA_A100-SXM4-80GB \
     --overwrite
 
 # GFD标签 - NVIDIA GPU相关
-kubectl label node ${WORKER_NODES[0]} \
+kubectl label node ${NODE_NAME} \
     nvidia.com/gpu.present=true \
     nvidia.com/gpu.count=8 \
-    nvidia.com/gpu.product=A100-SXM4-80GB \
+    nvidia.com/gpu.product=${GPU_PRODUCT} \
     nvidia.com/gpu.family=ampere \
     nvidia.com/gpu.compute.major=8 \
     nvidia.com/gpu.compute.minor=0 \
-    nvidia.com/gpu.machine=NVIDIA_A100-SXM4-80GB \
     nvidia.com/gpu.memory=81920 \
     nvidia.com/gpu.clock=1410 \
     nvidia.com/gpu.driver.major=535 \
@@ -286,149 +241,9 @@ kubectl label node ${WORKER_NODES[0]} \
     nvidia.com/gpu.max-instances=7 \
     nvidia.com/gpu.virtualization=false \
     --overwrite
-
-# 节点2: 模拟V100 GPU节点
-echo "${GREEN}为节点 ${WORKER_NODES[1]} 添加NFD和GFD标签 (V100 GPU)...${NC}"
-
-# NFD标签 - CPU相关
-kubectl label node ${WORKER_NODES[1]} \
-    feature.node.kubernetes.io/cpu-model.vendor_id=GenuineIntel \
-    feature.node.kubernetes.io/cpu-model.family=6 \
-    feature.node.kubernetes.io/cpu-model.id=85 \
-    feature.node.kubernetes.io/cpu-cpuid.AVX=true \
-    feature.node.kubernetes.io/cpu-cpuid.AVX2=true \
-    feature.node.kubernetes.io/cpu-cpuid.AVX512F=true \
-    feature.node.kubernetes.io/cpu-hardware_multithreading=true \
-    feature.node.kubernetes.io/cpu-pstate.status=active \
-    feature.node.kubernetes.io/cpu-pstate.turbo=true \
-    feature.node.kubernetes.io/cpu-pstate.scaling_governor=performance \
-    feature.node.kubernetes.io/cpu-cstate.enabled=true \
-    --overwrite
-
-# NFD标签 - 内核相关
-kubectl label node ${WORKER_NODES[1]} \
-    feature.node.kubernetes.io/kernel-version.full=5.15.0-76-generic \
-    feature.node.kubernetes.io/kernel-version.major=5 \
-    feature.node.kubernetes.io/kernel-version.minor=15 \
-    feature.node.kubernetes.io/kernel-version.revision=0 \
-    --overwrite
-
-# NFD标签 - 内存相关
-kubectl label node ${WORKER_NODES[1]} \
-    feature.node.kubernetes.io/memory-numa=true \
-    --overwrite
-
-# NFD标签 - PCI设备相关 (NVIDIA GPU)
-kubectl label node ${WORKER_NODES[1]} \
-    feature.node.kubernetes.io/pci-10de.present=true \
-    feature.node.kubernetes.io/pci-10de.device-10de.model-name=NVIDIA_V100-SXM2-32GB \
-    --overwrite
-
-# GFD标签 - NVIDIA GPU相关
-kubectl label node ${WORKER_NODES[1]} \
-    nvidia.com/gpu.present=true \
-    nvidia.com/gpu.count=4 \
-    nvidia.com/gpu.product=V100-SXM2-32GB \
-    nvidia.com/gpu.family=volta \
-    nvidia.com/gpu.compute.major=7 \
-    nvidia.com/gpu.compute.minor=0 \
-    nvidia.com/gpu.machine=NVIDIA_V100-SXM2-32GB \
-    nvidia.com/gpu.memory=32768 \
-    nvidia.com/gpu.clock=1530 \
-    nvidia.com/gpu.driver.major=535 \
-    nvidia.com/gpu.driver.minor=104 \
-    nvidia.com/gpu.driver.rev=05 \
-    nvidia.com/gpu.cuda.major=12 \
-    nvidia.com/gpu.cuda.minor=0 \
-    nvidia.com/gpu.cuda.patch=0 \
-    nvidia.com/mig.capable=false \
-    nvidia.com/mps.capable=true \
-    nvidia.com/gpu.multiprocessors=80 \
-    nvidia.com/gpu.virtualization=false \
-    --overwrite
-
-# 节点3: 模拟T4 GPU节点
-echo "${GREEN}为节点 ${WORKER_NODES[2]} 添加NFD和GFD标签 (T4 GPU)...${NC}"
-
-# NFD标签 - CPU相关
-kubectl label node ${WORKER_NODES[2]} \
-    feature.node.kubernetes.io/cpu-model.vendor_id=GenuineIntel \
-    feature.node.kubernetes.io/cpu-model.family=6 \
-    feature.node.kubernetes.io/cpu-model.id=85 \
-    feature.node.kubernetes.io/cpu-cpuid.AVX=true \
-    feature.node.kubernetes.io/cpu-cpuid.AVX2=true \
-    feature.node.kubernetes.io/cpu-hardware_multithreading=true \
-    feature.node.kubernetes.io/cpu-pstate.status=active \
-    feature.node.kubernetes.io/cpu-pstate.turbo=true \
-    feature.node.kubernetes.io/cpu-pstate.scaling_governor=performance \
-    feature.node.kubernetes.io/cpu-cstate.enabled=true \
-    --overwrite
-
-# NFD标签 - 内核相关
-kubectl label node ${WORKER_NODES[2]} \
-    feature.node.kubernetes.io/kernel-version.full=5.15.0-76-generic \
-    feature.node.kubernetes.io/kernel-version.major=5 \
-    feature.node.kubernetes.io/kernel-version.minor=15 \
-    feature.node.kubernetes.io/kernel-version.revision=0 \
-    --overwrite
-
-# NFD标签 - 内存相关
-kubectl label node ${WORKER_NODES[2]} \
-    feature.node.kubernetes.io/memory-numa=false \
-    --overwrite
-
-# NFD标签 - PCI设备相关 (NVIDIA GPU)
-kubectl label node ${WORKER_NODES[2]} \
-    feature.node.kubernetes.io/pci-10de.present=true \
-    feature.node.kubernetes.io/pci-10de.device-10de.model-name=NVIDIA_T4 \
-    --overwrite
-
-# GFD标签 - NVIDIA GPU相关
-kubectl label node ${WORKER_NODES[2]} \
-    nvidia.com/gpu.present=true \
-    nvidia.com/gpu.count=2 \
-    nvidia.com/gpu.product=T4 \
-    nvidia.com/gpu.family=turing \
-    nvidia.com/gpu.compute.major=7 \
-    nvidia.com/gpu.compute.minor=5 \
-    nvidia.com/gpu.machine=NVIDIA_T4 \
-    nvidia.com/gpu.memory=16384 \
-    nvidia.com/gpu.clock=1590 \
-    nvidia.com/gpu.driver.major=535 \
-    nvidia.com/gpu.driver.minor=104 \
-    nvidia.com/gpu.driver.rev=05 \
-    nvidia.com/gpu.cuda.major=11 \
-    nvidia.com/gpu.cuda.minor=8 \
-    nvidia.com/gpu.cuda.patch=0 \
-    nvidia.com/mig.capable=false \
-    nvidia.com/mps.capable=true \
-    nvidia.com/gpu.multiprocessors=40 \
-    nvidia.com/gpu.virtualization=false \
-    --overwrite
-
-echo "${GREEN}所有节点标签添加完成!${NC}"
-echo "${YELLOW}验证节点标签:${NC}"
-
-# 验证标签
-for node in "${WORKER_NODES[@]}"; do
-    echo "${GREEN}节点 $node 的NFD标签:${NC}"
-    kubectl get node $node -o json | jq -r '.metadata.labels | with_entries(select(.key | startswith("feature.node.kubernetes.io"))) | to_entries | .[] | "\(.key)=\(.value)"'
-    
-    echo "${GREEN}节点 $node 的GFD标签:${NC}"
-    kubectl get node $node -o json | jq -r '.metadata.labels | with_entries(select(.key | startswith("nvidia.com"))) | to_entries | .[] | "\(.key)=\(.value)"'
-    
-    echo ""
-done
-
-echo "${GREEN}脚本执行完成!${NC}"
 ```
 
 
-### 执行标签脚本
-
-```bash
-./kind-label.sh
-```
 
 ### 验证执行结果
 
@@ -444,58 +259,14 @@ kubectl describe node ai-cluster-worker
 
 为节点模拟`GPU`资源类型，这里模拟的是`NVIDIA`的卡，因此需要加上`nvidia.com/gpu`的资源。
 
-### 模拟GPU资源脚本
-```shell title="add-gpu-resources.sh"
-#!/bin/sh
+### 模拟GPU资源命令
 
-# 设置颜色输出
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-echo "${GREEN}开始为Kind集群节点添加模拟GPU资源...${NC}"
-
-# 获取工作节点列表
-WORKER_NODES=($(kubectl get nodes --no-headers | grep -v control-plane | awk '{print $1}'))
-
-if [ ${#WORKER_NODES[@]} -lt 3 ]; then
-    echo "${YELLOW}警告: 预期有3个工作节点，但实际找到 ${#WORKER_NODES[@]} 个${NC}"
-fi
-
-echo "${YELLOW}找到以下工作节点:${NC}"
-for node in "${WORKER_NODES[@]}"; do
-    echo " - $node"
-done
-
-# 使用kubectl patch命令直接修改节点资源
-
-# 为第一个节点添加8个A100 GPU
-echo "${GREEN}为节点 ${WORKER_NODES[0]} 添加8个模拟A100 GPU...${NC}"
-
-# 使用kubectl patch命令修改节点资源
-kubectl get node ${WORKER_NODES[0]} -o json | jq '.status.capacity["nvidia.com/gpu"]="8" | .status.allocatable["nvidia.com/gpu"]="8"' | kubectl replace --raw /api/v1/nodes/${WORKER_NODES[0]}/status -f -
-
-# 为第二个节点添加4个V100 GPU
-echo "${GREEN}为节点 ${WORKER_NODES[1]} 添加4个模拟V100 GPU...${NC}"
-kubectl get node ${WORKER_NODES[1]} -o json | jq '.status.capacity["nvidia.com/gpu"]="4" | .status.allocatable["nvidia.com/gpu"]="4"' | kubectl replace --raw /api/v1/nodes/${WORKER_NODES[1]}/status -f -
-
-# 为第三个节点添加2个T4 GPU
-echo "${GREEN}为节点 ${WORKER_NODES[2]} 添加2个模拟T4 GPU...${NC}"
-kubectl get node ${WORKER_NODES[2]} -o json | jq '.status.capacity["nvidia.com/gpu"]="2" | .status.allocatable["nvidia.com/gpu"]="2"' | kubectl replace --raw /api/v1/nodes/${WORKER_NODES[2]}/status -f -
-
-# 验证GPU资源是否添加成功
-echo "${GREEN}验证节点GPU资源:${NC}"
-kubectl get nodes -o=custom-columns=NAME:.metadata.name,GPU:.status.capacity.\'nvidia\.com/gpu\'
-
-echo "${GREEN}模拟GPU资源添加完成!${NC}"
-```
-
-
-### 执行GPU资源脚本
+通过以下命令可以给指定节点模拟`GPU`资源`nvidia.com/gpu`：
 
 ```bash
-./add-gpu-resources.sh
+NODE_NAME="john-worker2" kubectl get node ${NODE_NAME} -o json | jq '.status.capacity["nvidia.com/gpu"]="8" | .status.allocatable["nvidia.com/gpu"]="8"' | kubectl replace --raw /api/v1/nodes/${NODE_NAME}/status -f -
 ```
+
 
 ### 验证GPU资源结果
 
