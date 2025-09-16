@@ -335,7 +335,67 @@ kubectl cluster-info
 
 ## 7. 实用技巧
 
-### 7.1 在CI/CD中使用Kind
+### 7.1 自定义创建节点名称
+
+使用`kubeadmConfigPatches`配置实现，参考以下示例：
+
+```yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  image: kindest/node:v1.27.3
+
+- role: worker
+  image: kindest/node:v1.27.3
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      name: cpu-node
+
+- role: worker
+  image: kindest/node:v1.27.3
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      name: gpu-node-h200
+
+- role: worker
+  image: kindest/node:v1.27.3
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      name: gpu-node-4090
+
+- role: worker
+  image: kindest/node:v1.27.3
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      name: gpu-node-h800
+
+- role: worker
+  image: kindest/node:v1.27.3
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      name: gpu-node-h800-mps
+  
+- role: worker
+  image: kindest/node:v1.27.3
+  kubeadmConfigPatches:
+  - |
+    kind: JoinConfiguration
+    nodeRegistration:
+      name: gpu-node-h20-mig
+```
+
+### 7.2 在CI/CD中使用Kind
 
 `Kind`非常适合在`CI/CD`管道中使用。以下是在`GitHub Actions`中使用`Kind`的示例：
 
@@ -358,7 +418,7 @@ jobs:
         kubectl get pods -A
 ```
 
-### 7.2 使用Helm与Kind
+### 7.3 使用Helm与Kind
 
 `Helm`是`Kubernetes`的包管理工具，可以与`Kind`一起使用：
 
@@ -371,7 +431,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install my-release bitnami/nginx
 ```
 
-### 7.3 使用Ingress与Kind
+### 7.4 使用Ingress与Kind
 
 在`Kind`集群中启用`Ingress`：
 
