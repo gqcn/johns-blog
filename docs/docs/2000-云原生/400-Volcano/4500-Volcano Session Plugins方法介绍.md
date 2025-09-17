@@ -1685,7 +1685,7 @@ type Event struct {
 
 **参数详解**:
 - `AllocateFunc`: 任务分配时的回调函数，参数为包含任务和节点信息的事件
-- `DeallocateFunc`: 任务释放时的回调函数，参数为包含任务和节点信息的事件
+- `DeallocateFunc`: 任务被抢占驱逐、调度决策被撤销（如UnPipeline）、任务分配被取消（如UnAllocate）时的回调函数，参数为包含任务和节点信息的事件
 
 **返回值含义**:
 - 无返回值，仅执行事件处理逻辑
