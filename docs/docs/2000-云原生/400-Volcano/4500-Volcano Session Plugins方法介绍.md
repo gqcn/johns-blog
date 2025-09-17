@@ -22,6 +22,21 @@ description: "本文详细介绍了Volcano调度器框架中Session对象的31�
 func (ssn *Session) AddJobOrderFn(name string, cf api.CompareFn)
 ```
 
+**CompareFn类型定义**:
+```go
+type CompareFn func(interface{}, interface{}) int
+```
+
+**参数详解**:
+- 第一个参数: `*api.JobInfo` 类型，表示左侧作业信息
+- 第二个参数: `*api.JobInfo` 类型，表示右侧作业信息
+
+**返回值含义**:
+- 返回 `-1`: 表示左侧作业优先级高于右侧作业
+- 返回 `1`: 表示右侧作业优先级高于左侧作业
+- 返回 `0`: 表示两个作业优先级相等
+
+
 **使用场景**: 
 - 实现基于优先级的作业调度
 - 实现基于资源需求的作业排序
@@ -58,6 +73,20 @@ func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddQueueOrderFn(name string, qf api.CompareFn)
 ```
+
+**CompareFn类型定义**:
+```go
+type CompareFn func(interface{}, interface{}) int
+```
+
+**参数详解**:
+- 第一个参数: `*api.QueueInfo` 类型，表示左侧队列信息
+- 第二个参数: `*api.QueueInfo` 类型，表示右侧队列信息
+
+**返回值含义**:
+- 返回 `-1`: 表示左侧队列优先级高于右侧队列
+- 返回 `1`: 表示右侧队列优先级高于左侧队列
+- 返回 `0`: 表示两个队列优先级相等
 
 **使用场景**: 
 - 实现基于权重的队列调度
@@ -107,6 +136,21 @@ func calculateDominantResourceShare(queue *api.QueueInfo) float64 {
 func (ssn *Session) AddVictimQueueOrderFn(name string, vcf api.VictimCompareFn)
 ```
 
+**VictimCompareFn类型定义**:
+```go
+type VictimCompareFn func(interface{}, interface{}, interface{}) int
+```
+
+**参数详解**:
+- 第一个参数: `*api.QueueInfo` 类型，表示左侧候选受害者队列
+- 第二个参数: `*api.QueueInfo` 类型，表示右侧候选受害者队列
+- 第三个参数: `*api.QueueInfo` 类型，表示抢占者队列
+
+**返回值含义**:
+- 返回 `-1`: 表示左侧队列更适合作为受害者（优先被抢占）
+- 返回 `1`: 表示右侧队列更适合作为受害者（优先被抢占）
+- 返回 `0`: 表示两个队列作为受害者的优先级相等
+
 **使用场景**: 
 - 实现抢占时的队列选择策略
 - 实现多租户抢占优先级
@@ -144,6 +188,20 @@ func (pp *preemptPlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddClusterOrderFn(name string, qf api.CompareFn)
 ```
 
+**CompareFn类型定义**:
+```go
+type CompareFn func(interface{}, interface{}) int
+```
+
+**参数详解**:
+- 第一个参数: `*scheduling.Cluster` 类型，表示左侧集群信息
+- 第二个参数: `*scheduling.Cluster` 类型，表示右侧集群信息
+
+**返回值含义**:
+- 返回 `-1`: 表示左侧集群优先级高于右侧集群
+- 返回 `1`: 表示右侧集群优先级高于左侧集群
+- 返回 `0`: 表示两个集群优先级相等
+
 **使用场景**: 
 - 实现多集群资源调度
 - 实现集群负载均衡
@@ -179,6 +237,20 @@ func (cp *clusterPlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddTaskOrderFn(name string, cf api.CompareFn)
 ```
+
+**CompareFn类型定义**:
+```go
+type CompareFn func(interface{}, interface{}) int
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示左侧任务信息
+- 第二个参数: `*api.TaskInfo` 类型，表示右侧任务信息
+
+**返回值含义**:
+- 返回 `-1`: 表示左侧任务优先级高于右侧任务
+- 返回 `1`: 表示右侧任务优先级高于左侧任务
+- 返回 `0`: 表示两个任务优先级相等
 
 **使用场景**: 
 - 实现基于任务类型的排序（如`master`优先于`worker`）
@@ -224,6 +296,19 @@ func getTaskRole(task *api.TaskInfo) string {
 ```go
 func (ssn *Session) AddPredicateFn(name string, pf api.PredicateFn)
 ```
+
+**PredicateFn类型定义**:
+```go
+type PredicateFn func(*TaskInfo, *NodeInfo) error
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待调度的任务信息
+- 第二个参数: `*api.NodeInfo` 类型，表示候选节点信息
+
+**返回值含义**:
+- 返回 `nil`: 表示任务可以调度到该节点
+- 返回 `error`: 表示任务不能调度到该节点，错误信息说明原因
 
 **使用场景**: 
 - 实现节点资源充足性检查
@@ -281,6 +366,18 @@ func getNodeGPUType(node *api.NodeInfo) string {
 func (ssn *Session) AddPrePredicateFn(name string, pf api.PrePredicateFn)
 ```
 
+**PrePredicateFn类型定义**:
+```go
+type PrePredicateFn func(*TaskInfo) error
+```
+
+**参数详解**:
+- 参数: `*api.TaskInfo` 类型，表示待调度的任务信息
+
+**返回值含义**:
+- 返回 `nil`: 表示任务通过预过滤检查
+- 返回 `error`: 表示任务不通过预过滤检查，错误信息说明原因
+
 **使用场景**: 
 - 实现任务级别的资源检查
 - 实现任务状态预验证
@@ -313,6 +410,19 @@ func (rp *resourcePlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddBestNodeFn(name string, pf api.BestNodeFn)
 ```
+
+**BestNodeFn类型定义**:
+```go
+type BestNodeFn func(*TaskInfo, []*NodeInfo) *NodeInfo
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待调度的任务信息
+- 第二个参数: `[]*api.NodeInfo` 类型，表示候选节点列表
+
+**返回值含义**:
+- 返回 `*api.NodeInfo`: 表示选中的最佳节点
+- 返回 `nil`: 表示没有找到合适的节点
 
 **使用场景**: 
 - 实现自定义节点选择策略
@@ -365,6 +475,19 @@ func (bp *bestNodePlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddNodeOrderFn(name string, pf api.NodeOrderFn)
 ```
+
+**NodeOrderFn类型定义**:
+```go
+type NodeOrderFn func(*TaskInfo, *NodeInfo) (float64, error)
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待调度的任务信息
+- 第二个参数: `*api.NodeInfo` 类型，表示候选节点信息
+
+**返回值含义**:
+- 第一个返回值: `float64` 类型，表示节点的优先级分数（分数越高优先级越高）
+- 第二个返回值: `error` 类型，表示打分过程中的错误信息
 
 **使用场景**: 
 - 实现基于资源利用率的节点打分
@@ -420,6 +543,19 @@ func calculateResourceScore(requested, allocatable, used int64) float64 {
 func (ssn *Session) AddHyperNodeOrderFn(name string, fn api.HyperNodeOrderFn)
 ```
 
+**HyperNodeOrderFn类型定义**:
+```go
+type HyperNodeOrderFn func(*TaskInfo, []*NodeInfo) (map[string]float64, error)
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待调度的任务信息
+- 第二个参数: `[]*api.NodeInfo` 类型，表示候选节点列表
+
+**返回值含义**:
+- 第一个返回值: `map[string]float64` 类型，表示节点ID到分数的映射（分数越高优先级越高）
+- 第二个返回值: `error` 类型，表示打分过程中的错误信息
+
 **使用场景**: 
 - 实现多节点组合的调度策略
 - 实现拓扑感知的节点组选择
@@ -455,6 +591,19 @@ func (tp *topologyPlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddBatchNodeOrderFn(name string, pf api.BatchNodeOrderFn)
 ```
 
+**BatchNodeOrderFn类型定义**:
+```go
+type BatchNodeOrderFn func(*TaskInfo, []*NodeInfo) (map[string]float64, error)
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待调度的任务信息
+- 第二个参数: `[]*api.NodeInfo` 类型，表示候选节点列表
+
+**返回值含义**:
+- 第一个返回值: `map[string]float64` 类型，表示节点名称到分数的映射（分数越高优先级越高）
+- 第二个返回值: `error` 类型，表示打分过程中的错误信息
+
 **使用场景**: 
 - 实现批量节点评分优化
 - 实现并行节点打分计算
@@ -484,6 +633,19 @@ func (bp *batchPlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddNodeMapFn(name string, pf api.NodeMapFn)
 ```
+
+**NodeMapFn类型定义**:
+```go
+type NodeMapFn func(*TaskInfo, *NodeInfo) (float64, error)
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待调度的任务信息
+- 第二个参数: `*api.NodeInfo` 类型，表示候选节点信息
+
+**返回值含义**:
+- 第一个返回值: `float64` 类型，表示节点的映射分数值
+- 第二个返回值: `error` 类型，表示映射过程中的错误信息
 
 **使用场景**: 
 - 实现节点特征提取
@@ -517,6 +679,19 @@ func (mp *mapPlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddNodeReduceFn(name string, pf api.NodeReduceFn)
 ```
 
+**NodeReduceFn类型定义**:
+```go
+type NodeReduceFn func(*TaskInfo, k8sframework.NodeScoreList) error
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待调度的任务信息
+- 第二个参数: `k8sframework.NodeScoreList` 类型，表示节点分数列表
+
+**返回值含义**:
+- 返回 `nil`: 表示归约处理成功
+- 返回 `error`: 表示归约处理失败，错误信息说明原因
+
 **使用场景**: 
 - 实现多维度分数的聚合
 - 实现分数标准化处理
@@ -534,12 +709,26 @@ func (rp *reducePlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 ### AddAllocatableFn - 资源分配检查函数
-**作用**: 注册资源分配检查函数，用于判断队列是否可以为任务分配资源。
+
+**作用**: 注册资源分配检查函数，用于判断队列是否可以为任务分配资源。该函数将会允许`Pending`的`Pod`继续进行调度（分配资源），随后`Pod`将会从`Pending`状态转换到`Running`状态。
 
 **函数签名**: 
 ```go
 func (ssn *Session) AddAllocatableFn(name string, fn api.AllocatableFn)
 ```
+
+**AllocatableFn类型定义**:
+```go
+type AllocatableFn func(*QueueInfo, *TaskInfo) bool
+```
+
+**参数详解**:
+- 第一个参数: `*api.QueueInfo` 类型，表示队列信息
+- 第二个参数: `*api.TaskInfo` 类型，表示待分配的任务信息
+
+**返回值含义**:
+- 返回 `true`: 表示队列可以为任务分配资源
+- 返回 `false`: 表示队列无法为任务分配资源
 
 **使用场景**: 
 - 实现队列容量检查
@@ -576,6 +765,18 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddOverusedFn(name string, fn api.ValidateFn)
 ```
 
+**ValidateFn类型定义**:
+```go
+type ValidateFn func(interface{}) bool
+```
+
+**参数详解**:
+- 参数: `interface{}` 类型，通常为 `*api.QueueInfo` 类型，表示队列信息
+
+**返回值含义**:
+- 返回 `true`: 表示队列超出资源使用限制
+- 返回 `false`: 表示队列未超出资源使用限制
+
 **使用场景**: 
 - 实现队列资源监控
 - 实现资源回收触发条件
@@ -604,6 +805,19 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddPreemptiveFn(name string, fn api.ValidateWithCandidateFn)
 ```
+
+**ValidateWithCandidateFn类型定义**:
+```go
+type ValidateWithCandidateFn func(interface{}, interface{}) bool
+```
+
+**参数详解**:
+- 第一个参数: `interface{}` 类型，通常为 `*api.QueueInfo` 类型，表示队列信息
+- 第二个参数: `interface{}` 类型，通常为 `*api.TaskInfo` 类型，表示候选任务信息
+
+**返回值含义**:
+- 返回 `true`: 表示队列具备抢占能力
+- 返回 `false`: 表示队列不具备抢占能力
 
 **使用场景**: 
 - 实现抢占权限控制
@@ -641,6 +855,19 @@ func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddPreemptableFn(name string, cf api.EvictableFn)
 ```
+
+**EvictableFn类型定义**:
+```go
+type EvictableFn func(*TaskInfo, []*TaskInfo) ([]*TaskInfo, int)
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示抢占者任务信息
+- 第二个参数: `[]*api.TaskInfo` 类型，表示候选被抢占任务列表
+
+**返回值含义**:
+- 第一个返回值: `[]*api.TaskInfo` 类型，表示最终被抢占的任务列表
+- 第二个返回值: `int` 类型，表示抢占的任务数量
 
 **使用场景**: 
 - 实现基于优先级的任务抢占
@@ -694,6 +921,19 @@ func isPreemptable(task *api.TaskInfo) bool {
 ```go
 func (ssn *Session) AddReclaimableFn(name string, rf api.EvictableFn)
 ```
+
+**EvictableFn类型定义**:
+```go
+type EvictableFn func(*TaskInfo, []*TaskInfo) ([]*TaskInfo, int)
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示请求资源的任务信息
+- 第二个参数: `[]*api.TaskInfo` 类型，表示候选回收任务列表
+
+**返回值含义**:
+- 第一个返回值: `[]*api.TaskInfo` 类型，表示最终被回收的任务列表
+- 第二个返回值: `int` 类型，表示回收的任务数量
 
 **使用场景**: 
 - 实现队列间的资源回收
@@ -749,6 +989,19 @@ func isQueueOverGuarantee(queue *api.QueueInfo) bool {
 func (ssn *Session) AddJobPipelinedFn(name string, vf api.VoteFn)
 ```
 
+**VoteFn类型定义**:
+```go
+type VoteFn func(interface{}) int
+```
+
+**参数详解**:
+- 参数: `interface{}` 类型，通常为 `*api.JobInfo` 类型，表示作业信息
+
+**返回值含义**:
+- 返回正数: 表示支持作业进行流水线调度的票数
+- 返回0: 表示中性票，不影响决策
+- 返回负数: 表示反对作业进行流水线调度的票数
+
 **使用场景**: 
 - 实现流水线作业调度
 - 实现资源预分配检查
@@ -790,6 +1043,17 @@ func calculateMinResourceForPipeline(job *api.JobInfo) *api.Resource {
 ```go
 func (ssn *Session) AddJobValidFn(name string, fn api.ValidateExFn)
 ```
+
+**ValidateExFn类型定义**:
+```go
+type ValidateExFn func(interface{}) *ValidateResult
+```
+
+**参数详解**:
+- 参数: `interface{}` 类型，通常为 `*api.JobInfo` 类型，表示作业信息
+
+**返回值含义**:
+- 返回 `*ValidateResult`: 包含验证结果的结构体，包括是否通过验证和错误信息
 
 **使用场景**: 
 - 实现作业配置验证
@@ -835,6 +1099,18 @@ func (vp *validationPlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddJobStarvingFns(name string, fn api.ValidateFn)
 ```
 
+**ValidateFn类型定义**:
+```go
+type ValidateFn func(interface{}) bool
+```
+
+**参数详解**:
+- 参数: `interface{}` 类型，通常为 `*api.JobInfo` 类型，表示作业信息
+
+**返回值含义**:
+- 返回 `true`: 表示作业处于饥饿状态
+- 返回 `false`: 表示作业未处于饥饿状态
+
 **使用场景**: 
 - 实现作业饥饿检测
 - 实现优先级提升策略
@@ -871,6 +1147,18 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddJobReadyFn(name string, vf api.ValidateFn)
 ```
+
+**ValidateFn类型定义**:
+```go
+type ValidateFn func(interface{}) bool
+```
+
+**参数详解**:
+- 参数: `interface{}` 类型，通常为 `*api.JobInfo` 类型，表示作业信息
+
+**返回值含义**:
+- 返回 `true`: 表示作业已准备好进行调度
+- 返回 `false`: 表示作业尚未准备好进行调度
 
 **使用场景**: 
 - 实现Gang调度的就绪检查
@@ -923,12 +1211,26 @@ func canScheduleTask(ssn *framework.Session, task *api.TaskInfo) bool {
 ## 高级调度功能方法
 
 ### AddJobEnqueueableFn - 作业入队检查函数
-**作用**: 注册作业入队检查函数，用于判断作业是否可以进入调度队列。
+
+**作用**: 注册作业入队检查函数，用于判断作业是否可以进入调度队列。该函数将会把`Pending`状态的`PodGroup`转换为`Inqueue`状态，随后`PodHGroup`对应的`Pod`将会创建出来，新建出来的`Pod`处于`Pending`状态。
 
 **函数签名**: 
 ```go
 func (ssn *Session) AddJobEnqueueableFn(name string, fn api.VoteFn)
 ```
+
+**VoteFn类型定义**:
+```go
+type VoteFn func(interface{}) int
+```
+
+**参数详解**:
+- 参数: `interface{}` 类型，通常为 `*api.JobInfo` 类型，表示作业信息
+
+**返回值含义**:
+- 返回`util.Permit`(`1`): 表示支持作业入队的票数
+- 返回`util.Abstain`(`0`): 表示中性票，不影响决策
+- 返回`util.Reject`(`-1`): 表示反对作业入队的票数
 
 **使用场景**: 
 - 实现作业依赖检查
@@ -947,11 +1249,11 @@ func (dp *dependencyPlugin) OnSessionOpen(ssn *framework.Session) {
         for _, dep := range dependencies {
             depJob := findJobByName(ssn, dep)
             if depJob == nil {
-                return -1 // 拒绝入队
+                return util.Reject // 拒绝入队
             }
         }
         
-        return 1 // 允许入队
+        return util.Permit // 允许入队
     })
 }
 ```
@@ -963,6 +1265,17 @@ func (dp *dependencyPlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddJobEnqueuedFn(name string, fn api.JobEnqueuedFn)
 ```
+
+**JobEnqueuedFn类型定义**:
+```go
+type JobEnqueuedFn func(interface{})
+```
+
+**参数详解**:
+- 参数: `interface{}` 类型，通常为 `*api.JobInfo` 类型，表示已入队的作业信息
+
+**返回值含义**:
+- 无返回值，仅执行回调操作
 
 **使用场景**: 
 - 实现作业入队后的状态更新
@@ -996,6 +1309,18 @@ func (mp *monitorPlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddReservedNodesFn(name string, fn api.ReservedNodesFn)
 ```
+
+**ReservedNodesFn类型定义**:
+```go
+type ReservedNodesFn func(*TaskInfo) error
+```
+
+**参数详解**:
+- 参数: `*api.TaskInfo` 类型，表示需要预留节点的任务信息
+
+**返回值含义**:
+- 返回 `nil`: 表示节点预留成功
+- 返回 `error`: 表示节点预留失败，错误信息说明原因
 
 **使用场景**: 
 - 实现节点资源预留
@@ -1044,6 +1369,17 @@ func reserveNodesForQueue(ssn *framework.Session, queue *api.QueueInfo) {
 ```go
 func (ssn *Session) AddVictimTasksFns(name string, fns []api.VictimTasksFn)
 ```
+
+**VictimTasksFn类型定义**:
+```go
+type VictimTasksFn func([]*TaskInfo) []*TaskInfo
+```
+
+**参数详解**:
+- 参数: `[]*api.TaskInfo` 类型，表示候选受害者任务列表
+
+**返回值含义**:
+- 返回 `[]*api.TaskInfo`: 表示最终选中的受害者任务列表
 
 **使用场景**: 
 - 实现任务抢占策略
@@ -1103,6 +1439,18 @@ func (vp *victimPlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddTargetJobFn(name string, fn api.TargetJobFn)
 ```
 
+**TargetJobFn类型定义**:
+```go
+type TargetJobFn func([]*JobInfo) *JobInfo
+```
+
+**参数详解**:
+- 参数: `[]*api.JobInfo` 类型，表示候选作业列表
+
+**返回值含义**:
+- 返回 `*api.JobInfo`: 表示选中的目标作业
+- 返回 `nil`: 表示没有找到合适的目标作业
+
 **使用场景**: 
 - 实现作业优先级选择
 - 实现负载均衡策略
@@ -1141,6 +1489,19 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddSimulateAddTaskFn(name string, fn api.SimulateAddTaskFn)
 ```
 
+**SimulateAddTaskFn类型定义**:
+```go
+type SimulateAddTaskFn func(*TaskInfo, *NodeInfo) error
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待模拟添加的任务信息
+- 第二个参数: `*api.NodeInfo` 类型，表示目标节点信息
+
+**返回值含义**:
+- 返回 `nil`: 表示模拟添加成功
+- 返回 `error`: 表示模拟添加失败，错误信息说明原因
+
 **核心使用场景**: 
 - **抢占调度验证**：在`preempt action`中验证高优先级任务是否能在释放资源后成功调度
 - **避免实际操作副作用**：在确定抢占策略前，不实际执行`Pod`调度操作
@@ -1173,6 +1534,19 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 func (ssn *Session) AddSimulateRemoveTaskFn(name string, fn api.SimulateRemoveTaskFn)
 ```
 
+**SimulateRemoveTaskFn类型定义**:
+```go
+type SimulateRemoveTaskFn func(*TaskInfo, *NodeInfo) error
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待模拟移除的任务信息
+- 第二个参数: `*api.NodeInfo` 类型，表示目标节点信息
+
+**返回值含义**:
+- 返回 `nil`: 表示模拟移除成功
+- 返回 `error`: 表示模拟移除失败，错误信息说明原因
+
 **核心使用场景**: 
 - **抢占资源释放模拟**：在`preempt action`中模拟驱逐低优先级任务后的资源状态
 - **避免不必要的Pod驱逐**：验证移除某些任务后是否能释放足够资源
@@ -1199,6 +1573,19 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddSimulateAllocatableFn(name string, fn api.SimulateAllocatableFn)
 ```
+
+**SimulateAllocatableFn类型定义**:
+```go
+type SimulateAllocatableFn func(*QueueInfo, *TaskInfo) bool
+```
+
+**参数详解**:
+- 第一个参数: `*api.QueueInfo` 类型，表示队列信息
+- 第二个参数: `*api.TaskInfo` 类型，表示待分配的任务信息
+
+**返回值含义**:
+- 返回 `true`: 表示在模拟环境中队列可以为任务分配资源
+- 返回 `false`: 表示在模拟环境中队列无法为任务分配资源
 
 **核心使用场景**: 
 - **队列资源配额验证**：在`preempt action`抢占过程中验证队列是否有足够配额来调度任务
@@ -1231,6 +1618,19 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 ```go
 func (ssn *Session) AddSimulatePredicateFn(name string, fn api.SimulatePredicateFn)
 ```
+
+**SimulatePredicateFn类型定义**:
+```go
+type SimulatePredicateFn func(*TaskInfo, *NodeInfo) error
+```
+
+**参数详解**:
+- 第一个参数: `*api.TaskInfo` 类型，表示待模拟调度的任务信息
+- 第二个参数: `*api.NodeInfo` 类型，表示候选节点信息
+
+**返回值含义**:
+- 返回 `nil`: 表示在模拟环境中任务可以调度到该节点
+- 返回 `error`: 表示在模拟环境中任务不能调度到该节点，错误信息说明原因
 
 **核心使用场景**: 
 - **抢占节点约束验证**：在`preempt action`抢占过程中验证任务在模拟环境中是否满足节点约束条件
@@ -1282,6 +1682,13 @@ type Event struct {
     Err  error
 }
 ```
+
+**参数详解**:
+- `AllocateFunc`: 任务分配时的回调函数，参数为包含任务和节点信息的事件
+- `DeallocateFunc`: 任务释放时的回调函数，参数为包含任务和节点信息的事件
+
+**返回值含义**:
+- 无返回值，仅执行事件处理逻辑
 
 **核心使用场景**: 
 - **资源分配跟踪**：在任务成功分配到节点时执行资源统计和状态更新
