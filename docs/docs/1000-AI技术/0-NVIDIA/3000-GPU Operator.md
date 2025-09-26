@@ -149,7 +149,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **标签示例**：`GPU`型号、架构、`CUDA`版本等
 - **用途**：支持基于特定`GPU`特性的精细化调度
 
-详细介绍请参考文章：[NFD&GFD技术介绍](../2000-NFD&GFD技术介绍.md)
+详细介绍请参考文章：[NFD&GFD技术介绍](../2000-NFD&GFD.md)
 
 ### 3.6 DCGM导出器 (DCGM Exporter)
 

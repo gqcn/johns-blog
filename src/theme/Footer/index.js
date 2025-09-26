@@ -3,7 +3,7 @@ import Footer from '@theme-original/Footer';
 
 export default function CustomFooter(props) {
   React.useEffect(() => {
-    const icpNumber = '<a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">蜀ICP备2024111610号</a >';
+    const icpNumber = '';
     if (icpNumber) {
       const footerElement = document.querySelector('.footer__bottom');
       if (footerElement) {
