@@ -8,6 +8,8 @@ description: 详细介绍GPU Share的五种常见技术方案：Single Process�
 
 在`AI`算力日益紧张的今天，`GPU`资源的高效利用成为了关键问题。单个`GPU`的算力往往超过单个应用的需求，如何实现`GPU`资源的共享和复用，提高`GPU`利用率，是每个`AI`基础设施团队都需要面对的挑战。本文将详细介绍`GPU Share`的五种常见技术方案，并从多个维度进行对比分析。
 
+![GPU Share 常见技术方案](<assets/5000-GPU Share 常见技术方案/image.png>)
+
 ## 1. Single Process In CUDA
 
 ### 1.1 技术原理
@@ -90,6 +92,8 @@ description: 详细介绍GPU Share的五种常见技术方案：Single Process�
 ### 4.1 技术原理
 
 `MIG`是`NVIDIA`在`Ampere`架构`GPU`上引入的硬件级`GPU`分区技术。`MIG`可以将一个物理`GPU`划分为多个独立的`GPU`实例，每个实例拥有独立的计算单元、显存和缓存。
+
+![MIG技术原理](<assets/5000-GPU Share 常见技术方案/image-1.png>)
 
 ### 4.2 技术架构
 
