@@ -38,6 +38,8 @@ description: 详细介绍GPU Share的五种常见技术方案：Single Process�
 
 `Time-slicing`是通过时间片轮转的方式实现`GPU`共享，多个进程按照时间片轮流使用`GPU`资源。这种方式类似于`CPU`的时间片调度机制。
 
+![Time-slicing技术原理](<assets/5000-GPU Share 常见技术方案/image-4.png>)
+
 ### 2.2 特点
 
 - **时间复用**：多个进程按时间片轮流使用`GPU`
@@ -56,6 +58,8 @@ description: 详细介绍GPU Share的五种常见技术方案：Single Process�
 ### 3.1 技术原理
 
 `CUDA Multi-Process Service (MPS)`是`NVIDIA`提供的一种软件级`GPU`共享技术。`MPS`允许多个`CUDA`进程同时访问同一个`GPU`，通过软件层面的调度和资源管理实现`GPU`资源的共享。
+
+![MPS技术原理](<assets/5000-GPU Share 常见技术方案/image-2.png>)
 
 ### 3.2 技术架构
 
@@ -145,6 +149,8 @@ nvidia-smi -L
 ### 5.1 技术原理
 
 `vGPU`是`NVIDIA`提供的`GPU`虚拟化技术，通过虚拟化层将物理`GPU`资源虚拟化为多个虚拟`GPU`，每个虚拟机可以获得独立的`vGPU`资源。
+
+![Virtualization with vGPU技术原理](<assets/5000-GPU Share 常见技术方案/image-3.png>)
 
 ### 5.2 技术架构
 
