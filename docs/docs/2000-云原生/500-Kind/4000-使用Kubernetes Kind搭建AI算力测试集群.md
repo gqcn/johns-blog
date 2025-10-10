@@ -14,6 +14,12 @@ description: "本文详细介绍了如何使用Kind工具快速搭建模拟AI算
 > 本文使用`Kind v0.27.0`、`Volcano v1.11.2`、`Kubernetes v1.32.2`版本。
 > 基于`MacOS 15.3.2`，`apple m4`芯片。
 
+## 示例项目
+
+我在`Github`上开源了一个创建`Kind`集群的示例项目可参考：
+
+https://github.com/johns-code/kind-mock-ai-cluster
+
 ## 创建测试集群
 
 首先，我们需要创建一个具有多个节点的`Kubernetes`集群，其中包含一个控制平面节点和多个模拟`GPU`的工作节点。
@@ -168,7 +174,7 @@ Events:
 
 `Volcano`安装完成后，我们需要模拟节点特征发现（`Node Feature Discovery`，`NFD`）和`GPU`特征发现（`GPU Feature Discovery`，`GFD`）的标签。在真实集群中，这些标签会由`NFD`和`GFD`自动发现并添加到节点上，但在我们的模拟环境中，需要手动添加这些标签。这些标签将用于让调度器识别不同节点的硬件特性，便于进行精准调度：
 
-关于`NFD&GFD`的介绍请参考我另一篇文章：[NFD&GFD技术介绍](../1000-AI技术/2000-NFD&GFD.md)
+关于`NFD&GFD`的介绍请参考我另一篇文章：[NFD&GFD技术介绍](../../1000-AI技术/2000-NFD&GFD.md)
 
 ### 模拟标签脚本
 
@@ -392,3 +398,4 @@ spec:
 NAMESPACE   NAME           STATUS    MINAVAILABLE   RUNNINGS   AGE
 default     gpu-test-job   Running   1              1          47s
 ```
+
