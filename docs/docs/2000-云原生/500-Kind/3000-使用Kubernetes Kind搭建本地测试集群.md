@@ -134,7 +134,9 @@ kind version
 kind create cluster
 ```
 
-这个命令会创建一个名为`kind`的默认集群。如果你想指定集群名称，可以使用`--name`参数：
+这个命令会创建一个名为`kind`的默认集群。
+
+如果你想指定集群名称，可以使用`--name`参数：
 
 ```bash
 kind create cluster --name my-cluster
@@ -144,8 +146,7 @@ kind create cluster --name my-cluster
 
 `Kind`支持使用`YAML`配置文件创建自定义集群。例如，创建一个包含`1`个控制平面节点和`2`个工作节点的集群：
 
-```yaml
-# 保存为kind-config.yaml
+```yaml title="kind-config.yaml"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -225,9 +226,25 @@ nodes:
     protocol: TCP
 ```
 
+### 5.4 配置生成的APIServer访问地址
+
+默认情况下，`Kind`会自动配置`kubeconfig`，其中`APIServer`地址为`127.0.0.1:端口号`。
+我们可以通过以下配置方式指定`APIServer`的访问地址：
+
+```yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  apiServerAddress: "10.112.2.150" 
+```
+
+
+自动生成的`kubeconfig`中访问的`APIServer`地址则为`10.112.2.150:端口号`，这样该`kubeconfig`文件我们可以分发给统一网段的其他机器访问使用。
+
+
 ### 5.2 挂载主机目录
 
-将主机目录挂载到Kind节点：
+将主机目录挂载到`Kind`节点：
 
 ```yaml
 kind: Cluster
@@ -250,6 +267,9 @@ networking:
   podSubnet: "10.244.0.0/16"
   serviceSubnet: "10.96.0.0/12"
 ```
+
+
+
 
 ## 6. 常见问题及解决方案
 
@@ -394,79 +414,15 @@ nodes:
     nodeRegistration:
       name: gpu-node-h20-mig
 ```
-
-### 7.2 在CI/CD中使用Kind
-
-`Kind`非常适合在`CI/CD`管道中使用。以下是在`GitHub Actions`中使用`Kind`的示例：
-
-```yaml
-name: Test with Kind
-
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: engineerd/setup-kind@v0.5.0
-      with:
-        version: "v0.27.0"
-    - name: Test
-      run: |
-        kubectl cluster-info
-        kubectl get pods -A
-```
-
-### 7.3 使用Helm与Kind
-
-`Helm`是`Kubernetes`的包管理工具，可以与`Kind`一起使用：
-
+集群创建后，查看节点列表形如：
 ```bash
-# 安装Helm
-curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-
-# 使用Helm在Kind集群中安装应用
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install my-release bitnami/nginx
+$ kubectl get node
+NAME                             STATUS   ROLES           AGE   VERSION
+cpu-node                         Ready    <none>          17d   v1.27.3
+gpu-node-4090                    Ready    <none>          17d   v1.27.3
+gpu-node-h200                    Ready    <none>          17d   v1.27.3
+gpu-node-h200-mig                Ready    <none>          17d   v1.27.3
+gpu-node-h800                    Ready    <none>          17d   v1.27.3
+gpu-node-h800-mps                Ready    <none>          17d   v1.27.3
+mock-cluster-127-control-plane   Ready    control-plane   17d   v1.27.3
 ```
-
-### 7.4 使用Ingress与Kind
-
-在`Kind`集群中启用`Ingress`：
-
-```yaml
-# 保存为kind-ingress.yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
-  extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
-```
-
-创建集群并安装`Ingress`控制器：
-
-```bash
-kind create cluster --config kind-ingress.yaml
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
-```
-
-## 8. 总结
-
-`Kind`是一个强大而灵活的工具，可以帮助开发者在本地快速创建`Kubernetes`测试环境。它的轻量级特性和多节点支持使其成为开发、测试和`CI/CD`环境的理想选择。通过本文介绍的安装配置、基本使用和常见问题解决方案，你应该能够开始使用`Kind`进行`Kubernetes`应用的本地开发和测试。
-
-与传统的`Minikube`相比，`Kind`在资源消耗、启动速度和多节点支持方面具有明显优势，特别适合需要频繁创建和销毁集群的场景。随着云原生技术的不断发展，`Kind`也在持续改进，为开发者提供更好的本地`Kubernetes`体验。
-
-希望本文能帮助你更好地理解和使用`Kind`，加速你的`Kubernetes`应用开发过程。
