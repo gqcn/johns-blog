@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkgf_site=self.webpackChunkgf_site||[]).push([["2134"],{96007:function(t){t.exports=JSON.parse('{"authors":[{"name":"John","url":"https://github.com/gqcn","email":"john@johng.cn","socials":{"github":"https://github.com/gqcn"},"imageURL":"https://github.com/gqcn.png","key":"John","page":null,"count":0}]}')}}]);

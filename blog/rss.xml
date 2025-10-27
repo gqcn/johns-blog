@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>John's Blog Blog</title>
+        <link>https://johng.cn/blog</link>
+        <description>John's Blog Blog</description>
+        <lastBuildDate>Mon, 27 Oct 2025 00:00:00 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <language>en</language>
+        <item>
+            <title><![CDATA[悬崖边那顶孤独的帐篷]]></title>
+            <link>https://johng.cn/blog/lone-tent-on-mountain-eadge</link>
+            <guid>https://johng.cn/blog/lone-tent-on-mountain-eadge</guid>
+            <pubDate>Mon, 27 Oct 2025 00:00:00 GMT</pubDate>
+            <description><![CDATA[记录一次独自登狮子王峰的惊险经历。在恶劣天气和大雾中，被迫在悬崖边扎营过夜，经历了一整夜的风雨考验。分享高海拔登山露营的真实体验，以及在极端环境下的安全应对措施。]]></description>
+            <content:encoded><![CDATA[<p>最近这几个月有些忙，许久没有出去重装了，今天不知怎地忽然想起几年前独自去狮子王峰登山的日子。</p>
+<p>那天沿着山路走了到了下午5点左右，天上一直下着雨，在高海拔地区山路走了一天，让人感觉很疲惫。由于整天天气也不好，整天都是大雾和下雨，天空在5点左右就显得很昏沉的样子，让人感觉很压抑。5点开始我得找稍微平一点露营地扎营，夏季通常到7点天就会黑下来，还没找到露营地的话，在不熟悉山路的情况下夜晚继续前行其实挺危险的。</p>
+<p>大概6点过，我仍然没有找到合适的营地，心里开始有点慌，决定往回走一小段距离，远望在山坡下有一小块较为平坦的地势可以扎营，但是靠近悬崖边，由于大雾加上视线已经不太好，我拿不准悬崖下方的距离。正常来讲我不会选择这里，但目前正好雨停了，并且我看着这天气一会不久就会继续下雨，而且晚上很有可能会有大雨。我似乎并没有太多的选择。</p>
+<p>为了保障安全，我将帐篷的地钉插得很紧。把帐篷搭建好后，忽然又下起了雨，天空也快速昏暗了下来。不一会儿，雨越下越大。</p>
+<p>半夜的时候，雨很大，10点过山上还有人在赶路，路过的人都喜欢用手电照我帐篷。但我没想到的是，这悬崖边是在几个山谷边上，晚上的风超级大，我生怕被连人带郑鹏吹下悬崖去，于是半夜起来两次，趁风小一点的时候，冒着雨检查地钉，并且把帐篷的侧边风绳进一步拉紧。这款冷山2帐篷的经典款有设计缺陷，当风雨特别大的时候，帐篷侧边很容易和内帐粘在一起。</p>
+<p>几乎一夜未眠，早上4点起床，5点过出发前拍了一张照片：</p>
+<p><img decoding="async" loading="lazy" alt="alt text" src="https://johng.cn/assets/images/image-ee90d7a112fdc270e179ae007b253a9f.png" width="1280" height="1707" class="img_ev3q"></p>
+<p>完成登顶后，回来收帐篷拍了一张：</p>
+<p><img decoding="async" loading="lazy" alt="alt text" src="https://johng.cn/assets/images/image2-74f336c7b33265cc9342e88cfc8e5435.png" width="1707" height="1280" class="img_ev3q"></p>
+<p>那天没有多少人登顶，很多人第二天就已经撤了。</p>
+<p>我在下午时分沿着原路返回，路上一个人也没有，心里居然生出了莫名的孤单。</p>]]></content:encoded>
+            <category>户外运动</category>
+            <category>重装</category>
+        </item>
+    </channel>
+</rss>

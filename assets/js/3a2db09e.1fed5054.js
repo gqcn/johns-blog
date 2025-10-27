@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkgf_site=self.webpackChunkgf_site||[]).push([["7143"],{2668:function(e){e.exports=JSON.parse('{"tags":[{"label":"\u6237\u5916\u8FD0\u52A8","permalink":"/blog/tags/\u6237\u5916\u8FD0\u52A8","count":1},{"label":"\u91CD\u88C5","permalink":"/blog/tags/\u91CD\u88C5","count":1}]}')}}]);
