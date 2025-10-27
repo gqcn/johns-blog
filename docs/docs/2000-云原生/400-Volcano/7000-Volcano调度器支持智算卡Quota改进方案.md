@@ -428,7 +428,7 @@ spec:
 
 由于资源初始化计算需要遍历所有的节点、队列和`Pod`资源，是整合插件实现中资源开销最大的部分，因此该阶段需要尽可能避免过多的内存分配，避免过多的循环计算，提高算法性能。
 同时需要注意：
-- **部分属性内存获取延迟**：节点列表不能使用`Session`对象中提供的`Nodes`数组，而是需要从`Informer`的`Nodes` Lister中单独获取。虽然`Session`流程中的各个方法是串行执行的，`Informer`也有`WaitSynced`机制，但`Session`中的`Nodes`数组是通过`Informer`事件异步更新的，在`Session`第一次执行的时候，有可能`Session`中的`Nodes`数据还没有同步，造成`Nodes`数据不完整，引起资源初始化数据的不正确。
+- **部分属性内存获取延迟**：节点列表不能使用`Session`对象中提供的`Nodes`数组，而是需要从`Informer`的`Nodes Lister`中单独获取。虽然`Session`流程中的各个方法是串行执行的，`Informer`也有`WaitSynced`机制，但`Session`中的`Nodes`数组是通过`Informer`事件异步更新的，在`Session`第一次执行的时候，有可能`Session`中的`Nodes`数据还没有同步，造成`Nodes`数据不完整，引起资源初始化数据的不正确。
 - **调度器对执行效率敏感**：调度器对效率要求较高，在进行插件开发时，不要对外部服务产生调用依赖。例如，在调度器逻辑中，尽量避免直接去调用`APIServer`，而是尽可能使用`Informer`机制从本地内存获取相关数据。考虑到`Informer`会有数据延迟，在设计功能时需要考虑到数据延迟性对功能的影响。
 - **注意卡资源计算单位**：在`Volcano`的资源管理中，除了`CPU`和`Memory`资源，其他都是`Scalar`资源，这些资源的默认单位都是`MilliValue`，即原有的数值乘以`1000`。例如卡资源量是`5`张卡，那么在`Scalar`资源中会显示为`5000`的数值。该数值会在平时开发、查看日志、`Event`时有展示，需要注意自行做转换识别。
 - **忽略非智算卡Scalar资源**：`Scalar`可能包括其它设备资源，如`IB`设备的资源，该插件只关注 `CPU`、`Memory`、智算卡资源，对于其它资源不限制。因此在资源初始化和后续计算中忽略非智算卡`Scalar`资源，只计算 `CPU`、`Memory`、智算卡资源。
@@ -461,7 +461,7 @@ spec:
     nvidia.com/gpu.memory: 97871
     ```
 - 识别符合`厂商域前缀/卡类型.product`和`厂商域前缀/卡类型.memory`两项命名规范的的标签（例如通过正则匹配），如果存在则可以获得`厂商域前缀`及`卡类型`，例如`nvidia.com`及`gpu`。
-- 因此可以获得智算卡名称、智算卡显存，进而可以获得智算卡数量。例如`NIVIDIA-H20`，`97871`，`8`。
+- 因此可以获得智算卡名称、智算卡显存，进而可以获得智算卡数量。例如`NIVIDIA-H20`、`97871`、`8`。
 
 ###### 2.2.4.3.3 如何获取GPU Share子卡信息及资源量
 - 前面获取到了节点的整卡信息，我们继续遍历节点的`Status.Allocatable`字段，获取资源信息。
@@ -531,10 +531,10 @@ spec:
 ##### 2.2.4.6 Event信息提示
 在`Volcano`默认的配额管理插件`capacity`中，一旦出现队列额度问题，只有查看调度器日志信息才能确定`任务/Pod`无法调度的原因，运维效率低下。
 
-为了解决这个问题，在新的插件中，我们需要将调度失败的原因通过Event的方式添加到`任务/Pod`上，这样便于快速定位由于额度问题引发的调度问题。
-- 针对`任务无法调度`（`Volcano Job`），这个时候通常没有`Pod`被创建出来，我们可以将Event创建到`PodGroup`上，描述具体无法调度的原因。由于为`PodGroup`创建Event是`Volcano Session`已经封装好的能力（并没有将Event创建到`Volcano Job`上），因此我们这里保留`Volcano`原有设计，当遇到`Pod`无法创建时，查看`PodGroup`的Event即可。例如：`Queue <cr-queue1> has insufficient <NVIDIA-H200> quota: requested <5000>, total would be <5000>, but capability is <3000>`
+为了解决这个问题，在新的插件中，我们需要将调度失败的原因通过`Event`的方式添加到`任务/Pod`上，这样便于快速定位由于额度问题引发的调度问题。
+- 针对`任务无法调度`（`Volcano Job`），这个时候通常没有`Pod`被创建出来，我们可以将`Event`创建到`PodGroup`上，描述具体无法调度的原因。由于为`PodGroup`创建`Event`是`Volcano Session`已经封装好的能力（并没有将`Event`创建到`Volcano Job`上），因此我们这里保留`Volcano`原有设计，当遇到`Pod`无法创建时，查看`PodGroup`的`Event`即可。例如：`Queue <cr-queue1> has insufficient <NVIDIA-H200> quota: requested <5000>, total would be <5000>, but capability is <3000>`
 
-- 针对`Pod处于Pending无法调度到节点上`，我们可以将Event创建到`Pod`上，描述具体无法调度的原因。该功能需要在插件中自行实现封装。例如：`Queue <cr-queue1> has insufficient <NVIDIA-H200> quota: requested <5000>, total would be <5000>, but capability is <3000>`
+- 针对`Pod处于Pending无法调度到节点上`，我们可以将`Event`创建到`Pod`上，描述具体无法调度的原因。该功能需要在插件中自行实现封装。例如：`Queue <cr-queue1> has insufficient <NVIDIA-H200> quota: requested <5000>, total would be <5000>, but capability is <3000>`
 
 ### 2.3 上层额度管控的关键实现点
 #### 2.3.1 额度的资源查询
