@@ -192,7 +192,7 @@ tiers:
 
     ```yaml
     metadata:
-    annotations:
+      annotations:
         # 任务的注解，总共需要多少张卡，则配置多少数值
         volcano.sh/card.request: '{"NVIDIA-H200":2}'
     ```
@@ -200,14 +200,14 @@ tiers:
 - `volcano.sh/card.name`：指定任务中具体实例使用的卡型号名称，调度器会使用该注解的卡型号，结合队列的配额进行额度管控。
     ```yaml
     metadata:
-    annotations:
+      annotations:
         # 具体实例使用的卡型号名称
         volcano.sh/card.name: NVIDIA-H200
     ```
 
 注解名称使用`volcano.sh`作为前缀的目的：
 - `Volcano Controller`会将所有`Job/ReplicaSet`等工作负载中`volcano.sh`开头的注解传播到`PodGroup`中，方便调度器使用。这应当是`Volcano`预留的能力，这样我们可以避免去修改`Controller`逻辑，只需要专注`Scheduler`实现即可，也能够避免对`Volcano`调度器已有逻辑源码的侵入。
-- 避免定制化的内容，使得该特性后续能够贡献到社区。
+- 尽可能避免定制化的内容，使得该特性后续能够贡献到社区。
 
 ###### 2.2.2.2.1 离线训练任务示例
 
@@ -311,13 +311,13 @@ metadata:
 例如`NVIDIA-GeForce-RTX-4090|NVIDIA-H20/mig-1g.24gb-mixed`，其中`NVIDIA-GeForce-RTX-4090`卡的资源类型为`nvidia.com/gpu`，`NVIDIA-H20/mig-1g.24gb-mixed`卡的资源类型为`nvidia.com/mig-1g.24gb`。
 
 **调度器不支持这种不同资源类型的多卡组合**，原因如下：
-- 由于资源名称不同，拿`NVIDIA-GeForce-RTX-4090|NVIDIA-H20/mig-1g.24gb-mixed`二选一举例，在部署任务时需要在`resources.requests&limits`中增加两种资源名称：
+- **由于资源名称不同**，拿`NVIDIA-GeForce-RTX-4090|NVIDIA-H20/mig-1g.24gb-mixed`二选一举例，在部署任务时需要在`resources.requests&limits`中增加两种资源名称：
   - `nvidia.com/gpu: 1`
   - `nvidia.com/mig-1g.24gb: 1`
 
-  调度器虽然能够根据单实例多卡的逻辑将`Pod`调度到合适的节点上，但是由于涉及多种卡资源名称，`NVIDIA GPU DevicePlugin`会为该`Pod`分配两种资源，并不能实现二选一的请求。并且，不同的智算卡的`DevicePlugin`，表现行为可能会不同。
+  调度器虽然能够根据单实例多卡的逻辑将`Pod`调度到合适的节点上，但是由于涉及多种卡资源名称，`NVIDIA GPU DevicePlugin`会为该`Pod`分配两种资源，并不能实现二选一的请求（在调度器中删除`Pod`的`resources`资源配置也不是一个优雅的方式）。并且，不同的智算卡的`DevicePlugin`，其表现行为也可能会不同。
 
-- 如果资源名称相同，拿`NVIDIA-GeForce-RTX-4090|NVIDIA-GeForce-RTX-4090-D`二选一举例，在部署任务时需要在`resources.requests&limits`中增加一种资源名称：
+- **如果资源名称相同**，拿`NVIDIA-GeForce-RTX-4090|NVIDIA-GeForce-RTX-4090-D`二选一举例，在部署任务时需要在`resources.requests&limits`中增加一种资源名称：
   - `nvidia.com/gpu: 1`
 
   调度器能够根据单实例多卡的逻辑将`Pod`调度到合适的节点上，并且只有一种卡资源名称，`NVIDIA GPU DevicePlugin`会为该`Pod`分配一种资源，能够实现二选一的请求。
