@@ -4,242 +4,264 @@
  * work well for content-centric websites.
  */
 
- .navbar__logo img {
-    border-radius: 5px;
-  }
-  .logo-container {
-    text-align: center;
-  }
-  
-  .logo-container .logo {
-    width: 400px;
-    margin-top: 10px;
-  }
-  
-  .logo-container .logo-badges img {
-    padding: 0 2px 0 2px;
-  }
-  
-  :root {
-    --ifm-color-primary: #2F80ED;
-    --ifm-color-primary-dark: #1366d6;
-    --ifm-color-primary-darker: #1366d6;
-    --ifm-color-primary-darkest: #1366d6;
-    --ifm-color-primary-light: #33925d;
-    --ifm-color-primary-lighter: #359962;
-    --ifm-color-primary-lightest: #3cad6e;
-    --ifm-color-secondary-dark: #d4d5d8;
-    --ifm-button-border-color: #d4d5d8;
-    --ifm-code-font-size: 95%;
-    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
-    --ifm-font-size-base: 16px;
-    --ifm-font-family-base: "Inter",
+.navbar__logo img {
+  border-radius: 5px;
+}
+
+.logo-container {
+  text-align: center;
+}
+
+.logo-container .logo {
+  width: 400px;
+  margin-top: 10px;
+}
+
+.logo-container .logo-badges img {
+  padding: 0 2px 0 2px;
+}
+
+:root {
+  --ifm-color-primary: #2F80ED;
+  --ifm-color-primary-dark: #1366d6;
+  --ifm-color-primary-darker: #1366d6;
+  --ifm-color-primary-darkest: #1366d6;
+  --ifm-color-primary-light: #33925d;
+  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-color-secondary-dark: #d4d5d8;
+  --ifm-button-border-color: #d4d5d8;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-font-size-base: 16px;
+  --ifm-font-family-base: "Inter",
     -apple-system,
     BlinkMacSystemFont,
     Segoe UI,
     Helvetica,
     Arial,
     sans-serif;
-    --ifm-font-color-base: #172b4d;
-    --ifm-font-color-subtle: #777E90;
-    --ifm-button-font-weight: 500;
-    --ifm-background-surface-color: #f9f9f9;
-    --ifm-breadcrumb-spacing: 2px;
-    --ifm-footer-background-color: #f9f9f9;
-    --ifm-spacing-horizontal: 2rem;
-  }
-  
-  /* For readability concerns, you should choose a lighter palette in dark mode. */
-  [data-theme='dark'] {
-    --ifm-color-primary: #25c2a0;
-    --ifm-color-primary-dark: #21af90;
-    --ifm-color-primary-darker: #1fa588;
-    --ifm-color-primary-darkest: #1a8870;
-    --ifm-color-primary-light: #29d5b0;
-    --ifm-color-primary-lighter: #32d8b4;
-    --ifm-color-primary-lightest: #4fddbf;
-    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
-  }
-  
-  body .button {
-    display: inline-block;
-    border-radius: 5px;
-    padding: 14px 22px;
-    color: #fff;
-    border: none;
-    outline: none;
-    text-decoration: none;
-    font-size: 16px;
-    line-height: 1.5;
-    font-weight: 500;
-    text-align: center;
-    vertical-align: top;
-    cursor: pointer;
-    overflow: hidden;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    letter-spacing: normal !important;
-    position: relative;
+  --ifm-font-color-base: #172b4d;
+  --ifm-font-color-subtle: #777E90;
+  --ifm-button-font-weight: 500;
+  --ifm-background-surface-color: #f9f9f9;
+  --ifm-breadcrumb-spacing: 2px;
+  --ifm-footer-background-color: #f9f9f9;
+  --ifm-spacing-horizontal: 2rem;
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-dark: #21af90;
+  --ifm-color-primary-darker: #1fa588;
+  --ifm-color-primary-darkest: #1a8870;
+  --ifm-color-primary-light: #29d5b0;
+  --ifm-color-primary-lighter: #32d8b4;
+  --ifm-color-primary-lightest: #4fddbf;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+body .button {
+  display: inline-block;
+  border-radius: 5px;
+  padding: 14px 22px;
+  color: #fff;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+  text-align: center;
+  vertical-align: top;
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  letter-spacing: normal !important;
+  position: relative;
+  white-space: nowrap;
+  transform: translate3d(0, 0, 0);
+  -webkit-appearance: none;
+  transition: 0.3s;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+body .button--secondary {
+  border: 1px solid rgba(0, 0, 0, 0.11);
+  padding-top: 13px;
+  padding-bottom: 13px;
+  background: #fff;
+  color: #161616;
+}
+
+@import "./output.css";
+
+.markdown {
+  --ifm-h2-vertical-rhythm-top: 1;
+}
+
+.markdown>*:first-child {
+  margin-top: 20px;
+}
+
+code {
+  padding: 0.2em 0.4em;
+  background-color: rgba(27, 31, 35, 0.03);
+  border-radius: 3px;
+  border: 0px;
+  color: #c7254e;
+  font-size: 90%;
+}
+
+pre {
+  font-size: 90%;
+}
+
+/* Blog */
+.header-blog-link:hover {
+  opacity: 0.6;
+}
+
+.header-blog-link:before {
+  content: '';
+  width: 25px;
+  height: 25px;
+  display: flex;
+  background: url("/img/blog.svg") no-repeat;
+}
+
+html[data-theme='dark'] .header-blog-link:before {
+  background: url("/img/blog.svg") no-repeat;
+}
+
+
+/* GitHub */
+.header-github-link:hover {
+  opacity: 0.6;
+}
+
+.header-github-link:before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  display: flex;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E") no-repeat;
+}
+
+html[data-theme='dark'] .header-github-link:before {
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='white' d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E") no-repeat;
+}
+
+/* GoFrame */
+.header-goframe-link:hover {
+  opacity: 0.8;
+}
+
+.header-goframe-link:before {
+  content: '';
+  width: 25px;
+  height: 25px;
+  display: flex;
+  background: url("/img/goframe.svg") no-repeat;
+}
+
+html[data-theme='dark'] .header-goframe-link:before {
+  background: url("/img/goframe.svg") no-repeat;
+}
+
+/* TODO: 加这个可以防止toml表头换行，但不知道有没有副作用，需要深入研究
+   https://github.com/PrismJS/prism/issues/2443 */
+.token.table.class-name {
+  display: initial;
+}
+
+.menu__link {
+  font-size: 98%;
+}
+
+table th,
+table td {
+  padding: 0.88rem;
+  font-size: 96%;
+}
+
+.markdown li>p {
+  margin: 0 0 6px 0;
+}
+
+.screen-reader-only {
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: polygon(0 0, 0 0, 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  white-space: nowrap;
+}
+
+.showcase-reset {
+  padding: 8px 20px 8px 20px !important;
+  font-size: 14px !important;
+}
+
+.showcase-title-mobile,
+.showcase-description-mobile {
+  display: none;
+}
+
+/* too avoid too many navbar items when in short window size */
+@media only screen and (max-width: 1360px) {
+  .navbar__items {
     white-space: nowrap;
-    transform: translate3d(0, 0, 0);
-    -webkit-appearance: none;
-    transition: 0.3s;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
-    user-select: none !important;
-  }
-  
-  body .button--secondary {
-    border: 1px solid rgba(0, 0, 0, 0.11);
-    padding-top: 13px;
-    padding-bottom: 13px;
-    background: #fff;
-    color: #161616;
-  }
-  
-  @import "./output.css";
-  
-  .markdown {
-    --ifm-h2-vertical-rhythm-top: 1;
-  }
-  
-  .markdown > *:first-child {
-    margin-top: 20px;
-  }
-  
-  code {
-    padding: 0.2em 0.4em;
-    background-color: rgba(27,31,35,0.03);
-    border-radius: 3px;
-    border: 0px;
-    color: #c7254e;
-    font-size: 90%;
-  }
-  
-  pre {
-    font-size: 90%;
-  }
-  
-  /* GitHub */
-  .header-github-link:hover {
-    opacity: 0.6;
-  }
-  
-  .header-github-link:before {
-    content: '';
-    width: 24px;
-    height: 24px;
-    display: flex;
-    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E")
-    no-repeat;
-  }
-  
-  html[data-theme='dark'] .header-github-link:before {
-    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='white' d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E")
-    no-repeat;
-  }
-  
-   /* GoFrame */
-   .header-goframe-link:hover {
-    opacity: 0.8;
-  }
-  
-  .header-goframe-link:before {
-    content: '';
-    width: 25px;
-    height: 25px;
-    display: flex;
-    background: url("/img/goframe.svg") no-repeat;
-  }
-  
-  html[data-theme='dark'] .header-goframe-link:before {
-    background: url("/img/goframe.svg") no-repeat;
   }
 
-  /* TODO: 加这个可以防止toml表头换行，但不知道有没有副作用，需要深入研究
-   https://github.com/PrismJS/prism/issues/2443 */
-  .token.table.class-name{
-    display: initial;
-  }
-  
-  .menu__link {
-    font-size: 98%;
-  }
-  table th, table td {
-    padding: 0.88rem;
-    font-size: 96%;
-  }
-  
-  .markdown li > p {
-    margin: 0 0 6px 0;
-  }
-  
-  .screen-reader-only {
-    border: 0;
-    clip: rect(0 0 0 0);
-    clip-path: polygon(0 0, 0 0, 0 0);
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    width: 1px;
-    white-space: nowrap;
-  }
-  
-  .showcase-reset {
-    padding: 8px 20px 8px 20px !important;
-    font-size: 14px !important;
-  }
-  
-  .showcase-title-mobile, .showcase-description-mobile {
+  .navbar__items--right a {
     display: none;
   }
-  
-  /* too avoid too many navbar items when in short window size */
-  @media only screen and (max-width: 1360px) {
-    .navbar__items {
-      white-space: nowrap;
-    }
-  
-    .navbar__items--right a {
-      display: none;
-    }
-  }
-  
-  
-  @media only screen and (max-width: 680px) {
-    .showcase-title, .showcase-description {
-      display: none;
-    }
-  
-    .showcase-title-mobile, .showcase-description-mobile {
-      display: block;
-    }
-  }
-  
-  @media only screen and (max-width: 420px) {
-    .showcase-result-cases {
-      display: none;
-    }
-  }
-  
-  
-  @media only screen and (max-width: 500px) {
-    .petercat-lui-assistant {
-      display: none;
-    }
-  }
-  
-  .beian a{
-    font-size: 88%;
-    color: var(--ifm-font-color-base);
+}
+
+
+@media only screen and (max-width: 680px) {
+
+  .showcase-title,
+  .showcase-description {
+    display: none;
   }
 
-  pre {
-    tab-size: 4;
-    -moz-tab-size: 4;
-    -o-tab-size: 4;
+  .showcase-title-mobile,
+  .showcase-description-mobile {
+    display: block;
   }
+}
 
+@media only screen and (max-width: 420px) {
+  .showcase-result-cases {
+    display: none;
+  }
+}
+
+
+@media only screen and (max-width: 500px) {
+  .petercat-lui-assistant {
+    display: none;
+  }
+}
+
+.beian a {
+  font-size: 88%;
+  color: var(--ifm-font-color-base);
+}
+
+pre {
+  tab-size: 4;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+}

@@ -92,6 +92,7 @@ const config: Config = {
       title: "John's Blog",
       // logo: { },
       items: [
+
         {
           position: 'left',
           label: 'AI技术',
@@ -139,6 +140,12 @@ const config: Config = {
           label: '关于我',
           to: '/aboutme',
         },
+        {
+          position: 'left',
+          label: '博客',
+          to: '/blog',
+        },
+
         {
           href: 'https://goframe.org/',
           position: 'right',
