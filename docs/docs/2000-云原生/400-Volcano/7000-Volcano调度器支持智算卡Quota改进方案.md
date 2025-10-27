@@ -526,15 +526,15 @@ spec:
 ##### 2.2.4.5 具体执行流程
 以下是该插件的关键执行流程，以及关键操作介绍，整体流程都是串行执行，以避免并发调度问题。
 
-![alt text](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-4.png)
+![调度器插件扩展设计-额度资源对象](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-4.png)
 
 ##### 2.2.4.6 Event信息提示
 在`Volcano`默认的配额管理插件`capacity`中，一旦出现队列额度问题，只有查看调度器日志信息才能确定`任务/Pod`无法调度的原因，运维效率低下。
 
 为了解决这个问题，在新的插件中，我们需要将调度失败的原因通过`Event`的方式添加到`任务/Pod`上，这样便于快速定位由于额度问题引发的调度问题。
-- 针对`任务无法调度`（`Volcano Job`），这个时候通常没有`Pod`被创建出来，我们可以将`Event`创建到`PodGroup`上，描述具体无法调度的原因。由于为`PodGroup`创建`Event`是`Volcano Session`已经封装好的能力（并没有将`Event`创建到`Volcano Job`上），因此我们这里保留`Volcano`原有设计，当遇到`Pod`无法创建时，查看`PodGroup`的`Event`即可。例如：`Queue <cr-queue1> has insufficient <NVIDIA-H200> quota: requested <5000>, total would be <5000>, but capability is <3000>`
+- **针对任务无法调度（`Volcano Job`）**：这个时候通常没有`Pod`被创建出来，我们可以将`Event`创建到`PodGroup`上，描述具体无法调度的原因。由于为`PodGroup`创建`Event`是`Volcano Session`已经封装好的能力（并没有将`Event`创建到`Volcano Job`上），因此我们这里保留`Volcano`原有设计，当遇到`Pod`无法创建时，查看`PodGroup`的`Event`即可。例如：`Queue <cr-queue1> has insufficient <NVIDIA-H200> quota: requested <5000>, total would be <5000>, but capability is <3000>`
 
-- 针对`Pod处于Pending无法调度到节点上`，我们可以将`Event`创建到`Pod`上，描述具体无法调度的原因。该功能需要在插件中自行实现封装。例如：`Queue <cr-queue1> has insufficient <NVIDIA-H200> quota: requested <5000>, total would be <5000>, but capability is <3000>`
+- **针对`Pod`处于`Pending`无法调度到节点上**：我们可以将`Event`创建到`Pod`上，描述具体无法调度的原因。该功能需要在插件中自行实现封装。例如：`Queue <cr-queue1> has insufficient <NVIDIA-H200> quota: requested <5000>, total would be <5000>, but capability is <3000>`
 
 ### 2.3 上层额度管控的关键实现点
 #### 2.3.1 额度的资源查询
