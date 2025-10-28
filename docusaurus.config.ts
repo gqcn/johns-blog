@@ -141,7 +141,7 @@ const config: Config = {
           to: '/aboutme',
         },
         {
-          position: 'left',
+          position: 'right',
           label: '博客',
           to: '/blog',
         },
