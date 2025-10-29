@@ -530,6 +530,18 @@ tiers:
 - 识别超额使用资源的队列
 - 从这些队列中选择可回收的任务
 - 终止这些任务以释放资源
+- 只回收标记为`reclaimable: true`的队列的资源
+
+**Preempt vs Reclaim 核心差别**
+
+| 维度 | Preempt Action | Reclaim Action |
+| --- | --- | --- |
+| 作用范围 | 同队列内不同`Job`之间 | 跨队列资源回收 |
+| 触发条件 | `Job`资源不足（`JobStarving`） | `Job`资源不足 + 队列未超额 |
+| 抢占对象 | 同队列的低优先级`Job` | 其他队列的可回收资源 |
+| 关键过滤 | `job.Queue == preemptorJob.Queue` | `j.Queue != job.Queue` |
+| 队列控制 | 无需队列配置 | 需要`reclaimable: true` |
+| 支持场景 | 1. 队列内`Job`优先级; 2. 同`Job`内`Task`优先级 | 队列间资源公平分配 |
 
 **示例场景**：
 
