@@ -798,53 +798,6 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddPreemptiveFn - 抢占能力检查函数
-**作用**: 注册抢占能力检查函数，用于判断队列是否具备抢占其他任务的能力。
-
-**函数签名**: 
-```go
-func (ssn *Session) AddPreemptiveFn(name string, fn api.ValidateWithCandidateFn)
-```
-
-**ValidateWithCandidateFn类型定义**:
-```go
-type ValidateWithCandidateFn func(interface{}, interface{}) bool
-```
-
-**参数详解**:
-- 第一个参数: `interface{}` 类型，通常为 `*api.QueueInfo` 类型，表示队列信息
-- 第二个参数: `interface{}` 类型，通常为 `*api.TaskInfo` 类型，表示候选任务信息
-
-**返回值含义**:
-- 返回 `true`: 表示队列具备抢占能力
-- 返回 `false`: 表示队列不具备抢占能力
-
-**使用场景**: 
-- 实现抢占权限控制
-- 实现基于优先级的抢占策略
-- 实现多租户抢占管理
-
-**代码示例**:
-```go
-func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
-    // 注册抢占能力检查函数
-    ssn.AddPreemptiveFn(pp.Name(), func(queue *api.QueueInfo, candidate *api.TaskInfo) bool {
-        // 检查队列是否有抢占权限
-        if preemptive, exists := queue.Queue.Annotations["volcano.sh/preemptive"]; exists {
-            if preemptive != "true" {
-                return false
-            }
-        }
-        
-        // 检查任务优先级是否足够高
-        if candidate.Pod.Spec.Priority == nil || *candidate.Pod.Spec.Priority < 1000 {
-            return false
-        }
-        
-        return true
-    })
-}
-```
 
 ## 抢占和回收相关方法
 
@@ -913,6 +866,55 @@ func isPreemptable(task *api.TaskInfo) bool {
     return false
 }
 ```
+
+### AddPreemptiveFn - 抢占能力检查函数
+**作用**: 注册抢占能力检查函数，用于判断队列是否具备抢占其他任务的能力。
+
+**函数签名**: 
+```go
+func (ssn *Session) AddPreemptiveFn(name string, fn api.ValidateWithCandidateFn)
+```
+
+**ValidateWithCandidateFn类型定义**:
+```go
+type ValidateWithCandidateFn func(interface{}, interface{}) bool
+```
+
+**参数详解**:
+- 第一个参数: `interface{}` 类型，通常为 `*api.QueueInfo` 类型，表示队列信息
+- 第二个参数: `interface{}` 类型，通常为 `*api.TaskInfo` 类型，表示候选任务信息
+
+**返回值含义**:
+- 返回 `true`: 表示队列具备抢占能力
+- 返回 `false`: 表示队列不具备抢占能力
+
+**使用场景**: 
+- 实现抢占权限控制
+- 实现基于优先级的抢占策略
+- 实现多租户抢占管理
+
+**代码示例**:
+```go
+func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
+    // 注册抢占能力检查函数
+    ssn.AddPreemptiveFn(pp.Name(), func(queue *api.QueueInfo, candidate *api.TaskInfo) bool {
+        // 检查队列是否有抢占权限
+        if preemptive, exists := queue.Queue.Annotations["volcano.sh/preemptive"]; exists {
+            if preemptive != "true" {
+                return false
+            }
+        }
+        
+        // 检查任务优先级是否足够高
+        if candidate.Pod.Spec.Priority == nil || *candidate.Pod.Spec.Priority < 1000 {
+            return false
+        }
+        
+        return true
+    })
+}
+```
+
 
 ### AddReclaimableFn - 资源回收函数
 **作用**: 注册资源回收函数，用于确定哪些任务的资源可以被回收。

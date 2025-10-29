@@ -427,152 +427,97 @@ data:
 **主要功能**：当高优先级任务无法获得足够资源时，从低优先级任务中抢占资源。
 
 **工作原理**：
-- 识别高优先级但无法调度的任务
+- 识别高优先级但无法调度的任务（首先任务`PodGroup`需要处于`Inqueue`状态）
 - 查找可以被抢占的低优先级任务
 - 终止被选中的低优先级任务，释放其资源
 - 将释放的资源分配给高优先级任务
+
+
+抢占行为主要由以下机制控制：
+
+1. **Pod的Preemptable标记**：通过`volcano.sh/preemptable`注解控制`Pod`是否可被抢占
+   - 注意：默认值为`true`（可被抢占）
+   - 设置为`false`则该`Pod`不会被抢占
+
+2. **Kubernetes PriorityClass**：定义任务的优先级
+   - 高优先级任务可以抢占低优先级任务
+   - 优先级通过`priorityClassName`字段指定
+
+3. **Plugin的Preemptable函数**：各插件（如`priority`、`conformance`、`gang`等）通过实现`PreemptableFn`来决定哪些任务可被抢占
+   - 多个插件的结果取**交集**
+   - 只有所有启用的插件都认为可抢占的任务才会被抢占
+
+4. **Victim选择策略**：通过`BuildVictimsPriorityQueue`实现
+   - 同一`Job`内的任务：按`Task`优先级从低到高抢占
+   - 不同`Job`的任务：按`Job`优先级从低到高抢占
+   - 不同`Queue`的任务：按`VictimQueueOrderFn`排序
+
+**注意**：`Volcano`的抢占策略是**基于优先级的确定性选择**，而非随机选择。系统会优先抢占优先级最低的任务，确保高优先级任务优先保障。
+
 
 **示例场景**：
 
 当一个生产环境的关键任务（高优先级）需要运行，但集群资源已被开发环境的任务（低优先级）占用时，`preempt`动作会终止部分开发环境的任务，将资源让给生产环境的关键任务。
 
 
-**参数说明**：
-
-| 参数名 | 默认值 | 说明 |
-| --- | --- | --- |
-| `preemptable` | `true` | 是否允许抢占操作。设置为`false`将禁用抢占功能。 |
-| `preemptablePriority` | `0` | 可被抢占的任务优先级阈值，低于此优先级的任务可被抢占。例如设置为`100`意味着优先级低于`100`的任务可被抢占。默认值为`0`意味着不启用强占功能。 |
-| `preemptPriority` | `0` | 可执行抢占的任务优先级阈值，高于此优先级的任务可执行抢占。例如设置为`1000`意味着优先级高于`1000`的任务可以抢占其他任务的资源。 |
-| `preemptPolicy` | `Arbitrary` | 抢占策略，决定如何选择被抢占的任务。可选值为`Arbitrary`（随机选择）或`PriorityBased`（基于优先级选择）。 |
-
-如果任务之间存在不同的优先级，理论上应该优先选择优先级最低的任务作为被抢占对象，这样才能体现"高优先级任务优先保障"的调度原则。
-
-但在 `Volcano` 的 `preemptPolicy` 配置中，即使任务存在不同的优先级，如果你设置为 `Arbitrary`，调度器依然可能不是优先抢占最低优先级的任务，而是从所有符合条件的任务中随机选择一个进行抢占。这种策略通常只在某些特殊场景下使用（比如你希望打散负载、避免长时间抢占同一批任务等），但**并不推荐在有明确优先级需求的场景下使用**。
 
 
+**配置示例**：
 
-
-
-**参数示例**：
-
-`preempt`动作的参数需要在`Volcano`调度器的`ConfigMap`中配置。具体来说，这些参数应该在`volcano-scheduler.conf`文件的`configurations`部分中配置。以下是一个完整的配置示例：
+`preempt`动作的配置主要包括启用`action`和配置相关`plugin`。以下是一个完整的配置示例：
 
 ```yaml
-# volcano-scheduler-configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: volcano-scheduler-configmap
-  namespace: volcano-system
-data:
-  volcano-scheduler.conf: |
-    actions: "enqueue,allocate,preempt,reclaim,backfill"
-    tiers:
-    - plugins:
-      - name: priority
-      - name: gang
-      - name: conformance
-    - plugins:
-      - name: drf
-      - name: predicates
-      - name: proportion
-      - name: nodeorder
-    configurations:
-    - name: preempt
-      arguments:
-        preemptable: true
-        preemptablePriority: 100
-        preemptPriority: 1000
-        preemptPolicy: PriorityBased
+actions: "enqueue, allocate, backfill, preempt"
+tiers:
+- plugins:
+  - name: priority
+  - name: conformance
+  - name: overcommit
+- plugins:
+  - name: drf
+  - name: gang
+  - name: predicates
+  - name: proportion
+  - name: nodeorder
+  - name: binpack
 ```
 
+**工作流程**：
 
-**如何配置preempt动作**：
+根据源码分析，抢占流程如下：
 
-1. **在调度器配置中启用preempt动作，并配置参数**：
+1. **识别抢占者（Preemptor）**：调度器识别出因资源不足而无法调度的高优先级任务（通过`JobStarving`判断）
 
-   推荐在配置文件的 `configurations` 部分为 preempt 动作增加参数，避免默认 `preemptablePriority=0` 导致抢占不生效。例如：
-   
-   ```yaml
-   actions: "enqueue,allocate,preempt,reclaim,backfill"
-   configurations:
-   - name: preempt
-     arguments:
-       preemptable: true
-       preemptablePriority: 100      # 低于100的任务可被抢占
-       preemptPriority: 1000         # 高于1000的任务可以抢占
-       preemptPolicy: PriorityBased  # 基于优先级选择被抢占对象
-   ```
+2. **检查抢占资格**：
+   - 检查任务的`PreemptionPolicy`是否为`Never`
+   - 检查任务是否有`NominatedNodeName`且该节点是否仍然不可调度
 
-2. **为Pod标记是否可被抢占**：
+3. **筛选候选节点**：
+   - 过滤掉`UnschedulableAndUnresolvable`状态的节点
+   - 对候选节点执行`Predicate`检查
 
-   通过在`Pod`上添加`volcano.sh/preemptable`注解来标记`Pod`是否可被抢占：
-   
-   ```yaml
-   apiVersion: v1
-   kind: Pod
-   metadata:
-     name: low-priority-pod
-     annotations:
-       volcano.sh/preemptable: "true"  # 标记此Pod可被抢占
-   spec:
-     schedulerName: volcano
-     containers:
-     - name: container
-       image: nginx
-   ```
+4. **查找可抢占任务（Victims）**：
+   - 遍历节点上的所有任务，应用`filter`函数过滤
+   - 调用各插件的`PreemptableFn`，取所有插件结果的交集
+   - 只有标记为`volcano.sh/preemptable: "true"`（或未标记，默认为`true`）的`Pod`才可被抢占
+   - `BestEffort Pod`不能抢占非`BestEffort Pod`
 
-3. **使用优先级类定义任务优先级**：
+5. **选择Victim**：
+   - 通过`BuildVictimsPriorityQueue`构建优先级队列
+   - 同一`Job`内：按`Task`优先级从低到高抢占
+   - 不同`Job`：按`Job`优先级从低到高抢占
+   - 不同`Queue`：按`VictimQueueOrderFn`排序
 
-   创建优先级类（`PriorityClass`）来定义不同优先级的任务：
-   
-   ```yaml
-   apiVersion: scheduling.k8s.io/v1
-   kind: PriorityClass
-   metadata:
-     name: high-priority
-   value: 1000
-   globalDefault: false
-   description: "高优先级任务，可以抢占低优先级任务"
-   ---
-   apiVersion: scheduling.k8s.io/v1
-   kind: PriorityClass
-   metadata:
-     name: low-priority
-   value: 100
-   globalDefault: false
-   description: "低优先级任务，可被高优先级任务抢占"
-   ```
+6. **执行抢占**：
+   - 依次驱逐（`Evict`）选中的低优先级任务
+   - 释放的资源累加到节点的`FutureIdle`中
+   - 当资源足够或队列可分配时停止抢占
 
-4. **在PodGroup中使用优先级类**：
+7. **Pipeline调度**：
+   - 将高优先级任务`Pipeline`到目标节点
+   - 更新任务状态为`Pipelined`
 
-   ```yaml
-   apiVersion: scheduling.volcano.sh/v1beta1
-   kind: PodGroup
-   metadata:
-     name: high-priority-job
-   spec:
-     minMember: 3
-     priorityClassName: high-priority  # 使用高优先级类
-     queue: default
-   ```
 
-**preempt动作的工作流程**：
-
-1. 调度器识别出因资源不足而无法调度的高优先级任务
-2. 根据`preemptPolicy`策略，在集群中寻找可被抢占的低优先级任务
-3. 对于标记为`volcano.sh/preemptable: "true"`的Pod，优先考虑抢占
-4. 根据优先级差异，选择优先级最低的任务进行抢占
-5. 终止被选中的低优先级任务，释放其资源
-6. 将释放的资源分配给高优先级任务
-
-**最佳实践**：
-
-1. 明确标记哪些`Pod`可被抢占，避免关键服务被意外终止
-2. 为不同类型的工作负载设置合理的优先级类
-3. 对于可能被抢占的工作负载，实现适当的检查点机制或任务恢复能力
-4. 在资源紧张的环境中，合理使用`preempt`动作可以提高关键任务的响应速度和集群资源利用率
 
 ### 5. reclaim（回收）
 
@@ -1824,9 +1769,10 @@ spec:
 
 ### 14. overcommit（超额分配）
 
-**主要功能**：允许节点资源被"超额预定"，提升资源利用率。
+**主要功能**：允许节点资源被"超额预定"。
 
 **工作原理**：
+- 该插件仅在`enqueue`动作生效，`allocate`动作无效。
 - `overcommit` 插件通过调度层面对节点资源进行"超额预定"（`Overcommit`），并不是物理硬件超频，而是放大调度器感知的节点可分配资源。
 - 支持为节点设置超配策略，通过 `overcommit-factor`、`cpu-overcommit-ratio`、`mem-overcommit-ratio` 等参数，将节点的"可分配资源"虚拟放大。例如节点实际 `100` 核 `CPU`，设置 `cpu-overcommit-ratio: 2.0` 后，调度器视为可分配 `200` 核。
 - 在调度决策阶段，允许任务总资源请求超过节点实际物理资源，实现资源的"虚拟扩容"，适合实际资源消耗远低于申请量的场景（如离线批处理、AI 推理等）。
@@ -1837,7 +1783,7 @@ spec:
 **注意事项**：
 
 1. 需谨慎使用，避免资源争抢导致任务 `OOM` 或性能抖动。
-2. `overcommit`插件还有一个隐藏功能，当队列的`capability`资源不够调度时，`overcommit`插件会阻止任务创建对应的`Pod`，以减少Pending的`Pod`数量。否则，即便队列资源不够，也会创建`Pod`，导致`Pending`的`Pod`数量不断增加。
+2. 在`Volcano`的内部插件实现中，比如`overcommit`、`capacity`、`proportion`等插件针对智算卡（如`GPU/NPU/PPU`等）维度的配额管理支持得不好，其内部实现都是按照资源名称（`ResourceName`）进行配额管理，没有考虑卡维度的资源配额。例如，针对`NVIDIA-H200`和`NVIDIA-GeForce-RTX-4090`的资源名称都是`nvidia.com/gpu`，在`overcommit`插件内部实现中都被当做一种资源进行超配，导致配额计算不准确。
 
 **参数说明**：
 
