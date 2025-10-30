@@ -984,7 +984,7 @@ func isQueueOverGuarantee(queue *api.QueueInfo) bool {
 ## 作业状态检查相关方法
 
 ### AddJobPipelinedFn - 作业流水线检查函数
-**作用**: 注册作业流水线检查函数，用于判断作业是否获得足够资源可以进行流水线调度。
+**作用**: 注册作业流水线检查函数，用于判断作业是否已经绑定到节点上，但是节点上暂无资源分配，等待节点上的其他任务释放资源。主要用于`allocate`和`preempt`两个`action`。目前在`gang/sla/tdm`中有注册该方法。
 
 **函数签名**: 
 ```go
@@ -1000,9 +1000,9 @@ type VoteFn func(interface{}) int
 - 参数: `interface{}` 类型，通常为 `*api.JobInfo` 类型，表示作业信息
 
 **返回值含义**:
-- 返回正数: 表示支持作业进行流水线调度的票数
-- 返回0: 表示中性票，不影响决策
-- 返回负数: 表示反对作业进行流水线调度的票数
+- 返回`util.Permit`(`1`): 表示支持作业进行流水线调度。
+- 返回`util.Abstain`(`0`): 表示中性票，不影响决策。
+- 返回`util.Reject`(`-1`): 表示不允许作业进行流水线调度。
 
 **使用场景**: 
 - 实现流水线作业调度
@@ -1022,10 +1022,10 @@ func (pp *pipelinePlugin) OnSessionOpen(ssn *framework.Session) {
         
         if availableResource.MilliCPU >= minResource.MilliCPU && 
            availableResource.Memory >= minResource.Memory {
-            return 1 // 允许流水线调度
+            return util.Permit // 允许流水线调度
         }
         
-        return 0 // 暂不允许
+        return util.Reject // 暂不允许
     })
 }
 

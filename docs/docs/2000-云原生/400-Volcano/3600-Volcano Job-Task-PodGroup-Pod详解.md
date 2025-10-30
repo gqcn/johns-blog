@@ -1,6 +1,6 @@
 ---
-slug: "/cloud-native/volcano-job"
-title: "Volcano Job详解"
+slug: "/cloud-native/volcano-job-task-podgroup-pod"
+title: "Volcano Job/Task/PodGroup/Pod详解"
 hide_title: true
 keywords:
   [
@@ -26,7 +26,7 @@ keywords:
 description: "深入解析Volcano Job的核心特性与使用方法，包括批量调度机制、Job状态管理、重试策略配置、任务依赖关系等高级功能。详细介绍minAvailable参数实现的Gang Scheduling、灵活的重试机制以及基于DAG的任务依赖，帮助用户构建可靠的分布式计算和机器学习工作负载。"
 ---
 
-本文详细介绍`Volcano`中`Job`核心对象的关键设计以及使用。关于`Job`的基础介绍，请参考`Volcano`基本介绍章节 [Volcano介绍](./1000-Volcano基本介绍.md)。
+本文详细主要介绍`Volcano`中`Job`对象的关键设计以及使用，顺便介绍相关联的`Task`、`PodGroup`、`Pod`与`Task`之间的关系。关于`Job`的基础介绍，请参考`Volcano`基本介绍章节 [Volcano介绍](./1000-Volcano基本介绍.md)。
 
 
 `Volcano Job`是`Volcano`调度系统中的核心工作负载对象，用于定义和管理复杂的分布式、批处理和高性能计算任务。与原生`Kubernetes Job`相比，`Volcano Job`提供了更丰富的功能和更灵活的调度策略，特别适合机器学习、大数据分析、科学计算等领域。
@@ -222,7 +222,9 @@ const (
 ### Task状态
 
 `Job`直接包含一个或多个`Task`，每个`Task`可以有多个`Pod`副本，`Pod`的`ownerReferences`指向`Job`。
-`Task`是`Volcano`中用于管理`Pod`集合的抽象。
+`Task`是`Volcano`中用于管理`Pod`集合的抽象，是一对一关系。
+
+![Task/Pod状态转换](../assets/v2-0a38d4ee885e17ce828f581eab1d795b_1440w.jpg)
 
 `Task`的状态定义如下：
 
@@ -275,8 +277,8 @@ const (
 | `Binding` | 绑定中 | 调度器向`apiserver`发送绑定请求 |
 | `Bound` | 已绑定 | `Task/Pod`已绑定到主机节点 |
 | `Running` | 运行中 | `Task`正在主机上运行 |
-| `Releasing` | 释放中 | `Task/Pod`正在被删除 |
-| `Succeeded` | 成功 | `Pod`中所有容器都以退出码0自愿终止，系统不会重启这些容器 |
+| `Releasing` | 释放中 | `Task/Pod`正在被删除，释放资源 |
+| `Succeeded` | 成功 | `Pod`中所有容器都以退出码`0`自愿终止，系统不会重启这些容器 |
 | `Failed` | 失败 | `Pod`中所有容器都已终止，至少一个容器以非零退出码终止或被系统停止 |
 | `Unknown` | 未知 | `Task/Pod`的状态对调度器来说是未知的 |
 
