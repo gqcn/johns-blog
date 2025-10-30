@@ -868,7 +868,7 @@ func isPreemptable(task *api.TaskInfo) bool {
 ```
 
 ### AddPreemptiveFn - 抢占能力检查函数
-**作用**: 注册抢占能力检查函数，用于判断队列是否具备抢占其他任务的能力。
+**作用**: 注册抢占能力检查函数，用于判断队列是否能为指定任务执行抢占其他队列任务。在该函数的实现中，通常判断该任务的资源是否会超过队列的配额。
 
 **函数签名**: 
 ```go
@@ -885,8 +885,8 @@ type ValidateWithCandidateFn func(interface{}, interface{}) bool
 - 第二个参数: `interface{}` 类型，通常为 `*api.TaskInfo` 类型，表示候选任务信息
 
 **返回值含义**:
-- 返回 `true`: 表示队列具备抢占能力
-- 返回 `false`: 表示队列不具备抢占能力
+- 返回 `true`: 表示队列可以为该任务执行抢占
+- 返回 `false`: 表示队列不能为任务执行抢占逻辑
 
 **使用场景**: 
 - 实现抢占权限控制

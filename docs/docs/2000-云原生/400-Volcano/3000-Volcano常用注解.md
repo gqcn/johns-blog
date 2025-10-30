@@ -25,7 +25,7 @@ description: "本文详细介绍了Volcano提供的各种注解（Annotations）
 |`volcano.sh/closed-by-parent`|`Queue`| 标记队列是否由父队列关闭 |`"true"`|
 |`volcano.sh/createdByJobTemplate`|`Job`| 标记`Job`是否由作业模板创建 |`"template-name"`|
 |`volcano.sh/createdByJobFlow`|`Job`| 标记`Job`是否由作业流创建 |`"flow-name"`|
-|`scheduling.volcano.sh/preemptable`|`Pod`| 标记`Pod`是否可被抢占（调度器插件使用） |`"true"`,`"false"`|
+
 
 ## 注解详细说明
 
@@ -289,36 +289,3 @@ spec:
   schedulerName: volcano
   # 其他作业配置...
 ```
-
-### `scheduling.volcano.sh/preemptable`
-
-**作用**：标记`Pod`是否可被抢占（调度器插件使用）。这个注解与`volcano.sh/preemptable`类似，但是由调度器插件直接使用。
-
-**重要性**：当资源紧张时，调度器插件会参考这个注解来决定哪些`Pod`可以被终止以释放资源。
-
-**示例**：
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: preemptable-pod
-  annotations:
-    scheduling.volcano.sh/preemptable: "true"
-spec:
-  schedulerName: volcano
-  containers:
-  - name: example-container
-    image: nginx
-```
-
-## 注解的优势
-
-使用注解控制`Volcano`行为有以下优势：
-
-1. **简单易用**：无需创建复杂的自定义资源，只需添加注解即可
-2. **灵活性**：可以针对单个`Pod`或`PodGroup`进行精细控制
-3. **兼容性**：与现有`Kubernetes`工作负载控制器（如`Deployment`、`StatefulSet`）良好集成
-4. **动态调整**：可以通过更新注解动态调整调度行为，而无需重启组件
-
-通过合理使用这些注解，用户可以更精细地控制`Volcano`的调度行为，满足不同场景下的资源分配和调度需求。
