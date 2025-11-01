@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkgf_site=self.webpackChunkgf_site||[]).push([["106"],{4200:function(e){e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"\u60AC\u5D16\u8FB9\u90A3\u9876\u5B64\u72EC\u7684\u5E10\u7BF7","permalink":"/blog/lone-tent-on-mountain-eadge","unlisted":false,"date":"2025-10-27T00:00:00.000Z"}]}')}}]);
