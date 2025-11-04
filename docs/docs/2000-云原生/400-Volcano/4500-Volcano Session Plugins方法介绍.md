@@ -917,7 +917,7 @@ func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
 
 
 ### AddReclaimableFn - 资源回收函数
-**作用**: 注册资源回收函数，用于确定哪些任务的资源可以被回收。
+**作用**: 注册资源回收函数，用于确定哪些任务的资源可以被回收。该函数主要是`reclaim`插件调用，`reclaim`用于跨队列的资源抢占，该函数可以实现对已有的候选任务做自定义的过滤。
 
 **函数签名**: 
 ```go
@@ -934,8 +934,8 @@ type EvictableFn func(*TaskInfo, []*TaskInfo) ([]*TaskInfo, int)
 - 第二个参数: `[]*api.TaskInfo` 类型，表示候选回收任务列表
 
 **返回值含义**:
-- 第一个返回值: `[]*api.TaskInfo` 类型，表示最终被回收的任务列表
-- 第二个返回值: `int` 类型，表示回收的任务数量
+- 第一个返回值: `[]*api.TaskInfo` 类型，表示最终被回收的任务列表。
+- 第二个返回值: `int` 类型，使用`util.Permit`、`util.Reject`、`util.Abstain`表示是否允许回收。
 
 **使用场景**: 
 - 实现队列间的资源回收
@@ -965,7 +965,7 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
             }
         }
         
-        return victims, 1
+        return victims, util.Permit
     })
 }
 
