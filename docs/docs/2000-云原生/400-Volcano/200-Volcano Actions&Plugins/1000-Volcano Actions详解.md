@@ -4,9 +4,9 @@ title: "Volcano Actions详解"
 hide_title: true
 keywords:
   [
-    "Volcano", "Kubernetes", "Actions", "Plugins", "调度器", "Job", "Pod", "PodGroup", "RestartJob", "CompleteJob", "AbortJob", "生命周期管理", "事件处理"
+    "Volcano", "Kubernetes", "Actions", "调度器", "enqueue", "allocate", "backfill", "preempt", "reclaim", "shuffle", "资源调度", "优先级抢占", "资源回收", "碎片资源", "负载均衡", "调度流程", "predicateErrorCache", "Gang调度"
   ]
-description: "本文详细介绍了Volcano调度器中的Actions和Plugins机制，包括各种Actions的作用、应用场景和配置示例，以及如何通过这些机制实现灵活的任务生命周期管理和事件处理。"
+description: "深入解析Volcano调度器的6个核心Actions（enqueue、allocate、backfill、preempt、reclaim、shuffle）的工作原理、执行流程和配置方法，涵盖任务入队、资源分配、碎片资源利用、同队列优先级抢占、跨队列资源回收、负载重平衡等关键调度机制，为构建高效的批处理和AI训练调度系统提供完整的技术指南。"
 ---
 
 `Actions`（动作）定义了调度器的工作流程和执行顺序。

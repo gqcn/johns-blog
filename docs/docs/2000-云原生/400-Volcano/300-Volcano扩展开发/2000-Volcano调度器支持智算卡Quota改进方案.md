@@ -477,7 +477,7 @@ spec:
 - 遍历节点的`Status.Allocatable`字段，在过滤完`MPS`和`MIG`子卡的资源名称后，如果该资源名称还带有厂商域前缀前缀，那么该资源名称则为整卡资源名称。
 
 ##### 2.2.4.4 调度器扩展点设计
-`Volcano`调度器提供了丰富的扩展点，以提供了很强大的扩展性。由于扩展点比较多，这里不详细介绍，具体请参考：[`Volcano Session Plugins`方法](./4500-Volcano%20Session%20Plugins方法介绍.md)。
+`Volcano`调度器提供了丰富的扩展点，以提供了很强大的扩展性。由于扩展点比较多，这里不详细介绍，具体请参考：[`Volcano Session Plugins`方法](./1000-Volcano%20Session%20Plugins方法介绍.md。
 
 本方案使用到的关键扩展点如下：
 
