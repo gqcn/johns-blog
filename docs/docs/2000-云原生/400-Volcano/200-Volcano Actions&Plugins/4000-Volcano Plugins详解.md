@@ -1,6 +1,6 @@
 ---
-slug: "/cloud-native/volcano-scheduler-actions-plugins"
-title: "Volcano Actions&Plugins详解"
+slug: "/cloud-native/volcano-scheduler-plugins"
+title: "Volcano Plugins详解"
 hide_title: true
 keywords:
   [
@@ -10,629 +10,7 @@ description: "本文详细介绍了Volcano调度器中的Actions和Plugins机制
 ---
 
 
-`Volcano`调度器是一个为高性能计算、机器学习和批处理工作负载设计的`Kubernetes`调度器。它的核心功能之一是通过可插拔的`Actions`和`Plugins`机制来实现灵活的调度策略。本文将详细地介绍这些机制，帮助你更好地理解和使用`Volcano`调度器。
-
-![](../assets/zh-cn_image_0000002065638558.png)
-
-## 调度器配置说明
-
-`Volcano`默认调度器配置：
-```yaml
-actions: "enqueue, allocate, backfill"
-tiers:
-- plugins:
-  - name: priority
-  - name: gang
-  - name: conformance
-- plugins:
-  - name: overcommit
-  - name: drf
-  - name: predicates
-  - name: proportion
-  - name: nodeorder
-```
-
-
-一个典型的`Volcano`调度器配置示例：
-
-```yaml
-actions: "enqueue,allocate,preempt,reclaim,backfill"
-tiers:
-- plugins:
-  - name: priority
-  - name: gang
-  - name: conformance
-- plugins:
-  - name: drf
-  - name: predicates
-  - name: proportion
-  - name: resourcequota
-  - name: nodeorder
-  - name: binpack
-```
-
-这个配置定义了调度器的工作流程（`Actions`）和决策机制（`Plugins`）。
-
-### 可插拔的插件功能管理
-
-需要注意：
-- 当您提供自定义配置时，Volcano不会将其与默认配置合并
-- 自定义配置会完全替换默认配置，而不是与默认配置合并
-
-这种设计意味着：
-1. **必须明确指定所有需要的插件**：
-  - 如果您提供自定义配置，必须在配置中明确列出所有需要的插件，包括那些在默认配置中已经存在的插件
-  - 例如，如果您需要使用conformance插件（默认已启用），但在自定义配置中没有包含它，那么它将不会被启用
-2. **完整性要求**：
-  - 您的自定义配置必须是完整的，包含所有必要的actions和plugins
-  - 不能只指定您想要更改的部分，因为整个配置会被替换
-3. **默认配置的作用**：
-  - 默认配置仅在没有提供自定义配置时使用
-  - 或者在自定义配置解析失败时作为备选方案
-
-
-### 多层级(tiers)数组结构
-
-为什么使用多层级(`tiers`)数组结构来配置`Plugins`？
-
-1. **优先级分层执行**：
-   - 不同层级（`tier`）的插件有着严格的优先级顺序
-   - 高层级（第一个数组）中的插件会先执行，其决策结果会影响或限制低层级插件的决策空间
-   - 只有当高层级的所有插件都允许一个调度决策时，才会继续执行低层级的插件
-
-2. **决策流程的过滤机制**：
-   - 第一层级的插件（如 `priority`、`gang`、`conformance`）主要负责基本的筛选和约束
-   - 第二层级的插件（如 `drf`、`predicates`、`proportion` 等）负责更细粒度的资源分配和优化
-   - 这种分层设计形成了一种"**粗筛-细筛**"的决策流水线
-
-3. **解决冲突的明确机制**：
-   - 当不同插件之间可能产生冲突决策时，层级结构提供了明确的优先级规则
-   - 例如，如果 `gang` 插件（第一层）决定某个任务不能被调度（因为它的所有成员无法同时运行），那么即使 `binpack` 插件（第二层）认为该任务可以被有效打包，该任务也不会被调度
-
-### 与单一数组相比的优势
-
-如果所有插件都放在一个扁平的数组中，调度器将面临以下问题：
-
-1. **无法表达优先级关系**：
-   - 所有插件将被视为同等重要，难以表达某些基本约束（如成组调度）应该优先于优化决策（如资源打包）
-   
-2. **决策冲突难以解决**：
-   - 没有明确的机制来解决插件之间的冲突，可能导致不一致或不可预测的调度行为
-   
-3. **调度效率降低**：
-   - 分层执行允许在早期阶段快速过滤掉不符合基本条件的调度决策，避免不必要的计算
-
-### Actions配置顺序的重要性
-
-`Volcano`中的`actions`顺序配置非常重要，因为它决定了调度器执行各种调度操作的顺序，这直接影响调度决策和性能。
-
-`actions`的执行是按照配置中指定的顺序依次进行的，不同的顺序配置会产生以下影响：
-
-1. **效率影响**：
-   - 如果将`backfill`放在`allocate`之前，可能会导致资源碎片化，降低整体资源利用率
-   - 如果将`preempt`放在最前面，可能会导致过度抢占，增加系统波动
-
-2. **公平性影响**：
-   - 如果将资源公平相关的`action`放在较后位置，可能会影响资源分配的公平性
-
-3. **性能影响**：
-   - 某些`action`计算复杂度较高，如果频繁执行可能会影响调度器性能
-   - 合理的顺序可以减少不必要的计算和资源重分配
-
-推荐的顺序通常是：`enqueue,allocate,preempt,reclaim,backfill`。这个顺序确保了：
-1. 首先将任务入队(`enqueue`)
-2. 然后尝试正常分配资源(`allocate`)
-3. 如果仍有高优先级任务未得到满足，考虑抢占(`preempt`)
-4. 尝试回收利用率低的资源(`reclaim`)
-5. 最后利用剩余资源进行回填(`backfill`)，最大化资源利用率
-
-在特定场景下，你可能需要根据工作负载特点调整顺序。例如，在高优先级任务较多的环境中，可能希望提前执行`preempt`；在资源紧张的环境中，可能希望提前执行`reclaim`。
-
-## Volcano中的Job和PodGroup状态流转
-
-在深入了解`Volcano`调度器的`Actions`和`Plugins`之前，我们需要先理解`Job`和`PodGroup`的状态以及它们之间的转换流程，这有助于我们更好地理解调度器的工作原理。
-
-### PodGroup状态
-
-`PodGroup`是`Volcano`中的一个重要概念，它代表一组需要一起调度的`Pod`。`PodGroup`有以下几种状态：
-
-| 状态 | 说明 | 介绍 |
-|------|------|------|
-| `Pending` | 等待中 | `PodGroup`已被系统接受，但调度器无法为其分配足够的资源。这是`PodGroup`的初始状态。 |
-| `Inqueue` | 入队 | 控制器可以开始创建`Pod`，这是`PodGroup`从`Pending`到`Running`之间的一个中间状态。当`enqueue action`执行成功后，`PodGroup`会从`Pending`转变为`Inqueue`状态。 |
-| `Running` | 运行中 | `PodGroup`中的`spec.minMember`数量的`Pod`已经处于运行状态。 |
-| `Unknown` | 未知 | 部分`spec.minMember`的`Pod`正在运行，但其他部分无法被调度，例如资源不足；调度器将等待相关控制器恢复它。 |
-| `Completed` | 已完成 | `PodGroup`中的所有`Pod`都已完成。 |
-
-### Job状态
-
-`Volcano Job`是一个更高级别的抽象，它包含一个或多个`Task`，每个`Task`可以有多个`Pod`副本。`Job`有以下几种状态：
-
-| 状态 | 说明 | 介绍 |
-|------|------|------|
-| `Pending` | 等待中 | `Job`正在队列中等待，等待调度决策。 |
-| `Inqueue` | 入队 | `Job`已入队，等待调度。 |
-| `Aborting` | 中止中 | `Job`正在被中止，等待释放`Pod`。 |
-| `Aborted` | 已中止 | `Job`已被中止，所有`Pod`已被释放。 |
-| `Running` | 运行中 | `Job`中的`Pod`正在运行。 |
-| `Restarting` | 重启中 | `Job`正在重启，等待`Pod`终止。 |
-| `Completing` | 完成中 | `Job`正在完成，等待`Pod`终止。 |
-| `Completed` | 已完成 | `Job`已成功完成，所有`Pod`都已成功运行并终止。 |
-| `Terminating` | 终止中 | `Job`正在终止，等待`Pod`终止。 |
-| `Terminated` | 已终止 | `Job`已终止，所有`Pod`已被终止。 |
-| `Failed` | 失败 | `Job`已失败，无法继续运行。 |
-
-
-
-### 状态转换流程
-
-`Job`和`PodGroup`的状态转换是紧密相关的，它们共同反映了任务在`Volcano`调度系统中的生命周期。以下是一个典型的状态转换流程：
-
-1. **提交阶段**：
-   - 用户创建一个`Volcano Job`
-   - 系统自动为该`Job`创建一个对应的`PodGroup`
-   - `Job`和`PodGroup`初始状态均为`Pending`
-
-2. **入队阶段**：
-   - 调度器的`enqueue action`检查`PodGroup`是否满足最小成员数要求
-   - 如果满足条件，将`PodGroup`状态更新为`Inqueue`
-   - 相应地，`Job`状态也会更新为`Inqueue`
-
-3. **调度阶段**：
-   - 调度器的`allocate action`为`Inqueue`状态的`PodGroup`中的`Pod`分配资源
-   - 当足够数量的`Pod`被成功调度并运行后，`PodGroup`状态更新为`Running`
-   - 相应地，`Job`状态也会更新为`Running`
-
-4. **执行阶段**：
-   - `Pod`在分配的节点上执行任务
-   - 如果出现资源不足或其他问题，可能触发`preempt`或`reclaim action`
-   - 这些`action`可能导致某些`Pod`被抢占或资源被回收
-
-5. **完成阶段**：
-   - 当所有`Pod`成功完成任务后，`PodGroup`状态更新为`Completed`
-   - 相应地，`Job`状态更新为`Completed`
-
-6. **异常处理**：
-   - 如果任务执行过程中出现错误，`Job`可能转为`Failed`、`Aborted`或其他状态
-   - 根据配置的生命周期策略，系统可能尝试重启任务（`Restarting`）或直接终止（`Terminating`）
-
-理解这些状态和转换流程对于理解`Volcano`调度器的`Actions`工作原理至关重要，因为每个`Action`都是在特定的状态下对`Job`和`PodGroup`进行操作，以推动它们在生命周期中前进。
-
-
-## Actions与Plugins关系概览
-
-这里展示了`Volcano`调度器中各个调度动作(`Action`)与插件(`Plugin`)之间的关系。每个动作会调用相应插件注册的回调函数来实现具体的调度逻辑。
-
-```mermaid
-graph TB
-    Start([调度周期开始]) --> Enqueue[enqueue 入队动作]
-    Enqueue --> Allocate[allocate 分配动作]
-    Allocate --> Preempt[preempt 抢占动作]
-    Preempt --> Reclaim[reclaim 回收动作]
-    Reclaim --> Backfill[backfill 回填动作]
-    Backfill --> End([调度周期结束])
-
-    Enqueue -.-> E1[drf<br/>proportion<br/>resourcequota<br/>capacity]
-    
-    Allocate -.-> A1[priority<br/>gang<br/>drf<br/>predicates<br/>proportion]
-    Allocate -.-> A2[nodeorder<br/>binpack<br/>numaaware<br/>task-topology<br/>sla]
-    Allocate -.-> A3[tdm<br/>deviceshare<br/>overcommit<br/>capacity]
-    
-    Preempt -.-> P1[priority<br/>gang<br/>conformance<br/>drf<br/>predicates]
-    Preempt -.-> P2[proportion<br/>nodeorder<br/>task-topology<br/>sla<br/>tdm]
-    Preempt -.-> P3[overcommit<br/>pdb]
-    
-    Reclaim -.-> R1[priority<br/>gang<br/>conformance<br/>drf<br/>predicates]
-    Reclaim -.-> R2[proportion<br/>task-topology<br/>sla<br/>pdb<br/>capacity]
-    
-    Backfill -.-> B1[priority<br/>gang<br/>drf<br/>predicates<br/>nodeorder]
-    Backfill -.-> B2[binpack<br/>numaaware<br/>task-topology<br/>sla<br/>tdm<br/>deviceshare]
-
-    style Enqueue fill:#e1f5ff
-    style Allocate fill:#fff4e1
-    style Preempt fill:#ffe1e1
-    style Reclaim fill:#f0e1ff
-    style Backfill fill:#e1ffe1
-```
-
-**动作说明**：
-
-| 名称 | 说明 | 介绍 |
-|------|------|------|
-| `enqueue` | 入队 | 将待调度的作业加入调度队列，检查作业是否满足入队条件（如资源配额、队列容量等） |
-| `allocate` | 分配 | 为作业分配资源，选择合适的节点进行任务调度，这是最核心的调度动作 |
-| `preempt` | 抢占 | 当资源不足时，抢占低优先级任务的资源给高优先级任务（同队列内） |
-| `reclaim` | 回收 | 回收超出配额队列的资源，重新分配给资源不足的队列（跨队列） |
-| `backfill` | 回填 | 利用碎片资源调度小型任务，提高资源利用率 |
-
-**插件说明**：
-
-- **核心调度插件**：`priority`、`gang`、`drf`、`predicates` - 几乎参与所有调度动作
-- **资源管理插件**：`proportion`、`capacity`、`resourcequota` - 负责资源配额和公平分配
-- **节点选择插件**：`nodeorder`、`binpack`、`numaaware`、`task-topology` - 负责节点打分和选择
-- **设备管理插件**：`deviceshare` - 负责`GPU`等特殊设备的共享调度
-- **特殊场景插件**：`tdm`（时分复用）、`sla`（服务质量）、`overcommit`（超额分配）
-- **保护机制插件**：`conformance`、`pdb` - 确保调度符合`Kubernetes`规范和服务可用性
-
-## Volcano 中的 Actions
-
-动作（`Actions`）定义了调度器的工作流程和执行顺序。
-在上面的配置中，我们定义了五个动作：`enqueue`、`allocate`、`backfill`、`preempt`和`reclaim`。这些动作将按照定义的顺序执行。
-
-在`Volcano`的新版本中，可能会有增加新的动作，让我们逐一解释各个动作的作用：
-
-### 1. enqueue（入队）
-
-**主要功能**：将新提交的任务放入调度队列，并检查任务是否满足调度条件。
-
-**工作原理**：
-- 创建任务和队列的优先级队列，按照调度策略中定义的顺序处理
-- 检查`PodGroup`是否满足最小成员数要求
-- 将符合条件的`Job`状态从`Pending`更新为`Inqueue`
-- 更新`PodGroup`的状态为`PodGroupInqueue`，表示已准备好被调度
-
-**示例场景**：
-
-当一个要求至少三个`Pod`同时运行的`TensorFlow`训练任务被提交时，`enqueue`动作会检查是否有足够的资源来运行这些`Pod`，如果有，则将其标记为可调度。
-
-
-**注意事项**：`enqueue action` 是不可省略的核心组件，原因如下：
-
-1. **调度流程的入口点**：
-- `enqueue`是整个调度流程的第一步，负责将任务从"未调度"状态转移到"可调度"状态
-- 如果没有`enqueue`，新提交的任务将无法进入调度队列，调度器将无法感知这些任务的存在
-
-2. **基础验证机制**：
-- `enqueue` 执行关键的前置检查，如验证`PodGroup`是否满足最小成员数要求
-- 它确保只有满足基本条件的任务才能进入调度流程，避免无效调度
-
-3. **默认配置的一部分**：
-- 在 `Volcano` 的默认配置中，`enqueue`总是作为第一个 `action`存在
-- 即使在自定义配置中不显式指定，系统也会使用内置的`enqueue`逻辑
-
-
-### 2. allocate（分配）
-
-**主要功能**：为队列中的任务分配资源，并将它们调度到合适的节点上。
-
-**工作原理**：
-- 根据队列权重和任务优先级对任务进行排序
-- 使用插件对任务进行过滤和打分
-  - **过滤策略（Predicates）**：
-    - 资源匹配过滤：检查节点是否有足够的`CPU`、内存、`GPU`等资源
-    - 节点亲和性过滤：根据`Pod`的`nodeAffinity`设置过滤节点
-    - 污点容忍过滤：检查任务是否能容忍节点上的污点（`Taints`）
-    - `PodGroup`约束过滤：检查是否有足够的资源同时运行`PodGroup`中的所有`Pod`
-    - 自定义过滤器：通过`predicates`插件实现的特定过滤逻辑
-  - **打分策略（Scoring）**：
-    - 节点资源打分：包括`leastrequested`（选择资源使用率低的节点）、`mostrequested`（选择资源使用率高的节点）和`balancedresource`（平衡各类资源使用）
-    - 节点亲和性打分（`nodeaffinity`）：根据节点亲和性规则给节点打分
-    - `Pod`间亲和性打分（`podaffinity`）：考虑`Pod`之间的亲和性和反亲和性
-    - 污点容忍打分（`tainttoleration`）：根据`Pod`对节点污点的容忍度打分
-    - 镜像本地性打分（`imagelocality`）：优先选择已经有所需镜像的节点
-    - `Pod`拓扑分布打分（`podtopologyspread`）：实现`Pod`在拓扑域之间的均匀分布
-    - 任务拓扑打分（`task-topology`）：通过注解定义任务间的亲和性和反亲和性，优化分布式任务的调度
-- 为符合条件的任务分配资源并绑定到得分最高的节点
-
-**示例场景**：
-
-当多个队列中有多个任务时，`allocate`动作会首先将资源分配给高权重队列中的高优先级任务，然后再考虑低权重队列中的任务。
-
-
-**参数说明**：
-
-| 参数名 | 默认值 | 说明 |
-| --- | --- | --- |
-| `predicateErrorCacheEnable` | `true` | 是否启用谓词错误缓存。启用后，调度器会缓存节点过滤阶段的错误信息，避免重复计算，提高调度效率。 |
-
-**参数示例**：
-
-`allocate`动作的参数需要在`Volcano`调度器的`ConfigMap`中配置。具体来说，这些参数应该在`volcano-scheduler.conf`文件的`actions.allocate`部分中配置。以下是一个配置示例：
-
-```yaml
-# volcano-scheduler-configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: volcano-scheduler-configmap
-  namespace: volcano-system
-data:
-  volcano-scheduler.conf: |
-    actions: "enqueue,allocate,preempt,reclaim,backfill"
-    tiers:
-    - plugins:
-      - name: priority
-      - name: gang
-      - name: conformance
-    - plugins:
-      - name: drf
-      - name: predicates
-      - name: proportion
-      - name: nodeorder
-    configurations:
-    - name: allocate
-      arguments:
-        predicateErrorCacheEnable: true
-```
-
-
-
-**注意事项**：
-
-1. 谓词错误缓存（`Predicate Error Cache`）是一种优化机制，可以避免对已知不满足条件的节点重复执行过滤操作，从而提高调度效率。
-2. 在大规模集群中，启用此功能可以显著减少调度延迟，特别是当集群中有大量节点且调度频繁时。
-3. 在某些特殊场景下（如节点状态快速变化的环境），可能需要禁用此功能以确保调度决策基于最新状态。
-
-**最佳实践**：
-
-1. 在大多数情况下，建议保持谓词错误缓存启用（默认设置）。
-2. 如果观察到由于缓存导致的调度异常（例如，节点状态变化后调度决策不准确），可以考虑禁用此功能。
-3. 在调试调度问题时，临时禁用此功能可能有助于排查问题。
-
-
-**注意事项**：在 `Volcano` 调度器中，`allocate` `action`也是**不可省略**的核心组件，原因如下：
-
-1. **核心调度功能的实现者**：
-   - `allocate` 是实际执行资源分配和`Pod`绑定的关键`action`
-   - 它负责将已入队的任务分配到具体的节点上，是调度过程的核心步骤
-   - 如果没有 `allocate`，任务会停留在队列中而不会被实际调度执行
-
-2. **调度决策的执行者**：
-   - 虽然其他`actions`（如`backfill`、`preempt`）也可以执行调度，但它们都是针对特殊场景的补充
-   - `allocate` 处理常规的资源分配，是最基本的调度机制
-   - 其他`actions`通常在`allocate`无法满足需求时才会被触发
-
-3. **插件系统的主要应用点**：
-   - 大多数调度插件（如`drf`、`predicates`、`nodeorder`等）主要在`allocate`阶段发挥作用
-   - 这些插件通过**过滤**和**打分**机制帮助`allocate`做出最优的调度决策
-
-4. **调度流程的核心环节**：
-   - 在典型的调度流程中，`enqueue`将任务放入队列，而`allocate`则负责实际分配资源
-   - 这两个`action`构成了调度的基本闭环，缺一不可
-
-
-
-### 3. backfill（回填）
-
-`backfill`（回填）是 `Volcano` 调度流程中非常重要的一个补充环节，其主要作用是在 `allocate` 完成主资源分配后，进一步挖掘和利用集群中的碎片资源。通常情况下，`allocate`负责为大部分高优先级或核心任务分配资源，而 `backfill` 主要针对那些由于资源碎片化而无法被 `allocate` 充分利用的节点，调度小型或低优先级任务，从而提升整体资源利用率。
-
-**backfill 在调度流程中的定位**：
-- `Volcano`的调度流程并不是"一次性"分配完所有资源、所有任务就结束。调度器会不断循环执行`actions`，每一轮都会尝试调度新的任务和处理资源变化。
-- `enqueue` 负责将任务放入调度队列，`allocate` 负责进行主要的资源分配。
-- 当 `allocate` 无法满足所有任务需求，或集群中出现大量碎片资源时，`backfill` 会被触发，专门调度适合这些碎片资源的小任务。
-- 这使得调度流程形成了"主分配 + 回填补充"的高效闭环。
-
-**插件系统与 backfill 的配合**：
-- 大多数调度插件（如 `drf`、`predicates`、`nodeorder` 等）虽然主要在 `allocate` 阶段发挥作用，但 `backfill` 阶段同样会复用这些插件的过滤和打分机制，确保回填任务的调度决策依然科学合理。
-- 某些插件参数（如谓词错误缓存）可以显著提升 `backfill` 的调度效率。
-
-**典型应用场景**：
-- 当集群中有节点仅剩少量 `CPU` 和内存时，这些资源不足以运行大型任务，但通过 `backfill`，可以将这些资源分配给小型批处理任务或低优先级作业，避免资源浪费。
-
-**主要功能**：利用集群中的空闲资源来运行小型或低优先级的任务，提高资源利用率。
-
-**工作原理**：
-- 在主要的资源分配完成后执行
-- 寻找集群中的碎片资源（小块未使用的资源）
-- 将这些资源分配给可以快速完成的小任务
-
-**示例场景**：
-
-当集群中有一些节点只剩下少量的`CPU`和内存时，这些资源可能不足以运行大型任务，但`backfill`动作可以将这些资源分配给小型的批处理任务。
-
-**参数说明**：
-
-| 参数名 | 默认值 | 说明 |
-| --- | --- | --- |
-| `predicateErrorCacheEnable` | `true` | 是否启用谓词错误缓存。启用后，调度器会缓存节点过滤阶段的错误信息，避免重复计算，提高调度效率。 |
-
-**参数示例**：
-
-`backfill`动作的参数需要在`Volcano`调度器的`ConfigMap`中配置。具体来说，这些参数应该在`volcano-scheduler.conf`文件的`actions.backfill`部分中配置。以下是一个配置示例：
-
-```yaml
-# volcano-scheduler-configmap.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: volcano-scheduler-configmap
-  namespace: volcano-system
-data:
-  volcano-scheduler.conf: |
-    actions: "enqueue,allocate,preempt,reclaim,backfill"
-    tiers:
-    - plugins:
-      - name: priority
-      - name: gang
-      - name: conformance
-    - plugins:
-      - name: drf
-      - name: predicates
-      - name: proportion
-      - name: nodeorder
-    configurations:
-    - name: backfill
-      arguments:
-        predicateErrorCacheEnable: true
-```
-
-**注意事项**：
-
-1. `backfill`动作与`allocate`动作类似，也支持谓词错误缓存功能，但它专注于利用集群的**碎片资源**。
-2. 在资源紧张的集群中，启用此功能可以提高资源利用率，尤其是当有大量小型任务需要调度时。
-3. 如果集群中的节点状态频繁变化，禁用此功能可能会带来更准确的调度结果，但代价是调度效率的降低。
-
-**最佳实践**：
-
-1. 在资源利用率需要提高的场景中，建议保持`backfill`动作启用。
-2. 对于具有大量小型任务（如数据处理、批量任务）的工作负载，`backfill`可以显著提高资源利用率。
-3. 对于需要精确资源预留的关键应用，可能需要谨慎使用`backfill`，以避免资源碎片化影响主要工作负载的性能。
-
-### 4. preempt（抢占）
-
-**主要功能**：当高优先级任务无法获得足够资源时，从低优先级任务中抢占资源（仅针对同队列任务）。
-
-**工作原理**：
-- 识别高优先级但无法调度的任务（首先任务的`PodGroup`需要处于`Inqueue`状态）
-- 查找可以被抢占的低优先级任务
-- 终止被选中的低优先级任务，释放其资源
-- 将释放的资源分配给高优先级任务
-
-
-抢占行为主要由以下机制控制：
-
-1. **Pod的Preemptable标记**：通过`volcano.sh/preemptable`注解控制`Pod`是否可被抢占
-   - 注意：默认值为`true`（可被抢占）
-   - 设置为`false`则该`Pod`不会被抢占
-
-2. **Kubernetes PriorityClass**：定义任务的优先级
-   - 高优先级任务可以抢占低优先级任务
-   - 优先级通过`priorityClassName`字段指定
-
-3. **Plugin的Preemptable函数**：各插件（如`priority`、`conformance`、`gang`等）通过实现`PreemptableFn`来决定哪些任务可被抢占
-   - 多个插件的结果取**交集**
-   - 只有所有启用的插件都认为可抢占的任务才会被抢占
-
-4. **Victim选择策略**：通过`BuildVictimsPriorityQueue`实现
-   - 同一`Job`内的任务：按`Task`优先级从低到高抢占
-   - 不同`Job`的任务：按`Job`优先级从低到高抢占
-   - 不同`Queue`的任务：按`VictimQueueOrderFn`排序
-
-**注意**：`Volcano`的抢占策略是**基于优先级的确定性选择**，而非随机选择。系统会优先抢占优先级最低的任务，确保高优先级任务优先保障。
-
-
-**示例场景**：
-
-当一个生产环境的关键任务（高优先级）需要运行，但集群资源已被开发环境的任务（低优先级）占用时，`preempt`动作会终止部分开发环境的任务，将资源让给生产环境的关键任务。
-
-
-
-
-**配置示例**：
-
-`preempt`动作的配置主要包括启用`action`和配置相关`plugin`。以下是一个完整的配置示例：
-
-```yaml
-actions: "enqueue, allocate, backfill, preempt"
-tiers:
-- plugins:
-  - name: priority
-  - name: conformance
-  - name: overcommit
-- plugins:
-  - name: drf
-  - name: gang
-  - name: predicates
-  - name: proportion
-  - name: nodeorder
-  - name: binpack
-```
-
-**工作流程**：
-
-根据源码分析，抢占的关键流程如下：
-
-1. **识别抢占者（Preemptor）**：调度器便利所有的任务，识别出因资源不足而无法调度的高优先级任务（通过`JobStarving`方法判断）。并将任务按照队列为维度进行归并，后续按照队列维度进行遍历处理。
-
-2. **检查抢占资格**：
-   - 检查任务的`PreemptionPolicy`是否为`Never`
-   - 检查任务是否有`NominatedNodeName`且该节点是否仍然不可调度
-
-3. **筛选候选节点**：
-   - 过滤掉`UnschedulableAndUnresolvable`状态的节点
-   - 对候选节点执行`Predicate`检查
-
-4. **查找可抢占任务（Victims）**：
-   - 遍历节点上的所有任务，应用`filter`函数过滤
-   - 调用各插件的`PreemptableFn`，取所有插件结果的交集
-   - 只有标记为`volcano.sh/preemptable: "true"`（或未标记，默认为`true`）的`Pod`才可被抢占
-   - `BestEffort Pod`不能抢占非`BestEffort Pod`
-
-5. **选择Victim**：
-   - 通过`BuildVictimsPriorityQueue`构建优先级队列
-   - 同一`Job`内：按`Task`优先级从低到高抢占
-   - 不同`Job`：按`Job`优先级从低到高抢占
-   - 不同`Queue`：按`VictimQueueOrderFn`排序
-
-6. **执行抢占**：
-   - 依次驱逐（`Evict`）选中的低优先级任务
-   - 释放的资源累加到节点的`FutureIdle`中
-   - 当资源足够或队列可分配时停止抢占
-
-7. **Pipeline调度**：
-   - 将高优先级任务`Pipeline`到目标节点
-   - 更新任务状态为`Pipelined`
-
-
-
-### 5. reclaim（回收）
-
-**主要功能**：从超出其公平份额的队列中回收资源，并将其重新分配给其他队列（仅针对跨队列任务的资源回收，同队列不生效）。
-
-**工作原理**：
-- 计算每个队列的公平份额和实际使用情况
-- 识别超额使用资源的队列
-- 从这些队列中选择可回收的任务
-- 终止这些任务以释放资源
-- 只回收标记为`reclaimable: true`的队列的资源
-
-**Preempt vs Reclaim 核心差别**
-
-| 维度 | Preempt Action | Reclaim Action |
-| --- | --- | --- |
-| 作用范围 | 同队列内不同`Job`之间 | 跨队列资源回收 |
-| 触发条件 | `Job`资源不足（`JobStarving`） | `Job`资源不足 + 队列未超额 |
-| 抢占对象 | 同队列的低优先级`Job` | 其他队列的可回收资源 |
-| 关键过滤 | `job.Queue == preemptorJob.Queue` | `j.Queue != job.Queue` |
-| 队列控制 | 无需队列配置 | 需要`reclaimable: true` |
-| 支持场景 | 1. 队列内`Job`优先级; 2. 同`Job`内`Task`优先级 | 队列间资源公平分配 |
-
-**示例场景**：
-
-当集群中有多个队列，每个队列都有权重设置（如生产队列权重为`60%`，开发队列为`30%`，测试队列为`10%`）。如果开发队列使用了超过`50%`的集群资源，而生产队列需要更多资源时，`reclaim`动作会从开发队列中回收资源。
-
-**注意事项**：
-
-为什么队列设置了 `Quota` 还会出现超额使用的情况？
-
-`Volcano` 的资源分配和回收机制采用了"宽松分配+周期性回收"的设计，主要原因有：
-
-- **宽松分配**：在实际调度时，为了提升资源利用率和调度灵活性，调度器可能允许某些队列临时超出其配额（`Quota`）使用资源，尤其是在集群资源充足、其他队列没有资源需求时。
-- **动态变化**：集群资源和队列需求是动态变化的，某一时刻资源分配合理，但随着新任务加入或资源需求变化，某些队列可能会暂时超额。
-- **周期性回收**：`reclaim` 动作就是为了解决上述问题而设计的。它会定期检查所有队列的资源使用情况，一旦发现某队列超出其公平份额，就会触发资源回收，将多占用的资源释放出来，分配给资源不足的队列。
-
-`Volcano` 的 `reclaim`（回收）操作本质上就是强制终止（`Evict/Kill`）超额队列中的部分任务的 `Pod`，以释放资源并将其分配给其他资源不足或高优先级的队列。被回收的任务如果有重试或重调度机制，后续可能会被重新调度到集群中。
-
-### 6. shuffle（重新分配）
-
-**主要功能**：选择并驱逐正在运行的任务，以实现资源重新分配或负载均衡。
-
-**工作原理**：
-- 收集所有正在运行的任务
-- 通过插件定义的策略选择需要驱逐的任务
-- 驱逐选中的任务，释放其资源
-- 这些任务将在后续调度周期中被重新调度
-
-**示例场景**：
-
-当集群中的负载分布不均衡时，例如某些节点资源利用率非常高而其他节点却相对空闲，`shuffle`动作可以驱逐部分任务，让它们在下一个调度周期重新分配到资源利用率较低的节点上，从而实现负载均衡。
-
-**注意事项**：
-
-1. `shuffle`动作会导致任务被驱逐并重新调度，这可能会对应用程序造成短暂的中断。
-2. **需要配合相应的插件（如`victimtasks`）来定义驱逐策略，决定哪些任务应该被驱逐。**
-3. 对于状态敏感或需要长时间运行的应用，应谨慎使用`shuffle`动作，或者确保这些应用有适当的状态保存和恢复机制。
-
-**最佳实践**：
-
-1. 将`shuffle`动作放在调度器配置的后面，确保它只在其他调度策略（如`allocate`、`backfill`）无法解决问题时才会被触发。
-2. 为需要保护的关键任务添加适当的标签或注解，确保它们不会被`shuffle`动作驱逐。
-3. 在资源利用率不均衡或需要定期重新平衡集群负载的场景中，`shuffle`动作可以提供显著的效益。
-
-
-## Volcano 中的 Plugins
-
-`Plugins`是`Volcano`调度器的决策模块，它们在不同的调度阶段提供特定的功能。
+`Plugins`(插件)是`Volcano`调度器的决策模块，它们在不同的调度阶段提供特定的功能。
 在上面的配置中，插件被组织成两个层级（`tiers`），每个层级包含多个插件。
 层级的概念允许插件按照优先级顺序执行，高层级的插件优先级高于低层级的插件。
 
@@ -641,13 +19,13 @@ tiers:
 让我们逐一解释这些插件的作用：
 
 
-### 1. priority（优先级）
+## 1. priority（优先级）
 
 **主要功能**：根据任务的优先级对其进行排序，确保高优先级任务先被调度。
 
 **关联动作**：`allocate`, `backfill`, `preempt`, `reclaim`
 
-![](../assets/fair-share.png)
+![](../../assets/fair-share.png)
 
 **工作原理**：
 - 读取任务的`PriorityClass`或优先级注解
@@ -675,7 +53,7 @@ spec:
 
 这个配置将使`critical-job`获得高优先级，在资源竞争时优先被调度。
 
-### 2. gang（成组）
+## 2. gang（成组）
 
 **主要功能**：实现成组调度，确保任务的所有成员（`Pod`）可以同时运行。
 
@@ -705,7 +83,7 @@ spec:
 
 这个配置要求至少`4`个`Pod`（`1`个`ps`和`3`个`worker`）同时可用才会开始调度。这对于分布式训练等需要多个组件协同工作的任务非常重要。
 
-### 3. conformance（一致性）
+## 3. conformance（一致性）
 
 > 官网介绍链接：[https://volcano.sh/en/docs/schduler_introduction/#conformance](https://volcano.sh/en/docs/schduler_introduction/#conformance)
 
@@ -763,13 +141,13 @@ spec:
 
 在`Volcano`的默认配置中，`conformance`通常是作为必要插件启用的。如果你有特殊的调度需求，建议保留`conformance`插件，同时通过配置其他插件来满足你的特定需求，而不是禁用这个基础的一致性保障机制。
 
-### 4. drf（主导资源公平性）
+## 4. drf（主导资源公平性）
 
 **主要功能**：实现主导资源公平性（`Dominant Resource Fairness`）算法，确保资源在不同队列和任务之间公平分配。
 
 **关联动作**：`allocate`, `backfill`, `enqueue`, `preempt`, `reclaim`
 
-![](../assets/drfjob.png)
+![](../../assets/drfjob.png)
 
 **工作原理**：
 - 计算每个任务的主导资源（即任务所需的最多的资源类型）
@@ -928,7 +306,7 @@ spec:
 
 
 
-### 5. predicates（断言）
+## 5. predicates（断言）
 
 **主要功能**：检查节点是否满足运行特定任务的条件，类似于标准`Kubernetes`调度器的断言。
 
@@ -1021,7 +399,7 @@ spec:
 - 对于大多数生产集群和常规批量计算场景，建议始终启用 `predicates` 插件，以保障调度的正确性与安全性。
 只有在非常特殊、可控的实验性场景下，且明确知道后果时，才可以选择不启用该插件。
 
-### 6. proportion（比例）
+## 6. proportion（比例）
 
 **主要功能**：根据队列的权重按比例分配资源，确保资源分配符合预定的比例。
 
@@ -1059,7 +437,7 @@ spec:
 这个配置定义了三个队列，权重比例为`6:3:1`。`proportion`插件会确保资源分配大致符合这个比例，
 即生产队列获得`60%`的资源，开发队列获得`30%`，测试队列获得`10%`。
 
-### 7. nodeorder（节点排序）
+## 7. nodeorder（节点排序）
 
 **主要功能**：为任务选择最适合的节点，基于多种因素对节点进行打分和排序。
 
@@ -1176,7 +554,7 @@ spec:
 - 只有在明确知道后果且业务场景极为特殊时，才可以选择不启用该插件。
 
 
-### 8. binpack（装箱）
+## 8. binpack（装箱）
 
 **主要功能**：将任务紧密地打包到尽可能少的节点上，提高资源利用率。
 
@@ -1219,14 +597,14 @@ spec:
 这样可以保持更多的节点处于空闲状态，可以关闭这些节点以节省能源，或者用于运行大型任务。以`deepseek`为例，一个集群有三个`8`卡节点，每个节点上都已经被占用了一个卡，每个节点只有`7`卡，而`deepseek`需要两个`8`卡节点才能启动，这时候管理视角有`21`卡空余，但是实际却不能调度任何容器。这是需要调度器尽可能优先将一个节点填满，或者可以触发重调度，将三个单卡容器调度到一个节点，以平衡资源状态，使业务可以被调度。
 
 
-### 9. numaaware（NUMA感知）
+## 9. numaaware（NUMA感知）
 
 **关联动作**：`allocate`, `backfill`
 
 **NUMA简介**：
 `NUMA`（`Non-Uniform Memory Access`，非统一内存访问）是一种计算机内存架构，在这种架构中，内存访问时间取决于内存相对于处理器的位置。在`NUMA`系统中，处理器访问其本地内存（同一`NUMA`节点上的内存）比访问非本地内存（其他`NUMA`节点上的内存）要快。这种架构在现代多处理器服务器中非常常见，对于高性能计算工作负载来说至关重要。
 
-![](../assets/20220602110808.png)
+![](../../assets/20220602110808.png)
 
 **主要功能**：优化对`NUMA`（非统一内存访问）架构的支持，提高计算密集型任务的性能。
 
@@ -1239,7 +617,7 @@ spec:
 对于高性能计算或AI训练等对内存访问延迟敏感的工作负载，
 `numaaware`插件可以确保任务的`CPU`和内存资源分配在同一`NUMA`节点上，避免跨节点访问导致的性能下降。
 
-### 10. task-topology（任务拓扑）
+## 10. task-topology（任务拓扑）
 
 **主要功能**：基于任务之间的亲和性和反亲和性配置，计算任务和节点的优先级，优化任务分布。
 
@@ -1333,7 +711,7 @@ spec:
 
 通过这种配置，`task-topology`插件可以显著提高分布式训练的效率和可靠性。在实际应用中，可以根据具体工作负载的特点和集群的结构来调整亲和性和反亲和性的配置及其权重。
 
-### 11. sla（服务级别协议）
+## 11. sla（服务级别协议）
 
 **主要功能**：实现服务级别协议（`Service Level Agreement`）的管理，确保任务的调度符合特定的服务质量要求。
 
@@ -1490,7 +868,7 @@ spec:
 通过这种方式，`sla`插件在保证高优先级任务快速响应的同时，也避免了低优先级任务的资源饥饿问题，实现了集群资源的合理分配和服务质量保证。
 
 
-### 12. tdm（时分复用）
+## 12. tdm（时分复用）
 
 **主要功能**：实现时分复用（`Time Division Multiplexing`）机制，允许不同系统在不同时间段共享同一节点的资源。
 
@@ -1737,7 +1115,7 @@ spec:
 
 
 
-### 13. deviceshare（设备共享）
+## 13. deviceshare（设备共享）
 
 **主要功能**：支持在同一节点上安全高效地共享 `GPU`、`FPGA` 等特殊硬件资源。
 
@@ -1849,7 +1227,7 @@ spec:
                   volcano.sh/gpu-mem: 4096 # 申请4GB显存分片
 ```
 
-### 14. overcommit（超额分配）
+## 14. overcommit（超额分配）
 
 **主要功能**：允许节点资源被"超额预定"。
 
@@ -1939,7 +1317,7 @@ data:
           mem-overcommit-ratio: 1.5   # 允许内存超配1.5倍
 ```
 
-### 15. pdb（PodDisruptionBudget 支持）
+## 15. pdb（PodDisruptionBudget 支持）
 
 **主要功能**：在调度和驱逐任务时，遵守 `Kubernetes` 的 `PDB` 约束，保障服务可用性。如需保障服务的高可用和安全驱逐，务必在 `scheduler` 全局配置中启用 `pdb` 插件，让调度器在相关操作时主动遵守 `PDB` 约束。
 
@@ -1968,7 +1346,7 @@ tiers:
 ```
 
 
-### 16. resourcequota（资源配额）
+## 16. resourcequota（资源配额）
 
 **关联动作**：`enqueue`
 
@@ -2043,7 +1421,7 @@ spec:
               command: ["sleep", "3600"]
 ```
 
-### 17. rescheduling（重调度）
+## 17. rescheduling（重调度）
 
 **主要功能**：动态检测资源碎片或节点利用率低下情况，自动触发任务重调度，提升集群整体利用率。
 
@@ -2157,7 +1535,7 @@ data:
           rescheduling-interval-seconds: 300 # 每5分钟检测一次重调度
 ```
 
-### 18. capacity（容量感知）
+## 18. capacity（容量感知）
 
 **主要功能**：根据节点和队列的容量约束进行调度，防止资源超卖。
 
@@ -2255,7 +1633,7 @@ spec:
               command: ["sleep", "3600"]
 ```
 
-### 19. cdp（自定义调度参数）
+## 19. cdp（自定义调度参数）
 
 **主要功能**：允许用户通过 `CRD` 配置自定义调度参数，增强调度灵活性。
 
@@ -2415,7 +1793,7 @@ spec:
               command: ["sleep", "3600"]
 ```
 
-### 20. extender（调度扩展）
+## 20. extender（调度扩展）
 
 **主要功能**：支持与外部调度器集成，允许通过 `HTTP/gRPC` 等方式扩展调度决策。
 
@@ -2510,7 +1888,7 @@ data:
           extender-timeout: 2s
 ```
 
-### 21. nodegroup（节点分组）
+## 21. nodegroup（节点分组）
 
 **主要功能**：对节点进行逻辑分组，支持基于节点组的调度策略。
 
@@ -2628,7 +2006,7 @@ spec:
               command: ["sleep", "3600"]
 ```
 
-### 22. usage（资源使用统计）
+## 22. usage（资源使用统计）
 
 **主要功能**：收集和统计任务、队列、节点的资源使用情况，为调度决策和资源优化提供数据基础。该插件是实现资源感知调度的关键组件。
 
@@ -2754,12 +2132,4 @@ data:
         arguments:
           usage-collect-interval: 60s # 每60秒统计一次资源使用
 ```
-
-## 参考资料
-
-- https://volcano.sh/zh/docs/actions
-- https://volcano.sh/zh/docs/plugins
-- https://github.com/volcano-sh/volcano
-
-
 

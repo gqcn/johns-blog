@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/volcano-job-task-podgroup-pod"
-title: "Volcano Job&Task&PodGroup&Pod详解"
+title: "Volcano Job详解"
 hide_title: true
 keywords:
   [
@@ -26,7 +26,7 @@ keywords:
 description: "深入解析Volcano Job的核心特性与使用方法，包括批量调度机制、Job状态管理、重试策略配置、任务依赖关系等高级功能。详细介绍minAvailable参数实现的Gang Scheduling、灵活的重试机制以及基于DAG的任务依赖，帮助用户构建可靠的分布式计算和机器学习工作负载。"
 ---
 
-本文详细主要介绍`Volcano`中`Job`对象的关键设计以及使用，顺便介绍相关联的`Task`、`PodGroup`、`Pod`与`Task`之间的关系。关于`Job`的基础介绍，请参考`Volcano`基本介绍章节 [Volcano介绍](./1000-Volcano基本介绍.md)。
+本文详细主要介绍`Volcano`中`Job`对象的关键设计以及使用，顺便介绍相关联的`Task`、`PodGroup`、`Pod`与`Task`之间的关系。关于`Job`的基础介绍，请参考`Volcano`基本介绍章节 [Volcano介绍](../1000-Volcano基本介绍.md)。
 
 
 `Volcano Job`是`Volcano`调度系统中的核心工作负载对象，用于定义和管理复杂的分布式、批处理和高性能计算任务。与原生`Kubernetes Job`相比，`Volcano Job`提供了更丰富的功能和更灵活的调度策略，特别适合机器学习、大数据分析、科学计算等领域。
@@ -224,7 +224,7 @@ const (
 `Job`直接包含一个或多个`Task`，每个`Task`可以有多个`Pod`副本，`Pod`的`ownerReferences`指向`Job`。
 `Task`是`Volcano`中用于管理`Pod`集合的抽象，是一对一关系。
 
-![Task/Pod状态转换](../assets/v2-0a38d4ee885e17ce828f581eab1d795b_1440w.jpg)
+![Task/Pod状态转换](../../assets/v2-0a38d4ee885e17ce828f581eab1d795b_1440w.jpg)
 
 `Task`的状态定义如下：
 
@@ -281,6 +281,41 @@ const (
 | `Succeeded` | 成功 | `Pod`中所有容器都以退出码`0`自愿终止，系统不会重启这些容器 |
 | `Failed` | 失败 | `Pod`中所有容器都已终止，至少一个容器以非零退出码终止或被系统停止 |
 | `Unknown` | 未知 | `Task/Pod`的状态对调度器来说是未知的 |
+
+### 状态转换流程
+
+`Job`和`PodGroup`的状态转换是紧密相关的，它们共同反映了任务在`Volcano`调度系统中的生命周期。以下是一个典型的状态转换流程：
+
+1. **提交阶段**：
+   - 用户创建一个`Volcano Job`
+   - 系统自动为该`Job`创建一个对应的`PodGroup`
+   - `Job`和`PodGroup`初始状态均为`Pending`
+
+2. **入队阶段**：
+   - 调度器的`enqueue action`检查`PodGroup`是否满足最小成员数要求
+   - 如果满足条件，将`PodGroup`状态更新为`Inqueue`
+   - 相应地，`Job`状态也会更新为`Inqueue`
+
+3. **调度阶段**：
+   - 调度器的`allocate action`为`Inqueue`状态的`PodGroup`中的`Pod`分配资源
+   - 当足够数量的`Pod`被成功调度并运行后，`PodGroup`状态更新为`Running`
+   - 相应地，`Job`状态也会更新为`Running`
+
+4. **执行阶段**：
+   - `Pod`在分配的节点上执行任务
+   - 如果出现资源不足或其他问题，可能触发`preempt`或`reclaim action`
+   - 这些`action`可能导致某些`Pod`被抢占或资源被回收
+
+5. **完成阶段**：
+   - 当所有`Pod`成功完成任务后，`PodGroup`状态更新为`Completed`
+   - 相应地，`Job`状态更新为`Completed`
+
+6. **异常处理**：
+   - 如果任务执行过程中出现错误，`Job`可能转为`Failed`、`Aborted`或其他状态
+   - 根据配置的生命周期策略，系统可能尝试重启任务（`Restarting`）或直接终止（`Terminating`）
+
+理解这些状态和转换流程对于理解`Volcano`调度器的`Actions`工作原理至关重要，因为每个`Action`都是在特定的状态下对`Job`和`PodGroup`进行操作，以推动它们在生命周期中前进。
+
 
 ## 批量调度
 

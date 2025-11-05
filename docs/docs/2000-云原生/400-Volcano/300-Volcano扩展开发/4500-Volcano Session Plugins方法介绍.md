@@ -59,6 +59,45 @@ graph TB
 | `reclaim` | 回收 | 回收超出配额队列的资源，重新分配给资源不足的队列 |
 | `backfill` | 回填 | 利用碎片资源调度`BestEffort`类型的任务，提高资源利用率 |
 
+
+**函数说明**：
+
+| 名称 | 分类 | 关联动作 | 函数介绍 |
+|------|------|----------|----------|
+| `AddJobOrderFn` | 排序 | `allocate`, `backfill`, `enqueue`, `preempt`, `reclaim` | 注册作业排序函数，用于确定作业的调度优先级顺序 |
+| `AddQueueOrderFn` | 排序 | `allocate`, `backfill`, `enqueue`, `reclaim` | 注册队列排序函数，用于确定队列的调度优先级顺序 |
+| `AddVictimQueueOrderFn` | 排序 | `preempt`, `reclaim` | 注册受害队列排序函数，用于在抢占或回收资源时确定队列的优先级顺序 |
+| `AddClusterOrderFn` | 排序 | `allocate`, `backfill` | 注册集群排序函数，用于在多集群调度场景中确定集群的优先级顺序 |
+| `AddTaskOrderFn` | 排序 | `allocate`, `backfill`, `preempt`, `reclaim` | 注册任务排序函数，用于确定同一作业内任务的调度优先级顺序 |
+| `AddPredicateFn` | 调度决策 | `allocate`, `backfill`, `preempt`, `reclaim` | 注册断言函数，用于判断任务是否可以调度到指定节点 |
+| `AddPrePredicateFn` | 调度决策 | `allocate`, `backfill`, `preempt`, `reclaim` | 注册预断言函数，用于在断言之前进行预先检查 |
+| `AddBestNodeFn` | 调度决策 | `allocate`, `backfill` | 注册最佳节点选择函数，用于从多个候选节点中选择最优节点 |
+| `AddNodeOrderFn` | 调度决策 | `allocate`, `backfill` | 注册节点排序函数，用于为节点评分 |
+| `AddHyperNodeOrderFn` | 调度决策 | `allocate` | 注册超级节点排序函数，用于为超级节点评分 |
+| `AddBatchNodeOrderFn` | 调度决策 | `allocate`, `backfill`, `preempt` | 注册批量节点排序函数，用于批量为节点评分 |
+| `AddNodeMapFn` | 调度决策 | `allocate`, `backfill` | 注册节点映射函数，用于对节点进行映射操作 |
+| `AddNodeReduceFn` | 调度决策 | `allocate`, `backfill` | 注册节点聚合函数，用于聚合节点评分 |
+| `AddAllocatableFn` | 资源管理 | `allocate`, `preempt` | 注册资源分配检查函数，用于判断队列是否可以为任务分配资源 |
+| `AddOverusedFn` | 资源管理 | `reclaim` | 注册队列超用检查函数，用于判断队列是否超出资源使用限制 |
+| `AddPreemptableFn` | 抢占回收 | `preempt` | 注册抢占判断函数，用于确定哪些任务可以被抢占 |
+| `AddPreemptiveFn` | 抢占回收 | `reclaim` | 注册抢占能力检查函数，用于判断队列是否能为当前队列的指定任务抢占其他队列任务 |
+| `AddReclaimableFn` | 抢占回收 | `reclaim` | 注册资源回收函数，用于确定哪些任务的资源可以被回收 |
+| `AddJobPipelinedFn` | 作业状态 | `allocate`, `preempt` | 注册作业流水线检查函数，用于判断作业是否已经绑定到节点但暂无资源分配 |
+| `AddJobValidFn` | 作业状态 | `enqueue`, `allocate`, `backfill`, `preempt`, `reclaim` | 注册作业有效性检查函数，用于验证作业配置的合法性 |
+| `AddJobStarvingFns` | 作业状态 | `preempt`, `reclaim` | 注册作业饥饿检查函数，用于判断作业是否处于资源饥饿状态 |
+| `AddJobReadyFn` | 作业状态 | `allocate`, `backfill` | 注册作业就绪检查函数，用于判断作业是否准备好进行调度 |
+| `AddJobEnqueueableFn` | 高级功能 | `enqueue` | 注册作业入队检查函数，用于判断作业是否可以进入调度队列 |
+| `AddJobEnqueuedFn` | 高级功能 | `enqueue` | 注册作业入队完成回调函数，在作业成功入队后执行相关操作 |
+| `AddReservedNodesFn` | 高级功能 | `allocate` | 注册节点预留函数，用于为特定作业预留节点资源 |
+| `AddVictimTasksFns` | 高级功能 | `preempt`, `reclaim` | 注册受害者任务选择函数，用于选择需要被抢占或回收的任务 |
+| `AddTargetJobFn` | 高级功能 | `allocate` | 注册目标作业选择函数，用于从作业列表中选择特定的目标作业 |
+| `AddSimulateAddTaskFn` | 模拟调度 | `preempt` | 注册模拟添加任务函数，用于在不实际调度的情况下模拟任务添加的效果 |
+| `AddSimulateRemoveTaskFn` | 模拟调度 | `preempt` | 注册模拟移除任务函数，用于在不实际移除的情况下模拟任务移除的效果 |
+| `AddSimulateAllocatableFn` | 模拟调度 | `preempt` | 注册模拟资源分配函数，用于在模拟环境中检查资源分配的可行性 |
+| `AddSimulatePredicateFn` | 模拟调度 | `preempt` | 注册模拟预选函数，用于在模拟环境中进行节点过滤检查 |
+| `AddEventHandler` | 事件处理 | 所有动作 | 注册事件处理器，用于在任务分配和释放过程中执行自定义的回调逻辑 |
+
+
 ## 排序相关方法
 
 ### AddJobOrderFn - 作业排序函数

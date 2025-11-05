@@ -26,7 +26,7 @@ keywords:
 description: "深入解析Volcano Queue的核心功能与配置方法，包括三级资源管理机制(capability/deserved/guarantee)、优先级与权重策略、队列状态控制、资源抢占机制、层级队列结构、节点组亲和性配置等高级特性。详细介绍capacity和proportion两种插件的资源分配策略，帮助用户构建高效的多租户资源管理体系。"
 ---
 
-本文详细介绍`Volcano`中`Queue`核心对象的关键设计以及使用。关于`Queue`的基础介绍，请参考`Volcano`基本介绍章节 [Volcano介绍](./1000-Volcano基本介绍.md)。
+本文详细介绍`Volcano`中`Queue`核心对象的关键设计以及使用。关于`Queue`的基础介绍，请参考`Volcano`基本介绍章节 [Volcano介绍](../1000-Volcano基本介绍.md)。
 
 
 `Queue`是`Volcano`调度系统中的核心概念，用于管理和分配集群资源。

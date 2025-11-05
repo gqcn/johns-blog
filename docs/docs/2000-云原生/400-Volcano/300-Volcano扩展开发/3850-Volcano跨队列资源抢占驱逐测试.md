@@ -1,5 +1,5 @@
 ---
-slug: "/cloud-native/volcano-cross-queues-reclaim"
+slug: "/cloud-native/volcano-cross-queues-reclaim-test"
 title: "Volcano跨队列资源抢占驱逐测试"
 hide_title: true
 keywords:
