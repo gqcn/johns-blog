@@ -11,6 +11,53 @@ description: "本文详细介绍了Volcano调度器框架中Session对象的31�
 
 `Volcano`调度器框架中的`Session`对象提供了丰富的插件扩展点，通过各种`Add*Fn`方法允许插件注册自定义的调度逻辑。这些方法是`Volcano`调度器插件开发的核心接口，本文档详细介绍每个方法的作用、使用场景和代码示例。
 
+## 动作与回调函数关系概览
+
+这里按照`Volcano`默认调度器配置 `enqueue,allocate,preempt,reclaim,backfill` 的顺序串行执行各个调度动作(`action`)，每个动作会调用相应注册的回调函数来实现具体的调度逻辑。
+
+```mermaid
+graph TB
+    Start([调度周期开始]) --> Enqueue[enqueue 入队动作]
+    Enqueue --> Allocate[allocate 分配动作]
+    Allocate --> Preempt[preempt 抢占动作]
+    Preempt --> Reclaim[reclaim 回收动作]
+    Reclaim --> Backfill[backfill 回填动作]
+    Backfill --> End([调度周期结束])
+
+    Enqueue -.-> E1[JobOrderFn<br/>QueueOrderFn<br/>JobValidFn<br/>JobEnqueueableFn<br/>JobEnqueuedFn]
+    
+    Allocate -.-> A1[JobOrderFn<br/>QueueOrderFn<br/>ClusterOrderFn<br/>TaskOrderFn<br/>PredicateFn<br/>PrePredicateFn]
+    Allocate -.-> A2[BestNodeFn<br/>NodeOrderFn<br/>HyperNodeOrderFn<br/>BatchNodeOrderFn<br/>NodeMapFn<br/>NodeReduceFn]
+    Allocate -.-> A3[AllocatableFn<br/>OverusedFn<br/>JobPipelinedFn<br/>JobValidFn<br/>JobReadyFn]
+    Allocate -.-> A4[TargetJobFn<br/>ReservedNodesFn]
+    
+    Preempt -.-> P1[JobOrderFn<br/>VictimQueueOrderFn<br/>TaskOrderFn<br/>PrePredicateFn<br/>BatchNodeOrderFn]
+    Preempt -.-> P2[AllocatableFn<br/>PreemptableFn<br/>JobPipelinedFn<br/>JobValidFn<br/>JobStarvingFns]
+    Preempt -.-> P3[VictimTasksFns<br/>SimulateAddTaskFn<br/>SimulateRemoveTaskFn<br/>SimulateAllocatableFn<br/>SimulatePredicateFn]
+    
+    Reclaim -.-> R1[JobOrderFn<br/>QueueOrderFn<br/>VictimQueueOrderFn<br/>TaskOrderFn<br/>PrePredicateFn]
+    Reclaim -.-> R2[OverusedFn<br/>PreemptiveFn<br/>ReclaimableFn<br/>JobValidFn<br/>JobStarvingFns<br/>VictimTasksFns]
+    
+    Backfill -.-> B1[JobOrderFn<br/>QueueOrderFn<br/>ClusterOrderFn<br/>TaskOrderFn<br/>PredicateFn<br/>PrePredicateFn]
+    Backfill -.-> B2[BestNodeFn<br/>NodeOrderFn<br/>BatchNodeOrderFn<br/>NodeMapFn<br/>NodeReduceFn]
+    Backfill -.-> B3[AllocatableFn<br/>JobValidFn<br/>JobReadyFn]
+
+    style Enqueue fill:#e1f5ff
+    style Allocate fill:#fff4e1
+    style Preempt fill:#ffe1e1
+    style Reclaim fill:#f0e1ff
+    style Backfill fill:#e1ffe1
+```
+
+**动作说明**：
+
+| 名称 | 说明 | 介绍 |
+|------|------|------|
+| `enqueue` | 入队 | 将待调度的作业加入调度队列，检查作业是否满足入队条件 |
+| `allocate` | 分配 | 为作业分配资源，选择合适的节点进行任务调度 |
+| `preempt` | 抢占 | 当资源不足时，抢占低优先级任务的资源给高优先级任务 |
+| `reclaim` | 回收 | 回收超出配额队列的资源，重新分配给资源不足的队列 |
+| `backfill` | 回填 | 利用碎片资源调度`BestEffort`类型的任务，提高资源利用率 |
 
 ## 排序相关方法
 

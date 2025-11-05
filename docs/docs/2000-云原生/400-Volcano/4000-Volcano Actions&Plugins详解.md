@@ -136,41 +136,31 @@ tiers:
 
 `PodGroup`是`Volcano`中的一个重要概念，它代表一组需要一起调度的`Pod`。`PodGroup`有以下几种状态：
 
-1. **Pending（等待中）**：`PodGroup`已被系统接受，但调度器无法为其分配足够的资源。这是`PodGroup`的初始状态。
-
-2. **Inqueue（入队）**：控制器可以开始创建`Pod`，这是`PodGroup`从`Pending`到`Running`之间的一个中间状态。当`enqueue action`执行成功后，`PodGroup`会从`Pending`转变为`Inqueue`状态。
-
-3. **Running（运行中）**：`PodGroup`中的`spec.minMember`数量的`Pod`已经处于运行状态。
-
-4. **Unknown（未知）**：部分`spec.minMember`的`Pod`正在运行，但其他部分无法被调度，例如资源不足；调度器将等待相关控制器恢复它。
-
-5. **Completed（已完成）**：`PodGroup`中的所有`Pod`都已完成。
+| 状态 | 说明 | 介绍 |
+|------|------|------|
+| `Pending` | 等待中 | `PodGroup`已被系统接受，但调度器无法为其分配足够的资源。这是`PodGroup`的初始状态。 |
+| `Inqueue` | 入队 | 控制器可以开始创建`Pod`，这是`PodGroup`从`Pending`到`Running`之间的一个中间状态。当`enqueue action`执行成功后，`PodGroup`会从`Pending`转变为`Inqueue`状态。 |
+| `Running` | 运行中 | `PodGroup`中的`spec.minMember`数量的`Pod`已经处于运行状态。 |
+| `Unknown` | 未知 | 部分`spec.minMember`的`Pod`正在运行，但其他部分无法被调度，例如资源不足；调度器将等待相关控制器恢复它。 |
+| `Completed` | 已完成 | `PodGroup`中的所有`Pod`都已完成。 |
 
 ### Job状态
 
 `Volcano Job`是一个更高级别的抽象，它包含一个或多个`Task`，每个`Task`可以有多个`Pod`副本。`Job`有以下几种状态：
 
-1. **Pending（等待中）**：`Job`正在队列中等待，等待调度决策。
-
-2. **Inqueue（入队）**：`Job`已入队，等待调度。
-
-3. **Aborting（中止中）**：`Job`正在被中止，等待释放`Pod`。
-
-3. **Aborted（已中止）**：`Job`已被中止，所有`Pod`已被释放。
-
-4. **Running（运行中）**：`Job`中的`Pod`正在运行。
-
-5. **Restarting（重启中）**：`Job`正在重启，等待`Pod`终止。
-
-6. **Completing（完成中）**：`Job`正在完成，等待`Pod`终止。
-
-7. **Completed（已完成）**：`Job`已成功完成，所有`Pod`都已成功运行并终止。
-
-8. **Terminating（终止中）**：`Job`正在终止，等待`Pod`终止。
-
-9. **Terminated（已终止）**：`Job`已终止，所有`Pod`已被终止。
-
-10. **Failed（失败）**：`Job`已失败，无法继续运行。
+| 状态 | 说明 | 介绍 |
+|------|------|------|
+| `Pending` | 等待中 | `Job`正在队列中等待，等待调度决策。 |
+| `Inqueue` | 入队 | `Job`已入队，等待调度。 |
+| `Aborting` | 中止中 | `Job`正在被中止，等待释放`Pod`。 |
+| `Aborted` | 已中止 | `Job`已被中止，所有`Pod`已被释放。 |
+| `Running` | 运行中 | `Job`中的`Pod`正在运行。 |
+| `Restarting` | 重启中 | `Job`正在重启，等待`Pod`终止。 |
+| `Completing` | 完成中 | `Job`正在完成，等待`Pod`终止。 |
+| `Completed` | 已完成 | `Job`已成功完成，所有`Pod`都已成功运行并终止。 |
+| `Terminating` | 终止中 | `Job`正在终止，等待`Pod`终止。 |
+| `Terminated` | 已终止 | `Job`已终止，所有`Pod`已被终止。 |
+| `Failed` | 失败 | `Job`已失败，无法继续运行。 |
 
 
 
@@ -207,6 +197,62 @@ tiers:
    - 根据配置的生命周期策略，系统可能尝试重启任务（`Restarting`）或直接终止（`Terminating`）
 
 理解这些状态和转换流程对于理解`Volcano`调度器的`Actions`工作原理至关重要，因为每个`Action`都是在特定的状态下对`Job`和`PodGroup`进行操作，以推动它们在生命周期中前进。
+
+
+## Actions与Plugins关系概览
+
+这里展示了`Volcano`调度器中各个调度动作(`Action`)与插件(`Plugin`)之间的关系。每个动作会调用相应插件注册的回调函数来实现具体的调度逻辑。
+
+```mermaid
+graph TB
+    Start([调度周期开始]) --> Enqueue[enqueue 入队动作]
+    Enqueue --> Allocate[allocate 分配动作]
+    Allocate --> Preempt[preempt 抢占动作]
+    Preempt --> Reclaim[reclaim 回收动作]
+    Reclaim --> Backfill[backfill 回填动作]
+    Backfill --> End([调度周期结束])
+
+    Enqueue -.-> E1[drf<br/>proportion<br/>resourcequota<br/>capacity]
+    
+    Allocate -.-> A1[priority<br/>gang<br/>drf<br/>predicates<br/>proportion]
+    Allocate -.-> A2[nodeorder<br/>binpack<br/>numaaware<br/>task-topology<br/>sla]
+    Allocate -.-> A3[tdm<br/>deviceshare<br/>overcommit<br/>capacity]
+    
+    Preempt -.-> P1[priority<br/>gang<br/>conformance<br/>drf<br/>predicates]
+    Preempt -.-> P2[proportion<br/>nodeorder<br/>task-topology<br/>sla<br/>tdm]
+    Preempt -.-> P3[overcommit<br/>pdb]
+    
+    Reclaim -.-> R1[priority<br/>gang<br/>conformance<br/>drf<br/>predicates]
+    Reclaim -.-> R2[proportion<br/>task-topology<br/>sla<br/>pdb<br/>capacity]
+    
+    Backfill -.-> B1[priority<br/>gang<br/>drf<br/>predicates<br/>nodeorder]
+    Backfill -.-> B2[binpack<br/>numaaware<br/>task-topology<br/>sla<br/>tdm<br/>deviceshare]
+
+    style Enqueue fill:#e1f5ff
+    style Allocate fill:#fff4e1
+    style Preempt fill:#ffe1e1
+    style Reclaim fill:#f0e1ff
+    style Backfill fill:#e1ffe1
+```
+
+**动作说明**：
+
+| 名称 | 说明 | 介绍 |
+|------|------|------|
+| `enqueue` | 入队 | 将待调度的作业加入调度队列，检查作业是否满足入队条件（如资源配额、队列容量等） |
+| `allocate` | 分配 | 为作业分配资源，选择合适的节点进行任务调度，这是最核心的调度动作 |
+| `preempt` | 抢占 | 当资源不足时，抢占低优先级任务的资源给高优先级任务（同队列内） |
+| `reclaim` | 回收 | 回收超出配额队列的资源，重新分配给资源不足的队列（跨队列） |
+| `backfill` | 回填 | 利用碎片资源调度小型任务，提高资源利用率 |
+
+**插件说明**：
+
+- **核心调度插件**：`priority`、`gang`、`drf`、`predicates` - 几乎参与所有调度动作
+- **资源管理插件**：`proportion`、`capacity`、`resourcequota` - 负责资源配额和公平分配
+- **节点选择插件**：`nodeorder`、`binpack`、`numaaware`、`task-topology` - 负责节点打分和选择
+- **设备管理插件**：`deviceshare` - 负责`GPU`等特殊设备的共享调度
+- **特殊场景插件**：`tdm`（时分复用）、`sla`（服务质量）、`overcommit`（超额分配）
+- **保护机制插件**：`conformance`、`pdb` - 确保调度符合`Kubernetes`规范和服务可用性
 
 ## Volcano 中的 Actions
 
@@ -523,8 +569,6 @@ tiers:
 
 **主要功能**：从超出其公平份额的队列中回收资源，并将其重新分配给其他队列（仅针对跨队列任务的资源回收，同队列不生效）。
 
-
-
 **工作原理**：
 - 计算每个队列的公平份额和实际使用情况
 - 识别超额使用资源的队列
@@ -601,6 +645,8 @@ tiers:
 
 **主要功能**：根据任务的优先级对其进行排序，确保高优先级任务先被调度。
 
+**关联动作**：`allocate`, `backfill`, `preempt`, `reclaim`
+
 ![](../assets/fair-share.png)
 
 **工作原理**：
@@ -633,6 +679,8 @@ spec:
 
 **主要功能**：实现成组调度，确保任务的所有成员（`Pod`）可以同时运行。
 
+**关联动作**：`allocate`, `backfill`, `preempt`, `reclaim`
+
 **工作原理**：
 - 读取任务的`minAvailable`设置
 - 检查是否有足够的资源来运行最小所需的`Pod`数量
@@ -660,6 +708,8 @@ spec:
 ### 3. conformance（一致性）
 
 > 官网介绍链接：[https://volcano.sh/en/docs/schduler_introduction/#conformance](https://volcano.sh/en/docs/schduler_introduction/#conformance)
+
+**关联动作**：`preempt`, `reclaim`
 
 **主要功能**：`conformance`插件就像`Kubernetes`的"规则检查员"，确保`Volcano`的调度决策符合`Kubernetes`的标准和约定。
 
@@ -716,6 +766,8 @@ spec:
 ### 4. drf（主导资源公平性）
 
 **主要功能**：实现主导资源公平性（`Dominant Resource Fairness`）算法，确保资源在不同队列和任务之间公平分配。
+
+**关联动作**：`allocate`, `backfill`, `enqueue`, `preempt`, `reclaim`
 
 ![](../assets/drfjob.png)
 
@@ -880,6 +932,8 @@ spec:
 
 **主要功能**：检查节点是否满足运行特定任务的条件，类似于标准`Kubernetes`调度器的断言。
 
+**关联动作**：`allocate`, `backfill`, `preempt`, `reclaim`
+
 **工作原理**：
 - 检查节点资源是否满足任务需求
 - 检查节点是否满足任务的亲和性、反亲和性要求
@@ -971,6 +1025,8 @@ spec:
 
 **主要功能**：根据队列的权重按比例分配资源，确保资源分配符合预定的比例。
 
+**关联动作**：`enqueue`, `allocate`, `preempt`, `reclaim`
+
 **工作原理**：
 - 计算每个队列的目标资源份额（根据`weight`权重）
 - 监控实际资源使用情况
@@ -1006,6 +1062,8 @@ spec:
 ### 7. nodeorder（节点排序）
 
 **主要功能**：为任务选择最适合的节点，基于多种因素对节点进行打分和排序。
+
+**关联动作**：`allocate`, `backfill`, `preempt`
 
 **工作原理**：
 - 考虑节点的资源利用率
@@ -1122,6 +1180,8 @@ spec:
 
 **主要功能**：将任务紧密地打包到尽可能少的节点上，提高资源利用率。
 
+**关联动作**：`allocate`, `backfill`
+
 **工作原理**：
 - 优先选择已经有高资源利用率的节点
 - 尽量将任务集中在少数节点上
@@ -1161,6 +1221,8 @@ spec:
 
 ### 9. numaaware（NUMA感知）
 
+**关联动作**：`allocate`, `backfill`
+
 **NUMA简介**：
 `NUMA`（`Non-Uniform Memory Access`，非统一内存访问）是一种计算机内存架构，在这种架构中，内存访问时间取决于内存相对于处理器的位置。在`NUMA`系统中，处理器访问其本地内存（同一`NUMA`节点上的内存）比访问非本地内存（其他`NUMA`节点上的内存）要快。这种架构在现代多处理器服务器中非常常见，对于高性能计算工作负载来说至关重要。
 
@@ -1180,6 +1242,8 @@ spec:
 ### 10. task-topology（任务拓扑）
 
 **主要功能**：基于任务之间的亲和性和反亲和性配置，计算任务和节点的优先级，优化任务分布。
+
+**关联动作**：`allocate`, `backfill`, `preempt`, `reclaim`
 
 **工作原理**：
 - 分析任务之间的亲和性和反亲和性设置
@@ -1272,6 +1336,8 @@ spec:
 ### 11. sla（服务级别协议）
 
 **主要功能**：实现服务级别协议（`Service Level Agreement`）的管理，确保任务的调度符合特定的服务质量要求。
+
+**关联动作**：`allocate`, `backfill`, `preempt`, `reclaim`
 
 
 **工作原理**：
@@ -1427,6 +1493,8 @@ spec:
 ### 12. tdm（时分复用）
 
 **主要功能**：实现时分复用（`Time Division Multiplexing`）机制，允许不同系统在不同时间段共享同一节点的资源。
+
+**关联动作**：`allocate`, `backfill`, `preempt`
 
 **工作原理**：
 - 将特定节点标记为可撤销节点（`revocable nodes`）
@@ -1673,6 +1741,8 @@ spec:
 
 **主要功能**：支持在同一节点上安全高效地共享 `GPU`、`FPGA` 等特殊硬件资源。
 
+**关联动作**：`allocate`, `backfill`
+
 **工作原理**：
 - 跟踪节点上的可用设备资源
 - 动态分配、隔离和调度设备到不同任务
@@ -1783,6 +1853,8 @@ spec:
 
 **主要功能**：允许节点资源被"超额预定"。
 
+**关联动作**：`allocate`, `preempt`
+
 **工作原理**：
 - 该插件仅在`enqueue`动作生效，`allocate`动作无效。
 - `overcommit` 插件通过调度层面对节点资源进行"超额预定"（`Overcommit`），并不是物理硬件超频，而是放大调度器感知的节点可分配资源。
@@ -1871,6 +1943,8 @@ data:
 
 **主要功能**：在调度和驱逐任务时，遵守 `Kubernetes` 的 `PDB` 约束，保障服务可用性。如需保障服务的高可用和安全驱逐，务必在 `scheduler` 全局配置中启用 `pdb` 插件，让调度器在相关操作时主动遵守 `PDB` 约束。
 
+**关联动作**：`preempt`, `reclaim`
+
 **工作原理**：
 - 检查 `PDB` 约束，避免一次性驱逐过多 `Pod`
 - 保证关键服务的最小可用实例数
@@ -1896,6 +1970,7 @@ tiers:
 
 ### 16. resourcequota（资源配额）
 
+**关联动作**：`enqueue`
 
 
 
@@ -1971,6 +2046,8 @@ spec:
 ### 17. rescheduling（重调度）
 
 **主要功能**：动态检测资源碎片或节点利用率低下情况，自动触发任务重调度，提升集群整体利用率。
+
+**关联动作**：无直接关联（主要通过事件处理器工作）
 
 **工作原理**：
 - 定期评估节点利用率
@@ -2083,6 +2160,8 @@ data:
 ### 18. capacity（容量感知）
 
 **主要功能**：根据节点和队列的容量约束进行调度，防止资源超卖。
+
+**关联动作**：`enqueue`, `allocate`, `reclaim`
 
 **工作原理**：
 - 跟踪并校验队列/节点的容量限制
