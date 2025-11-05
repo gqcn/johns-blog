@@ -1,6 +1,6 @@
 ---
-slug: "/cloud-native/volcano-plugins-options"
-title: "Volcano Plugins选项配置介绍"
+slug: "/cloud-native/volcano-scheduler-config"
+title: "Volcano调度器配置"
 hide_title: true
 keywords:
   [
