@@ -48,7 +48,7 @@ metrics:
 | `configurations` | `[]Configuration` | 定义各个动作的配置参数 |
 | `metrics` | `map[string]string` | 定义监控指标相关配置 |
 
-### Actions配置顺序的重要性
+### Actions顺序的重要性
 
 `Volcano`中的`actions`顺序配置非常重要，因为它决定了调度器执行各种调度操作的顺序，这直接影响调度决策和性能。
 
@@ -106,7 +106,7 @@ tiers:
 
 ### Configuration 结构
 
-`Configuration`用于配置特定动作的参数：
+`Configuration`用于配置特定`action`(动作)的参数：
 
 ```yaml
 configurations:
@@ -134,35 +134,35 @@ tiers:
       <key>: <value>
 ```
 
-### PluginOption 配置项详解
+### 配置项详解
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
 | `name` | `string` | 必填 | 插件名称，如`priority`、`gang`、`drf`等 |
-| `enableJobOrder` | `*bool` | `true` | 是否启用作业排序函数（`AddJobOrderFn`） |
-| `enableHierarchy` | `*bool` | `true` | 是否启用层级共享（主要用于`drf`插件的层级DRF算法） |
-| `enableJobReady` | `*bool` | `true` | 是否启用作业就绪检查函数（`AddJobReadyFn`） |
-| `enableJobPipelined` | `*bool` | `true` | 是否启用作业流水线检查函数（`AddJobPipelinedFn`） |
-| `enableTaskOrder` | `*bool` | `true` | 是否启用任务排序函数（`AddTaskOrderFn`） |
-| `enablePreemptable` | `*bool` | `true` | 是否启用抢占判断函数（`AddPreemptableFn`） |
-| `enableReclaimable` | `*bool` | `true` | 是否启用资源回收函数（`AddReclaimableFn`） |
-| `enablePreemptive` | `*bool` | `true` | 是否启用抢占能力检查函数（`AddPreemptiveFn`） |
-| `enableQueueOrder` | `*bool` | `true` | 是否启用队列排序函数（`AddQueueOrderFn`） |
-| `EnabledClusterOrder` | `*bool` | `true` | 是否启用集群排序函数（`AddClusterOrderFn`） |
-| `enablePredicate` | `*bool` | `true` | 是否启用断言函数（`AddPredicateFn`） |
-| `enableBestNode` | `*bool` | `true` | 是否启用最佳节点选择函数（`AddBestNodeFn`） |
-| `enableNodeOrder` | `*bool` | `true` | 是否启用节点排序函数（`AddNodeOrderFn`） |
-| `enableTargetJob` | `*bool` | `true` | 是否启用目标作业选择函数（`AddTargetJobFn`） |
-| `enableReservedNodes` | `*bool` | `true` | 是否启用节点预留函数（`AddReservedNodesFn`） |
-| `enableJobEnqueued` | `*bool` | `true` | 是否启用作业入队完成回调函数（`AddJobEnqueuedFn`） |
-| `enabledVictim` | `*bool` | `true` | 是否启用受害者任务选择函数（`AddVictimTasksFns`） |
-| `enableJobStarving` | `*bool` | `true` | 是否启用作业饥饿检查函数（`AddJobStarvingFns`） |
-| `enabledOverused` | `*bool` | `true` | 是否启用队列超用检查函数（`AddOverusedFn`） |
-| `enabledAllocatable` | `*bool` | `true` | 是否启用资源分配检查函数（`AddAllocatableFn`） |
-| `enabledHyperNodeOrder` | `*bool` | `true` | 是否启用超级节点排序函数（`AddHyperNodeOrderFn`） |
+| `enableJobOrder` | `bool` | `true` | 是否启用作业排序函数（`AddJobOrderFn`） |
+| `enableHierarchy` | `bool` | `true` | 是否启用层级共享（主要用于`drf`插件的层级DRF算法） |
+| `enableJobReady` | `bool` | `true` | 是否启用作业就绪检查函数（`AddJobReadyFn`） |
+| `enableJobPipelined` | `bool` | `true` | 是否启用作业流水线检查函数（`AddJobPipelinedFn`） |
+| `enableTaskOrder` | `bool` | `true` | 是否启用任务排序函数（`AddTaskOrderFn`） |
+| `enablePreemptable` | `bool` | `true` | 是否启用抢占判断函数（`AddPreemptableFn`） |
+| `enableReclaimable` | `bool` | `true` | 是否启用资源回收函数（`AddReclaimableFn`） |
+| `enablePreemptive` | `bool` | `true` | 是否启用抢占能力检查函数（`AddPreemptiveFn`） |
+| `enableQueueOrder` | `bool` | `true` | 是否启用队列排序函数（`AddQueueOrderFn`） |
+| `EnabledClusterOrder` | `bool` | `true` | 是否启用集群排序函数（`AddClusterOrderFn`） |
+| `enablePredicate` | `bool` | `true` | 是否启用断言函数（`AddPredicateFn`） |
+| `enableBestNode` | `bool` | `true` | 是否启用最佳节点选择函数（`AddBestNodeFn`） |
+| `enableNodeOrder` | `bool` | `true` | 是否启用节点排序函数（`AddNodeOrderFn`） |
+| `enableTargetJob` | `bool` | `true` | 是否启用目标作业选择函数（`AddTargetJobFn`） |
+| `enableReservedNodes` | `bool` | `true` | 是否启用节点预留函数（`AddReservedNodesFn`） |
+| `enableJobEnqueued` | `bool` | `true` | 是否启用作业入队完成回调函数（`AddJobEnqueuedFn`） |
+| `enabledVictim` | `bool` | `true` | 是否启用受害者任务选择函数（`AddVictimTasksFns`） |
+| `enableJobStarving` | `bool` | `true` | 是否启用作业饥饿检查函数（`AddJobStarvingFns`） |
+| `enabledOverused` | `bool` | `true` | 是否启用队列超用检查函数（`AddOverusedFn`） |
+| `enabledAllocatable` | `bool` | `true` | 是否启用资源分配检查函数（`AddAllocatableFn`） |
+| `enabledHyperNodeOrder` | `bool` | `true` | 是否启用超级节点排序函数（`AddHyperNodeOrderFn`） |
 | `arguments` | `map[string]interface{}` | `nil` | 插件特定的参数配置 |
 
-### 配置说明
+### 配置注意事项
 
 1. **默认行为**：所有`PluginOption`配置项默认值为`true`，即默认启用所有回调函数。
 
@@ -250,44 +250,6 @@ tiers:
 **说明**：
 - `enabledHierarchy`：启用层级DRF算法
 - `drf.namespaceWeight`：配置不同命名空间的权重
-
-### Arguments 数据类型
-
-`Arguments`支持以下数据类型：
-
-| 类型 | 说明 | 示例 |
-|------|------|------|
-| `int` | 整数 | `weight: 10` |
-| `float64` | 浮点数 | `threshold: 0.8` |
-| `bool` | 布尔值 | `enabled: true` |
-| `string` | 字符串 | `policy: "best-fit"` |
-| `map` | 映射 | 复杂配置 |
-| `slice` | 数组 | 列表配置 |
-
-### Arguments 访问方法
-
-在插件代码中，可以通过以下方法访问`Arguments`：
-
-```go
-// 获取整数
-var weight int
-args.GetInt(&weight, "binpack.weight")
-
-// 获取浮点数
-var threshold float64
-args.GetFloat64(&threshold, "threshold")
-
-// 获取布尔值
-var enabled bool
-args.GetBool(&enabled, "enabled")
-
-// 获取字符串
-var policy string
-args.GetString(&policy, "policy")
-
-// 使用泛型方法获取复杂类型
-config, ok := framework.Get[MyConfigStruct](args, "config")
-```
 
 ## 完整配置示例
 

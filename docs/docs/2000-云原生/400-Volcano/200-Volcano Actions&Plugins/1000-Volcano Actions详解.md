@@ -26,6 +26,9 @@ description: "深入解析Volcano调度器的6个核心Actions（enqueue、alloc
 
 当一个要求至少三个`Pod`同时运行的`TensorFlow`训练任务被提交时，`enqueue`动作会检查是否有足够的资源来运行这些`Pod`，如果有，则将其标记为可调度。
 
+**参数说明**：
+
+没有可配置参数。
 
 **注意事项**：`enqueue action` 是不可省略的核心组件，原因如下：
 
@@ -72,13 +75,13 @@ description: "深入解析Volcano调度器的6个核心Actions（enqueue、alloc
 
 **参数说明**：
 
-| 参数名 | 默认值 | 说明 |
-| --- | --- | --- |
-| `predicateErrorCacheEnable` | `true` | 是否启用谓词错误缓存。启用后，调度器会缓存节点过滤阶段的错误信息，避免重复计算，提高调度效率。 |
+| 参数名 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `predicateErrorCacheEnable` | `bool` | `true` | 是否启用谓词错误缓存。启用后，调度器会缓存节点过滤阶段的错误信息，避免重复计算，提高调度效率。 |
 
 **参数示例**：
 
-`allocate`动作的参数需要在`Volcano`调度器的`ConfigMap`中配置。具体来说，这些参数应该在`volcano-scheduler.conf`文件的`actions.allocate`部分中配置。以下是一个配置示例：
+`allocate`动作的参数需要在`Volcano`调度器的`ConfigMap`中配置。具体来说，这些参数应该在`volcano-scheduler.conf`文件的`configurations`部分中配置。以下是一个配置示例：
 
 ```yaml
 # volcano-scheduler-configmap.yaml
@@ -173,13 +176,13 @@ data:
 
 **参数说明**：
 
-| 参数名 | 默认值 | 说明 |
-| --- | --- | --- |
-| `predicateErrorCacheEnable` | `true` | 是否启用谓词错误缓存。启用后，调度器会缓存节点过滤阶段的错误信息，避免重复计算，提高调度效率。 |
+| 参数名 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `predicateErrorCacheEnable` | `bool` | `true` | 是否启用谓词错误缓存。启用后，调度器会缓存节点过滤阶段的错误信息，避免重复计算，提高调度效率。 |
 
 **参数示例**：
 
-`backfill`动作的参数需要在`Volcano`调度器的`ConfigMap`中配置。具体来说，这些参数应该在`volcano-scheduler.conf`文件的`actions.backfill`部分中配置。以下是一个配置示例：
+`backfill`动作的参数需要在`Volcano`调度器的`ConfigMap`中配置。具体来说，这些参数应该在`volcano-scheduler.conf`文件的`configurations`部分中配置。以下是一个配置示例：
 
 ```yaml
 # volcano-scheduler-configmap.yaml
@@ -256,6 +259,30 @@ data:
 
 当一个生产环境的关键任务（高优先级）需要运行，但集群资源已被开发环境的任务（低优先级）占用时，`preempt`动作会终止部分开发环境的任务，将资源让给生产环境的关键任务。
 
+**参数说明**：
+
+| 参数名 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `predicateErrorCacheEnable` | `bool` | `true` | 是否启用谓词错误缓存。启用后，调度器会缓存节点过滤阶段的错误信息，避免重复计算，提高调度效率。 |
+| `enableTopologyAwarePreemption` | `bool` | `false` | 是否启用拓扑感知抢占。启用后，调度器会考虑节点拓扑关系进行更智能的抢占决策。 |
+| `topologyAwarePreemptWorkerNum` | `int` | `16` | 拓扑感知抢占的并发工作线程数。 |
+| `minCandidateNodesPercentage` | `int` | `10` | 候选节点的最小百分比（用于拓扑感知抢占）。 |
+| `minCandidateNodesAbsolute` | `int` | `1` | 候选节点的最小绝对数量（用于拓扑感知抢占）。 |
+| `maxCandidateNodesAbsolute` | `int` | `100` | 候选节点的最大绝对数量（用于拓扑感知抢占）。 |
+
+**参数示例**：
+
+```yaml
+configurations:
+- name: preempt
+  arguments:
+    predicateErrorCacheEnable: true
+    enableTopologyAwarePreemption: false
+    topologyAwarePreemptWorkerNum: 16
+    minCandidateNodesPercentage: 10
+    minCandidateNodesAbsolute: 1
+    maxCandidateNodesAbsolute: 100
+```
 
 **配置示例**：
 
@@ -340,6 +367,10 @@ tiers:
 
 当集群中有多个队列，每个队列都有权重设置（如生产队列权重为`60%`，开发队列为`30%`，测试队列为`10%`）。如果开发队列使用了超过`50%`的集群资源，而生产队列需要更多资源时，`reclaim`动作会从开发队列中回收资源。
 
+**参数说明**：
+
+没有可配置参数。
+
 **注意事项**：
 
 为什么队列设置了 `Quota` 还会出现超额使用的情况？
@@ -365,6 +396,10 @@ tiers:
 **示例场景**：
 
 当集群中的负载分布不均衡时，例如某些节点资源利用率非常高而其他节点却相对空闲，`shuffle`动作可以驱逐部分任务，让它们在下一个调度周期重新分配到资源利用率较低的节点上，从而实现负载均衡。
+
+**参数说明**：
+
+没有可配置参数。
 
 **注意事项**：
 
