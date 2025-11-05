@@ -17,6 +17,8 @@ description: "本文详细介绍了Volcano调度器框架中Session对象的31�
 ### AddJobOrderFn - 作业排序函数
 **作用**: 注册作业排序函数，用于确定作业的调度优先级顺序。
 
+**相关动作**: `allocate`, `backfill`, `enqueue`, `preempt`, `reclaim`
+
 **函数签名**: 
 ```go
 func (ssn *Session) AddJobOrderFn(name string, cf api.CompareFn)
@@ -68,6 +70,8 @@ func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
 
 ### AddQueueOrderFn - 队列排序函数
 **作用**: 注册队列排序函数，用于确定队列的调度优先级顺序。
+
+**相关动作**: `allocate`, `backfill`, `enqueue`, `reclaim`
 
 **函数签名**: 
 ```go
@@ -128,8 +132,10 @@ func calculateDominantResourceShare(queue *api.QueueInfo) float64 {
 }
 ```
 
-### AddVictimQueueOrderFn - 受害者队列排序函数
-**作用**: 注册受害者队列排序函数，用于在抢占场景中确定队列的优先级顺序。
+### AddVictimQueueOrderFn - 受害队列排序函数
+**作用**: 注册受害队列排序函数，用于在抢占或回收资源时确定队列的优先级顺序。
+
+**相关动作**: `preempt`, `reclaim`
 
 **函数签名**: 
 ```go
@@ -181,7 +187,9 @@ func (pp *preemptPlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 ### AddClusterOrderFn - 集群排序函数
-**作用**: 注册集群排序函数，用于多集群调度场景中确定集群的优先级顺序。
+**作用**: 注册集群排序函数，用于在多集群调度场景中确定集群的优先级顺序。
+
+**相关动作**: `allocate`, `backfill`
 
 **函数签名**: 
 ```go
@@ -231,7 +239,9 @@ func (cp *clusterPlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 ### AddTaskOrderFn - 任务排序函数
-**作用**: 注册任务排序函数，用于确定同一作业内任务的调度顺序。
+**作用**: 注册任务排序函数，用于确定同一作业内任务的调度优先级顺序。
+
+**相关动作**: `allocate`, `backfill`, `preempt`, `reclaim`
 
 **函数签名**: 
 ```go
@@ -284,13 +294,12 @@ func getTaskRole(task *api.TaskInfo) string {
         return role
     }
     return "worker"
-}
-```
-
 ## 调度决策相关方法
 
-### AddPredicateFn - 节点过滤函数
-**作用**: 注册节点过滤函数，用于判断任务是否可以调度到特定节点。
+### AddPredicateFn - Predicate函数
+**作用**: 注册`Predicate`函数，用于判断任务是否可以调度到指定节点。
+
+**相关动作**: `allocate`, `backfill`
 
 **函数签名**: 
 ```go
@@ -358,8 +367,10 @@ func getNodeGPUType(node *api.NodeInfo) string {
 }
 ```
 
-### AddPrePredicateFn - 预过滤函数
-**作用**: 注册预过滤函数，在节点过滤之前进行任务级别的预检查。
+### AddPrePredicateFn - PrePredicate函数
+**作用**: 注册`PrePredicate`函数，用于在`Predicate`之前进行预先检查。
+
+**相关动作**: `allocate`, `backfill`, `preempt`, `reclaim`
 
 **函数签名**: 
 ```go
@@ -404,7 +415,9 @@ func (rp *resourcePlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 ### AddBestNodeFn - 最佳节点选择函数
-**作用**: 注册最佳节点选择函数，从候选节点中选择最优节点。
+**作用**: 注册最佳节点选择函数，用于从多个候选节点中选择最优节点。
+
+**相关动作**: `allocate`, `backfill`
 
 **函数签名**: 
 ```go
@@ -468,8 +481,10 @@ func (bp *bestNodePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddNodeOrderFn - 节点打分函数
-**作用**: 注册节点打分函数，用于为节点计算优先级分数。
+### AddNodeOrderFn - 节点排序函数
+**作用**: 注册节点排序函数，用于为节点评分。
+
+**相关动作**: `allocate`, `backfill`
 
 **函数签名**: 
 ```go
@@ -486,18 +501,18 @@ type NodeOrderFn func(*TaskInfo, *NodeInfo) (float64, error)
 - 第二个参数: `*api.NodeInfo` 类型，表示候选节点信息
 
 **返回值含义**:
-- 第一个返回值: `float64` 类型，表示节点的优先级分数（分数越高优先级越高）
-- 第二个返回值: `error` 类型，表示打分过程中的错误信息
+- 第一个返回值: `float64` 类型，表示节点的评分值（分数越高优先级越高）
+- 第二个返回值: `error` 类型，表示评分过程中的错误信息
 
 **使用场景**: 
-- 实现基于资源利用率的节点打分
-- 实现基于网络拓扑的节点打分
+- 实现基于资源利用率的节点评分
+- 实现基于网络拓扑的节点评分
 - 实现负载均衡策略
 
 **代码示例**:
 ```go
 func (bp *binpackPlugin) OnSessionOpen(ssn *framework.Session) {
-    // 注册BinPack节点打分函数
+    // 注册BinPack节点评分函数
     ssn.AddNodeOrderFn(bp.Name(), func(task *api.TaskInfo, node *api.NodeInfo) (float64, error) {
         // 计算资源利用率分数，优先选择资源利用率高的节点
         cpuScore := calculateResourceScore(
@@ -536,7 +551,9 @@ func calculateResourceScore(requested, allocatable, used int64) float64 {
 ```
 
 ### AddHyperNodeOrderFn - 超级节点排序函数
-**作用**: 注册超级节点排序函数，用于对超级节点组进行排序和打分。
+**作用**: 注册超级节点排序函数，用于为超级节点评分。
+
+**相关动作**: `allocate`
 
 **函数签名**: 
 ```go
@@ -553,8 +570,8 @@ type HyperNodeOrderFn func(*TaskInfo, []*NodeInfo) (map[string]float64, error)
 - 第二个参数: `[]*api.NodeInfo` 类型，表示候选节点列表
 
 **返回值含义**:
-- 第一个返回值: `map[string]float64` 类型，表示节点ID到分数的映射（分数越高优先级越高）
-- 第二个返回值: `error` 类型，表示打分过程中的错误信息
+- 第一个返回值: `map[string]float64` 类型，表示节点ID到评分值的映射（分数越高优先级越高）
+- 第二个返回值: `error` 类型，表示评分过程中的错误信息
 
 **使用场景**: 
 - 实现多节点组合的调度策略
@@ -584,7 +601,9 @@ func (tp *topologyPlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 ### AddBatchNodeOrderFn - 批量节点排序函数
-**作用**: 注册批量节点排序函数，用于批量计算多个节点的优先级分数。
+**作用**: 注册批量节点排序函数，用于批量为节点评分。
+
+**相关动作**: `allocate`, `backfill`, `preempt`
 
 **函数签名**: 
 ```go
@@ -601,12 +620,12 @@ type BatchNodeOrderFn func(*TaskInfo, []*NodeInfo) (map[string]float64, error)
 - 第二个参数: `[]*api.NodeInfo` 类型，表示候选节点列表
 
 **返回值含义**:
-- 第一个返回值: `map[string]float64` 类型，表示节点名称到分数的映射（分数越高优先级越高）
-- 第二个返回值: `error` 类型，表示打分过程中的错误信息
+- 第一个返回值: `map[string]float64` 类型，表示节点名称到评分值的映射（分数越高优先级越高）
+- 第二个返回值: `error` 类型，表示评分过程中的错误信息
 
 **使用场景**: 
 - 实现批量节点评分优化
-- 实现并行节点打分计算
+- 实现并行节点评分计算
 - 实现大规模集群的性能优化
 
 **代码示例**:
@@ -616,7 +635,7 @@ func (bp *batchPlugin) OnSessionOpen(ssn *framework.Session) {
     ssn.AddBatchNodeOrderFn(bp.Name(), func(task *api.TaskInfo, nodes []*api.NodeInfo) (map[string]float64, error) {
         scores := make(map[string]float64, len(nodes))
         
-        // 并行计算所有节点的分数
+        // 并行计算所有节点的评分
         for _, node := range nodes {
             scores[node.Name] = calculateBatchNodeScore(task, node)
         }
@@ -626,53 +645,10 @@ func (bp *batchPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddNodeMapFn - 节点映射函数
-**作用**: 注册节点映射函数，用于将节点信息映射为特定的分数值。
+### AddNodeReduceFn - 节点Reduce函数
+**作用**: 注册节点`Reduce`函数，用于聚合节点评分。
 
-**函数签名**: 
-```go
-func (ssn *Session) AddNodeMapFn(name string, pf api.NodeMapFn)
-```
-
-**NodeMapFn类型定义**:
-```go
-type NodeMapFn func(*TaskInfo, *NodeInfo) (float64, error)
-```
-
-**参数详解**:
-- 第一个参数: `*api.TaskInfo` 类型，表示待调度的任务信息
-- 第二个参数: `*api.NodeInfo` 类型，表示候选节点信息
-
-**返回值含义**:
-- 第一个返回值: `float64` 类型，表示节点的映射分数值
-- 第二个返回值: `error` 类型，表示映射过程中的错误信息
-
-**使用场景**: 
-- 实现节点特征提取
-- 实现自定义节点评分维度
-- 实现节点分类和标记
-
-**代码示例**:
-```go
-func (mp *mapPlugin) OnSessionOpen(ssn *framework.Session) {
-    // 注册节点映射函数
-    ssn.AddNodeMapFn(mp.Name(), func(task *api.TaskInfo, node *api.NodeInfo) (float64, error) {
-        score := 0.0
-        
-        // GPU节点加分
-        if gpuCount, exists := node.Node.Status.Capacity["nvidia.com/gpu"]; exists {
-            if gpuCount.Value() > 0 {
-                score += 20.0
-            }
-        }
-        
-        return score, nil
-    })
-}
-```
-
-### AddNodeReduceFn - 节点归约函数
-**作用**: 注册节点归约函数，用于将多个节点分数归约为最终结果。
+**相关动作**: `allocate`, `backfill`
 
 **函数签名**: 
 ```go
@@ -711,6 +687,8 @@ func (rp *reducePlugin) OnSessionOpen(ssn *framework.Session) {
 ### AddAllocatableFn - 资源分配检查函数
 
 **作用**: 注册资源分配检查函数，用于判断队列是否可以为任务分配资源。该函数将会允许`Pending`的`Pod`继续进行调度（分配资源），随后`Pod`将会从`Pending`状态转换到`Running`状态。
+
+**相关动作**: `allocate`, `backfill`
 
 **函数签名**: 
 ```go
@@ -760,6 +738,8 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
 ### AddOverusedFn - 队列超用检查函数
 **作用**: 注册队列超用检查函数，用于判断队列是否超出资源使用限制。
 
+**相关动作**: `reclaim`
+
 **函数签名**: 
 ```go
 func (ssn *Session) AddOverusedFn(name string, fn api.ValidateFn)
@@ -803,6 +783,8 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
 
 ### AddPreemptableFn - 抢占判断函数
 **作用**: 注册抢占判断函数，用于确定哪些任务可以被抢占。
+
+**相关动作**: `preempt`
 
 **函数签名**: 
 ```go
@@ -868,7 +850,9 @@ func isPreemptable(task *api.TaskInfo) bool {
 ```
 
 ### AddPreemptiveFn - 抢占能力检查函数
-**作用**: 注册抢占能力检查函数，用于判断队列是否能为指定任务执行抢占其他队列任务。在该函数的实现中，通常判断该任务的资源是否会超过队列的配额。
+**作用**: 注册抢占能力检查函数，用于判断队列是否能为当前队列的指定任务抢占其他队列任务。在该函数的实现中，通常判断该任务的资源是否会超过队列的配额。该函数通常用于`reclaim`动作中，用于跨队列回收资源时，判断是否可进一步执行资源回收逻辑。
+
+**相关动作**: `reclaim`
 
 **函数签名**: 
 ```go
@@ -881,8 +865,8 @@ type ValidateWithCandidateFn func(interface{}, interface{}) bool
 ```
 
 **参数详解**:
-- 第一个参数: `interface{}` 类型，通常为 `*api.QueueInfo` 类型，表示队列信息
-- 第二个参数: `interface{}` 类型，通常为 `*api.TaskInfo` 类型，表示候选任务信息
+- 第一个参数: `interface{}` 类型，通常为 `*api.QueueInfo` 类型，表示队列信息。
+- 第二个参数: `interface{}` 类型，通常为 `*api.TaskInfo` 类型，表示该队列中的候选任务信息。
 
 **返回值含义**:
 - 返回 `true`: 表示队列可以为该任务执行抢占
@@ -918,6 +902,8 @@ func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
 
 ### AddReclaimableFn - 资源回收函数
 **作用**: 注册资源回收函数，用于确定哪些任务的资源可以被回收。该函数主要是`reclaim`插件调用，`reclaim`用于跨队列的资源抢占，该函数可以实现对已有的候选任务做自定义的过滤。
+
+**相关动作**: `reclaim`
 
 **函数签名**: 
 ```go
@@ -986,6 +972,8 @@ func isQueueOverGuarantee(queue *api.QueueInfo) bool {
 ### AddJobPipelinedFn - 作业流水线检查函数
 **作用**: 注册作业流水线检查函数，用于判断作业是否已经绑定到节点上，但是节点上暂无资源分配，等待节点上的其他任务释放资源。主要用于`allocate`和`preempt`两个`action`。目前在`gang/sla/tdm`中有注册该方法。
 
+**相关动作**: `allocate`, `preempt`
+
 **函数签名**: 
 ```go
 func (ssn *Session) AddJobPipelinedFn(name string, vf api.VoteFn)
@@ -1040,6 +1028,8 @@ func calculateMinResourceForPipeline(job *api.JobInfo) *api.Resource {
 
 ### AddJobValidFn - 作业有效性检查函数
 **作用**: 注册作业有效性检查函数，用于验证作业配置的合法性。
+
+**相关动作**: `enqueue`, `allocate`, `backfill`, `preempt`, `reclaim`
 
 **函数签名**: 
 ```go
@@ -1096,6 +1086,8 @@ func (vp *validationPlugin) OnSessionOpen(ssn *framework.Session) {
 ### AddJobStarvingFns - 作业饥饿检查函数
 **作用**: 注册作业饥饿检查函数，用于判断作业是否处于资源饥饿状态。
 
+**相关动作**: `preempt`, `reclaim`
+
 **函数签名**: 
 ```go
 func (ssn *Session) AddJobStarvingFns(name string, fn api.ValidateFn)
@@ -1144,6 +1136,8 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 
 ### AddJobReadyFn - 作业就绪检查函数
 **作用**: 注册作业就绪检查函数，用于判断作业是否准备好进行调度。
+
+**相关动作**: `allocate`, `backfill`
 
 **函数签名**: 
 ```go
@@ -1216,6 +1210,8 @@ func canScheduleTask(ssn *framework.Session, task *api.TaskInfo) bool {
 
 **作用**: 注册作业入队检查函数，用于判断作业是否可以进入调度队列。该函数将会把`Pending`状态的`PodGroup`转换为`Inqueue`状态，随后`PodHGroup`对应的`Pod`将会创建出来，新建出来的`Pod`处于`Pending`状态。
 
+**相关动作**: `enqueue`
+
 **函数签名**: 
 ```go
 func (ssn *Session) AddJobEnqueueableFn(name string, fn api.VoteFn)
@@ -1263,6 +1259,8 @@ func (dp *dependencyPlugin) OnSessionOpen(ssn *framework.Session) {
 ### AddJobEnqueuedFn - 作业入队完成回调函数
 **作用**: 注册作业入队完成回调函数，在作业成功入队后执行相关操作。
 
+**相关动作**: `enqueue`
+
 **函数签名**: 
 ```go
 func (ssn *Session) AddJobEnqueuedFn(name string, fn api.JobEnqueuedFn)
@@ -1306,6 +1304,8 @@ func (mp *monitorPlugin) OnSessionOpen(ssn *framework.Session) {
 
 ### AddReservedNodesFn - 节点预留函数
 **作用**: 注册节点预留函数，用于为特定作业预留节点资源。
+
+**相关动作**: `allocate`
 
 **函数签名**: 
 ```go
@@ -1366,6 +1366,8 @@ func reserveNodesForQueue(ssn *framework.Session, queue *api.QueueInfo) {
 
 ### AddVictimTasksFns - 受害者任务选择函数
 **作用**: 注册受害者任务选择函数，用于选择需要被抢占或回收的任务。
+
+**相关动作**: `preempt`, `reclaim`
 
 **函数签名**: 
 ```go
@@ -1436,6 +1438,8 @@ func (vp *victimPlugin) OnSessionOpen(ssn *framework.Session) {
 ### AddTargetJobFn - 目标作业选择函数
 **作用**: 注册目标作业选择函数，用于从作业列表中选择特定的目标作业。
 
+**相关动作**: `allocate`
+
 **函数签名**: 
 ```go
 func (ssn *Session) AddTargetJobFn(name string, fn api.TargetJobFn)
@@ -1486,6 +1490,8 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 
 **作用**: 注册模拟添加任务函数，用于在不实际调度的情况下模拟任务添加的效果。
 
+**相关动作**: `preempt`
+
 **函数签名**: 
 ```go
 func (ssn *Session) AddSimulateAddTaskFn(name string, fn api.SimulateAddTaskFn)
@@ -1531,6 +1537,8 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 
 **作用**: 注册模拟移除任务函数，用于在不实际移除的情况下模拟任务移除的效果。
 
+**相关动作**: `preempt`
+
 **函数签名**: 
 ```go
 func (ssn *Session) AddSimulateRemoveTaskFn(name string, fn api.SimulateRemoveTaskFn)
@@ -1570,6 +1578,8 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 ### AddSimulateAllocatableFn - 模拟资源分配函数
 
 **作用**: 注册模拟资源分配函数，用于在模拟环境中检查资源分配的可行性。
+
+**相关动作**: `preempt`
 
 **函数签名**: 
 ```go
@@ -1615,6 +1625,8 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 ### AddSimulatePredicateFn - 模拟预选函数
 
 **作用**: 注册模拟预选函数，用于在模拟环境中进行节点过滤检查。
+
+**相关动作**: `preempt`
 
 **函数签名**: 
 ```go
