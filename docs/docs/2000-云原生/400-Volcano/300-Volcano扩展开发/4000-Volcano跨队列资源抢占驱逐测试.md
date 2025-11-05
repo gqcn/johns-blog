@@ -11,16 +11,7 @@ description: "本文通过实际测试验证Volcano调度器的reclaim动作在�
 
 ## 背景介绍
 
-### 业务场景
-- 主要是在线推理和离线训练任务
-- 在线推理和离线训练任务有使用不同的队列管理配额
-- 在线和离线均有不同的队列，其中在线推理按照租户和项目空间维度分配队列管理配额；离线训练按照业务队列的维度管理配额，底层均是由`Volcano queue`来实现配额管理。
-
-### Volcano调度器
-
-`Volcano`原生提供了两个支持按照优先级进行资源抢占驱逐的`action`：`preempt`和`reclaim`。其中`preempt`仅支持单队列内的多个任务之间的抢占驱逐，而`reclaim`则支持跨队列的抢占驱逐。根据当前业务背景来看，我们需要的是`reclaim`动作来实现跨队列的资源抢占驱逐。
-
-由于`Volcano`不支持卡维度的配额管理，因此在我们的调度器中使用的是自定义的`capacity-card`插件来实现卡维度的配额管理。具体可以参考章节：[Volcano调度器支持智算卡Quota改进方案](./2000-Volcano调度器支持智算卡Quota改进方案.md)
+具体参考：[Volcano跨队列资源抢占驱逐改进设计](./3000-Volcano跨队列资源抢占驱逐改进设计.md)
 
 ## 测试环境
 
@@ -45,6 +36,8 @@ actions: "enqueue, allocate, backfill, reclaim"
 tiers:
 - plugins:
   - name: priority
+  - name: gang
+    enableReclaimable: false
   - name: conformance
     enableReclaimable: false
 - plugins:

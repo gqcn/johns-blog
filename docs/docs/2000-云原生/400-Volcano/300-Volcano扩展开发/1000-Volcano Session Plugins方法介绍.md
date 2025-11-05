@@ -64,44 +64,44 @@ graph TB
 
 | 名称 | 分类 | 关联动作 | 函数介绍 |
 |------|------|----------|----------|
-| `AddJobOrderFn` | 排序 | `allocate`, `backfill`, `enqueue`, `preempt`, `reclaim` | 注册作业排序函数，用于确定作业的调度优先级顺序 |
-| `AddQueueOrderFn` | 排序 | `allocate`, `backfill`, `enqueue`, `reclaim` | 注册队列排序函数，用于确定队列的调度优先级顺序 |
-| `AddVictimQueueOrderFn` | 排序 | `preempt`, `reclaim` | 注册受害队列排序函数，用于在抢占或回收资源时确定队列的优先级顺序 |
-| `AddClusterOrderFn` | 排序 | `allocate`, `backfill` | 注册集群排序函数，用于在多集群调度场景中确定集群的优先级顺序 |
-| `AddTaskOrderFn` | 排序 | `allocate`, `backfill`, `preempt`, `reclaim` | 注册任务排序函数，用于确定同一作业内任务的调度优先级顺序 |
-| `AddPredicateFn` | 调度决策 | `allocate`, `backfill`, `preempt`, `reclaim` | 注册断言函数，用于判断任务是否可以调度到指定节点 |
-| `AddPrePredicateFn` | 调度决策 | `allocate`, `backfill`, `preempt`, `reclaim` | 注册预断言函数，用于在断言之前进行预先检查 |
-| `AddBestNodeFn` | 调度决策 | `allocate`, `backfill` | 注册最佳节点选择函数，用于从多个候选节点中选择最优节点 |
-| `AddNodeOrderFn` | 调度决策 | `allocate`, `backfill` | 注册节点排序函数，用于为节点评分 |
-| `AddHyperNodeOrderFn` | 调度决策 | `allocate` | 注册超级节点排序函数，用于为超级节点评分 |
-| `AddBatchNodeOrderFn` | 调度决策 | `allocate`, `backfill`, `preempt` | 注册批量节点排序函数，用于批量为节点评分 |
-| `AddNodeMapFn` | 调度决策 | `allocate`, `backfill` | 注册节点映射函数，用于对节点进行映射操作 |
-| `AddNodeReduceFn` | 调度决策 | `allocate`, `backfill` | 注册节点聚合函数，用于聚合节点评分 |
-| `AddAllocatableFn` | 资源管理 | `allocate`, `preempt` | 注册资源分配检查函数，用于判断队列是否可以为任务分配资源 |
-| `AddOverusedFn` | 资源管理 | `reclaim` | 注册队列超用检查函数，用于判断队列是否超出资源使用限制 |
-| `AddPreemptableFn` | 抢占回收 | `preempt` | 注册抢占判断函数，用于确定哪些任务可以被抢占 |
-| `AddPreemptiveFn` | 抢占回收 | `reclaim` | 注册抢占能力检查函数，用于判断队列是否能为当前队列的指定任务抢占其他队列任务 |
-| `AddReclaimableFn` | 抢占回收 | `reclaim` | 注册资源回收函数，用于确定哪些任务的资源可以被回收 |
-| `AddJobPipelinedFn` | 作业状态 | `allocate`, `preempt` | 注册作业流水线检查函数，用于判断作业是否已经绑定到节点但暂无资源分配 |
-| `AddJobValidFn` | 作业状态 | `enqueue`, `allocate`, `backfill`, `preempt`, `reclaim` | 注册作业有效性检查函数，用于验证作业配置的合法性 |
-| `AddJobStarvingFns` | 作业状态 | `preempt`, `reclaim` | 注册作业饥饿检查函数，用于判断作业是否处于资源饥饿状态 |
-| `AddJobReadyFn` | 作业状态 | `allocate`, `backfill` | 注册作业就绪检查函数，用于判断作业是否准备好进行调度 |
-| `AddJobEnqueueableFn` | 高级功能 | `enqueue` | 注册作业入队检查函数，用于判断作业是否可以进入调度队列 |
-| `AddJobEnqueuedFn` | 高级功能 | `enqueue` | 注册作业入队完成回调函数，在作业成功入队后执行相关操作 |
-| `AddReservedNodesFn` | 高级功能 | `allocate` | 注册节点预留函数，用于为特定作业预留节点资源 |
-| `AddVictimTasksFns` | 高级功能 | `preempt`, `reclaim` | 注册受害者任务选择函数，用于选择需要被抢占或回收的任务 |
-| `AddTargetJobFn` | 高级功能 | `allocate` | 注册目标作业选择函数，用于从作业列表中选择特定的目标作业 |
-| `AddSimulateAddTaskFn` | 模拟调度 | `preempt` | 注册模拟添加任务函数，用于在不实际调度的情况下模拟任务添加的效果 |
-| `AddSimulateRemoveTaskFn` | 模拟调度 | `preempt` | 注册模拟移除任务函数，用于在不实际移除的情况下模拟任务移除的效果 |
-| `AddSimulateAllocatableFn` | 模拟调度 | `preempt` | 注册模拟资源分配函数，用于在模拟环境中检查资源分配的可行性 |
-| `AddSimulatePredicateFn` | 模拟调度 | `preempt` | 注册模拟预选函数，用于在模拟环境中进行节点过滤检查 |
-| `AddEventHandler` | 事件处理 | 所有动作 | 注册事件处理器，用于在任务分配和释放过程中执行自定义的回调逻辑 |
+| `JobOrderFn` | 排序 | `allocate`, `backfill`, `enqueue`, `preempt`, `reclaim` | 作业排序函数，用于确定作业的调度优先级顺序 |
+| `QueueOrderFn` | 排序 | `allocate`, `backfill`, `enqueue`, `reclaim` | 队列排序函数，用于确定队列的调度优先级顺序 |
+| `VictimQueueOrderFn` | 排序 | `preempt`, `reclaim` | 受害队列排序函数，用于在抢占或回收资源时确定队列的优先级顺序 |
+| `ClusterOrderFn` | 排序 | `allocate`, `backfill` | 集群排序函数，用于在多集群调度场景中确定集群的优先级顺序 |
+| `TaskOrderFn` | 排序 | `allocate`, `backfill`, `preempt`, `reclaim` | 任务排序函数，用于确定同一作业内任务的调度优先级顺序 |
+| `PredicateFn` | 调度决策 | `allocate`, `backfill`, `preempt`, `reclaim` | 断言函数，用于判断任务是否可以调度到指定节点 |
+| `PrePredicateFn` | 调度决策 | `allocate`, `backfill`, `preempt`, `reclaim` | 预断言函数，用于在断言之前进行预先检查 |
+| `BestNodeFn` | 调度决策 | `allocate`, `backfill` | 最佳节点选择函数，用于从多个候选节点中选择最优节点 |
+| `NodeOrderFn` | 调度决策 | `allocate`, `backfill` | 节点排序函数，用于为节点评分 |
+| `HyperNodeOrderFn` | 调度决策 | `allocate` | 超级节点排序函数，用于为超级节点评分 |
+| `BatchNodeOrderFn` | 调度决策 | `allocate`, `backfill`, `preempt` | 批量节点排序函数，用于批量为节点评分 |
+| `NodeMapFn` | 调度决策 | `allocate`, `backfill` | 节点映射函数，用于对节点进行映射操作 |
+| `NodeReduceFn` | 调度决策 | `allocate`, `backfill` | 节点聚合函数，用于聚合节点评分 |
+| `AllocatableFn` | 资源管理 | `allocate`, `preempt` | 资源分配检查函数，用于判断队列是否可以为任务分配资源 |
+| `OverusedFn` | 资源管理 | `reclaim` | 队列超用检查函数，用于判断队列是否超出资源使用限制 |
+| `PreemptableFn` | 抢占回收 | `preempt` | 抢占判断函数，用于确定哪些任务可以被抢占 |
+| `PreemptiveFn` | 抢占回收 | `reclaim` | 抢占能力检查函数，用于判断队列是否能为当前队列的指定任务抢占其他队列任务 |
+| `ReclaimableFn` | 抢占回收 | `reclaim` | 资源回收函数，用于确定哪些任务的资源可以被回收 |
+| `JobPipelinedFn` | 作业状态 | `allocate`, `preempt` | 作业流水线检查函数，用于判断作业是否已经绑定到节点但暂无资源分配 |
+| `JobValidFn` | 作业状态 | `enqueue`, `allocate`, `backfill`, `preempt`, `reclaim` | 作业有效性检查函数，用于验证作业配置的合法性 |
+| `JobStarvingFns` | 作业状态 | `preempt`, `reclaim` | 作业饥饿检查函数，用于判断作业是否处于资源饥饿状态 |
+| `JobReadyFn` | 作业状态 | `allocate`, `backfill` | 作业就绪检查函数，用于判断作业是否准备好进行调度 |
+| `JobEnqueueableFn` | 高级功能 | `enqueue` | 作业入队检查函数，用于判断作业是否可以进入调度队列 |
+| `JobEnqueuedFn` | 高级功能 | `enqueue` | 作业入队完成回调函数，在作业成功入队后执行相关操作 |
+| `ReservedNodesFn` | 高级功能 | `allocate` | 节点预留函数，用于为特定作业预留节点资源 |
+| `VictimTasksFns` | 高级功能 | `preempt`, `reclaim` | 受害者任务选择函数，用于选择需要被抢占或回收的任务 |
+| `TargetJobFn` | 高级功能 | `allocate` | 目标作业选择函数，用于从作业列表中选择特定的目标作业 |
+| `SimulateAddTaskFn` | 模拟调度 | `preempt` | 模拟添加任务函数，用于在不实际调度的情况下模拟任务添加的效果 |
+| `SimulateRemoveTaskFn` | 模拟调度 | `preempt` | 模拟移除任务函数，用于在不实际移除的情况下模拟任务移除的效果 |
+| `SimulateAllocatableFn` | 模拟调度 | `preempt` | 模拟资源分配函数，用于在模拟环境中检查资源分配的可行性 |
+| `SimulatePredicateFn` | 模拟调度 | `preempt` | 模拟预选函数，用于在模拟环境中进行节点过滤检查 |
+| `EventHandler` | 事件处理 | 所有动作 | 事件处理器，用于在任务分配和释放过程中执行自定义的回调逻辑 |
 
 
 ## 排序相关方法
 
-### AddJobOrderFn - 作业排序函数
-**作用**: 注册作业排序函数，用于确定作业的调度优先级顺序。
+### JobOrderFn - 作业排序函数
+**作用**: 作业排序函数，用于确定作业的调度优先级顺序。
 
 **相关动作**: `allocate`, `backfill`, `enqueue`, `preempt`, `reclaim`
 
@@ -154,8 +154,8 @@ func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddQueueOrderFn - 队列排序函数
-**作用**: 注册队列排序函数，用于确定队列的调度优先级顺序。
+### QueueOrderFn - 队列排序函数
+**作用**: 队列排序函数，用于确定队列的调度优先级顺序。
 
 **相关动作**: `allocate`, `backfill`, `enqueue`, `reclaim`
 
@@ -218,8 +218,8 @@ func calculateDominantResourceShare(queue *api.QueueInfo) float64 {
 }
 ```
 
-### AddVictimQueueOrderFn - 受害队列排序函数
-**作用**: 注册受害队列排序函数，用于在抢占或回收资源时确定队列的优先级顺序。
+### VictimQueueOrderFn - 受害队列排序函数
+**作用**: 受害队列排序函数，用于在抢占或回收资源时确定队列的优先级顺序。
 
 **相关动作**: `preempt`, `reclaim`
 
@@ -272,8 +272,8 @@ func (pp *preemptPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddClusterOrderFn - 集群排序函数
-**作用**: 注册集群排序函数，用于在多集群调度场景中确定集群的优先级顺序。
+### ClusterOrderFn - 集群排序函数
+**作用**: 集群排序函数，用于在多集群调度场景中确定集群的优先级顺序。
 
 **相关动作**: `allocate`, `backfill`
 
@@ -324,8 +324,8 @@ func (cp *clusterPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddTaskOrderFn - 任务排序函数
-**作用**: 注册任务排序函数，用于确定同一作业内任务的调度优先级顺序。
+### TaskOrderFn - 任务排序函数
+**作用**: 任务排序函数，用于确定同一作业内任务的调度优先级顺序。
 
 **相关动作**: `allocate`, `backfill`, `preempt`, `reclaim`
 
@@ -382,8 +382,8 @@ func getTaskRole(task *api.TaskInfo) string {
     return "worker"
 ## 调度决策相关方法
 
-### AddPredicateFn - Predicate函数
-**作用**: 注册`Predicate`函数，用于判断任务是否可以调度到指定节点。
+### PredicateFn - Predicate函数
+**作用**: `Predicate`函数，用于判断任务是否可以调度到指定节点。
 
 **相关动作**: `allocate`, `backfill`
 
@@ -453,8 +453,8 @@ func getNodeGPUType(node *api.NodeInfo) string {
 }
 ```
 
-### AddPrePredicateFn - PrePredicate函数
-**作用**: 注册`PrePredicate`函数，用于在`Predicate`之前进行预先检查。
+### PrePredicateFn - PrePredicate函数
+**作用**: `PrePredicate`函数，用于在`Predicate`之前进行预先检查。
 
 **相关动作**: `allocate`, `backfill`, `preempt`, `reclaim`
 
@@ -500,8 +500,8 @@ func (rp *resourcePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddBestNodeFn - 最佳节点选择函数
-**作用**: 注册最佳节点选择函数，用于从多个候选节点中选择最优节点。
+### BestNodeFn - 最佳节点选择函数
+**作用**: 最佳节点选择函数，用于从多个候选节点中选择最优节点。
 
 **相关动作**: `allocate`, `backfill`
 
@@ -567,8 +567,8 @@ func (bp *bestNodePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddNodeOrderFn - 节点排序函数
-**作用**: 注册节点排序函数，用于为节点评分。
+### NodeOrderFn - 节点排序函数
+**作用**: 节点排序函数，用于为节点评分。
 
 **相关动作**: `allocate`, `backfill`
 
@@ -636,8 +636,8 @@ func calculateResourceScore(requested, allocatable, used int64) float64 {
 }
 ```
 
-### AddHyperNodeOrderFn - 超级节点排序函数
-**作用**: 注册超级节点排序函数，用于为超级节点评分。
+### HyperNodeOrderFn - 超级节点排序函数
+**作用**: 超级节点排序函数，用于为超级节点评分。
 
 **相关动作**: `allocate`
 
@@ -686,8 +686,8 @@ func (tp *topologyPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddBatchNodeOrderFn - 批量节点排序函数
-**作用**: 注册批量节点排序函数，用于批量为节点评分。
+### BatchNodeOrderFn - 批量节点排序函数
+**作用**: 批量节点排序函数，用于批量为节点评分。
 
 **相关动作**: `allocate`, `backfill`, `preempt`
 
@@ -731,8 +731,8 @@ func (bp *batchPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddNodeReduceFn - 节点Reduce函数
-**作用**: 注册节点`Reduce`函数，用于聚合节点评分。
+### NodeReduceFn - 节点Reduce函数
+**作用**: 节点`Reduce`函数，用于聚合节点评分。
 
 **相关动作**: `allocate`, `backfill`
 
@@ -770,9 +770,9 @@ func (rp *reducePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddAllocatableFn - 资源分配检查函数
+### AllocatableFn - 资源分配检查函数
 
-**作用**: 注册资源分配检查函数，用于判断队列是否可以为任务分配资源。该函数将会允许`Pending`的`Pod`继续进行调度（分配资源），随后`Pod`将会从`Pending`状态转换到`Running`状态。
+**作用**: 资源分配检查函数，用于判断队列是否可以为任务分配资源。该函数将会允许`Pending`的`Pod`继续进行调度（分配资源），随后`Pod`将会从`Pending`状态转换到`Running`状态。
 
 **相关动作**: `allocate`, `backfill`
 
@@ -821,8 +821,8 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddOverusedFn - 队列超用检查函数
-**作用**: 注册队列超用检查函数，用于判断队列是否超出资源使用限制。
+### OverusedFn - 队列超用检查函数
+**作用**: 队列超用检查函数，用于判断队列是否超出资源使用限制。
 
 **相关动作**: `reclaim`
 
@@ -867,8 +867,8 @@ func (cp *capacityPlugin) OnSessionOpen(ssn *framework.Session) {
 
 ## 抢占和回收相关方法
 
-### AddPreemptableFn - 抢占判断函数
-**作用**: 注册抢占判断函数，用于确定哪些任务可以被抢占。
+### PreemptableFn - 抢占判断函数
+**作用**: 抢占判断函数，用于确定哪些任务可以被抢占。
 
 **相关动作**: `preempt`
 
@@ -935,8 +935,8 @@ func isPreemptable(task *api.TaskInfo) bool {
 }
 ```
 
-### AddPreemptiveFn - 抢占能力检查函数
-**作用**: 注册抢占能力检查函数，用于判断队列是否能为当前队列的指定任务抢占其他队列任务。在该函数的实现中，通常判断该任务的资源是否会超过队列的配额。该函数通常用于`reclaim`动作中，用于跨队列回收资源时，判断是否可进一步执行资源回收逻辑。
+### PreemptiveFn - 抢占能力检查函数
+**作用**: 抢占能力检查函数，用于判断队列是否能为当前队列的指定任务抢占其他队列任务。在该函数的实现中，通常判断该任务的资源是否会超过队列的配额。该函数通常用于`reclaim`动作中，用于跨队列回收资源时，判断是否可进一步执行资源回收逻辑。
 
 **相关动作**: `reclaim`
 
@@ -986,8 +986,8 @@ func (pp *priorityPlugin) OnSessionOpen(ssn *framework.Session) {
 ```
 
 
-### AddReclaimableFn - 资源回收函数
-**作用**: 注册资源回收函数，用于确定哪些任务的资源可以被回收。该函数主要是`reclaim`插件调用，`reclaim`用于跨队列的资源抢占，该函数可以实现对已有的候选任务做自定义的过滤。
+### ReclaimableFn - 资源回收函数
+**作用**: 资源回收函数，用于确定哪些任务的资源可以被回收。该函数主要是`reclaim`插件调用，`reclaim`用于跨队列的资源抢占，该函数可以实现对已有的候选任务做自定义的过滤。
 
 **相关动作**: `reclaim`
 
@@ -1055,8 +1055,8 @@ func isQueueOverGuarantee(queue *api.QueueInfo) bool {
 
 ## 作业状态检查相关方法
 
-### AddJobPipelinedFn - 作业流水线检查函数
-**作用**: 注册作业流水线检查函数，用于判断作业是否已经绑定到节点上，但是节点上暂无资源分配，等待节点上的其他任务释放资源。主要用于`allocate`和`preempt`两个`action`。目前在`gang/sla/tdm`中有注册该方法。
+### JobPipelinedFn - 作业流水线检查函数
+**作用**: 作业流水线检查函数，用于判断作业是否已经绑定到节点上，但是节点上暂无资源分配，等待节点上的其他任务释放资源。主要用于`allocate`和`preempt`两个`action`。目前在`gang/sla/tdm`中有注册该方法。
 
 **相关动作**: `allocate`, `preempt`
 
@@ -1112,8 +1112,8 @@ func calculateMinResourceForPipeline(job *api.JobInfo) *api.Resource {
 }
 ```
 
-### AddJobValidFn - 作业有效性检查函数
-**作用**: 注册作业有效性检查函数，用于验证作业配置的合法性。
+### JobValidFn - 作业有效性检查函数
+**作用**: 作业有效性检查函数，用于验证作业配置的合法性。
 
 **相关动作**: `enqueue`, `allocate`, `backfill`, `preempt`, `reclaim`
 
@@ -1169,8 +1169,8 @@ func (vp *validationPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddJobStarvingFns - 作业饥饿检查函数
-**作用**: 注册作业饥饿检查函数，用于判断作业是否处于资源饥饿状态。
+### JobStarvingFns - 作业饥饿检查函数
+**作用**: 作业饥饿检查函数，用于判断作业是否处于资源饥饿状态。
 
 **相关动作**: `preempt`, `reclaim`
 
@@ -1220,8 +1220,8 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddJobReadyFn - 作业就绪检查函数
-**作用**: 注册作业就绪检查函数，用于判断作业是否准备好进行调度。
+### JobReadyFn - 作业就绪检查函数
+**作用**: 作业就绪检查函数，用于判断作业是否准备好进行调度。
 
 **相关动作**: `allocate`, `backfill`
 
@@ -1292,9 +1292,9 @@ func canScheduleTask(ssn *framework.Session, task *api.TaskInfo) bool {
 
 ## 高级调度功能方法
 
-### AddJobEnqueueableFn - 作业入队检查函数
+### JobEnqueueableFn - 作业入队检查函数
 
-**作用**: 注册作业入队检查函数，用于判断作业是否可以进入调度队列。该函数将会把`Pending`状态的`PodGroup`转换为`Inqueue`状态，随后`PodHGroup`对应的`Pod`将会创建出来，新建出来的`Pod`处于`Pending`状态。
+**作用**: 作业入队检查函数，用于判断作业是否可以进入调度队列。该函数将会把`Pending`状态的`PodGroup`转换为`Inqueue`状态，随后`PodHGroup`对应的`Pod`将会创建出来，新建出来的`Pod`处于`Pending`状态。
 
 **相关动作**: `enqueue`
 
@@ -1342,8 +1342,8 @@ func (dp *dependencyPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddJobEnqueuedFn - 作业入队完成回调函数
-**作用**: 注册作业入队完成回调函数，在作业成功入队后执行相关操作。
+### JobEnqueuedFn - 作业入队完成回调函数
+**作用**: 作业入队完成回调函数，在作业成功入队后执行相关操作。
 
 **相关动作**: `enqueue`
 
@@ -1388,8 +1388,8 @@ func (mp *monitorPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddReservedNodesFn - 节点预留函数
-**作用**: 注册节点预留函数，用于为特定作业预留节点资源。
+### ReservedNodesFn - 节点预留函数
+**作用**: 节点预留函数，用于为特定作业预留节点资源。
 
 **相关动作**: `allocate`
 
@@ -1450,8 +1450,8 @@ func reserveNodesForQueue(ssn *framework.Session, queue *api.QueueInfo) {
 }
 ```
 
-### AddVictimTasksFns - 受害者任务选择函数
-**作用**: 注册受害者任务选择函数，用于选择需要被抢占或回收的任务。
+### VictimTasksFns - 受害者任务选择函数
+**作用**: 受害者任务选择函数，用于选择需要被抢占或回收的任务。
 
 **相关动作**: `preempt`, `reclaim`
 
@@ -1521,8 +1521,8 @@ func (vp *victimPlugin) OnSessionOpen(ssn *framework.Session) {
 
 
 
-### AddTargetJobFn - 目标作业选择函数
-**作用**: 注册目标作业选择函数，用于从作业列表中选择特定的目标作业。
+### TargetJobFn - 目标作业选择函数
+**作用**: 目标作业选择函数，用于从作业列表中选择特定的目标作业。
 
 **相关动作**: `allocate`
 
@@ -1572,9 +1572,9 @@ func (sp *starvationPlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddSimulateAddTaskFn - 模拟添加任务函数
+### SimulateAddTaskFn - 模拟添加任务函数
 
-**作用**: 注册模拟添加任务函数，用于在不实际调度的情况下模拟任务添加的效果。
+**作用**: 模拟添加任务函数，用于在不实际调度的情况下模拟任务添加的效果。
 
 **相关动作**: `preempt`
 
@@ -1619,9 +1619,9 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddSimulateRemoveTaskFn - 模拟移除任务函数
+### SimulateRemoveTaskFn - 模拟移除任务函数
 
-**作用**: 注册模拟移除任务函数，用于在不实际移除的情况下模拟任务移除的效果。
+**作用**: 模拟移除任务函数，用于在不实际移除的情况下模拟任务移除的效果。
 
 **相关动作**: `preempt`
 
@@ -1661,9 +1661,9 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddSimulateAllocatableFn - 模拟资源分配函数
+### SimulateAllocatableFn - 模拟资源分配函数
 
-**作用**: 注册模拟资源分配函数，用于在模拟环境中检查资源分配的可行性。
+**作用**: 模拟资源分配函数，用于在模拟环境中检查资源分配的可行性。
 
 **相关动作**: `preempt`
 
@@ -1708,9 +1708,9 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 }
 ```
 
-### AddSimulatePredicateFn - 模拟预选函数
+### SimulatePredicateFn - 模拟预选函数
 
-**作用**: 注册模拟预选函数，用于在模拟环境中进行节点过滤检查。
+**作用**: 模拟预选函数，用于在模拟环境中进行节点过滤检查。
 
 **相关动作**: `preempt`
 
@@ -1761,9 +1761,9 @@ func (sp *simulatePlugin) OnSessionOpen(ssn *framework.Session) {
 
 ## 事件处理相关方法
 
-### AddEventHandler - 事件处理器注册函数
+### EventHandler - 事件处理器注册函数
 
-**作用**: 注册事件处理器，用于在任务分配和释放过程中执行自定义的回调逻辑。这是插件中对资源分配管理的关键方法。
+**作用**: 事件处理器，用于在任务分配和释放过程中执行自定义的回调逻辑。这是插件中对资源分配管理的关键方法。
 
 **函数签名**: 
 ```go

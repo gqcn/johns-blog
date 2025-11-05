@@ -4,8 +4,22 @@ title: "Volcano跨队列资源抢占驱逐改进设计"
 hide_title: true
 keywords:
   [
-    "Volcano", "Kubernetes", "跨队列抢占"
+    "Volcano", "Kubernetes", "跨队列抢占", "资源驱逐", "reclaim", "在线推理", "离线训练", "优先级调度", "GPU资源", "capacity-card", "多租户", "资源配额"
   ]
 description: "WIP"
 ---
+
+## 背景介绍
+
+### 业务场景
+- 业务上的任务类型分两类：在线推理(`inference`)和离线训练(`training`)。
+- 在线推理和离线训练任务使用不同的队列管理配额。
+- 在线推理服务按照租户和项目空间维度通过不同的队列管理配额。
+- 离线训练任务按照业务队列的维度管理配额，底层均是由`Volcano queue`来实现配额管理。
+
+### Volcano调度器
+
+`Volcano`原生提供了两个支持按照优先级进行资源抢占驱逐的`action`：`preempt`和`reclaim`。其中`preempt`仅支持单队列内的多个任务之间的抢占驱逐，而`reclaim`则支持跨队列的抢占驱逐。根据当前业务背景来看，我们需要通过`reclaim`动作来实现跨队列的资源抢占驱逐。
+
+由于`Volcano`不支持卡维度的配额管理，因此在我们的调度器中使用的是自定义的`capacity-card`插件来实现卡维度的配额管理。具体可以参考章节：[Volcano调度器支持智算卡Quota改进方案](./2000-Volcano调度器支持智算卡Quota改进方案.md)。由于在抢占和驱逐过程中也会涉及到对资源的计算，因此该过程也依赖此插件来实现卡维度的计算。
 
