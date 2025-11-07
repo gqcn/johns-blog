@@ -94,9 +94,9 @@ graph TB
 | `conformance` | 一致性 | `preempt`, `reclaim` | 确保`Volcano`的调度决策符合`Kubernetes`的标准和约定 |
 | `drf` | 主导资源公平性 | `allocate`, `backfill`, `enqueue`, `preempt`, `reclaim` | 实现主导资源公平性算法，确保资源在不同队列和任务之间公平分配 |
 | `predicates` | 断言 | `allocate`, `backfill`, `preempt`, `reclaim` | 检查节点是否满足运行特定任务的条件，类似于标准`Kubernetes`调度器的断言 |
-| `proportion` | 比例 | `enqueue`, `allocate`, `preempt`, `reclaim` | 根据队列的权重按比例分配资源，确保资源分配符合预定的比例 |
+| `proportion` | 资源比例管理 | `enqueue`, `allocate`, `preempt`, `reclaim` | 根据队列的权重按比例分配资源，确保资源分配符合预定的比例 |
 | `nodeorder` | 节点排序 | `allocate`, `backfill`, `preempt` | 为任务选择最适合的节点，基于多种因素对节点进行打分和排序 |
-| `binpack` | 装箱 | `allocate`, `backfill` | 将任务紧密地打包到尽可能少的节点上，提高资源利用率 |
+| `binpack` | 装箱调度 | `allocate`, `backfill` | 将任务紧密地打包到尽可能少的节点上，提高资源利用率 |
 | `numaaware` | `NUMA`感知 | `allocate`, `backfill` | 优化对`NUMA`（非统一内存访问）架构的支持，提高计算密集型任务的性能 |
 | `task-topology` | 任务拓扑 | `allocate`, `backfill`, `preempt`, `reclaim` | 基于任务之间的亲和性和反亲和性配置，计算任务和节点的优先级，优化任务分布 |
 | `sla` | 服务级别协议 | `allocate`, `backfill`, `preempt`, `reclaim` | 实现服务级别协议管理，确保任务的调度符合特定的服务质量要求 |
@@ -106,7 +106,7 @@ graph TB
 | `pdb` | `PodDisruptionBudget`支持 | `preempt`, `reclaim` | 在调度和驱逐任务时，遵守`Kubernetes`的`PDB`约束，保障服务可用性 |
 | `resourcequota` | 资源配额 | `enqueue` | 支持队列或命名空间级别的资源配额限制，防止资源被单一队列/用户占满 |
 | `rescheduling` | 重调度 | 无直接关联 | 动态检测资源碎片或节点利用率低下情况，自动触发任务重调度，提升集群整体利用率 |
-| `capacity` | 容量感知 | `enqueue`, `allocate`, `reclaim` | 根据节点和队列的容量约束进行调度，防止资源超卖 |
+| `capacity` | 资源配额管理 | `enqueue`, `allocate`, `reclaim` | 根据节点和队列的容量约束进行调度，防止资源超卖 |
 
 
 ## 相关内容
