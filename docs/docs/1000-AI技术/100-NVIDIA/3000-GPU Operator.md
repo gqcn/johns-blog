@@ -141,7 +141,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **作用**：识别具有`GPU`的节点，为其添加标签如``feature.node.kubernetes.io/pci-10de.present=true``
 - **优势**：简化节点选择和工作负载调度
 
-详细介绍请参考文章：[NFD&GFD技术介绍](../2000-NFD&GFD.md)
+详细介绍请参考文章：[NFD&GFD技术介绍](./2000-NFD&GFD.md)
 
 ### 3.5 GPU特性发现 (GPU Feature Discovery, GFD)
 
@@ -149,7 +149,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 - **标签示例**：`GPU`型号、架构、`CUDA`版本等
 - **用途**：支持基于特定`GPU`特性的精细化调度
 
-详细介绍请参考文章：[NFD&GFD技术介绍](../2000-NFD&GFD.md)
+详细介绍请参考文章：[NFD&GFD技术介绍](./2000-NFD&GFD.md)
 
 ### 3.6 DCGM导出器 (DCGM Exporter)
 
