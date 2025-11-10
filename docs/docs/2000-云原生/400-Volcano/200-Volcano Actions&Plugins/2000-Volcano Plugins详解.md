@@ -4,9 +4,9 @@ title: "Volcano Plugins详解"
 hide_title: true
 keywords:
   [
-    "Volcano", "Kubernetes", "Plugins", "调度器插件", "priority", "gang", "drf", "predicates", "proportion", "nodeorder", "binpack", "deviceshare", "tdm", "sla", "capacity", "overcommit", "rescheduling", "插件配置", "插件参数", "tiers", "PluginOption", "Arguments"
+    "Volcano", "Kubernetes", "Plugins", "调度器插件", "priority", "gang", "drf", "predicates", "proportion", "nodeorder", "binpack", "deviceshare", "tdm", "sla", "capacity", "overcommit", "rescheduling", "network-topology-aware", "resource-strategy-fit", "插件配置", "插件参数", "tiers", "PluginOption", "Arguments"
   ]
-description: "全面解析Volcano调度器的22个核心Plugins（priority、gang、conformance、drf、predicates、proportion、nodeorder、binpack、numaaware、task-topology、sla、tdm、deviceshare、overcommit、pdb、resourcequota、rescheduling、capacity、cdp、extender、nodegroup、usage）的功能特性、工作原理、参数配置和使用场景，涵盖优先级调度、Gang调度、资源公平分配、节点过滤打分、设备共享、时分复用、服务质量保障等关键调度能力，为构建高效的批处理和AI训练调度系统提供完整的插件配置指南。"
+description: "全面解析Volcano调度器的24个核心Plugins（priority、gang、conformance、drf、predicates、proportion、nodeorder、binpack、numaaware、task-topology、sla、tdm、deviceshare、overcommit、pdb、resourcequota、rescheduling、capacity、cdp、extender、nodegroup、usage、network-topology-aware、resource-strategy-fit）的功能特性、工作原理、参数配置和使用场景，涵盖优先级调度、Gang调度、资源公平分配、节点过滤打分、设备共享、时分复用、服务质量保障、网络拓扑感知、资源策略适配等关键调度能力，为构建高效的批处理和AI训练调度系统提供完整的插件配置指南。"
 ---
 
 
@@ -2006,7 +2006,463 @@ spec:
               command: ["sleep", "3600"]
 ```
 
-## 22. usage（资源使用统计）
+## 22. network-topology-aware（网络拓扑感知）
+
+**主要功能**：基于网络拓扑结构进行智能调度，优先将任务调度到网络拓扑相近的节点，减少跨交换机通信开销，提高分布式训练效率。
+
+**关联动作**：`allocate`, `backfill`
+
+**工作原理**：
+- 识别集群的网络拓扑层级结构（`HyperNode`）
+- 计算节点间的最近公共祖先（`LCA HyperNode`）的层级
+- 优先将同一任务的多个`Pod`调度到网络拓扑相近的节点
+- 通过降低层级距离来减少网络通信延迟
+
+**核心概念**：
+
+1. **HyperNode（超级节点）**：
+   - 代表网络拓扑中的一个层级节点（如机架、交换机、可用区等）
+   - 每个`HyperNode`包含多个物理节点或子`HyperNode`
+   - 通过层级结构组织整个集群的网络拓扑
+
+2. **LCA HyperNode（最近公共祖先超级节点）**：
+   - 两个节点在拓扑树中的最近公共祖先
+   - `LCA`层级越低，节点间网络距离越近，通信延迟越小
+
+3. **拓扑层级（Tier）**：
+   - 表示`HyperNode`在拓扑树中的深度
+   - 层级越低表示越接近叶子节点（物理节点）
+   - 层级越高表示越接近根节点（数据中心级别）
+
+**调度策略**：
+
+1. **拓扑亲和性优先**：
+   - 如果任务已有`Pod`调度到某个`HyperNode`，新的`Pod`优先调度到同一`HyperNode`
+   - 同一`HyperNode`内的节点获得最高分数（`100`分）
+
+2. **最小化`LCA`层级**：
+   - 当无法调度到同一`HyperNode`时，选择`LCA`层级最低的节点
+   - 计算公式：`score = 100 * (maxTier - LCATier) / (maxTier - minTier)`
+
+3. **任务集中度优先**：
+   - 在多个节点得分相同时，优先选择已运行该任务更多`Pod`的`HyperNode`
+   - 计算公式：`score = 100 * taskNum / allTaskNum`
+
+**应用场景**：
+
+1. **分布式AI训练**：
+   - 大规模分布式训练任务需要频繁的梯度同步
+   - 将`worker`节点调度到网络拓扑相近的位置可显著降低通信延迟
+   - 特别适合使用`InfiniBand`或`RDMA`网络的高性能计算场景
+
+2. **高性能计算（HPC）**：
+   - `MPI`等并行计算框架对网络延迟敏感
+   - 拓扑感知调度可以提升计算效率`20-40%`
+
+3. **大数据处理**：
+   - `Spark`、`Flink`等分布式计算框架的`shuffle`操作
+   - 减少跨机架数据传输，降低网络带宽消耗
+
+**参数说明**：
+
+| 参数名    | 类型  | 默认值 | 说明                           |
+|-----------|-------|--------|--------------------------------|
+| `weight`  | `int` | `1`    | 网络拓扑感知调度的权重         |
+
+> **说明：**
+> - `weight`参数控制网络拓扑感知在节点打分中的影响程度
+> - 权重越大，拓扑亲和性在调度决策中的优先级越高
+> - 建议根据网络架构和工作负载特点调整权重
+
+**参数示例**：
+```yaml
+- name: network-topology-aware
+  arguments:
+    weight: 10
+```
+
+**使用示例**：
+
+假设集群有以下网络拓扑结构：
+```
+DataCenter (Tier 2)
+├── Rack1 (Tier 1)
+│   ├── Node1
+│   └── Node2
+└── Rack2 (Tier 1)
+    ├── Node3
+    └── Node4
+```
+
+配置调度器启用网络拓扑感知：
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    actions: "enqueue, allocate, backfill"
+    tiers:
+    - plugins:
+      - name: priority
+      - name: gang
+      - name: conformance
+    - plugins:
+      - name: drf
+      - name: predicates
+      - name: proportion
+      - name: nodeorder
+      - name: network-topology-aware
+        arguments:
+          weight: 10
+```
+
+创建分布式训练任务：
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: distributed-training
+spec:
+  schedulerName: volcano
+  minAvailable: 4
+  queue: default
+  tasks:
+    - replicas: 4
+      name: worker
+      template:
+        spec:
+          containers:
+            - name: tensorflow
+              image: tensorflow/tensorflow:latest-gpu
+              resources:
+                limits:
+                  nvidia.com/gpu: 1
+                requests:
+                  cpu: 4
+                  memory: 8Gi
+```
+
+**调度效果**：
+
+当第一个`Pod`被调度到`Node1`（属于`Rack1`）后：
+- `Node2`（同属`Rack1`）得分最高，因为`LCA`是`Rack1`（`Tier 1`）
+- `Node3`和`Node4`（属于`Rack2`）得分较低，因为`LCA`是`DataCenter`（`Tier 2`）
+- 调度器会优先将剩余的`3`个`Pod`调度到`Rack1`内的节点
+- 如果`Rack1`资源不足，才会跨机架调度到`Rack2`
+
+**性能提升**：
+
+在典型的分布式训练场景中，启用网络拓扑感知调度可以带来：
+- 通信延迟降低：`30-50%`（同机架 vs 跨机架）
+- 训练速度提升：`15-25%`（取决于通信密集程度）
+- 网络带宽节省：`40-60%`（减少跨交换机流量）
+
+**注意事项**：
+
+1. **拓扑信息配置**：需要正确配置集群的网络拓扑信息，包括节点标签和`HyperNode`层级关系
+2. **与其他插件协同**：`network-topology-aware`插件会与`nodeorder`、`binpack`等插件协同工作，最终得分是多个插件得分的加权和
+3. **资源平衡**：过度强调拓扑亲和性可能导致某些机架资源利用率过高，需要平衡拓扑亲和性和资源均衡
+4. **适用场景**：对于通信不密集的任务（如批处理、数据分析），拓扑感知的收益较小，可以降低权重或不启用
+
+## 23. resource-strategy-fit（资源策略适配）
+
+**主要功能**：提供灵活的资源调度策略，支持`MostAllocated`（最多分配）和`LeastAllocated`（最少分配）两种策略，并支持多种高级资源分配算法（`SRA`、`Proportional`），实现精细化的资源管理和优化。
+
+**关联动作**：`allocate`, `backfill`
+
+**工作原理**：
+- 为不同类型的资源配置不同的调度策略和权重
+- 支持通过`Pod`注解实现任务级别的策略定制
+- 提供`SRA`（智能资源分配）算法优化异构资源调度
+- 支持`Proportional`（比例）策略确保资源按比例分配
+
+**核心功能**：
+
+### 1. 资源调度策略
+
+**MostAllocated（最多分配/装箱策略）**：
+- 优先选择资源使用率高的节点（类似于`binpack`调度）
+- 将任务集中调度到少数节点，保持更多节点空闲
+- 适合需要节能或为大任务预留资源的场景
+- 计算公式：`score = (used + requested) * weight / capacity`
+
+**LeastAllocated（最少分配/分散策略）**：
+- 优先选择资源使用率低的节点（类似于`spread`调度）
+- 将任务分散到多个节点，实现负载均衡
+- 适合需要高可用性和资源均衡的场景
+- 计算公式：`score = (capacity - used - requested) * weight / capacity`
+
+### 2. SRA（Smart Resource Allocation）智能资源分配
+
+`SRA`算法专门针对异构资源（如不同型号的`GPU`）进行优化调度：
+- 识别和区分不同规格的资源（如`NVIDIA-H100`、`NVIDIA-A100`等）
+- 为每种资源规格设置独立的权重
+- 优先将任务调度到最匹配的资源规格上
+- 避免资源浪费和性能不匹配
+
+### 3. Proportional（比例策略）
+
+确保资源按照预定义的比例进行分配：
+- 定义主资源和辅助资源的比例关系（如`GPU:CPU = 1:4`）
+- 在调度前检查节点是否满足比例要求
+- 避免资源配比不合理导致的性能瓶颈
+
+**参数说明**：
+
+**全局插件参数**：
+
+| 参数名                        | 类型   | 默认值 | 说明                                   |
+|-------------------------------|--------|--------|----------------------------------------|
+| `resourceStrategyFitWeight`   | `int`  | `10`   | 插件整体权重                           |
+| `resources`                   | `map`  | 见下方 | 各资源类型的策略和权重配置             |
+| `resources.<资源名>.type`     | `string` | `LeastAllocated` | 调度策略类型                 |
+| `resources.<资源名>.weight`   | `int`  | `1`    | 资源权重                               |
+| `sra.enable`                  | `bool` | `false` | 是否启用`SRA`算法                      |
+| `sra.resources`               | `string` | 无   | `SRA`管理的资源列表（逗号分隔）        |
+| `sra.weight`                  | `int`  | `10`   | `SRA`算法权重                          |
+| `sra.resourceWeight`          | `map`  | 无     | 各资源规格的权重                       |
+| `proportional.enable`         | `bool` | `false` | 是否启用比例策略                       |
+| `proportional.resources`      | `string` | 无   | 主资源名称                             |
+| `proportional.resourceProportion` | `map` | 无 | 资源比例配置                           |
+
+> **说明：**
+> - `resources`参数支持通配符模式（如`nvidia.com/*`），可以匹配多种资源
+> - 精确匹配优先于通配符匹配，最长前缀的通配符优先级最高
+> - 默认的`resources`配置为`cpu`和`memory`，均使用`LeastAllocated`策略
+
+**参数示例**：
+
+```yaml
+- name: resource-strategy-fit
+  arguments:
+    resourceStrategyFitWeight: 10
+    resources:
+      # GPU资源使用MostAllocated策略，权重为2
+      nvidia.com/gpu:
+        type: MostAllocated
+        weight: 2
+      # CPU资源使用LeastAllocated策略，权重为1
+      cpu:
+        type: LeastAllocated
+        weight: 1
+      # 内存资源使用LeastAllocated策略，权重为1
+      memory:
+        type: LeastAllocated
+        weight: 1
+      # 通配符匹配所有华为昇腾NPU资源
+      npu.huawei.com/*:
+        type: MostAllocated
+        weight: 2
+    # 启用SRA算法
+    sra:
+      enable: true
+      resources: "nvidia.com/gpu"
+      weight: 10
+      resourceWeight:
+        nvidia.com/gpu: 1
+    # 启用比例策略
+    proportional:
+      enable: true
+      resources: "nvidia.com/gpu"
+      resourceProportion:
+        nvidia.com/gpu.cpu: 4      # 每个GPU配4个CPU核心
+        nvidia.com/gpu.memory: 8   # 每个GPU配8GB内存
+```
+
+**Pod级别注解配置**：
+
+插件支持通过`Pod`注解实现任务级别的策略定制：
+
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: custom-strategy-job
+spec:
+  schedulerName: volcano
+  tasks:
+    - replicas: 2
+      name: worker
+      template:
+        metadata:
+          annotations:
+            # 指定调度策略类型
+            volcano.sh/resource-strategy-scoring-type: "MostAllocated"
+            # 指定各资源的权重（JSON格式）
+            volcano.sh/resource-strategy-weight: |
+              {
+                "nvidia.com/gpu": 3,
+                "cpu": 1,
+                "memory": 1
+              }
+        spec:
+          containers:
+            - name: worker
+              image: training:latest
+              resources:
+                limits:
+                  nvidia.com/gpu: 2
+                  cpu: 8
+                  memory: 32Gi
+```
+
+**使用场景**：
+
+### 场景1：GPU资源装箱优化
+
+**需求**：集群中有多个`GPU`节点，希望将`GPU`任务集中调度到少数节点，为大规模训练任务预留完整节点。
+
+**配置**：
+```yaml
+- name: resource-strategy-fit
+  arguments:
+    resourceStrategyFitWeight: 10
+    resources:
+      nvidia.com/gpu:
+        type: MostAllocated  # GPU使用装箱策略
+        weight: 3
+      cpu:
+        type: LeastAllocated # CPU使用分散策略
+        weight: 1
+      memory:
+        type: LeastAllocated # 内存使用分散策略
+        weight: 1
+```
+
+**效果**：
+- 小型`GPU`任务优先调度到已有`GPU`使用的节点
+- 保持更多节点的`GPU`完全空闲
+- 为需要多卡的大任务预留资源
+
+### 场景2：异构GPU集群优化（SRA）
+
+**需求**：集群中有`H100`、`A100`、`V100`等多种`GPU`，希望根据任务需求智能匹配最合适的`GPU`型号。
+
+**配置**：
+```yaml
+- name: resource-strategy-fit
+  arguments:
+    resourceStrategyFitWeight: 10
+    sra:
+      enable: true
+      resources: "nvidia.com/gpu"
+      weight: 15
+      resourceWeight:
+        nvidia.com/gpu: 1
+```
+
+**效果**：
+- `SRA`算法自动识别不同规格的`GPU`
+- 根据任务特性匹配最合适的`GPU`型号
+- 避免高端`GPU`被低需求任务占用
+- 提高异构资源利用率
+
+### 场景3：资源比例保障（Proportional）
+
+**需求**：确保每个`GPU`任务都能获得足够的`CPU`和内存资源，避免`CPU`或内存成为瓶颈。
+
+**配置**：
+```yaml
+- name: resource-strategy-fit
+  arguments:
+    resourceStrategyFitWeight: 10
+    proportional:
+      enable: true
+      resources: "nvidia.com/gpu"
+      resourceProportion:
+        nvidia.com/gpu.cpu: 8      # 每GPU需要8核CPU
+        nvidia.com/gpu.memory: 16  # 每GPU需要16GB内存
+```
+
+**效果**：
+- 调度器在分配`GPU`前检查`CPU`和内存是否满足比例要求
+- 避免`GPU`任务因`CPU`或内存不足而性能下降
+- 确保资源配比合理
+
+**完整使用示例**：
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    actions: "enqueue, allocate, backfill"
+    tiers:
+    - plugins:
+      - name: priority
+      - name: gang
+      - name: conformance
+    - plugins:
+      - name: drf
+      - name: predicates
+      - name: proportion
+      - name: nodeorder
+      - name: resource-strategy-fit
+        arguments:
+          resourceStrategyFitWeight: 10
+          resources:
+            nvidia.com/gpu:
+              type: MostAllocated
+              weight: 3
+            cpu:
+              type: LeastAllocated
+              weight: 1
+            memory:
+              type: LeastAllocated
+              weight: 1
+          sra:
+            enable: true
+            resources: "nvidia.com/gpu"
+            weight: 15
+            resourceWeight:
+              nvidia.com/gpu: 1
+          proportional:
+            enable: true
+            resources: "nvidia.com/gpu"
+            resourceProportion:
+              nvidia.com/gpu.cpu: 8
+              nvidia.com/gpu.memory: 16
+```
+
+**注意事项**：
+
+1. **策略选择**：
+   - `MostAllocated`适合需要节能或资源预留的场景
+   - `LeastAllocated`适合需要高可用性和负载均衡的场景
+   - 可以为不同资源类型配置不同策略
+
+2. **权重设置**：
+   - 权重决定了资源在调度决策中的重要性
+   - 关键资源（如`GPU`）应设置较高权重
+   - 权重总和会被归一化，因此相对值更重要
+
+3. **通配符使用**：
+   - 支持`prefix/*`格式的通配符（如`nvidia.com/*`）
+   - 不支持单独的`*`或中间位置的通配符
+   - 精确匹配优先于通配符匹配
+
+4. **Pod注解优先级**：
+   - `Pod`级别的注解配置优先于全局配置
+   - 适合需要特殊调度策略的关键任务
+   - 注解必须同时配置策略类型和权重
+
+5. **与其他插件协同**：
+   - `resource-strategy-fit`会与`nodeorder`、`binpack`等插件协同工作
+   - 最终得分是多个插件得分的加权和
+   - 需要平衡不同插件的权重以达到最佳效果
+
+6. **性能考虑**：
+   - `SRA`和`Proportional`策略会增加调度计算开销
+   - 在大规模集群中建议根据实际需求选择性启用
+   - 可以通过调整权重来平衡调度精度和性能
+
+## 24. usage（资源使用统计）
 
 **主要功能**：收集和统计任务、队列、节点的资源使用情况，为调度决策和资源优化提供数据基础。该插件是实现资源感知调度的关键组件。
 
