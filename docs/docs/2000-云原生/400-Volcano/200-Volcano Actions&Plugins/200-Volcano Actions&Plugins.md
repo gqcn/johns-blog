@@ -33,7 +33,8 @@ description: "深入解析Volcano调度器的Actions和Plugins机制，包括调
 
 ## Actions与Plugins
 
-这里展示了`Volcano`调度器中各个调度动作(`Action`)与插件(`Plugin`)之间的关系。每个动作会调用相应插件注册的回调函数来实现具体的调度逻辑。
+
+这里按照`Volcano`默认调度器配置`enqueue,allocate,preempt,reclaim,backfill`，展示了`Volcano`调度器中各个调度动作(`Action`)与插件(`Plugin`)之间的关系。每个动作会调用相应插件注册的回调函数来实现具体的调度逻辑。
 
 ```mermaid
 graph TB
