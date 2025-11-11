@@ -50,6 +50,7 @@ graph TB
     Allocate -.-> A1[priority<br/>gang<br/>drf<br/>predicates<br/>proportion]
     Allocate -.-> A2[nodeorder<br/>binpack<br/>numaaware<br/>task-topology<br/>sla]
     Allocate -.-> A3[tdm<br/>deviceshare<br/>overcommit<br/>capacity]
+    Allocate -.-> A4[network-topology-aware<br/>resource-strategy-fit]
     
     Preempt -.-> P1[priority<br/>gang<br/>conformance<br/>drf<br/>predicates]
     Preempt -.-> P2[proportion<br/>nodeorder<br/>task-topology<br/>sla<br/>tdm]
@@ -60,6 +61,7 @@ graph TB
     
     Backfill -.-> B1[priority<br/>gang<br/>drf<br/>predicates<br/>nodeorder]
     Backfill -.-> B2[binpack<br/>numaaware<br/>task-topology<br/>sla<br/>tdm<br/>deviceshare]
+    Backfill -.-> B3[network-topology-aware<br/>resource-strategy-fit]
 
     style Enqueue fill:#e1f5ff
     style Allocate fill:#fff4e1
@@ -74,16 +76,17 @@ graph TB
 | 动作 | 说明 | 动作介绍 | 关联插件 |
 |------|------|------|-------------|
 | `enqueue` | 入队 | 将待调度的作业加入调度队列，检查作业是否满足入队条件（如资源配额、队列容量等） | `drf`, `proportion`, `resourcequota`, `capacity` |
-| `allocate` | 分配 | 为作业分配资源，选择合适的节点进行任务调度，这是最核心的调度动作 | `priority`, `gang`, `drf`, `predicates`, `proportion`, `nodeorder`, `binpack`, `numaaware`, `task-topology`, `sla`, `tdm`, `deviceshare`, `overcommit`, `capacity` |
+| `allocate` | 分配 | 为作业分配资源，选择合适的节点进行任务调度，这是最核心的调度动作 | `priority`, `gang`, `drf`, `predicates`, `proportion`, `nodeorder`, `binpack`, `numaaware`, `task-topology`, `sla`, `tdm`, `deviceshare`, `overcommit`, `capacity`, `network-topology-aware`, `resource-strategy-fit` |
 | `preempt` | 抢占 | 当资源不足时，抢占低优先级任务的资源给高优先级任务（同队列内） | `priority`, `gang`, `conformance`, `drf`, `predicates`, `proportion`, `nodeorder`, `task-topology`, `sla`, `tdm`, `overcommit`, `pdb` |
 | `reclaim` | 回收 | 回收超出配额队列的资源，重新分配给资源不足的队列（跨队列） | `priority`, `gang`, `conformance`, `drf`, `predicates`, `proportion`, `task-topology`, `sla`, `pdb`, `capacity` |
-| `backfill` | 回填 | 利用碎片资源调度小型任务，提高资源利用率 | `priority`, `gang`, `drf`, `predicates`, `nodeorder`, `binpack`, `numaaware`, `task-topology`, `sla`, `tdm`, `deviceshare` |
+| `backfill` | 回填 | 利用碎片资源调度小型任务，提高资源利用率 | `priority`, `gang`, `drf`, `predicates`, `nodeorder`, `binpack`, `numaaware`, `task-topology`, `sla`, `tdm`, `deviceshare`, `network-topology-aware`, `resource-strategy-fit` |
 
 ### Plugins概览
 
 - **核心调度插件**：`priority`、`gang`、`drf`、`predicates` - 几乎参与所有调度动作
 - **资源管理插件**：`proportion`、`capacity`、`resourcequota` - 负责资源配额和公平分配
-- **节点选择插件**：`nodeorder`、`binpack`、`numaaware`、`task-topology` - 负责节点打分和选择
+- **节点选择插件**：`nodeorder`、`binpack`、`numaaware`、`task-topology`、`network-topology-aware` - 负责节点打分和选择
+- **资源策略插件**：`resource-strategy-fit` - 提供灵活的资源调度策略（`MostAllocated`/`LeastAllocated`）和异构资源优化
 - **设备管理插件**：`deviceshare` - 负责`GPU`等特殊设备的共享调度
 - **特殊场景插件**：`tdm`（时分复用）、`sla`（服务质量）、`overcommit`（超额分配）
 - **保护机制插件**：`conformance`、`pdb` - 确保调度符合`Kubernetes`规范和服务可用性
@@ -108,6 +111,8 @@ graph TB
 | `resourcequota` | 资源配额 | `enqueue` | 支持队列或命名空间级别的资源配额限制，防止资源被单一队列/用户占满 |
 | `rescheduling` | 重调度 | 无直接关联 | 动态检测资源碎片或节点利用率低下情况，自动触发任务重调度，提升集群整体利用率 |
 | `capacity` | 资源配额管理 | `enqueue`, `allocate`, `reclaim` | 根据节点和队列的容量约束进行调度，防止资源超卖 |
+| `network-topology-aware` | 网络拓扑感知 | `allocate`, `backfill` | 基于网络拓扑结构进行智能调度，优先将任务调度到网络拓扑相近的节点，减少跨交换机通信开销 |
+| `resource-strategy-fit` | 资源策略适配 | `allocate`, `backfill` | 提供灵活的资源调度策略，支持`MostAllocated`/`LeastAllocated`策略，以及`SRA`、`Proportional`等高级资源分配算法 |
 
 
 ## 相关内容
