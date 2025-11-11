@@ -1535,7 +1535,7 @@ data:
           rescheduling-interval-seconds: 300 # 每5分钟检测一次重调度
 ```
 
-## 18. capacity（容量感知）
+## 18. capacity（容量配额）
 
 **主要功能**：根据节点和队列的容量约束进行调度，防止资源超卖。
 
