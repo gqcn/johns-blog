@@ -1652,28 +1652,29 @@ spec:
 
 1. **基本结构**
 
-```yaml
-apiVersion: scheduling.volcano.sh/v1alpha1
-kind: CustomDispatchPolicy
-metadata:
-  name: <策略名称>
-spec:
-  rules:
-    - name: <规则名称>
-      match: <匹配条件>
-      actions: <执行动作>
-```
+    ```yaml
+    apiVersion: scheduling.volcano.sh/v1alpha1
+    kind: CustomDispatchPolicy
+    metadata:
+      name: <策略名称>
+    spec:
+      rules:
+        - name: <规则名称>
+          match: <匹配条件>
+          actions: <执行动作>
+    ```
 
 2. **规则配置 (spec.rules)**
 
-每个`CustomDispatchPolicy`可以包含多条规则，每条规则由以下部分组成：
+    每个`CustomDispatchPolicy`可以包含多条规则，每条规则由以下部分组成：
 
-   2.1 **规则名称 (name)**
-   ```yaml
-   name: prefer-cpu  # 规则的唯一标识符
-   ```
+- **规则名称 (name)**
+    
+  ```yaml
+  name: prefer-cpu  # 规则的唯一标识符
+  ```
 
-   2.2 **匹配条件 (match)**
+- **匹配条件 (match)**
    匹配条件决定哪些工作负载会应用此规则，支持以下匹配方式：
    ```yaml
    match:
@@ -1702,7 +1703,7 @@ spec:
        - <job-name2>
    ```
 
-   2.3 **执行动作 (actions)**
+- **执行动作 (actions)**
    当工作负载匹配规则条件时，将执行以下一个或多个动作：
    ```yaml
    actions:
