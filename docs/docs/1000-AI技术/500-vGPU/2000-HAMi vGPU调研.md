@@ -244,6 +244,7 @@ spec:
 
 对比`NVIDIA MPS`仅能在`GPU`核心算力（`SM`）维度做时间片调度不同，`HAMi Core`能进一步在显存维度上做细粒度隔离。这样即便某个应用因为显存泄漏或异常崩溃，也不会像`MPS`下那样拖垮同节点的其他应用。
 
+
 ## 6. HAMi配置说明
 
 参考：https://github.com/Project-HAMi/HAMi/blob/master/docs/config_cn.md
@@ -361,7 +362,37 @@ spec:
 ```
 
 
-## 7. 参考资料
+## 7. HAMi With Volcano
+
+`Volcano`原生支持`HAMi vGPU`，但需要启用对应的`deviceshare` 插件，具体配置如下：
+```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: volcano-scheduler-configmap
+  namespace: volcano-system
+data:
+  volcano-scheduler.conf: |
+    actions: "enqueue, allocate, backfill"
+    tiers:
+    - plugins:
+      - name: priority
+      - name: gang
+      - name: conformance
+    - plugins:
+      - name: drf
+      - name: deviceshare
+        arguments:
+          deviceshare.VGPUEnable: true # 启用 vgpu
+      - name: predicates
+      - name: proportion
+      - name: nodeorder
+      - name: binpack
+```
+
+同时需要替换`NVIDIA Device Plugin`为 https://github.com/Project-HAMi/volcano-vgpu-device-plugin ，具体参考：https://project-hami.io/zh/docs/userguide/volcano-vgpu/NVIDIA-GPU/how-to-use-volcano-vgpu
+
+## 8. 参考资料
 
 - https://github.com/Project-HAMi/HAMi
 - https://dynamia.ai/
