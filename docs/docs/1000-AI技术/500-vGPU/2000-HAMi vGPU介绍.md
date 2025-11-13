@@ -40,64 +40,49 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 
 ![HAMi关键组件详解](assets/1000-vGPU方案调研/image-3.png)
 
-### 3.1 HAMi Device Plugin
+`HAMi`采用分层架构设计，由以下四个核心组件协同工作：
+
+- **HAMi Mutating Webhook**：`Pod`准入控制器，拦截并修改`Pod`定义
+- **HAMi Scheduler Extender**：调度器扩展，实现智能`GPU`资源调度
+- **HAMi Device Plugin**：设备插件，负责`GPU`资源注册与分配
+- **HAMi Core**：容器内运行时库，实现资源隔离与配额控制
+
+### 3.1 HAMi MutatingWebhook
 
 **功能职责**：
-- 发现节点上的`GPU`资源
-- 向`Kubernetes`注册虚拟`GPU`资源
-- 处理`Pod`的`GPU`资源分配请求
-- 将配额信息注入到`Pod`环境变量
+- 拦截`Pod`创建请求，检查是否包含`GPU`资源需求
+- 自动为`GPU Pod`注入必要的配置和环境变量
+- 设置`schedulerName`为`hami-scheduler`，确保由`HAMi`调度器处理
+- 注入`runtimeClassName`和`LD_PRELOAD`等运行时参数
 
 **工作流程**：
-1. **启动阶段**
-- 扫描节点GPU资源
-- 计算可分配的虚拟GPU数量
-- 向kubelet注册设备
-
-2. **资源分配阶段**
-- 接收kubelet的Allocate请求
-- 根据Pod请求分配GPU和显存配额
-- 生成环境变量和挂载点
-- 返回分配结果
-
-3. **监控阶段**
-- 定期更新资源状态
-- 上报GPU使用情况
-- 处理异常情况
-
-
-**资源注册示例**：
-```go
-// HAMi Device Plugin注册的资源类型
-resources := map[string]int64{
-    "nvidia.com/gpu":      8,      // 物理GPU数量
-    "nvidia.com/gpumem":   192000, // 总显存(MB)
-    "nvidia.com/gpucores": 800,    // 总算力(百分比*GPU数)
-}
-```
+1. **Pod提交拦截**：当用户提交包含`GPU`资源请求的`Pod`时，`Webhook`首先拦截该请求
+2. **资源字段扫描**：检查`Pod`的资源需求字段，识别是否为`HAMi`管理的`GPU`资源
+3. **自动配置注入**：为符合条件的`Pod`自动设置调度器名称和运行时配置
+4. **环境变量预埋**：注入`LD_PRELOAD`等环境变量，为后续的`API`劫持做准备
 
 ### 3.2 HAMi Scheduler Extender
 
 **功能职责**：
-- 扩展`Kubernetes`调度器
-- 实现`GPU`资源的智能调度
-- 支持拓扑感知和亲和性调度
-- 优化资源分配策略
+- 扩展`Kubernetes`默认调度器，实现`GPU`资源的智能调度
+- 维护集群级别的`GPU`资源全局视图
+- 根据显存、算力等多维度资源进行节点筛选和打分
+- 支持拓扑感知、资源碎片优化等高级调度策略
 
 **调度策略**：
-1. **`Filter`阶段**
-- 过滤显存不足的节点
-- 过滤算力不足的节点
-- 检查GPU型号匹配
+1. **Filter阶段**：
+   - 过滤显存不足的节点
+   - 过滤算力不足的节点
+   - 检查`GPU`型号匹配性
 
-2. **`Prioritize`阶段**
-- 优先选择资源碎片少的节点
-- 考虑GPU拓扑结构
-- 平衡节点负载
+2. **Score阶段**：
+   - 优先选择资源碎片少的节点
+   - 考虑`GPU`拓扑结构，减少跨卡通信
+   - 平衡节点负载，避免资源热点
 
-3. **`Bind`阶段**
-- 确定最终节点
-- 更新资源分配记录
+3. **Bind阶段**：
+   - 确定最优节点并绑定`Pod`
+   - 更新资源分配记录到`Pod`注解
 
 **配置示例**：
 ```yaml
@@ -119,15 +104,63 @@ data:
         cores: 1.2   # 算力可超卖20%
 ```
 
-### 3.3 HAMi Core (libvgpu.so)
+### 3.3 HAMi Device Plugin
 
 **功能职责**：
-- 劫持`CUDA API`调用
-- 实现显存配额管理
-- 提供算力限制功能
-- 收集使用统计信息
+- 发现节点上的`GPU`资源并向`Kubernetes`注册虚拟`GPU`资源
+- 处理`Pod`的`GPU`资源分配请求
+- 从调度结果的注解字段获取分配信息
+- 将相应的`GPU`设备映射到容器，并注入配额环境变量
 
+**工作流程**：
+1. **启动阶段**：
+   - 扫描节点`GPU`资源（型号、显存、数量等）
+   - 计算可分配的虚拟`GPU`数量
+   - 向`kubelet`注册设备资源
 
+2. **资源分配阶段**：
+   - 接收`kubelet`的`Allocate`请求
+   - 从`Pod`注解中读取调度器分配的`GPU`信息
+   - 生成环境变量（显存限制、算力配额等）
+   - 挂载`HAMi Core`库到容器
+   - 返回设备列表和环境变量
+
+3. **监控阶段**：
+   - 定期更新资源状态
+   - 上报`GPU`使用情况
+   - 处理设备异常情况
+
+**资源注册示例**：
+```go
+// HAMi Device Plugin注册的资源类型
+resources := map[string]int64{
+    "nvidia.com/gpu":      8,      // 物理GPU数量
+    "nvidia.com/gpumem":   192000, // 总显存(MB)
+    "nvidia.com/gpucores": 800,    // 总算力(百分比*GPU数)
+}
+```
+
+### 3.4 HAMi Core (libvgpu.so)
+
+**功能职责**：
+- 通过`LD_PRELOAD`机制劫持`CUDA Runtime API`调用
+- 实现显存配额的硬隔离管理
+- 提供算力使用的软限制功能
+- 收集容器级别的`GPU`使用统计信息
+
+**工作原理**：
+
+`HAMi Core`是一个动态链接库（`libvgpu.so`），通过`LD_PRELOAD`机制在应用程序启动时被加载。它拦截关键的`CUDA API`调用，在调用真正的`CUDA`函数之前进行资源检查和配额控制。
+
+**核心拦截API**：
+- `cudaMalloc` / `cudaFree`：显存分配与释放
+- `cudaMemcpy` / `cudaMemcpyAsync`：显存拷贝操作
+- `cudaLaunchKernel`：内核函数启动
+- `cudaStreamCreate`：流管理
+
+**算力限制机制**：
+
+通过监控`kernel`启动频率和执行时间，实现算力使用的软限制。当容器的算力使用超过配额时，会延迟后续`kernel`的启动，从而控制整体算力占用。
 
 ## 4 HAMi原理分析
 
