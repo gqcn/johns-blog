@@ -6,7 +6,7 @@ keywords: [HAMi, vGPU, GPU虚拟化, Kubernetes, CUDA API劫持, 显存隔离, G
 description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化解决方案。通过CUDA API劫持实现硬显存隔离和算力配额管理，支持多GPU厂商，零侵入应用，是目前最成熟的开源vGPU方案之一。"
 ---
 
-### 1. HAMi项目概述
+## 1. HAMi项目概述
 
 ![HAMi整体架构](assets/1000-vGPU方案调研/image-2.png)
 
@@ -35,8 +35,26 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 | **兼容性** | • 多`GPU`厂商支持（`NVIDIA`、`AMD`、昇腾等）<br />• 易于扩展支持新硬件<br />• 零侵入，应用无需修改 | • 某些使用`CUDA IPC`的应用不兼容<br />• 直接调用`Driver API`的应用可能绕过<br />• 需要针对`CUDA`版本适配 |
 | **开源与社区** | • `Apache 2.0`协议<br />• 社区活跃，持续更新<br />• 无版权风险<br />• `CNCF`沙箱项目 | • 相比商业方案技术支持有限<br />• 部分高级特性需要社区贡献 |
 
+## 3. HAMi版本限制
 
-## 3. HAMi整体架构
+### 3.1 兼容的CUDA版本
+
+| CUDA版本范围 | 支持状态 | 说明 |
+|-------------|---------|------|
+| `CUDA 9.0+` | ✅ 支持 | 早期版本支持 |
+| `CUDA 10.x` | ✅ 支持 | 完整支持 |
+| `CUDA 11.0-11.2` | ✅ 支持 | 完整支持 |
+| `CUDA 11.3+` | ✅ 支持 | `v2.2`版本优化了显存计数机制以兼容`CUDA 11.3+`编译的任务 |
+| `CUDA 11.6+` | ✅ 支持 | `v1.1.0.0`版本更新以兼容`CUDA 11.6`和`Driver 500+` |
+| `CUDA 12.x` | ✅ 支持 | 完整支持，包括`CUDA 12.0-12.6` |
+
+### 3.2 驱动版本要求
+
+- **最低驱动版本**：`>= 440`
+- **推荐驱动版本**：`>= 500` (更好的兼容性)
+- **最新驱动版本**：`550+` (完整支持所有特性)
+
+## 4. HAMi整体架构
 
 ![HAMi关键组件详解](assets/1000-vGPU方案调研/image-3.png)
 
@@ -83,26 +101,6 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 3. **Bind阶段**：
    - 确定最优节点并绑定`Pod`
    - 更新资源分配记录到`Pod`注解
-
-**配置示例**：
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: hami-scheduler-config
-data:
-  config.yaml: |
-    schedulerName: hami-scheduler
-    policy:
-      # 调度策略
-      binpack: true  # 启用紧凑打包
-      spread: false  # 禁用分散策略
-      
-      # 资源分配
-      overcommit:
-        memory: 1.0  # 显存不超卖
-        cores: 1.2   # 算力可超卖20%
-```
 
 ### 3.3 HAMi Device Plugin
 
@@ -175,12 +173,12 @@ spec:
 
 通过监控`kernel`启动频率和执行时间，实现算力使用的软限制。当容器的算力使用超过配额时，会延迟后续`kernel`的启动，从而控制整体算力占用。
 
-## 4. HAMi原理分析
+## 5. HAMi原理分析
 
 ![HAMi原理分析](assets/1000-vGPU方案调研/image-6.png)
 
 
-### 4.1 Pod调度阶段
+### 5.1 Pod调度阶段
 
 在`Kubernetes`集群中，`HAMi`扩展了`Pod`的调度与运行流程。整个过程可以分为以下几个阶段：
 
@@ -216,7 +214,7 @@ spec:
 
    最终，`Pod`内部的应用感知到的`GPU`是一个受控的虚拟化`GPU`，既保证了隔离性，也支持资源共享。
 
-### 4.2 Pod持续运行阶段
+### 5.2 Pod持续运行阶段
 
 在`Pod`启动后，`HAMi Core`通过`Linux`的`LD_PRELOAD`机制直接“嵌入”到应用进程中。
 
@@ -231,11 +229,11 @@ spec:
 
 对比`NVIDIA MPS`仅能在`GPU`核心算力（`SM`）维度做时间片调度不同，`HAMi Core`能进一步在显存维度上做细粒度隔离。这样即便某个应用因为显存泄漏或异常崩溃，也不会像`MPS`下那样拖垮同节点的其他应用。
 
-## 5. HAMi配置说明
+## 6. HAMi配置说明
 
 参考：https://github.com/Project-HAMi/HAMi/blob/master/docs/config_cn.md
 
-### 5.1 全局设备配置
+### 6.1 全局设备配置
 
 全局配置通过`hami-scheduler-device` `ConfigMap`进行管理，可以通过以下方式更新：
 
@@ -254,7 +252,7 @@ spec:
 | `nvidia.resourceCoreName` | 字符串 | `nvidia.com/gpucores` | `vGPU`算力的资源名称 |
 | `nvidia.resourcePriorityName` | 字符串 | `nvidia.com/priority` | 任务优先级的资源名称 |
 
-### 5.2 节点级配置
+### 6.2 节点级配置
 
 可以为每个节点配置不同的行为，通过编辑`hami-device-plugin` `ConfigMap`：
 
@@ -268,7 +266,7 @@ spec:
 | `filterdevices.uuid` | 字符串列表 | - | 要排除设备的UUID列表 |
 | `filterdevices.index` | 整数列表 | - | 要排除设备的索引列表 |
 
-### 5.3 调度策略配置
+### 6.3 调度策略配置
 
 通过`Helm Chart`参数配置调度策略：
 
@@ -281,7 +279,7 @@ helm install vgpu vgpu-charts/vgpu --set scheduler.defaultSchedulerPolicy.nodeSc
 | `scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy` | 字符串 | `binpack` | 节点调度策略：`binpack`尽量集中，`spread`尽量分散 | `binpack`/`spread` |
 | `scheduler.defaultSchedulerPolicy.gpuSchedulerPolicy` | 字符串 | `spread` | `GPU`调度策略：`binpack`尽量集中，`spread`尽量分散 | `binpack`/`spread` |
 
-### 5.4 Pod注解配置
+### 6.4 Pod注解配置
 
 在`Pod`的`metadata.annotations`中指定：
 
@@ -316,7 +314,7 @@ spec:
         nvidia.com/gpumem: 8000
 ```
 
-### 5.5 容器环境变量配置
+### 6.5 容器环境变量配置
 
 在容器的`env`中指定：
 
@@ -348,8 +346,7 @@ spec:
 ```
 
 
-
-## 6. 参考资料
+## 7. 参考资料
 
 - https://github.com/Project-HAMi/HAMi
 - https://dynamia.ai/
