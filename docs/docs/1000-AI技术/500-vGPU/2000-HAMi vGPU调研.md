@@ -1,6 +1,6 @@
 ---
 slug: "/ai/vgpu-hami"
-title: "HAMi vGPU介绍"
+title: "HAMi vGPU调研"
 hide_title: true
 keywords: [HAMi, vGPU, GPU虚拟化, Kubernetes, CUDA API劫持, 显存隔离, GPU共享, CNCF, 云原生]
 description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化解决方案。通过CUDA API劫持实现硬显存隔离和算力配额管理，支持多GPU厂商，零侵入应用，是目前最成熟的开源vGPU方案之一。"
@@ -21,7 +21,7 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 - ✅ 硬显存隔离
 - ✅ 算力配额限制
 - ✅ `Kubernetes`原生集成
-- ✅ 多GPU厂商支持（`NVIDIA`、`AMD`、`昇腾`等）
+- ✅ 多GPU厂商支持（`NVIDIA`、`AMD`、昇腾等）
 - ✅ 完善的监控和可观测性
 - ✅ 零侵入，应用无需修改
 
@@ -32,11 +32,11 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 | **隔离性** | • 硬显存隔离，防止`OOM`相互影响<br />• 进程崩溃不影响其他容器<br />• 资源配额强制执行 | • 算力隔离较弱，仅能软限制<br />• 无法像`MIG`那样硬件级隔离<br />• 恶意进程可能超出配额 |
 | **性能** | • 大规模计算场景影响较小<br />• 相比内核态方案开销更低 | • `API`劫持带来`5-15%`性能损失<br />• 小`batch`推理场景影响较大 |
 | **易用性** | • `Kubernetes`原生集成<br />• 无缝集成`K8S`调度器<br />• 支持标准资源请求语法<br />• 完善的监控和可观测性 | • `API`劫持可能影响调试工具<br />• 错误信息可能不够直观<br />• 需要理解`vGPU`机制 |
-| **兼容性** | • 多`GPU`厂商支持（`NVIDIA`、`AMD`、`昇腾`等）<br />• 易于扩展支持新硬件<br />• 零侵入，应用无需修改 | • 某些使用`CUDA IPC`的应用不兼容<br />• 直接调用`Driver API`的应用可能绕过<br />• 需要针对`CUDA`版本适配 |
+| **兼容性** | • 多`GPU`厂商支持（`NVIDIA`、`AMD`、昇腾等）<br />• 易于扩展支持新硬件<br />• 零侵入，应用无需修改 | • 某些使用`CUDA IPC`的应用不兼容<br />• 直接调用`Driver API`的应用可能绕过<br />• 需要针对`CUDA`版本适配 |
 | **开源与社区** | • `Apache 2.0`协议<br />• 社区活跃，持续更新<br />• 无版权风险<br />• `CNCF`沙箱项目 | • 相比商业方案技术支持有限<br />• 部分高级特性需要社区贡献 |
 
 
-## 3 HAMi整体架构
+## 3. HAMi整体架构
 
 ![HAMi关键组件详解](assets/1000-vGPU方案调研/image-3.png)
 
@@ -47,7 +47,7 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 - **HAMi Device Plugin**：设备插件，负责`GPU`资源注册与分配
 - **HAMi Core**：容器内运行时库，实现资源隔离与配额控制
 
-### 3.1 HAMi MutatingWebhook
+### 3.1 HAMi Mutating Webhook
 
 **功能职责**：
 - 拦截`Pod`创建请求，检查是否包含`GPU`资源需求
@@ -130,17 +130,30 @@ data:
    - 上报`GPU`使用情况
    - 处理设备异常情况
 
-**资源注册示例**：
-```go
-// HAMi Device Plugin注册的资源类型
-resources := map[string]int64{
-    "nvidia.com/gpu":      8,      // 物理GPU数量
-    "nvidia.com/gpumem":   192000, // 总显存(MB)
-    "nvidia.com/gpucores": 800,    // 总算力(百分比*GPU数)
-}
+**使用示例**：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-pod-example
+spec:
+  schedulerName: hami-scheduler  # 使用HAMi调度器
+  containers:
+  - name: training-container
+    image: nvidia/cuda:11.8.0-runtime-ubuntu22.04
+    command: ["python", "train.py"]
+    resources:
+      limits:
+        nvidia.com/gpu: 1          # 请求1个GPU
+        nvidia.com/gpumem: 8000    # 请求8GB显存
+        nvidia.com/gpucores: 50    # 请求50%算力
 ```
 
+
 ### 3.4 HAMi Core (libvgpu.so)
+
+源码仓库：https://github.com/Project-HAMi/HAMi-core
 
 **功能职责**：
 - 通过`LD_PRELOAD`机制劫持`CUDA Runtime API`调用
@@ -162,7 +175,7 @@ resources := map[string]int64{
 
 通过监控`kernel`启动频率和执行时间，实现算力使用的软限制。当容器的算力使用超过配额时，会延迟后续`kernel`的启动，从而控制整体算力占用。
 
-## 4 HAMi原理分析
+## 4. HAMi原理分析
 
 ![HAMi原理分析](assets/1000-vGPU方案调研/image-6.png)
 
@@ -218,7 +231,125 @@ resources := map[string]int64{
 
 对比`NVIDIA MPS`仅能在`GPU`核心算力（`SM`）维度做时间片调度不同，`HAMi Core`能进一步在显存维度上做细粒度隔离。这样即便某个应用因为显存泄漏或异常崩溃，也不会像`MPS`下那样拖垮同节点的其他应用。
 
-## 5. 参考资料
+## 5. HAMi配置说明
+
+参考：https://github.com/Project-HAMi/HAMi/blob/master/docs/config_cn.md
+
+### 5.1 全局设备配置
+
+全局配置通过`hami-scheduler-device` `ConfigMap`进行管理，可以通过以下方式更新：
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `nvidia.deviceSplitCount` | 整数 | `10` | `GPU`分割数，每张`GPU`最多可同时运行的任务数 |
+| `nvidia.deviceMemoryScaling` | 浮点数 | `1.0` | 显存使用比例，可大于1启用虚拟显存（实验功能） |
+| `nvidia.migStrategy` | 字符串 | `none` | `MIG`设备策略：`none`忽略`MIG`，`mixed`使用`MIG`设备 |
+| `nvidia.disablecorelimit` | 字符串 | `false` | 是否关闭算力限制：`true`关闭，`false`启用 |
+| `nvidia.defaultMem` | 整数 | `0` | 默认显存大小（`MB`），`0`表示使用全部显存 |
+| `nvidia.defaultCores` | 整数 | `0` | 默认算力百分比(`0-100`)，`0`表示可分配到任意`GPU`，`100`表示独占 |
+| `nvidia.defaultGPUNum` | 整数 | `1` | 未指定`GPU`数量时的默认值 |
+| `nvidia.resourceCountName` | 字符串 | `nvidia.com/gpu` | `vGPU`个数的资源名称 |
+| `nvidia.resourceMemoryName` | 字符串 | `nvidia.com/gpumem` | `vGPU`显存大小的资源名称 |
+| `nvidia.resourceMemoryPercentageName` | 字符串 | `nvidia.com/gpumem-percentage` | `vGPU`显存比例的资源名称 |
+| `nvidia.resourceCoreName` | 字符串 | `nvidia.com/gpucores` | `vGPU`算力的资源名称 |
+| `nvidia.resourcePriorityName` | 字符串 | `nvidia.com/priority` | 任务优先级的资源名称 |
+
+### 5.2 节点级配置
+
+可以为每个节点配置不同的行为，通过编辑`hami-device-plugin` `ConfigMap`：
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `name` | 字符串 | - | 要配置的节点名称 |
+| `operatingmode` | 字符串 | `hami-core` | 运行模式：`hami-core`或`mig` |
+| `devicememoryscaling` | 浮点数 | - | 节点显存超配率 |
+| `devicecorescaling` | 浮点数 | - | 节点算力超配率 |
+| `devicesplitcount` | 整数 | - | 每个设备允许的任务数 |
+| `filterdevices.uuid` | 字符串列表 | - | 要排除设备的UUID列表 |
+| `filterdevices.index` | 整数列表 | - | 要排除设备的索引列表 |
+
+### 5.3 调度策略配置
+
+通过`Helm Chart`参数配置调度策略：
+
+```bash
+helm install vgpu vgpu-charts/vgpu --set scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy=binpack
+```
+
+| 配置项 | 类型 | 默认值 | 说明 | 可选值 |
+|--------|------|--------|--------|------|
+| `scheduler.defaultSchedulerPolicy.nodeSchedulerPolicy` | 字符串 | `binpack` | 节点调度策略：`binpack`尽量集中，`spread`尽量分散 | `binpack`/`spread` |
+| `scheduler.defaultSchedulerPolicy.gpuSchedulerPolicy` | 字符串 | `spread` | `GPU`调度策略：`binpack`尽量集中，`spread`尽量分散 | `binpack`/`spread` |
+
+### 5.4 Pod注解配置
+
+在`Pod`的`metadata.annotations`中指定：
+
+| 注解 | 类型 | 说明 | 示例值 |
+|------|------|--------|------|
+| `nvidia.com/use-gpuuuid` | 字符串 | 指定只能使用的`GPU UUID`列表 | `GPU-AAA,GPU-BBB` |
+| `nvidia.com/nouse-gpuuuid` | 字符串 | 指定不能使用的`GPU UUID`列表 | `GPU-AAA,GPU-BBB` |
+| `nvidia.com/use-gputype` | 字符串 | 指定只能使用的`GPU`型号 | `Tesla V100-PCIE-32GB` |
+| `nvidia.com/nouse-gputype` | 字符串 | 指定不能使用的`GPU`型号 | `NVIDIA A10` |
+| `hami.io/gpu-scheduler-policy` | 字符串 | `Pod`级别的`GPU`调度策略 | `binpack`/`spread` |
+| `hami.io/node-scheduler-policy` | 字符串 | `Pod`级别的节点调度策略 | `binpack`/`spread` |
+| `nvidia.com/vgpu-mode` | 字符串 | 指定使用的`vGPU`类型 | `hami-core`/`mig` |
+
+**使用示例**：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-pod
+  annotations:
+    nvidia.com/use-gputype: "Tesla V100-PCIE-32GB"
+    hami.io/gpu-scheduler-policy: "binpack"
+spec:
+  schedulerName: hami-scheduler
+  containers:
+  - name: app
+    image: nvidia/cuda:11.8.0-runtime-ubuntu22.04
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+        nvidia.com/gpumem: 8000
+```
+
+### 5.5 容器环境变量配置
+
+在容器的`env`中指定：
+
+| 环境变量 | 类型 | 默认值 | 说明 | 可选值 |
+|----------|------|--------|------|------|
+| `GPU_CORE_UTILIZATION_POLICY` | 字符串 | `default` | 算力限制策略：`default`默认，`force`强制限制，`disable`忽略限制 | `default`/`force`/`disable` |
+| `CUDA_DISABLE_CONTROL` | 布尔 | `false` | 是否屏蔽容器层资源隔离，一般用于调试 | `true`/`false` |
+
+**使用示例**：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-pod
+spec:
+  schedulerName: hami-scheduler
+  containers:
+  - name: app
+    image: nvidia/cuda:11.8.0-runtime-ubuntu22.04
+    env:
+    - name: GPU_CORE_UTILIZATION_POLICY
+      value: "force"
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+        nvidia.com/gpumem: 8000
+        nvidia.com/gpucores: 50
+```
+
+
+
+## 6. 参考资料
 
 - https://github.com/Project-HAMi/HAMi
 - https://dynamia.ai/
