@@ -319,7 +319,3 @@ nvidia-smi -L
 - [NVIDIA CUDA Multi-Process Service (MPS) 官方文档](https://docs.nvidia.com/deploy/mps/index.html)
 - [NVIDIA Multi-Instance GPU (MIG) 用户指南](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/index.html)
 - [NVIDIA Virtual GPU (vGPU) 软件文档](https://docs.nvidia.com/grid/latest/grid-vgpu-user-guide/index.html)
-- [NVIDIA GPU Device Plugin Time-slicing 配置指南](https://github.com/NVIDIA/k8s-device-plugin#shared-access-to-gpus-with-cuda-time-slicing)
-- [NVIDIA CUDA 编程指南](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html)
-
-- [GPU共享技术深度解析](https://zhuanlan.zhihu.com/p/664712789)
