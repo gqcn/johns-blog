@@ -93,3 +93,20 @@ https://github.com/gqcn/volcano-test-cases/tree/main/reclaim-between-queues/case
 ### 代码
 
 https://github.com/gqcn/volcano-test-cases/tree/main/reclaim-between-queues/case2
+
+
+## 场景3：离线任务按照gang策略失败
+
+### 用例
+
+- `1`个高优先级在线服务，使用`4`卡
+- `1`个低优先级离线任务，包含`2`个`Task`，每个`Task`使用`4`卡
+
+### 结论
+
+- `1`个高优在线服务会抢占并驱逐`1`个低优离线任务`Task`，满足`4`卡需求。
+- 虽然离线任务只被抢占了`1`个`Task`，但整个离线任务都会失败，另一个`Task`也会被`Terminate`掉，离线任务处于`Aborted`状态。
+
+### 代码
+
+https://github.com/gqcn/volcano-test-cases/tree/main/reclaim-between-queues/case3
