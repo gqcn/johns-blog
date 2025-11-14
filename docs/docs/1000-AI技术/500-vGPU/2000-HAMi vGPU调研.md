@@ -301,10 +301,10 @@ helm install vgpu vgpu-charts/vgpu --set scheduler.defaultSchedulerPolicy.nodeSc
 
 | 注解 | 类型 | 说明 | 示例值 |
 |------|------|--------|------|
-| `nvidia.com/use-gpuuuid` | 字符串 | 指定只能使用的`GPU UUID`列表 | `GPU-AAA,GPU-BBB` |
-| `nvidia.com/nouse-gpuuuid` | 字符串 | 指定不能使用的`GPU UUID`列表 | `GPU-AAA,GPU-BBB` |
-| `nvidia.com/use-gputype` | 字符串 | 指定只能使用的`GPU`型号 | `Tesla V100-PCIE-32GB` |
-| `nvidia.com/nouse-gputype` | 字符串 | 指定不能使用的`GPU`型号 | `NVIDIA A10` |
+| `nvidia.com/use-gpuuuid` | 字符串 | 指定只能使用的`GPU UUID`列表，使用逗号分隔 | `GPU-AAA,GPU-BBB` |
+| `nvidia.com/nouse-gpuuuid` | 字符串 | 指定不能使用的`GPU UUID`列表，使用逗号分隔 | `GPU-AAA,GPU-BBB` |
+| `nvidia.com/use-gputype` | 字符串 | 指定只能使用的`GPU`型号，支持多个型号使用逗号分隔 | `A100,V100` 或 `Tesla V100-PCIE-32GB` |
+| `nvidia.com/nouse-gputype` | 字符串 | 指定不能使用的`GPU`型号（黑名单），支持多个型号使用逗号分隔 | `1080,2080` 或 `NVIDIA A10` |
 | `hami.io/gpu-scheduler-policy` | 字符串 | `Pod`级别的`GPU`调度策略 | `binpack`/`spread` |
 | `hami.io/node-scheduler-policy` | 字符串 | `Pod`级别的节点调度策略 | `binpack`/`spread` |
 | `nvidia.com/vgpu-mode` | 字符串 | 指定使用的`vGPU`类型 | `hami-core`/`mig` |
@@ -312,13 +312,51 @@ helm install vgpu vgpu-charts/vgpu --set scheduler.defaultSchedulerPolicy.nodeSc
 **使用示例**：
 
 ```yaml
+# 示例1: 指定单个GPU型号
 apiVersion: v1
 kind: Pod
 metadata:
-  name: gpu-pod
+  name: gpu-pod-single-type
   annotations:
     nvidia.com/use-gputype: "Tesla V100-PCIE-32GB"
     hami.io/gpu-scheduler-policy: "binpack"
+spec:
+  schedulerName: hami-scheduler
+  containers:
+  - name: app
+    image: nvidia/cuda:11.8.0-runtime-ubuntu22.04
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+        nvidia.com/gpumem: 8000
+---
+# 示例2: 指定多个GPU型号（白名单），任务只会调度到A100或V100上
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-pod-multi-type
+  annotations:
+    # 使用逗号分隔多个型号
+    nvidia.com/use-gputype: "NVIDIA-GeForce-RTX-4090,NVIDIA-GeForce-RTX-5090"
+    hami.io/gpu-scheduler-policy: "binpack"
+spec:
+  schedulerName: hami-scheduler
+  containers:
+  - name: app
+    image: nvidia/cuda:11.8.0-runtime-ubuntu22.04
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+        nvidia.com/gpumem: 8000
+---
+# 示例3: 排除特定GPU型号（黑名单），任务不会调度到1080或2080上
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-pod-blacklist
+  annotations:
+    # 使用逗号分隔多个型号
+    nvidia.com/nouse-gputype: "NVIDIA-H20,NVIDIA-H200"  
 spec:
   schedulerName: hami-scheduler
   containers:
