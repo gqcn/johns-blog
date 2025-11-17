@@ -445,12 +445,24 @@ func (p *Plugin) ReclaimableFn(
 
 在`Volcano`默认的`recliam`实现中，如果一个`Volcano Job`存在多个实例，那么`reclaim`只会抢占其中所需资源的实例，可能会造成`Volcano Job`中一部分实例被抢占后处于`Pending`，另一部分没有被抢占的实例处于`Running`状态不满足`gang`策略。
 
-要解决这个问题我们可以为`Volcano Job`设置重启策略，当`Volcano Job`中的实例被抢占后，`Volcano`直接终止该任务，停止全部实例。通过以下策略实现：
+要解决这个问题，我们除了需要设置`minAvailable`参数外，还需要设置`Volcano Job`的重启策略。`minAvailable`参数的数值通常和实例数一致，例如：
+```yaml
+# gang策略关键配置，设置识别可用的最小副本数
+minAvailable: 2
+```
+
+当`Volcano Job`中的实例被抢占后，根据重启策略决定`Volcano`直接终止该任务，停止全部实例，或者重启该任务的所有实例，当无资源时所有实例处于`Pending`状态。通过以下重试策略实现：
 ```yaml
 policies:
-# 只要任一Task被资源抢占，那么整个任务失败
+# 只要任一Task被资源抢占，那么整个任务失败（引发Job Aborted状态）
 - event: PodEvicted
-  action: AbortJob 
+  action: AbortJob
+```
+或者
+```yaml
+# 只要任一Task被资源抢占，那么整个任务重启（引发Pod Pending状态）
+- event: PodEvicted
+  action: RestartJob 
 ```
 
 示例任务配置如下：
@@ -462,7 +474,7 @@ metadata:
   annotations:
     volcano.sh/preemptable: "true"
 spec:
-  minAvailable: 1
+  minAvailable: 2
   priorityClassName: pc-low
   schedulerName: volcano
   queue: queue-training
