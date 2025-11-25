@@ -218,7 +218,7 @@ sequenceDiagram
 #### 阶段5：应用运行
 
 11. **应用执行CUDA调用**
-    ```
+    ```text
     应用调用 cuMemAlloc()
          ↓
     libvgpu.so 劫持
