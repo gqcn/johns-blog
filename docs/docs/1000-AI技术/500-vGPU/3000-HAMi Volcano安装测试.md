@@ -44,7 +44,7 @@ kubectl delete pod nvidia-device-plugin-daemonset-vx6fk
 #### 2.1.1 部署文件
 
 注意以下部署文件中`Daemonset`中的`nodeSelector`及`tolerations`：
-```yaml
+```yaml title="volcano-vgpu-device-plugin.yaml"
 # Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -293,7 +293,7 @@ spec:
 #### 2.1.2 配置说明
 
 `Volcano vGPU`的默认配置如下：
-```yaml
+```yaml title="device-config.yaml"
 nvidia:
   resourceCountName: volcano.sh/vgpu-number
   resourceMemoryName: volcano.sh/vgpu-memory
@@ -424,7 +424,7 @@ tiers:
 ## 3. 运行测试
 ### 3.1 vGPU基本使用
 该测试`Pod`使用的镜像为`nvidia/cuda:12.2.0-base`，下载到本地集群`harbor`仓库的镜像地址`aiharbor.msxf.local/test/nvidia/cuda:12.2.0-base-ubuntu22.04`：
-```yaml
+```yaml title="test-vgpu.yaml"
 apiVersion: v1
 kind: Pod
 metadata:
@@ -515,7 +515,7 @@ root@test-vgpu:/#
 ### 3.2 使用nvidia-device-plugin的资源
 
 原本使用`nvidia device plugin`的节点资源不会受影响，部署的`Pod YAML`如下：
-```yaml
+```yaml title="test-nvidia-device-plugin.yaml"
 apiVersion: v1
 kind: Pod
 metadata:
@@ -606,7 +606,7 @@ containers:
 
 #### 3.3.2 部署文件示例
 以下为完整的`volcano-vgpu-device-plugin`组件部署文件，仅供参考：
-```yaml
+```yaml title="volcano-vgpu-device-config.compatible.yaml"
 # Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -885,8 +885,9 @@ Allocatable:
 ```
 
 #### 3.3.3 测试文件示例
+
 运行以下示例将`Pod`调度到`vGPU`节点上：
-```yaml
+```yaml title="test-vgpu-compatible.yaml"
 apiVersion: v1
 kind: Pod
 metadata:
