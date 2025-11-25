@@ -251,36 +251,367 @@ spec:
 
 ### 6.1 全局设备配置
 
-全局配置通过`hami-scheduler-device` `ConfigMap`进行管理，可以通过以下方式更新：
+全局配置通过`hami-scheduler-device`的`ConfigMap`进行管理。`HAMi`采用**厂商前缀**的配置方式，支持多种智算卡厂商。配置项以厂商名称作为前缀（如`nvidia`、`cambricon`、`hygon`等），这样可以在同一集群中同时管理多种类型的智算卡。
+
+**支持的厂商及配置前缀**：
+
+| 厂商名称 | 配置前缀 |
+|---------|---------|
+| `NVIDIA` | `nvidia` |
+| 华为昇腾（`Huawei Ascend`） | `ascend` 或 `vnpus` |
+| 寒武纪（`Cambricon`） | `cambricon` |
+| 海光（`Hygon`） | `hygon` |
+| 天数智芯（`Metax`） | `metax` |
+| 摩尔线程（`Mthreads`） | `mthreads` |
+| 燧原科技（`Enflame`） | `enflame` |
+| 昆仑芯（`Kunlunxin`） | `kunlun` |
+| 天垓（`Iluvatar`） | `iluvatars` |
+| `AMD` | `amd` |
+| `AWS Neuron` | `awsneuron` |
+
+#### 6.1.1 NVIDIA GPU配置
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `nvidia.deviceSplitCount` | 整数 | `10` | `GPU`分割数，每张`GPU`最多可同时运行的任务数 |
-| `nvidia.deviceMemoryScaling` | 浮点数 | `1.0` | 显存使用比例，可大于1启用虚拟显存（实验功能） |
-| `nvidia.migStrategy` | 字符串 | `none` | `MIG`设备策略：`none`忽略`MIG`，`mixed`使用`MIG`设备 |
-| `nvidia.disablecorelimit` | 字符串 | `false` | 是否关闭算力限制：`true`关闭，`false`启用 |
-| `nvidia.defaultMem` | 整数 | `0` | 默认显存大小（`MB`），`0`表示使用全部显存 |
-| `nvidia.defaultCores` | 整数 | `0` | 默认算力百分比(`0-100`)，`0`表示可分配到任意`GPU`，`100`表示独占 |
-| `nvidia.defaultGPUNum` | 整数 | `1` | 未指定`GPU`数量时的默认值 |
-| `nvidia.resourceCountName` | 字符串 | `nvidia.com/gpu` | `vGPU`个数的资源名称 |
-| `nvidia.resourceMemoryName` | 字符串 | `nvidia.com/gpumem` | `vGPU`显存大小的资源名称 |
-| `nvidia.resourceMemoryPercentageName` | 字符串 | `nvidia.com/gpumem-percentage` | `vGPU`显存比例的资源名称 |
-| `nvidia.resourceCoreName` | 字符串 | `nvidia.com/gpucores` | `vGPU`算力的资源名称 |
-| `nvidia.resourcePriorityName` | 字符串 | `nvidia.com/priority` | 任务优先级的资源名称 |
+| `deviceSplitCount` | 整数 | `10` | `GPU`分割数，每张`GPU`最多可同时运行的任务数 |
+| `deviceMemoryScaling` | 浮点数 | `1.0` | 显存使用比例，可大于1启用虚拟显存（实验功能） |
+| `migStrategy` | 字符串 | `none` | `MIG`设备策略：`none`忽略`MIG`，`mixed`使用`MIG`设备 |
+| `disablecorelimit` | 字符串 | `false` | 是否关闭算力限制：`true`关闭，`false`启用 |
+| `defaultMem` | 整数 | `0` | 默认显存大小（`MB`），`0`表示使用全部显存 |
+| `defaultCores` | 整数 | `0` | 默认算力百分比(`0-100`)，`0`表示可分配到任意`GPU`，`100`表示独占 |
+| `defaultGPUNum` | 整数 | `1` | 未指定`GPU`数量时的默认值 |
+| `resourceCountName` | 字符串 | `nvidia.com/gpu` | `vGPU`个数的资源名称，生成到节点上 |
+| `resourceMemoryName` | 字符串 | `nvidia.com/gpumem` | `vGPU`显存大小的资源名称，生成到节点上 |
+| `resourceMemoryPercentageName` | 字符串 | `nvidia.com/gpumem-percentage` | `vGPU`显存比例的资源名称，仅用于`Pod`资源申请 |
+| `resourceCoreName` | 字符串 | `nvidia.com/gpucores` | `vGPU`算力的资源名称，生成到节点上 |
+| `resourcePriorityName` | 字符串 | `nvidia.com/priority` | 任务优先级的资源名称 |
+| `gpuCorePolicy` | 字符串 | `default` | 算力限制策略：`default`默认策略，`force`强制限制 |
+
+**配置示例**：
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hami-scheduler-device
+  namespace: hami-system
+data:
+  device-config.yaml: |
+    nvidia:
+      resourceCountName: "nvidia.com/gpu"
+      resourceMemoryName: "nvidia.com/gpumem"
+      resourceMemoryPercentageName: "nvidia.com/gpumem-percentage"
+      resourceCoreName: "nvidia.com/gpucores"
+      resourcePriorityName: "nvidia.com/priority"
+      deviceSplitCount: 10
+      deviceMemoryScaling: 1.0
+      deviceCoreScaling: 1.0
+      defaultMem: 0
+      defaultCores: 0
+      defaultGPUNum: 1
+      gpuCorePolicy: default
+      libCudaLogLevel: 1
+```
+
+#### 6.1.2 华为昇腾NPU配置
+
+华为昇腾`NPU`（如`910B`、`310P`）使用`ascend`前缀配置：
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `resourceCountName` | 字符串 | `huawei.com/Ascend910B` | 昇腾设备个数的资源名称 |
+| `resourceMemoryName` | 字符串 | `huawei.com/Ascend910B-memory` | 昇腾设备显存的资源名称 |
+| `defaultMem` | 整数 | `0` | 默认显存大小（`MB`） |
+| `defaultCores` | 整数 | `0` | 默认算力百分比(`0-100`) |
+
+**配置示例**：
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hami-scheduler-device
+  namespace: hami-system
+data:
+  device-config.yaml: |
+    ascend:
+      resourceCountName: "huawei.com/Ascend910B3"
+      resourceMemoryName: "huawei.com/Ascend910B3-memory"
+      defaultMem: 0
+      defaultCores: 0
+      deviceSplitCount: 10
+```
+
+**Pod使用示例**：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ascend-test
+spec:
+  schedulerName: hami-scheduler
+  containers:
+  - name: app
+    image: ascend-app:latest
+    resources:
+      limits:
+        huawei.com/Ascend910B3: 1
+        huawei.com/Ascend910B3-memory: 16000  # 16GB显存
+```
+
+#### 6.1.3 寒武纪MLU配置
+
+寒武纪`MLU`（如`370`、`590`）使用`cambricon`前缀配置：
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `resourceCountName` | 字符串 | `cambricon.com/vmlu` | `MLU`设备个数的资源名称 |
+| `resourceMemoryName` | 字符串 | `cambricon.com/mlu.smlu.vmemory` | `MLU`显存的资源名称 |
+| `resourceCoreName` | 字符串 | `cambricon.com/mlu.smlu.vcore` | `MLU`算力的资源名称 |
+| `defaultMem` | 整数 | `0` | 默认显存大小（`MB`） |
+| `defaultCores` | 整数 | `0` | 默认算力百分比(`0-100`) |
+
+**配置示例**：
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hami-scheduler-device
+  namespace: hami-system
+data:
+  device-config.yaml: |
+    cambricon:
+      resourceCountName: "cambricon.com/vmlu"
+      resourceMemoryName: "cambricon.com/mlu.smlu.vmemory"
+      resourceCoreName: "cambricon.com/mlu.smlu.vcore"
+      defaultMem: 0
+      defaultCores: 0
+      deviceSplitCount: 10
+```
+
+**Pod使用示例**：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mlu-test
+spec:
+  schedulerName: hami-scheduler
+  containers:
+  - name: app
+    image: cambricon-app:latest
+    resources:
+      limits:
+        cambricon.com/vmlu: 1
+        cambricon.com/mlu.smlu.vmemory: 8000  # 8GB显存
+        cambricon.com/mlu.smlu.vcore: 50      # 50%算力
+```
+
+#### 6.1.4 海光DCU配置
+
+海光`DCU`（如`Z100`、`Z100L`）使用`hygon`前缀配置：
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| `resourceCountName` | 字符串 | `hygon.com/dcunum` | `DCU`设备个数的资源名称 |
+| `resourceMemoryName` | 字符串 | `hygon.com/dcumem` | `DCU`显存的资源名称 |
+| `resourceCoreName` | 字符串 | `hygon.com/dcucores` | `DCU`算力的资源名称 |
+
+**配置示例**：
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hami-scheduler-device
+  namespace: hami-system
+data:
+  device-config.yaml: |
+    hygon:
+      resourceCountName: "hygon.com/dcunum"
+      resourceMemoryName: "hygon.com/dcumem"
+      resourceCoreName: "hygon.com/dcucores"
+      defaultMem: 0
+      defaultCores: 0
+```
+
+**Pod使用示例**：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dcu-test
+spec:
+  schedulerName: hami-scheduler
+  containers:
+  - name: app
+    image: hygon-app:latest
+    resources:
+      limits:
+        hygon.com/dcunum: 1
+        hygon.com/dcumem: 16000    # 16GB显存
+        hygon.com/dcucores: 80     # 80%算力
+```
+
+#### 6.1.5 其他国产智算卡配置
+
+`HAMi`还支持以下国产智算卡，配置方式类似：
+
+**天数智芯（Metax）**：
+```yaml
+metax:
+  resourceCountName: "metax-tech.com/sgpu"
+  resourceMemoryName: "metax-tech.com/vmemory"
+  resourceCoreName: "metax-tech.com/vcore"
+```
+
+**摩尔线程（Mthreads）**：
+```yaml
+mthreads:
+  resourceCountName: "mthreads.com/vgpu"
+  resourceMemoryName: "mthreads.com/sgpu-memory"
+  resourceCoreName: "mthreads.com/sgpu-core"
+```
+
+**燧原科技（Enflame）**：
+```yaml
+enflame:
+  resourceCountName: "enflame.com/vgcu"
+  resourceMemoryPercentageName: "enflame.com/vgcu-percentage"
+```
+
+**昆仑芯（Kunlunxin）**：
+```yaml
+kunlunxin:
+  resourceCountName: "kunlunxin.com/xpu"
+  resourceVCountName: "kunlunxin.com/vxpu"
+  resourceVMemoryName: "kunlunxin.com/vxpu-memory"
+```
+
+#### 6.1.6 多厂商混合配置
+
+在异构集群中，可以同时配置多种智算卡：
+
+```yaml
+# NVIDIA GPU配置
+nvidia:
+  resourceCountName: "nvidia.com/gpu"
+  resourceMemoryName: "nvidia.com/gpumem"
+  resourceCoreName: "nvidia.com/gpucores"
+  deviceSplitCount: 10
+  defaultMem: 0
+  defaultCores: 0
+
+# 华为昇腾NPU配置
+ascend:
+  resourceCountName: "huawei.com/Ascend910B3"
+  resourceMemoryName: "huawei.com/Ascend910B3-memory"
+  deviceSplitCount: 8
+  defaultMem: 0
+  defaultCores: 0
+
+# 寒武纪MLU配置
+cambricon:
+  resourceCountName: "cambricon.com/vmlu"
+  resourceMemoryName: "cambricon.com/mlu.smlu.vmemory"
+  resourceCoreName: "cambricon.com/mlu.smlu.vcore"
+  deviceSplitCount: 10
+  defaultMem: 0
+  defaultCores: 0
+```
+
+这样配置后，`HAMi`会自动识别节点上的智算卡类型，并应用对应的配置策略。
 
 ### 6.2 节点级配置
 
-可以为每个节点配置不同的行为，通过编辑`hami-device-plugin` `ConfigMap`：
+可以为每个节点配置不同的行为，通过编辑`hami-device-plugin`的`ConfigMap`。节点级配置会**覆盖**全局配置中的对应参数。
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
 | `name` | 字符串 | - | 要配置的节点名称 |
-| `operatingmode` | 字符串 | `hami-core` | 运行模式：`hami-core`或`mig` |
-| `devicememoryscaling` | 浮点数 | - | 节点显存超配率 |
+| `operatingmode` | 字符串 | `hami-core` | 运行模式：`hami-core`、`mig`或`mps` |
+| `devicememoryscaling` | 浮点数 | - | 节点显存超配率，如`1.5`表示允许超配`50%` |
 | `devicecorescaling` | 浮点数 | - | 节点算力超配率 |
 | `devicesplitcount` | 整数 | - | 每个设备允许的任务数 |
-| `filterdevices.uuid` | 字符串列表 | - | 要排除设备的UUID列表 |
+| `libcudaloglevel` | 整数 | - | `HAMi Core`日志级别：`0=Error,1=Warning,3=Info,4=Debug` |
+| `migstrategy` | 字符串 | - | `MIG`策略：`none`或`mixed` |
+| `filterdevices.uuid` | 字符串列表 | - | 要排除设备的`UUID`列表 |
 | `filterdevices.index` | 整数列表 | - | 要排除设备的索引列表 |
+
+**配置示例**：
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hami-device-plugin
+  namespace: hami-system
+data:
+  config.json: |
+    {
+      "nodeconfig": [
+        {
+          "name": "node1",
+          "operatingmode": "hami-core",
+          "devicesplitcount": 10,
+          "devicememoryscaling": 1.0,
+          "devicecorescaling": 1.0,
+          "libcudaloglevel": 1
+        },
+        {
+          "name": "node2",
+          "operatingmode": "hami-core",
+          "devicesplitcount": 5,
+          "devicememoryscaling": 1.5,
+          "devicecorescaling": 1.2,
+          "libcudaloglevel": 0,
+          "filterdevices": {
+            "uuid": ["GPU-12345678-1234-1234-1234-123456789012"],
+            "index": [0, 1]
+          }
+        },
+        {
+          "name": "node3",
+          "operatingmode": "mig",
+          "migstrategy": "mixed"
+        }
+      ]
+    }
+```
+
+**配置说明**：
+
+1. **node1**：
+   - 使用`hami-core`模式
+   - 每张`GPU`最多运行`10`个任务
+   - 不允许超配（显存和算力比例都是`1.0`）
+   - 日志级别为`Warning`
+
+2. **node2**：
+   - 使用`hami-core`模式
+   - 每张`GPU`最多运行`5`个任务
+   - 允许显存超配`50%`（`1.5`倍）
+   - 允许算力超配`20%`（`1.2`倍）
+   - 日志级别为`Error`（仅显示错误）
+   - 过滤掉指定`UUID`的`GPU`和索引`0`、`1`的`GPU`（这些`GPU`不会被`HAMi`管理）
+
+3. **node3**：
+   - 使用`MIG`模式
+   - `MIG`策略为`mixed`（混合使用`MIG`设备）
+
+**应用配置**：
+
+```bash
+# 创建或更新ConfigMap
+kubectl apply -f hami-device-plugin-config.yaml
+
+# 重启device plugin使配置生效
+kubectl rollout restart daemonset hami-device-plugin -n hami-system
+```
 
 ### 6.3 调度策略配置
 
@@ -402,6 +733,8 @@ spec:
 
 ## 7. HAMi With Volcano
 
+### 7.1 Volcano调度器配置
+
 `Volcano`原生支持`HAMi vGPU`，但需要启用对应的`deviceshare` 插件，具体配置如下：
 ```yaml
 kind: ConfigMap
@@ -430,7 +763,62 @@ data:
 
 同时需要替换`NVIDIA Device Plugin`为 https://github.com/Project-HAMi/volcano-vgpu-device-plugin ，具体参考：https://project-hami.io/zh/docs/userguide/volcano-vgpu/NVIDIA-GPU/how-to-use-volcano-vgpu
 
-## 8. 参考资料
+### 7.2 Volcano集成中的库注入机制
+
+在`Volcano + HAMi`集成环境中，`HAMi Core`库的注入方式与独立部署的`HAMi`有所不同：
+
+**独立部署的HAMi**：
+- 通过`Mutating Webhook`直接向容器注入`LD_PRELOAD`环境变量
+- 强制预加载`libvgpu.so`库，实现`CUDA API`劫持
+
+**Volcano集成的HAMi**：
+- 使用`LD_LIBRARY_PATH`而非`LD_PRELOAD`
+- 依赖`NVIDIA Container Runtime`的`hook`机制
+- 通过`RuntimeClass`触发库路径注入
+
+**技术原理**：
+
+1. **Device Plugin初始化阶段**：
+   ```yaml
+   lifecycle:
+     postStart:
+       exec:
+         command: ["/bin/sh", "-c", "cp -f /k8s-vgpu/lib/nvidia/* /usr/local/vgpu/"]
+   ```
+   将`HAMi Core`库复制到宿主机的`/usr/local/vgpu/`目录
+
+2. **RuntimeClass配置**：
+   ```yaml
+   apiVersion: node.k8s.io/v1
+   kind: RuntimeClass
+   metadata:
+     name: nvidia
+   handler: nvidia
+   ```
+   指定使用`NVIDIA Container Runtime`作为容器运行时
+
+3. **环境变量注入**：
+   - `NVIDIA Container Runtime`自动设置`LD_LIBRARY_PATH=/usr/local/vgpu:$LD_LIBRARY_PATH`
+   - 动态链接器按路径优先级查找共享库
+   - `/usr/local/vgpu/libvgpu.so`中的符号优先被解析，实现`CUDA API`劫持
+
+**为什么选择LD_LIBRARY_PATH**：
+
+| 对比维度 | LD_PRELOAD | LD_LIBRARY_PATH |
+|---------|-----------|-----------------|
+| 注入方式 | `Webhook`直接注入 | `NVIDIA Runtime`自动管理 |
+| 库加载机制 | 强制预加载 | 路径优先级 |
+| 与NVIDIA Runtime兼容性 | 可能冲突 | 原生兼容 |
+| 环境变量管理 | 需手动维护 | `Runtime`自动处理 |
+| 适用场景 | `HAMi`独立部署 | `Volcano`集成部署 |
+
+这种设计避免了与`NVIDIA Container Runtime`内部机制的冲突，同时保持了与`Volcano`调度器的良好集成。
+
+## 8. 使用示例
+
+由于`HAMi`官方开源仓库以及提供了比较丰富的示例代码，这里不再赘述。仓库链接：https://github.com/Project-HAMi/HAMi/tree/master/examples
+
+## 9. 参考资料
 
 - https://github.com/Project-HAMi/HAMi
 - https://dynamia.ai/
