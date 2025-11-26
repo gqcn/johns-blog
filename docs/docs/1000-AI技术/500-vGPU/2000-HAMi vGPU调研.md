@@ -21,7 +21,7 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 - ✅ 显存隔离
 - ✅ 算力配额限制
 - ✅ `Kubernetes`原生集成
-- ✅ 多GPU厂商支持（`NVIDIA`、`AMD`、昇腾等）
+- ✅ 多`GPU`厂商支持（`NVIDIA`、`AMD`、昇腾等）
 - ✅ 完善的监控和可观测性
 - ✅ 零侵入，应用无需修改
 
