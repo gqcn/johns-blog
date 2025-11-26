@@ -80,7 +80,7 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 - **HAMi Device Plugin**：设备插件，负责`GPU`资源注册与分配
 - **HAMi Core**：容器内运行时库，实现资源隔离与配额控制
 
-### 3.1 HAMi Mutating Webhook
+### 4.1 HAMi Mutating Webhook
 
 **功能职责**：
 - 拦截`Pod`创建请求，检查是否包含`GPU`资源需求
@@ -94,7 +94,7 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 3. **自动配置注入**：为符合条件的`Pod`自动设置调度器名称和运行时配置
 4. **环境变量预埋**：注入`LD_PRELOAD`等环境变量，为后续的`API`劫持做准备
 
-### 3.2 HAMi Scheduler Extender
+### 4.2 HAMi Scheduler Extender
 
 **功能职责**：
 - 扩展`Kubernetes`默认调度器，实现`GPU`资源的智能调度
@@ -117,7 +117,7 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
    - 确定最优节点并绑定`Pod`
    - 更新资源分配记录到`Pod`注解
 
-### 3.3 HAMi Device Plugin
+### 4.3 HAMi Device Plugin
 
 **功能职责**：
 - 发现节点上的`GPU`资源并向`Kubernetes`注册虚拟`GPU`资源
@@ -164,7 +164,7 @@ spec:
 ```
 
 
-### 3.4 HAMi Core (libvgpu.so)
+### 4.4 HAMi Core (libvgpu.so)
 
 源码仓库：https://github.com/Project-HAMi/HAMi-core
 
