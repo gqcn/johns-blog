@@ -78,7 +78,7 @@ sequenceDiagram
     Kubelet->>API: 更新Pod状态<br/>(status=Running)
 ```
 
-### 2.2 详细流程介绍
+### 2.2 详细交互流程
 
 以下是通过梳理`Volcano`及`volcano-vgpu-device-plugin`源码得到的完整执行流程。
 
