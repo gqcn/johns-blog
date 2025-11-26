@@ -1,0 +1,243 @@
+# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-vgpu-device-config
+  namespace: volcano-system
+  labels:
+    app.kubernetes.io/component: volcano-vgpu-device-plugin
+data:
+  device-config.yaml: |-
+    nvidia:
+      resourceCountName: volcano.sh/vgpu-number
+      resourceMemoryName: volcano.sh/vgpu-memory
+      resourceMemoryPercentageName: volcano.sh/vgpu-memory-percentage
+      resourceCoreName: volcano.sh/vgpu-cores
+      overwriteEnv: false
+      defaultMemory: 0
+      defaultCores: 0
+      defaultGPUNum: 1
+      deviceSplitCount: 10
+      deviceMemoryScaling: 1
+      deviceCoreScaling: 1
+      gpuMemoryFactor: 1
+      knownMigGeometries: []
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volcano-vgpu-node-config
+  namespace: volcano-system
+  labels:
+    app.kubernetes.io/component: volcano-vgpu-node-plugin
+data:
+  config.json: |
+    {
+        "nodeconfig": []
+    }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: volcano-device-plugin
+  namespace: volcano-system
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: volcano-device-plugin
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+- apiGroups: [""]
+  resources: ["nodes/status"]
+  verbs: ["patch"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "update", "patch", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: volcano-device-plugin
+subjects:
+- kind: ServiceAccount
+  name: volcano-device-plugin
+  namespace: volcano-system
+roleRef:
+  kind: ClusterRole
+  name: volcano-device-plugin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: volcano-device-plugin
+  namespace: volcano-system
+spec:
+  selector:
+    matchLabels:
+      name: volcano-device-plugin
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      # This annotation is deprecated. Kept here for backward compatibility
+      # See https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ""
+      labels:
+        name: volcano-device-plugin
+    spec:
+      nodeSelector:
+        volcano.sh/vgpu.enabled: "true"
+      tolerations:
+      # This toleration is deprecated. Kept here for backward compatibility
+      # See https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/
+      - key: volcano.sh/vgpu
+        operator: Exists
+        effect: NoSchedule
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
+      - key: nvidia.com/gpu.product
+        operator: Exists
+        effect: NoSchedule
+      - key: special.accelerate.usage
+        operator: Exists
+        effect: NoSchedule
+      - key: maip.msxf.io/node.usage
+        operator: Exists
+        effect: NoSchedule
+      - key: maip.msxf.io/ib.present
+        operator: Exists
+        effect: NoSchedule
+      # Mark this pod as a critical add-on; when enabled, the critical add-on
+      # scheduler reserves resources for critical add-on pods so that they can
+      # be rescheduled after a failure.
+      # See https://kubernetes.io/docs/tasks/administer-cluster/guaranteed-scheduling-critical-addon-pods/
+      priorityClassName: "system-node-critical"
+      serviceAccount: volcano-device-plugin
+      containers:
+      - image: aiharbor.msxf.local/test/projecthami/volcano-vgpu-device-plugin:v1.11.0
+        args: ["--device-split-count=10"]
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "cp -f /k8s-vgpu/lib/nvidia/* /usr/local/vgpu/"]
+        name: volcano-device-plugin
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: HOOK_PATH
+          value: "/usr/local/vgpu"
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: "all"
+        - name: NVIDIA_MIG_MONITOR_DEVICES
+          value: "all"
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: "utility"
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
+          capabilities:
+            drop: ["ALL"]
+            add: ["SYS_ADMIN"]
+        volumeMounts:
+        - name: deviceconfig
+          mountPath: /config
+        - name: device-plugin
+          mountPath: /var/lib/kubelet/device-plugins
+        - name: lib
+          mountPath: /usr/local/vgpu
+        - name: hosttmp
+          mountPath: /tmp
+      - image: aiharbor.msxf.local/test/projecthami/volcano-vgpu-device-plugin:v1.11.0
+        name: monitor
+        command:
+        - /bin/bash
+        - -c
+        - volcano-vgpu-monitor
+        env:
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: "all"
+        - name: NVIDIA_MIG_MONITOR_DEVICES
+          value: "all"
+        - name: HOOK_PATH
+          value: "/tmp/vgpu"
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        securityContext:
+          privileged: true
+          allowPrivilegeEscalation: true
+          capabilities:
+            drop: ["ALL"]
+            add: ["SYS_ADMIN"]
+        volumeMounts:
+        - name: dockers
+          mountPath: /run/docker
+        - name: containerds
+          mountPath: /run/containerd
+        - name: sysinfo
+          mountPath: /sysinfo
+        - name: hostvar
+          mountPath: /hostvar
+        - name: hosttmp
+          mountPath: /tmp
+      volumes:
+      - name: deviceconfig
+        configMap:
+          name: volcano-vgpu-node-config
+      - hostPath:
+          path: /var/lib/kubelet/device-plugins
+          type: Directory
+        name: device-plugin
+      - hostPath:
+          path: /usr/local/vgpu
+          type: DirectoryOrCreate
+        name: lib
+      - name: hosttmp
+        hostPath:
+          path: /tmp
+          type: DirectoryOrCreate
+      - name: dockers
+        hostPath:
+          path: /run/docker
+          type: DirectoryOrCreate
+      - name: containerds
+        hostPath:
+          path: /run/containerd
+          type: DirectoryOrCreate
+      - name: usrbin
+        hostPath:
+          path: /usr/bin
+          type: Directory
+      - name: sysinfo
+        hostPath:
+          path: /sys
+          type: Directory
+      - name: hostvar
+        hostPath:
+          path: /var
+          type: Directory
