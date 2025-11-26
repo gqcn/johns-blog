@@ -77,7 +77,7 @@ nvidia:
 
 #### 2.1.3 执行结果
 ```bash
-$ k apply -f volcano-vgpu-device-plugin.yaml
+$ kubectl apply -f volcano-vgpu-device-plugin.yaml
 configmap/volcano-vgpu-device-config created
 configmap/volcano-vgpu-node-config created
 serviceaccount/volcano-device-plugin created
@@ -86,7 +86,7 @@ clusterrolebinding.rbac.authorization.k8s.io/volcano-device-plugin created
 Warning: spec.template.metadata.annotations[scheduler.alpha.kubernetes.io/critical-pod]: non-functional in v1.16+; use the "priorityClassName" field instead
 daemonset.apps/volcano-device-plugin created
 
-$ k get pod
+$ kubectl get pod
 NAME                                   READY   STATUS    RESTARTS      AGE
 volcano-admission-7dc9b78fc6-686tb     1/1     Running   0             20d
 volcano-admission-7dc9b78fc6-d9vzk     1/1     Running   0             20d
@@ -225,14 +225,14 @@ spec:
 ```
 运行后，查看`Pod`信息：
 ```bash
-$ k get pod
+$ kubectl get pod
 NAME                                   READY   STATUS    RESTARTS      AGE
 test-vgpu                              1/1     Running   0             23s
 ```
 
 进入`Pod`容器执行`nvidia-smi`命令查看`vGPU`资源信息，执行以下指令：
 ```bash
-k exec -it test-vgpu bash
+kubectl exec -it test-vgpu bash
 ```
 
 查看`vGPU`资源信息如下：
@@ -313,7 +313,8 @@ spec:
 
 ### 3.3 vGPU资源与NVIDIA资源名称兼容
 
-按照节点维度启用`vGPU`后，该`vGPU`节点只能使用`vGPU`的资源名称进行`Pod`资源申请，无法再使用原有的资源名称调度到`vGPU`节点上。也可以将整卡和`vGPU`进行兼容性的资源名称配置，例如将`vGPU`的资源名称和`nvidia`的资源名称保持一致。我们来做一下兼容性测试。
+按照节点维度启用`vGPU`后，该`vGPU`节点只能使用`vGPU`的资源名称进行`Pod`资源申请，无法再使用原有的资源名称调度到`vGPU`节点上。
+`Volcano vGPU`也支持将整卡和`vGPU`进行兼容性的资源名称配置，例如将`vGPU`的资源名称和`nvidia`的资源名称保持一致（`nvidia.com/gpu`）。我们来做一下兼容性测试。
 
 #### 3.3.1 配置文件变化
 调整`vGPU`全局资源名称的配置如下（`resourceCountName`配置从`volcano.sh/vgpu-number`改为`nvidia.com/gpu`）：
@@ -441,7 +442,7 @@ spec:
 ```
 执行后，可以看到`Pod`已经被成功调度和运行。进入`Pod`容器查看资源情况，可以看到申请的算力和显存是按照整卡来分配的，这也是`HAMi vGPU`默认的行为，以便于和原有的`NVIDIA device plugin`兼容：
 ```text
-$ k exec -it test-vgpu-compatible bash
+$ kubectl exec -it test-vgpu-compatible bash
 kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
 root@test-vgpu-compatible:/# nvidia-smi
 [HAMI-core Msg(15:139748339885888:libvgpu.c:839)]: Initializing.....
@@ -485,9 +486,9 @@ curl 10.233.75.65:8080/metrics
 
 ## 5. 常见问题
 ### 5.1 vGPU Pod部署时报错UnexpectedAdmissionError
-在调整完`volcano-vgpu-device-config`这个ConfigMap中的`resourceCountName`配置项为自定义的资源名称后，`Pod`部署时状态为`UnexpectedAdmissionError`：
+在调整完`volcano-vgpu-device-config`这个`ConfigMap`中的`resourceCountName`配置项为自定义的资源名称后，`Pod`部署时状态为`UnexpectedAdmissionError`：
 ```bash
-$ k get pod
+$ kubectl get pod
 NAME                                   READY   STATUS                     RESTARTS   AGE
 test-vgpu-compatible                   0/1     UnexpectedAdmissionError   0          75s
 ```
@@ -501,7 +502,7 @@ Events:
   Warning  UnexpectedAdmissionError  25s   kubelet  Allocate failed due to rpc error: code = Unknown desc = device request not found, which is unexpected
 ```
 
-通过翻查`volcano`和`volcano-vgpu-device-plugin`源码，经过排查是配置文件不一致引起的。在修改资源名称时，我们需要保证3个地方的配置正确性和一致性，拿`resourceCountName`配置项修改为`nvidia.com/gpu`举例，需要调整以下地方：
+通过翻查`volcano`和`volcano-vgpu-device-plugin`源码，经过排查是配置文件不一致引起的。在修改资源名称时，我们需要保证`3`个地方的配置正确性和一致性，拿`resourceCountName`配置项修改为`nvidia.com/gpu`举例，需要调整以下地方：
 - `volcano-vgpu-device-config`的`resourceCountName: nvidia.com/gpu`
 - `volcano-vgpu-device-plugin`命令行参数`--resource-name=nvidia.com/gpu`
 - `volcano-scheduler-configmap`的`deviceshare`插件需要指定正确的命名空间，如下：
@@ -516,7 +517,7 @@ Events:
     ```
   可以通过查看调度的日志来排查调度器使用的配置文件是否正确，命令如下：
     ```bash
-    $ k logs volcano-scheduler-6645c59d6d-bcw68 | grep "device config"
+    $ kubectl logs volcano-scheduler-6645c59d6d-bcw68 | grep "device config"
     I1125 09:11:57.408175       1 config.go:113] "Initializing volcano device config" device-configs={"NvidiaConfig":{"ResourceCountName":"nvidia.com/gpu","ResourceMemoryName":"volcano.sh/vgpu-memory","ResourceCoreName":"volcano.sh/vgpu-cores","ResourceMemoryPercentageName":"volcano.sh/vgpu-memory-percentage","ResourcePriority":"","OverwriteEnv":false,"DefaultMemory":0,"DefaultCores":0,"DefaultGPUNum":1,"DeviceSplitCount":10,"DeviceMemoryScaling":1,"DeviceCoreScaling":1,"DisableCoreLimit":false,"MigGeometriesList":[],"GPUMemoryFactor":1}}
     ```
 

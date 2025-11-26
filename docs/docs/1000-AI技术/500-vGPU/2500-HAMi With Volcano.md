@@ -9,7 +9,7 @@ description: "深入解析Volcano vGPU的完整执行流程和技术原理，包
 
 `Volcano`原生支持`HAMi vGPU`，但需要启用对应的`deviceshare` 插件。
 
-## Volcano调度器配置
+## 1. Volcano调度器配置
 
 具体配置如下：
 ```yaml title="volcano-scheduler.conf"
@@ -36,11 +36,11 @@ tiers:
 
 同时需要替换`NVIDIA Device Plugin`为 https://github.com/Project-HAMi/volcano-vgpu-device-plugin ，具体参考：https://project-hami.io/zh/docs/userguide/volcano-vgpu/NVIDIA-GPU/how-to-use-volcano-vgpu
 
-## Volcano vGPU执行流程
+## 2. Volcano vGPU执行流程
 
 `Volcano + HAMi vGPU`的完整执行流程涉及多个组件的协同工作，从`Pod`创建到最终运行在节点上，经历了以下关键步骤：
 
-### 组件交互概要
+### 2.1 组件交互概要
 
 以下是`Volcano vGPU`资源使用的大致交互时序图，包含了关键的几个组件之间的交互。
 
@@ -78,11 +78,11 @@ sequenceDiagram
     Kubelet->>API: 更新Pod状态<br/>(status=Running)
 ```
 
-### 详细流程介绍
+### 2.2 详细流程介绍
 
 以下是通过梳理`Volcano`及`volcano-vgpu-device-plugin`源码得到的完整执行流程。
 
-#### 阶段1：Pod创建
+#### 2.2.1 阶段1：Pod创建
 
 1. **用户创建Pod**
    ```yaml
@@ -102,7 +102,7 @@ sequenceDiagram
            volcano.sh/vgpu-cores: 50        # （可选）每个 vGPU 使用 50% 核心
    ```
 
-#### 阶段2：调度器调度
+#### 2.2.2 阶段2：调度器调度
 
 2. **Volcano Scheduler接收调度请求**
    - `Scheduler`从`API Server`获取待调度的`Pod`
@@ -162,7 +162,7 @@ sequenceDiagram
      ```
    - 将`Pod`绑定到目标节点
 
-#### 阶段3：Device Plugin分配
+#### 2.2.3 阶段3：Device Plugin分配
 
 6. **Device Plugin Allocate**（`plugin.go:416-515`）
    
@@ -188,7 +188,7 @@ sequenceDiagram
      - `/tmp/vgpulock`：进程锁目录
    - 返回`ContainerAllocateResponse`给`Kubelet`
 
-#### 阶段4：容器启动
+#### 2.2.4 阶段4：容器启动
 
 7. **Container Runtime处理**
    - `Kubelet`将环境变量和挂载信息传递给容器运行时
@@ -211,7 +211,7 @@ sequenceDiagram
     | `Volcano vGPU` | ✅ 使用 | ❌ 不使用 |
     | `HAMI`独立部署 | ❌ 不使用 | ✅ 使用 |
 
-#### 阶段5：应用运行
+#### 2.2.5 阶段5：应用运行
 
 8. **CUDA API劫持与资源限制**
   
@@ -230,7 +230,7 @@ sequenceDiagram
    ```
 
 
-## Volcano vGPU与HAMi独立部署的区别
+## 3. Volcano vGPU与HAMi独立部署的区别
 
 | 对比项 | 独立HAMi | Volcano + HAMi |
 |--------|---------|----------------|
@@ -242,11 +242,11 @@ sequenceDiagram
 | **环境变量注入** | `Webhook`注入 | `Device Plugin Allocate`注入 |
 
 
-## Volcano vGPU监控指标
+## 4. Volcano vGPU监控指标
 
 `Volcano Scheduler`在调度`vGPU`资源时会暴露`Prometheus`监控指标，用于观测`GPU`设备的分配和使用情况。这些指标定义在 `pkg/scheduler/api/devices/nvidia/vgpu/metrics.go` 中。
 
-### 设备级指标
+### 4.1 设备级指标
 
 | 指标名称 | 类型 | 标签 | 说明 | 单位 |
 |---------|------|------|------|------|
@@ -255,14 +255,14 @@ sequenceDiagram
 | `volcano_vgpu_device_allocated_cores` | `Gauge` | `devID`, `NodeName` | `GPU`卡已分配的算力百分比 | `% (0-100)` |
 | `volcano_vgpu_device_shared_number` | `Gauge` | `devID`, `NodeName` | 共享此 `GPU`卡的`Pod`数量 | `个` |
 
-### Pod 级指标
+### 4.2 Pod 级指标
 
 | 指标名称 | 类型 | 标签 | 说明 | 单位 |
 |---------|------|------|------|------|
 | `volcano_vgpu_device_memory_allocation_for_a_certain_pod` | `Gauge` | `devID`, `NodeName`, `podName` | 特定`Pod`在此`GPU`卡上分配的显存 | `MB` |
 | `volcano_vgpu_device_core_allocation_for_a_certain_pod` | `Gauge` | `devID`, `NodeName`, `podName` | 特定`Pod`在此`GPU`卡上分配的算力 | `% (0-100)` |
 
-### 常用 PromQL 查询示例
+### 4.3 常用 PromQL 查询示例
 
 1. **查看节点上所有 GPU 卡的显存使用率**：
    ```promql
@@ -289,7 +289,7 @@ sequenceDiagram
    sum(volcano_vgpu_device_allocated_memory) / sum(volcano_vgpu_device_memory_limit) * 100
    ```
 
-### 指标访问方式
+### 4.4 指标访问方式
 
 `Volcano Scheduler`默认在 `:8080/metrics` 端点暴露`Prometheus`监控指标。可以通过以下方式访问：
 
@@ -302,6 +302,6 @@ curl http://localhost:8080/metrics | grep volcano_vgpu
 # 在 Prometheus 配置中添加 Volcano Scheduler 的 ServiceMonitor
 ```
 
-### 指标参考数据
+### 4.5 指标参考数据
 
 指标文件：[volcano-vgpu-metrics.txt](./assets/3000-HAMi%20Volcano安装测试/volcano-vgpu-metrics.txt)
