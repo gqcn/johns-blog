@@ -1,6 +1,6 @@
 ---
 slug: "/observability/prometheus-alert-rules"
-title: "prometheus: 常用告警PromeQL"
+title: "Prometheus: 常用告警PromeQL"
 hide_title: true
 keywords:
   ["Prometheus", "AlertManager", "PromQL", "监控告警", "告警规则", "监控运维"]

@@ -1,6 +1,6 @@
 ---
 slug: "/observability/prometheus-rate-irate"
-title: "promtheus: rate与irate"
+title: "Prometheus: rate与irate"
 hide_title: true
 keywords: ["Prometheus", "rate", "irate", "监控", "指标计算", "时序数据"]
 description: "深入解析 Prometheus 中 rate 和 irate 函数的区别和使用场景，帮助用户更好地理解和选择合适的指标计算方法"
