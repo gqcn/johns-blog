@@ -33,7 +33,7 @@ certbot certonly --standalone -d www.johng.cn --staple-ocsp -m john@johng.cn --a
 
 这里申请了两个域名的证书，带`www`的和不带`www`的。
 
-### 配置`nginx`
+### 配置nginx
 
 配置文件如下：
 ```nginx
