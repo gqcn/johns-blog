@@ -27,8 +27,8 @@ keywords: [docusaurus, 静态网站, github actions, nginx, ssl证书, certbot, 
 
 关闭`nginx`服务，避免`80`端口占用，随后通过以下命令申请`SSL`证书：
 ```bash
-certbot certonly --standalone -d johng.cn --staple-ocsp -m johng.cn --agree-tos
-certbot certonly --standalone -d www.johng.cn --staple-ocsp -m johng.cn --agree-tos
+certbot certonly --standalone -d johng.cn --staple-ocsp -m john@johng.cn --agree-tos
+certbot certonly --standalone -d www.johng.cn --staple-ocsp -m john@johng.cn --agree-tos
 ```
 
 这里申请了两个域名的证书，带`www`的和不带`www`的。
@@ -99,6 +99,20 @@ server {
     gzip_types text/css application/javascript application/x-javascript text/javascript;
     gzip_min_length 1024;
 }
+```
+
+### 修改nginx运行用户
+
+修改`nginx`运行用户，默认用户为`www-data`，需要修改为`root`，为避免`nginx`无法访问`/home/www/`路径下的网站文件，会报错`Permission denied`。
+
+```nginx title="/etc/nginx/nginx.conf"
+user root;
+worker_processes auto;
+pid /run/nginx.pid;
+error_log /var/log/nginx/error.log;
+include /etc/nginx/modules-enabled/*.conf;
+
+# ...
 ```
 
 ### 配置定时任务
