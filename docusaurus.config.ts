@@ -149,6 +149,12 @@ const config: Config = {
         },
         {
           position: 'left',
+          label: '生活笔记',
+          sidebarId: 'mainSidebar',
+          to: '/life',
+        },
+        {
+          position: 'left',
           label: '关于我',
           to: '/aboutme',
         },

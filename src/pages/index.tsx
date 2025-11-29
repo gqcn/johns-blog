@@ -36,7 +36,7 @@ export default function Home(): JSX.Element {
     return (
         <Layout>
             <Head>
-                <title>John's Blog - AI技术与云原生技术博客</title>
+                <title>John's Blog</title>
                 <meta name="description" content="专注AI技术、云原生技术、Kubernetes、Volcano、Go开发的技术博客。分享分布式系统、GPU虚拟化、微服务架构等实战经验与深度技术文章。" />
                 <meta property="og:type" content="website" />
                 <meta property="og:title" content="John's Blog - AI技术与云原生技术博客" />
