@@ -43,6 +43,14 @@ const config: Config = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
+        // Sitemap configuration for better SEO
+        sitemap: {
+          lastmod: 'date',
+          changefreq: 'weekly',
+          priority: 0.5,
+          ignorePatterns: ['/tags/**', '/search', '/blog/tags/**', '/blog/authors', '/blog/archive'],
+          filename: 'sitemap.xml',
+        },
       } satisfies Preset.Options,
     ],
   ],
@@ -66,11 +74,15 @@ const config: Config = {
     metadata: [
       {
         name: 'keywords',
-        content: '技术架构,Golang,微服务,Kubernetes,容器技术,可观测性,链路跟踪,Opentelemetry,数据库,中间件',
+        content: 'AI技术,GPU虚拟化,Volcano,Kubernetes,云原生,GoFrame,Golang,微服务架构,分布式系统,容器技术,可观测性,Prometheus,链路跟踪,OpenTelemetry,数据库,中间件,技术博客',
       },
       {
         name: 'description',
-        content: 'John的博客，分享技术，记录生活。',
+        content: 'John\'s Blog - 专注AI技术、云原生技术、Kubernetes、Volcano、Go开发的技术博客。分享分布式系统、GPU虚拟化、微服务架构等实战经验与深度技术文章。',
+      },
+      {
+        name: 'author',
+        content: 'John Guo',
       },
     ],
     colorMode: {
