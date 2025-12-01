@@ -24,7 +24,7 @@ function HomepageHeader() {
             <div className="container logo-container">
                 <div className="container mt-40 text-center">
                     <p>
-                        个人博客，用于记录技术探索、学习心得、工作笔记及生活感悟。
+                        个人博客，记录技术探索、学习心得、工作笔记及生活感悟。
                     </p>
                 </div>
             </div>
