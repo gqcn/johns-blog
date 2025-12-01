@@ -317,7 +317,7 @@ export CUDA_VISIBLE_DEVICES="1,2,3,4"
 1. 通过配置`privileged`开启容器的特权模式，这样业务容器能够访问所有的硬件资源，包括完整的`GPU`卡列表，这样每个容器能够看到完整的`GPU`拓扑结构，以便能确认是否能够和目标进行`NVLINK`通信。
 2. 业务容器仍然使用`nvidia.com/gpu: "2"`这样的资源申请方式来申请`GPU`卡，让`device plugin`自动分配可用的`GPU`卡给业务容器，并自动注入`NVIDIA_VISIBLE_DEVICES`环境变量到业务容器中。
 3. 由于特权容器能够看到宿主机所有的`GPU`卡，默认情况下，业务容器的`CUDA`应用程序会自动从容器中挂载的索引`0`号的`GPU`卡开始使用。当存在多个特权容器时，都访问索引`0`号的`GPU`卡就会出现资源冲突。为了解决这个问题，我们需要让业务容器感知到自身被`device plugin`分配的`GPU`卡是哪些，通过`CUDA_VISIBLE_DEVICES`环境变量设置`CUDA`应用程序允许使用的正确的`GPU`卡索引号。
-4. 其中`NVIDIA_VISIBLE_DEVICES`是`device plugin`自动分配的`GPU`卡UUID，我们需要将这些`UUID`转换为宿主机上对应卡的索引号，并将该索引号注入到`CUDA_VISIBLE_DEVICES`环境变量即可。
+4. 其中`NVIDIA_VISIBLE_DEVICES`是`device plugin`自动分配的`GPU`卡`UUID`，我们需要将这些`UUID`转换为宿主机上对应卡的索引号，并将该索引号注入到`CUDA_VISIBLE_DEVICES`环境变量即可。
 
 #### 4.2.3 部署示例
 

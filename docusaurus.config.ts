@@ -48,7 +48,7 @@ const config: Config = {
           lastmod: 'date',
           changefreq: 'weekly',
           priority: 0.5,
-          ignorePatterns: ['/tags/**', '/search', '/blog/tags/**', '/blog/authors', '/blog/archive'],
+          ignorePatterns: ['/hidden/**', '/tags/**', '/search', '/blog/tags/**', '/blog/authors', '/blog/archive'],
           filename: 'sitemap.xml',
         },
       } satisfies Preset.Options,
