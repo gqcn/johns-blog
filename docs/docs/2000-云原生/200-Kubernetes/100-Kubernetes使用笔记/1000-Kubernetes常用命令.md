@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/kubernetes-common-commands"
-title: "Kubernetes 常用命令"
+title: "Kubernetes常用命令"
 hide_title: true
 keywords:
   ["Kubernetes", "kubectl", "命令行", "集群管理", "常用命令", "运维操作"]

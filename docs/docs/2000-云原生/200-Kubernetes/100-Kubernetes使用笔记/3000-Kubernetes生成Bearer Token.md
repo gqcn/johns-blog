@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/kubernetes-generate-bearer-token"
-title: "Kubernetes生成Bearer Token方式"
+title: "Kubernetes生成Bearer Token"
 hide_title: true
 keywords:
   [
