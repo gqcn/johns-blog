@@ -136,24 +136,24 @@ spec:
 # ...
 ```
 
-#### 2.2.2 decoder
+#### 2.2.2 decode
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: qwen25-72b-int4-dhzn-pd-decoder
-  name: qwen25-72b-int4-dhzn-pd-decoder
+    app: qwen25-72b-int4-dhzn-pd-decode
+  name: qwen25-72b-int4-dhzn-pd-decode
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: qwen25-72b-int4-dhzn-pd-decoder
+      app: qwen25-72b-int4-dhzn-pd-decode
   template:
     metadata:
       labels:
-        app: qwen25-72b-int4-dhzn-pd-decoder
+        app: qwen25-72b-int4-dhzn-pd-decode
     spec:
       affinity:
         nodeAffinity:
@@ -185,10 +185,10 @@ spec:
         - name: UCX_LOG_LEVEL
           value: debug
         - name: SGL_LOGURU_PATH
-          value: /home/finance/Logs/decoder.log
+          value: /home/finance/Logs/decode.log
         image: aiharbor.msxf.local/test/sglang:0.4.8.post1-cu128
         imagePullPolicy: IfNotPresent
-        name: pd-sglang-decoder
+        name: pd-sglang-decode
         resources:
           limits:
             cpu: "24"
@@ -213,13 +213,13 @@ spec:
 ```bash
 $ k get pod -owide
 NAME                                               READY   STATUS    RESTARTS   AGE   IP               NODE                                  NOMINATED NODE   READINESS GATES
-qwen25-72b-int4-dhzn-pd-decoder-6f44bd8869-lhjv9   1/1     Running   0          20m   10.188.52.252    ai-app-8-1-msxf                       <none>           <none>
+qwen25-72b-int4-dhzn-pd-decode-6f44bd8869-lhjv9   1/1     Running   0          20m   10.188.52.252    ai-app-8-1-msxf                       <none>           <none>
 qwen25-72b-int4-dhzn-pd-prefill-88f47f885-d2c9h    1/1     Running   0          24m   10.188.52.247    ai-app-8-1-msxf                       <none>           <none>
 ```
 
 测试操作：
 
-1. 在`qwen25-72b-int4-dhzn-pd-decoder-6f44bd8869-lhjv`容器中执行：
+1. 在`qwen25-72b-int4-dhzn-pd-decode-6f44bd8869-lhjv`容器中执行：
     ```bash
     CUDA_VISIBLE_DEVICES=1 UCX_TLS=cuda_ipc,cuda_copy,rc,tcp ucx_perftest -t tag_bw -m cuda -s 10000000 -n 10 -p 9999 -c 0
     ```
@@ -229,7 +229,7 @@ qwen25-72b-int4-dhzn-pd-prefill-88f47f885-d2c9h    1/1     Running   0          
     ```bash
     CUDA_VISIBLE_DEVICES=0 UCX_TLS=cuda_ipc,cuda_copy,rc,tcp ucx_perftest 10.188.52.252 -t tag_bw -m cuda -s 100000000 -n 10 -p 9999 -c 1 | grep Final
     ```
-    其中`10.188.52.252`的`IP`是`decoder`的`Pod IP`。
+    其中`10.188.52.252`的`IP`是`decode`的`Pod IP`。
     最终输出结果如下：
     ```bash
     $ CUDA_VISIBLE_DEVICES=0 UCX_TLS=cuda_ipc,cuda_copy,rc,tcp ucx_perftest 10.188.52.252 -t tag_bw -m cuda -s 100000000 -n 10 -p 9999 -c 1 | grep -i final
@@ -246,7 +246,7 @@ qwen25-72b-int4-dhzn-pd-prefill-88f47f885-d2c9h    1/1     Running   0          
     GPU 0: NVIDIA H20 (UUID: GPU-b0c5b618-67d0-f464-9905-e1fd41226305)
     GPU 1: NVIDIA H20 (UUID: GPU-4695a002-ab2d-092d-6db9-44e9ae3cb5a6)
     ```
-    `decoder`容器：
+    `decode`容器：
     ```bash
     $ nvidia-smi -L
     GPU 0: NVIDIA H20 (UUID: GPU-4650fca3-dbba-f168-d6bd-338a4ba8f044)

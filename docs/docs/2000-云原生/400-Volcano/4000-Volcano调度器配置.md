@@ -208,9 +208,9 @@ tiers:
 ```
 
 **说明**：
-- `binpack.weight`：装箱算法的整体权重，默认为1
-- `binpack.cpu`：CPU资源的权重，默认为1
-- `binpack.memory`：内存资源的权重，默认为1
+- `binpack.weight`：装箱算法的整体权重，默认为`1`
+- `binpack.cpu`：`CPU`资源的权重，默认为`1`
+- `binpack.memory`：内存资源的权重，默认为`1`
 - `binpack.resources`：需要考虑的扩展资源列表
 - `binpack.resources.<resource-name>`：特定扩展资源的权重
 
@@ -235,8 +235,8 @@ tiers:
 ```
 
 **说明**：
-- `cardUnlimitedCpuMemory`：是否对使用GPU卡的Pod取消CPU和内存限制
-- `allowServiceTypeByPodOwnerReferences`：是否通过Pod的OwnerReferences来判断是推理还是训练类型
+- `cardUnlimitedCpuMemory`：是否对使用`GPU`卡的`Pod`取消`CPU`和内存限制
+- `allowServiceTypeByPodOwnerReferences`：是否通过`Pod`的`OwnerReferences`来判断是推理还是训练类型
 
 #### 4. drf 插件
 
@@ -248,7 +248,7 @@ tiers:
 ```
 
 **说明**：
-- `enabledHierarchy`：启用层级DRF算法
+- `enabledHierarchy`：启用层级`DRF`算法
 - `drf.namespaceWeight`：配置不同命名空间的权重
 
 ## 完整配置示例
