@@ -417,7 +417,7 @@ kubectl get nodes -L topology.kubernetes.io/switch,topology.kubernetes.io/switch
 **标签说明**：
 - `topology.kubernetes.io/switch`：标识节点所属的叶子交换机（`ib-switch0`、`ib-switch1`、`eth-switch2`、`eth-switch3`）
 - `topology.kubernetes.io/switch-type`：标识交换机类型（`ib`或`ethernet`）
-- `gpu-type`：标识节点上的GPU型号（`h100`或`rtx4090`）
+- `gpu-type`：标识节点上的`GPU`型号（`h100`或`rtx4090`）
 
 **重要提示**：
 - `PD`分离服务的节点必须在`IB`交换机下（`topology.kubernetes.io/switch-type=ib`）
