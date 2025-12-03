@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/kubernetes-krew-plugins"
-title: "Kuberntes krew常用插件"
+title: "Kubernetes krew常用插件"
 hide_title: true
 keywords:
   - krew
