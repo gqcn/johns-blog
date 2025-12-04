@@ -282,7 +282,7 @@ kubectl create secret generic ufm-credentials \
 
 **Step 2：配置Discoverer**
 
-注意这里修改的是控制器的配置。
+注意这里修改的是`volcano controller`的配置，由于`volcano controller`对`ConfigMap`有异步监听和热更新机制，因此修改该配置后无需手动重启`volcano controller`，理论上等待数秒后即可生效。
 
 ```yaml title="volcano-controller.conf"
 networkTopologyDiscovery:
