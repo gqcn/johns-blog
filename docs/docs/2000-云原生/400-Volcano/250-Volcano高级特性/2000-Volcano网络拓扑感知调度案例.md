@@ -1,6 +1,6 @@
 ---
-slug: "/cloud-native/volcano-network-topology-scheduling-example"
-title: "Volcano网络拓扑感知调度示例"
+slug: "/cloud-native/volcano-network-topology-scheduling-case"
+title: "Volcano网络拓扑感知调度案例"
 hide_title: true
 keywords:
   [
@@ -21,13 +21,13 @@ keywords:
 description: "通过PD分离部署场景，详细演示如何使用Volcano网络拓扑感知调度功能，在IB网络环境下优化大模型推理服务的节点选择，降低网络延迟，提升带宽利用率。包含HyperNode配置、节点标签、Prefill和Decode服务部署的完整示例。"
 ---
 
-在大规模`GPU`集群中部署大模型推理服务时，网络拓扑对性能的影响至关重要。本文通过**PD（Prefill-Decode）分离部署**的实战场景，详细演示如何使用`Volcano`的网络拓扑感知调度功能，在`IB（InfiniBand）`网络环境下优化节点选择，实现：
+在大规模`GPU`集群中部署大模型推理服务时，网络拓扑对性能的影响至关重要。本文通过**PD（Prefill-Decode）分离部署**的实战场景案例，详细演示如何使用`Volcano`的网络拓扑感知调度功能，在`IB（InfiniBand）`网络环境下优化节点选择，实现：
 
 - 🎯 **延迟优化**：将跨交换机通信延迟从`5-10μs`降低到`2-5μs`，性能提升`2-5`倍
 - 🎯 **带宽优化**：保持`200Gbps`高带宽，避免`50%`的带宽损失，吞吐量提升`30-50%`
 - 🎯 **资源优化**：`Prefill`使用`H100`高性能`GPU`，`Decode`使用`RTX 4090`性价比`GPU`，降低整体成本
 
-本文将从场景背景、技术方案分析、`HyperNode`拓扑设计到具体实施，提供完整的实践示例。
+本文将从场景背景、技术方案分析、`HyperNode`拓扑设计到具体实施，提供完整的实践案例。
 
 ## 1. 场景背景
 
