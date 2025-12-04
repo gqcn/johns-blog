@@ -667,3 +667,7 @@ spec:
    - ✅ 可以根据负载动态调整`Prefill`和`Decode`服务规模
    - ✅ 易于水平扩展，适应业务增长
 
+## 6. 参考资料
+
+- [Volcano官方文档 - 网络拓扑感知调度](https://volcano.sh/zh/docs/network_topology_aware_scheduling/)
+- [Volcano GitHub - Network Topology Aware Scheduling设计文档](https://github.com/volcano-sh/volcano/blob/master/docs/design/Network%20Topology%20Aware%20Scheduling.md)
