@@ -86,7 +86,7 @@ const config: Config = {
       },
       {
         property: 'og:image',
-        content: '/img/favicon.png'
+        content: 'https://johng.cn/img/favicon.png'
       }
     ],
     colorMode: {
