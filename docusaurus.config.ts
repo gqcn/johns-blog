@@ -108,49 +108,41 @@ const config: Config = {
         {
           position: 'left',
           label: 'AI技术',
-          sidebarId: 'mainSidebar',
           to: '/ai',
         },
         {
           position: 'left',
           label: '云原生',
-          sidebarId: 'mainSidebar',
           to: '/cloud-native',
         },
         {
           position: 'left',
           label: '日常笔记',
-          sidebarId: 'mainSidebar',
           to: '/notes',
         },
         {
           position: 'left',
           label: '开发语言',
-          sidebarId: 'mainSidebar',
           to: '/programming',
         },
         {
           position: 'left',
           label: '技术架构',
-          sidebarId: 'mainSidebar',
           to: '/architecture',
         },
         {
           position: 'left',
           label: '可观测性',
-          sidebarId: 'mainSidebar',
           to: '/observability',
         },
         {
           position: 'left',
           label: '数据库与中间件',
-          sidebarId: 'mainSidebar',
           to: '/database-and-middleware',
         },
         {
           position: 'left',
           label: '生活笔记',
-          sidebarId: 'mainSidebar',
           to: '/life',
         },
         {
