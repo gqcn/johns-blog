@@ -122,22 +122,7 @@ pre {
   font-size: 90%;
 }
 
-/* Blog */
-.header-blog-link:hover {
-  opacity: 0.6;
-}
 
-.header-blog-link:before {
-  content: '';
-  width: 25px;
-  height: 25px;
-  display: flex;
-  background: url("/img/blog.svg") no-repeat;
-}
-
-html[data-theme='dark'] .header-blog-link:before {
-  background: url("/img/blog.svg") no-repeat;
-}
 
 
 /* GitHub */

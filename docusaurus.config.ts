@@ -84,6 +84,10 @@ const config: Config = {
         name: 'author',
         content: 'John Guo',
       },
+      {
+        property: 'og:image',
+        content: '/img/favicon.png'
+      }
     ],
     colorMode: {
       defaultMode: 'light',
