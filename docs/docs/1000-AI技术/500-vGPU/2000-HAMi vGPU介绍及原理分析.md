@@ -1,6 +1,6 @@
 ---
 slug: "/ai/vgpu-hami"
-title: "HAMi vGPU调研"
+title: "HAMi vGPU介绍及原理分析"
 hide_title: true
 keywords: [HAMi, vGPU, GPU虚拟化, Kubernetes, CUDA API劫持, 显存隔离, GPU共享, CNCF, 云原生]
 description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化解决方案。通过CUDA API劫持实现硬显存隔离和算力配额管理，支持多GPU厂商，零侵入应用，是目前最成熟的开源vGPU方案之一。"
