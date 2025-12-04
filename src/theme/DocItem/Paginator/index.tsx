@@ -1,6 +1,6 @@
 import { useDoc } from "@docusaurus/plugin-content-docs/client";
 import type { WrapperProps } from '@docusaurus/types';
-// import Comments from "@site/src/components/Comments";
+import Comments from "@site/src/components/Comments";
 import Paginator from '@theme-original/DocItem/Paginator';
 import type PaginatorType from '@theme/DocItem/Paginator';
 
@@ -13,7 +13,7 @@ export default function PaginatorWrapper(props: Props): JSX.Element {
   return (
     <>
       <Paginator {...props} />
-      {/* {comments && <Comments />} */}
+      {comments && <Comments />}
     </>
   );
 }
