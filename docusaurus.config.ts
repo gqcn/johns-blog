@@ -69,6 +69,8 @@ const config: Config = {
         disableInDev: true,
       } satisfies IdealImageOptions,
     ],
+    // WeChat share plugin - inject hidden image for WeChat crawler
+    './plugins/wechat-share-plugin.js',
   ],
   themeConfig: {
     metadata: [
