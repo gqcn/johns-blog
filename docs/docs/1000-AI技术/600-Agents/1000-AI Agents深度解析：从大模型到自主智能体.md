@@ -1,5 +1,5 @@
 ---
-slug: "/ai/agents-introduction-and-applications"
+slug: "/ai/agents-deep-dive-from-llm-to-autonomous-agents"
 title: "AI Agents深度解析：从大模型到自主智能体"
 hide_title: true
 keywords: [AI Agents, 智能体, 人工智能, 大语言模型, LLM, 自主智能体, 多智能体系统, AutoGPT, LangChain, AgentGPT, 认知架构, 工具调用, 任务规划, 记忆系统, RAG, 感知决策执行, ReAct, Chain-of-Thought, Function Calling, MCP协议]
