@@ -4,9 +4,9 @@ title: "Volcano常用注解"
 hide_title: true
 keywords:
   [
-    "Volcano", "Kubernetes", "Annotations", "注解", "PodGroup", "Pod", "调度器", "queue-name", "preemptable", "min-available", "资源分配", "调度策略"
+    "Volcano", "Kubernetes", "Annotations", "注解", "PodGroup", "Pod", "调度器", "queue-name", "preemptable", "min-available", "资源分配", "调度策略", "QoS", "SLA", "resource-group", "混部", "服务质量"
   ]
-description: "本文详细介绍了Volcano提供的各种注解（Annotations）及其在Pod和PodGroup资源上的应用，包括队列指定、资源预留、最小可用数量和优先级设置等，并提供了实际使用示例和最佳实践。"
+description: "本文详细介绍了Volcano提供的各种注解（Annotations）及其在Pod和PodGroup资源上的应用，包括队列指定、资源预留、最小可用数量、优先级设置、QoS等级、SLA保障和资源组管理等，并提供了实际使用示例和最佳实践。"
 ---
 
 
@@ -22,6 +22,9 @@ description: "本文详细介绍了Volcano提供的各种注解（Annotations）
 |`volcano.sh/min-available`|`PodGroup`| 指定`PodGroup`最小可用`Pod`数量 |`"3"`|
 |`volcano.sh/priorityClassName`|`PodGroup`| 指定`PodGroup`的优先级类名 |`"high-priority"`|
 |`volcano.sh/task-priority`|`Pod`| 指定`Pod`在任务中的优先级 |`"10"`|
+|`volcano.sh/qos-level`|`Pod`| 指定`Pod`的服务质量等级 |`"LC"`,`"HLS"`,`"LS"`,`"BE"`|
+|`volcano.sh/sla-waiting-time`|`Job`| 设置`Job`在`Pending`状态的最大等待时间 |`"30m"`,`"1h"`|
+|`volcano.sh/resource-group`|`Pod`| 标记`Pod`属于哪个资源组 |`"gpu"`,`"cpu"`|
 |`volcano.sh/closed-by-parent`|`Queue`| 标记队列是否由父队列关闭 |`"true"`|
 |`volcano.sh/createdByJobTemplate`|`Job`| 标记`Job`是否由作业模板创建 |`"template-name"`|
 |`volcano.sh/createdByJobFlow`|`Job`| 标记`Job`是否由作业流创建 |`"flow-name"`|
@@ -289,3 +292,179 @@ spec:
   schedulerName: volcano
   # 其他作业配置...
 ```
+
+### `volcano.sh/qos-level`
+
+**作用**：指定`Pod`的服务质量（`QoS`）等级。用于`Volcano Agent`的混部场景，标记`Pod`的服务质量等级，以便进行资源隔离和`QoS`保障。
+
+**适用场景**：
+- 在线/离线混部场景
+- 需要对不同优先级的工作负载进行资源隔离和`QoS`保障
+
+**可选值**：
+- `LC` (`Latency Critical`) - 延迟关键型，优先级最高
+- `HLS` (`Highly Latency Sensitive`) - 高度延迟敏感型
+- `LS` (`Latency Sensitive`) - 延迟敏感型
+- `BE` (`Best Effort`) - 尽力而为型，优先级最低
+
+**重要性**：在混部场景中，通过`QoS`等级可以确保在线服务的延迟敏感性，同时充分利用离线任务填充空闲资源，提高整体资源利用率。
+
+**示例**：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: online-service
+  annotations:
+    volcano.sh/qos-level: "LC"  # 标记为延迟关键型
+spec:
+  schedulerName: volcano
+  containers:
+  - name: app
+    image: my-app:latest
+    resources:
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+```
+
+### `volcano.sh/sla-waiting-time`
+
+**作用**：设置`Job`在`Pending`状态下的最大等待时间。当`Job`等待时间超过此值后，将强制入队并创建`Pending`状态的`Pod`，即使集群资源不足。
+
+**适用场景**：
+- 需要保证`Job`的`SLA`（服务级别协议）
+- 防止`Job`因资源不足长时间等待
+- 确保任务在规定时间内得到响应
+
+**时间格式**：支持的时间单位包括 `"ns"`, `"us"` (或 `"µs"`), `"ms"`, `"s"`, `"m"`, `"h"`
+
+**配置方式**：
+
+1. **全局配置**（在调度器配置中）：
+
+```yaml
+actions: "enqueue, allocate, backfill"
+tiers:
+- plugins:
+  - name: sla
+    arguments:
+      sla-waiting-time: 1h  # 全局等待时间
+```
+
+2. **单个Job配置**（在`Job`的`annotations`中）：
+
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: training-job
+  annotations:
+    volcano.sh/sla-waiting-time: "30m"  # 单独设置等待时间，覆盖全局配置
+spec:
+  minAvailable: 3
+  schedulerName: volcano
+  tasks:
+  - replicas: 3
+    name: worker
+    template:
+      spec:
+        containers:
+        - name: trainer
+          image: tensorflow:latest
+          resources:
+            requests:
+              cpu: "4"
+              memory: "8Gi"
+```
+
+**重要性**：通过设置`SLA`等待时间，可以避免`Job`因资源不足而无限期等待，确保任务在可接受的时间范围内得到处理，提高用户体验。
+
+**注意事项**：
+- 单个`Job`的`sla-waiting-time`注解会覆盖全局配置
+- 如果不设置此注解，`Job`将无`SLA`限制，可能长时间处于等待状态
+
+### `volcano.sh/resource-group`
+
+**作用**：标记`Pod`属于哪个资源组。用于`Volcano Webhook`的自动注入功能，根据资源组自动为`Pod`注入`nodeSelector`、`tolerations`、`labels`等配置。
+
+**适用场景**：
+- 需要根据资源组自动注入调度策略
+- 实现基于资源组的`Pod`自动调度
+- 简化`Pod`配置，避免重复编写相同的调度配置
+
+**工作原理**：
+1. 在`Volcano Webhook`配置中定义资源组及其对应的配置
+2. `Pod`添加此注解后，`Webhook`会自动注入对应的配置
+3. 简化用户配置，提高配置一致性
+
+**示例**：
+
+**Webhook配置**：
+
+```yaml
+resourceGroups:
+- resourceGroup: "gpu"
+  object:
+    key: "annotation"
+    value:
+    - "volcano.sh/resource-group: gpu"
+  schedulerName: "volcano"
+  labels:
+    volcano.sh/nodetype: "gpu"
+  tolerations:
+  - key: "gpu"
+    operator: "Exists"
+    effect: "NoSchedule"
+```
+
+**Pod配置**：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-pod
+  annotations:
+    volcano.sh/resource-group: "gpu"  # 标记为GPU资源组
+spec:
+  schedulerName: volcano
+  containers:
+  - name: app
+    image: my-gpu-app:latest
+    resources:
+      requests:
+        nvidia.com/gpu: 1
+```
+
+**自动注入效果**：
+
+`Webhook`会自动为上述`Pod`注入以下配置：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: gpu-pod
+  annotations:
+    volcano.sh/resource-group: "gpu"
+  labels:
+    volcano.sh/nodetype: "gpu"  # 自动注入
+spec:
+  schedulerName: volcano
+  nodeSelector:
+    volcano.sh/nodetype: "gpu"  # 自动注入
+  tolerations:  # 自动注入
+  - key: "gpu"
+    operator: "Exists"
+    effect: "NoSchedule"
+  containers:
+  - name: app
+    image: my-gpu-app:latest
+    resources:
+      requests:
+        nvidia.com/gpu: 1
+```
+
+**重要性**：通过资源组自动注入功能，可以大大简化`Pod`配置，确保同一资源组的`Pod`具有一致的调度策略，减少配置错误。
