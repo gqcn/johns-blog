@@ -150,7 +150,7 @@ const config: Config = {
           to: '/life',
         },
         {
-          position: 'left',
+          position: 'right',
           label: '关于我',
           to: '/aboutme',
         },
