@@ -199,7 +199,7 @@ kubectl delete pod test-pod
 如果使用文件后端，审计日志默认存储在配置的路径中（如 `/var/log/kubernetes/audit.log`）。
 
 :::tip
-审计日志文件存储在运行`kube-apiserver`的节点上，需要登录到该节点查看。如果是高可用集群，每个`kube-apiserver`节点都有各自的审计日志文件。
+审计日志文件存储在运行`kube-apiserver`的**宿主机**节点上，需要登录到该节点查看。如果是高可用集群，每个`kube-apiserver`节点都有各自的审计日志文件。
 :::
 
 #### 在kube-apiserver节点上查看
