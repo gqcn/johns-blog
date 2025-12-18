@@ -1,0 +1,32 @@
+---
+slug: "/ai/ai-hpc"
+title: "AI-HPC"
+hide_title: true
+keywords:
+  [
+    "AI-HPC",
+    "高性能计算",
+    "HPC",
+    "AI训练平台",
+    "MLOps",
+    "分布式训练",
+    "Gang Scheduling",
+    "MPI",
+    "PyTorch分布式",
+    "Kubeflow",
+    "Volcano调度",
+    "GPU集群",
+    "深度学习训练",
+    "模型微调",
+    "Kubernetes",
+    "批处理调度",
+    "NCCL",
+    "InfiniBand"
+  ]
+description: "AI-HPC技术专题，涵盖高性能计算基础、AI模型开发训练平台、开源MLOps项目对比、Volcano调度器HPC生态组件分析，深入探讨分布式训练、Gang调度、MPI并行计算等核心技术"
+---
+
+
+import DocCardList from '@theme/DocCardList';
+
+<DocCardList />
