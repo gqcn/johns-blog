@@ -30,9 +30,11 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 
 ## 1. Kubeflow项目简介
 
+![Kubeflow](../assets/AI模型开发训练平台开源项目调研/image.png)
+
 ### 1.1 项目背景
 
-[Kubeflow](https://www.kubeflow.org/)是一个开源的机器学习平台，旨在使机器学习工作流在`Kubernetes`上的部署变得简单、可移植和可扩展。该项目于2017年由`Google`发起，现已成为`CNCF`（云原生计算基金会）的孵化项目。
+[Kubeflow](https://www.kubeflow.org/) 是一个开源的机器学习平台，旨在使机器学习工作流在`Kubernetes`上的部署变得简单、可移植和可扩展。该项目于2017年由`Google`发起，现已成为`CNCF`（云原生计算基金会）的孵化项目。
 
 `Kubeflow`的核心目标是：
 - **简化ML工作流**：提供端到端的机器学习工作流管理能力
@@ -64,6 +66,8 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 
 ## 2. Kubeflow Trainer详细介绍
 
+
+
 ### 2.1 项目演进
 
 `Kubeflow Trainer`（原名`Training Operator`）代表了`Kubeflow`训练组件的下一代演进，建立在超过七年的`Kubernetes ML`工作负载运行经验之上。
@@ -74,7 +78,12 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 - **2021年**：将各个独立的`Operator`整合为统一的`Training Operator v1`
 - **2025年7月**：正式发布`Kubeflow Trainer v2.0`，采用全新架构
 
+![Kubeflow Trainer](<assets/4000-Kubeflow Trainer In HPC/image-1.png>)
+
+
 ### 2.2 Trainer v2核心特性
+
+![Kubeflow Trainer](<assets/4000-Kubeflow Trainer In HPC/image.png>)
 
 `Kubeflow Trainer v2`是一个`Kubernetes`原生项目，专为大语言模型（`LLM`）微调和可扩展的分布式机器学习模型训练而设计。
 
@@ -87,6 +96,7 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 - 整合`Kubernetes Batch WG`和`Kubeflow`社区的努力
 
 ### 2.3 核心API设计
+
 
 `Kubeflow Trainer v2`引入了三个核心`CRD`：
 
@@ -152,6 +162,8 @@ spec:
 
 ### 2.4 用户角色分离
 
+
+
 `Kubeflow Trainer v2`采用了清晰的用户角色分离设计：
 
 | 角色 | 职责 | 技能要求 |
@@ -161,8 +173,11 @@ spec:
 | **数据科学家/ML工程师** | 创建模型架构和`ML`算法 | 熟悉`torch.nn API`，使用`Python` |
 
 这种设计使得：
-- **平台工程师**：负责创建和维护`TrainingRuntime`，配置基础设施参数
-- **数据科学家**：只需创建简单的`TrainJob`，无需理解复杂的`Kubernetes API`
+- **数据科学家**（`AI Practitioners`）：只需创建简单的`TrainJob`，无需理解复杂的`Kubernetes API`。
+- **平台工程师**（`Platform Admins`）：负责创建和维护`TrainingRuntime`，配置基础设施参数。
+
+
+![Kubeflow Trainer](<assets/4000-Kubeflow Trainer In HPC/image-2.png>)
 
 ## 3. HPC训练场景技术挑战与解决方案
 
@@ -928,20 +943,7 @@ func (v *Volcano) Build(...) ([]apiruntime.ApplyConfiguration, error) {
 
 ```mermaid
 graph TB
-    subgraph "方案A: Volcano Job"
-        VJ["Volcano Job<br/>(batch.volcano.sh)"]
-        VPG1["PodGroup<br/>(自动创建)"]
-        VP1["Pod"]
-        VP2["Pod"]
-        VP3["Pod"]
-        
-        VJ --> VPG1
-        VJ --> VP1
-        VJ --> VP2
-        VJ --> VP3
-    end
-    
-    subgraph "方案B: Kubeflow Trainer + Volcano"
+    subgraph "Kubeflow Trainer"
         TJ2["TrainJob<br/>(trainer.kubeflow.org)"]
         JS2["JobSet<br/>(jobset.x-k8s.io)"]
         KPG["PodGroup<br/>(scheduling.volcano.sh)"]
@@ -956,6 +958,19 @@ graph TB
         JS2 --> KJ2
         KJ1 --> KP1
         KJ2 --> KP2
+    end
+
+        subgraph "Volcano Job"
+        VJ["Volcano Job<br/>(batch.volcano.sh)"]
+        VPG1["PodGroup<br/>(自动创建)"]
+        VP1["Pod"]
+        VP2["Pod"]
+        VP3["Pod"]
+        
+        VJ --> VPG1
+        VJ --> VP1
+        VJ --> VP2
+        VJ --> VP3
     end
 ```
 
@@ -993,7 +1008,7 @@ graph TB
     end
     
     subgraph VS["Volcano Scheduler"]
-        subgraph Queues["队列管理"]
+        subgraph Queues["Volcano Queue"]
             QA["Queue A<br/>权重: 40%"]
             QB["Queue B<br/>权重: 35%"]
             QC["Queue C<br/>权重: 25%"]
@@ -1014,7 +1029,4 @@ graph TB
 
 - [Kubeflow Trainer官方文档](https://www.kubeflow.org/docs/components/trainer/)
 - [Kubeflow Trainer GitHub仓库](https://github.com/kubeflow/trainer)
-- [Kubeflow Trainer v2发布博客](https://blog.kubeflow.org/trainer/intro/)
 - [Volcano官方文档](https://volcano.sh/en/docs/)
-- [KEP-2170: Kubeflow Trainer V2 API](https://github.com/kubeflow/trainer/tree/master/docs/proposals/2170-kubeflow-trainer-v2)
-- [KEP-2437: Support Volcano Scheduler](https://github.com/kubeflow/trainer/tree/master/docs/proposals/2437-volcano-scheduler)
