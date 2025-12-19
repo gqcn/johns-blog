@@ -169,25 +169,302 @@ flowchart TB
 
 ## 4. 生态组件总览对比
 
-| 组件 | 适用场景 | 并行模式 | 通信后端 | 弹性支持 | 成熟度 | 社区活跃度 |
-|------|----------|----------|----------|----------|--------|------------|
-| **MPI Operator** | 传统`HPC`、科学计算 | `MPI`进程并行 | `MPI` (`TCP/IB/RDMA`) | ❌ | ⭐⭐⭐⭐⭐ | 高 |
-| **PyTorch Operator** | 深度学习训练 | 数据并行/模型并行 | `NCCL`/`Gloo` | ✅ | ⭐⭐⭐⭐⭐ | 高 |
-| **TensorFlow Operator** | 深度学习训练 | `PS/AllReduce` | `gRPC/NCCL` | ❌ | ⭐⭐⭐⭐ | 中 |
-| **PaddlePaddle Operator** | 深度学习训练 | `Collective/PS` | `NCCL/Gloo` | ✅ | ⭐⭐⭐ | 中 |
-| **Horovod** | 多框架分布式训练 | `AllReduce` | `MPI/NCCL/Gloo` | ❌ | ⭐⭐⭐⭐ | 中 |
-| **Ray Operator** | 分布式计算/强化学习 | `Actor`模型 | `Ray`内置 | ✅ | ⭐⭐⭐⭐ | 高 |
-| **Spark Operator** | 大数据处理 | `MapReduce/DAG` | `Shuffle` | ✅ | ⭐⭐⭐⭐⭐ | 高 |
-| **Kubeflow Training Operator** | 统一训练管理 | 多种模式 | 多种后端 | 部分 | ⭐⭐⭐⭐ | 高 |
+
+| 对比项 | [Kubeflow Trainer](https://github.com/kubeflow/trainer) | [Spark Operator](https://github.com/kubeflow/spark-operator) | [Kuberay](https://github.com/ray-project/kuberay) | [MPI Operator](https://github.com/kubeflow/mpi-operator) | [Horovod](https://github.com/horovod/horovod) | [PaddleCloud](https://github.com/PaddlePaddle/PaddleCloud) |
+|--------|-------------------|----------------|--------------|-------------|---------|---------|
+| **GitHub Stars** | ~2k | ~3.1k | ~2.2k | ~500 | ~14.6k | ~300 |
+| **适用场景** | 统一训练管理 | 大数据处理 | 分布式计算/强化学习 | 传统`HPC`、科学计算 | 多框架分布式训练 | 深度学习训练 |
+| **开发语言** | `Go`/`Python` | `Go` | `Go` | `Go` | `Python`/`C++` | `Go` |
+| **并行模式** | 多种模式 | `MapReduce/DAG` | `Actor`模型 | `MPI`进程并行 | `AllReduce` | `Collective/PS` |
+| **通信后端** | 多种后端 | `Shuffle` | `Ray`内置 | `MPI`(`TCP/IB/RDMA`) | `MPI/NCCL/Gloo` | `NCCL/Gloo` |
+| **最低K8S版本** | >= 1.16 | >= 1.16 | >= 1.16 | >= 1.14 | >= 1.16 | >= 1.16 |
+| **弹性支持** | 部分 | ✅ | ✅ | ❌ | ❌ | ✅ |
+| **成熟度** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **社区活跃度** | 高 | 高 | 高 | 中 | 低（维护模式） | 低 |
 
 
 ## 5. 各组件详细介绍
 
-### 5.1 MPI Operator
+### 5.1 Kubeflow Trainer
+
+#### 简介
+
+`Kubeflow Trainer`是一个统一的训练作业管理组件，整合了多种框架的`Operator`功能。它是`Kubeflow`项目的核心组件之一，提供统一的作业管理接口，原生支持`Volcano`调度器集成。
+
+项目地址：https://github.com/kubeflow/trainer
+
+#### 支持的作业类型
+
+| 作业类型 | CRD | 说明 |
+|----------|-----|------|
+| **PyTorch** | `PyTorchJob` | `PyTorch`分布式训练 |
+| **TensorFlow** | `TFJob` | `TensorFlow`分布式训练 |
+| **MPI** | `MPIJob` | `MPI`并行计算 |
+| **XGBoost** | `XGBoostJob` | `XGBoost`分布式训练 |
+| **PaddlePaddle** | `PaddleJob` | 飞桨分布式训练 |
+| **MXNet** | `MXJob` | `MXNet`分布式训练 |
+
+#### 与Volcano集成
+
+`Kubeflow Training Operator`原生支持`Volcano`调度器：
+
+```yaml
+spec:
+  runPolicy:
+    schedulingPolicy:
+      minAvailable: 2
+      queue: default
+      priorityClass: high-priority
+  pytorchReplicaSpecs:
+    Master:
+      template:
+        spec:
+          schedulerName: volcano  # 使用Volcano调度器
+```
+
+#### 配置示例
+```yaml
+apiVersion: kubeflow.org/v1
+kind: PyTorchJob
+metadata:
+  name: unified-pytorch-job
+spec:
+  runPolicy:
+    cleanPodPolicy: Running
+    schedulingPolicy:
+      minAvailable: 2
+      queue: default
+      priorityClass: high-priority
+  pytorchReplicaSpecs:
+    Master:
+      replicas: 1
+      template:
+        spec:
+          schedulerName: volcano
+          containers:
+          - name: pytorch
+            image: pytorch/pytorch:2.0.0
+            command: ["python", "train.py"]
+    Worker:
+      replicas: 3
+      template:
+        spec:
+          schedulerName: volcano
+          containers:
+          - name: pytorch
+            image: pytorch/pytorch:2.0.0
+```
+
+#### 优点
+
+| 优点 | 说明 |
+|------|------|
+| **统一管理** | 一个`Operator`管理多种框架 |
+| **Volcano集成** | 原生支持`Volcano`调度 |
+| **标准化** | 统一的作业管理接口 |
+| **维护简单** | 减少`Operator`数量 |
+| **社区活跃** | `Kubeflow`社区持续维护 |
+
+#### 缺点
+
+| 缺点 | 说明 |
+|------|------|
+| **功能滞后** | 新特性支持可能滞后 |
+| **依赖复杂** | `Kubeflow`组件依赖 |
+| **资源开销** | 控制器本身有一定资源消耗 |
+
+
+
+### 5.2 Spark Operator
+
+#### 简介
+
+`Spark Operator`支持在`Kubernetes`上运行`Apache Spark`应用，适合大数据处理和机器学习工作负载。`Spark`是大数据领域最流行的计算引擎，支持批处理、流处理、机器学习和图计算。
+
+项目地址：https://github.com/kubeflow/spark-operator
+
+#### 支持的运行模式
+
+| 模式 | 说明 | 适用场景 |
+|------|------|----------|
+| **Cluster Mode** | `Driver`运行在集群内 | 生产环境、长时间运行 |
+| **Client Mode** | `Driver`运行在提交节点 | 交互式开发、调试 |
+
+#### Spark核心组件
+
+| 组件 | 功能 |
+|------|------|
+| **Spark SQL** | 结构化数据处理 |
+| **Spark Streaming** | 实时流处理 |
+| **MLlib** | 机器学习库 |
+| **GraphX** | 图计算 |
+| **Structured Streaming** | 统一批流处理 |
+
+#### 配置示例
+```yaml
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: spark-pi
+spec:
+  type: Scala
+  mode: cluster
+  image: spark:3.4.0
+  mainClass: org.apache.spark.examples.SparkPi
+  mainApplicationFile: local:///opt/spark/examples/jars/spark-examples.jar
+  sparkVersion: "3.4.0"
+  restartPolicy:
+    type: Never
+  driver:
+    cores: 1
+    memory: "512m"
+    serviceAccount: spark
+  executor:
+    cores: 1
+    instances: 2
+    memory: "512m"
+  dynamicAllocation:
+    enabled: true
+    initialExecutors: 2
+    minExecutors: 1
+    maxExecutors: 10
+```
+
+#### 优点
+
+| 优点 | 说明 |
+|------|------|
+| **动态分配** | 支持`Executor`动态扩缩容 |
+| **生态成熟** | `Spark`生态系统完善 |
+| **大数据支持** | 适合大规模数据处理 |
+| **多语言** | 支持`Scala/Java/Python/R` |
+| **统一引擎** | 批处理、流处理、ML统一 |
+
+#### 缺点
+
+| 缺点 | 说明 |
+|------|------|
+| **资源开销** | `JVM`内存开销较大 |
+| **启动延迟** | 冷启动时间较长 |
+| **复杂配置** | `Spark`配置参数众多 |
+| **小文件问题** | 处理大量小文件效率低 |
+
+
+### 5.3 Kuberay
+
+#### 简介
+
+`Ray`是由`UC Berkeley RISELab`开发的通用分布式计算框架，特别适合强化学习、超参数调优和分布式`Python`应用。`Ray Operator`将`Ray`集群管理能力带入`Kubernetes`，支持自动扩缩容和故障恢复。
+
+项目地址：https://github.com/ray-project/kuberay
+
+#### 核心组件
+
+| 组件 | 功能 | 适用场景 |
+|------|------|----------|
+| **Ray Core** | 分布式计算基础设施 | 通用分布式应用 |
+| **Ray Train** | 分布式训练 | 深度学习训练 |
+| **Ray Tune** | 超参数调优 | `AutoML`、`HPO` |
+| **Ray Serve** | 模型服务 | 在线推理 |
+| **RLlib** | 强化学习库 | `RL`训练 |
+| **Ray Data** | 分布式数据处理 | 数据预处理 |
+
+#### Actor编程模型
+
+`Ray`的核心是`Actor`编程模型：
+
+```python
+import ray
+
+# 定义Actor
+@ray.remote
+class Counter:
+    def __init__(self):
+        self.value = 0
+    
+    def increment(self):
+        self.value += 1
+        return self.value
+
+# 创建Actor实例
+counter = Counter.remote()
+
+# 调用Actor方法
+result = ray.get(counter.increment.remote())
+```
+
+#### 配置示例
+```yaml
+apiVersion: ray.io/v1
+kind: RayJob
+metadata:
+  name: ray-job-sample
+spec:
+  entrypoint: python train.py
+  runtimeEnvYAML: |
+    pip:
+      - torch
+      - ray[train]
+  rayClusterSpec:
+    headGroupSpec:
+      rayStartParams:
+        dashboard-host: '0.0.0.0'
+      template:
+        spec:
+          containers:
+          - name: ray-head
+            image: rayproject/ray:2.7.0-py310-gpu
+            resources:
+              limits:
+                nvidia.com/gpu: 1
+    workerGroupSpecs:
+    - replicas: 2
+      minReplicas: 1
+      maxReplicas: 4
+      groupName: gpu-workers
+      rayStartParams: {}
+      template:
+        spec:
+          containers:
+          - name: ray-worker
+            image: rayproject/ray:2.7.0-py310-gpu
+            resources:
+              limits:
+                nvidia.com/gpu: 1
+```
+
+#### 优点
+
+| 优点 | 说明 |
+|------|------|
+| **弹性扩展** | 支持自动扩缩容 |
+| **通用性强** | 不限于深度学习 |
+| **Actor模型** | 灵活的分布式编程模型 |
+| **生态丰富** | 内置多种`AI`工具库 |
+| **故障恢复** | 自动重启失败的`Actor`|
+| **资源管理** | 细粒度资源分配 |
+
+#### 缺点
+
+| 缺点 | 说明 |
+|------|------|
+| **学习成本** | `Ray`编程模型需要学习 |
+| **资源开销** | `Head`节点资源消耗 |
+| **复杂度** | 集群管理相对复杂 |
+| **调试难度** | 分布式`Actor`调试困难 |
+
+
+
+
+
+
+### 5.4 MPI Operator
 
 #### 简介
 
 `MPI`（`Message Passing Interface`，消息传递接口）是`HPC`领域最重要的并行编程标准，定义了进程间通信的接口规范。`MPI Operator`将这一经典的`HPC`编程模型引入`Kubernetes`云原生环境，使传统`HPC`应用能够无缝迁移到容器化平台。
+
+项目地址：https://github.com/kubeflow/mpi-operator
 
 #### MPI核心概念
 
@@ -289,264 +566,13 @@ spec:
 | **调试困难** | 分布式环境下问题定位复杂 |
 
 
-### 5.2 PyTorch Operator
-
-#### 简介
-
-`PyTorch Operator`为`PyTorch`分布式训练提供云原生支持，是目前最流行的深度学习训练`Operator`之一。它通过`PyTorchJob CRD`简化了分布式训练的部署和管理，支持从单机多卡到多机多卡的各种训练场景。
-
-#### 支持的分布式策略
-
-| 策略 | 说明 | 适用场景 | 内存效率 |
-|------|------|----------|----------|
-| **DDP** | 数据并行，每个`GPU`持有完整模型副本 | 中小模型、数据量大 | 低 |
-| **FSDP** | 完全分片数据并行，模型参数分片存储 | 大模型训练 | 高 |
-| **Pipeline Parallel** | 模型按层切分，流水线执行 | 超深模型 | 中 |
-| **Tensor Parallel** | 单层内部张量切分 | 超宽模型 | 中 |
-| **3D Parallel** | `DDP + PP + TP`组合 | 超大规模模型（`GPT-3`级别） | 高 |
-
-#### 通信后端详解
-
-| 后端 | 适用场景 | 性能 | 特点 |
-|------|----------|------|------|
-| **NCCL** | `GPU`集群 | ⭐⭐⭐⭐⭐ | `NVIDIA`优化，支持`NVLink/IB` |
-| **Gloo** | `CPU/GPU`混合 | ⭐⭐⭐⭐ | 跨平台，支持`TCP/IB` |
-| **MPI** | 传统`HPC`环境 | ⭐⭐⭐⭐ | 标准化，兼容性好 |
-
-#### TorchElastic弹性训练
-
-`PyTorch Operator`支持`TorchElastic`，提供以下弹性能力：
-
-| 能力 | 说明 |
-|------|------|
-| **动态扩缩容** | 运行时增加或减少`Worker`数量 |
-| **故障容忍** | 单个`Worker`失败不影响整体训练 |
-| **自动恢复** | 从检查点自动恢复训练状态 |
-| **资源弹性** | 根据资源可用性动态调整 |
-
-#### 配置示例
-```yaml
-apiVersion: kubeflow.org/v1
-kind: PyTorchJob
-metadata:
-  name: pytorch-ddp-job
-spec:
-  pytorchReplicaSpecs:
-    Master:
-      replicas: 1
-      restartPolicy: OnFailure
-      template:
-        spec:
-          containers:
-          - name: pytorch
-            image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
-            command:
-            - python
-            - -m
-            - torch.distributed.launch
-            - --nproc_per_node=4
-            - --nnodes=2
-            - train.py
-            resources:
-              limits:
-                nvidia.com/gpu: 4
-    Worker:
-      replicas: 1
-      restartPolicy: OnFailure
-      template:
-        spec:
-          containers:
-          - name: pytorch
-            image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
-            resources:
-              limits:
-                nvidia.com/gpu: 4
-```
-
-#### 优点
-
-| 优点 | 说明 |
-|------|------|
-| **弹性训练** | 支持`TorchElastic`动态扩缩容 |
-| **容错恢复** | 支持检查点自动恢复 |
-| **易用性高** | 与`PyTorch`原生API无缝集成 |
-| **社区活跃** | 持续更新，问题响应快 |
-| **生态丰富** | `HuggingFace`、`DeepSpeed`、`Megatron`等深度集成 |
-| **调试工具** | 支持`torch.distributed.launch`、`torchrun`等工具 |
-
-#### 缺点
-
-| 缺点 | 说明 |
-|------|------|
-| **框架绑定** | 仅支持`PyTorch` |
-| **学习曲线** | 分布式概念需要学习 |
-| **调试困难** | 分布式环境调试复杂 |
-| **版本兼容** | 不同PyTorch版本API可能有差异 |
-
-
-
-### 5.3 TensorFlow Operator
-
-#### 简介
-
-`TensorFlow Operator`支持`TensorFlow`分布式训练，通过`TFJob CRD`管理分布式训练作业，自动处理`TF_CONFIG`环境变量注入和服务发现。支持`Parameter Server`和`AllReduce`两种主流分布式策略。
-
-#### 分布式策略详解
-
-| 策略 | 架构 | 适用场景 | 通信模式 | 优缺点 |
-|------|------|----------|----------|--------|
-| **Parameter Server** | `PS + Worker` | 大规模稀疏模型 | 异步/同步 | 适合稀疏特征，`PS`可能成为瓶颈 |
-| **AllReduce** | 对等节点 | 密集模型训练 | 同步 | 通信效率高，适合密集模型 |
-| **MultiWorkerMirrored** | 多`Worker`镜像 | 数据并行 | 同步 | 易用性好，自动处理同步 |
-| **TPUStrategy** | `TPU`集群 | `TPU`训练 | 同步 | `TPU`专用，高性能 |
-
-#### TF_CONFIG自动注入
-
-`TensorFlow Operator`自动为每个`Pod`注入`TF_CONFIG`环境变量：
-
-```json
-{
-  "cluster": {
-    "worker": ["worker-0:2222", "worker-1:2222"],
-    "ps": ["ps-0:2222"]
-  },
-  "task": {
-    "type": "worker",
-    "index": 0
-  }
-}
-```
-
-#### 配置示例
-```yaml
-apiVersion: kubeflow.org/v1
-kind: TFJob
-metadata:
-  name: tf-ps-job
-spec:
-  tfReplicaSpecs:
-    PS:
-      replicas: 2
-      restartPolicy: Never
-      template:
-        spec:
-          containers:
-          - name: tensorflow
-            image: tensorflow/tensorflow:2.12.0-gpu
-            command: ["python", "train.py"]
-    Worker:
-      replicas: 4
-      restartPolicy: Never
-      template:
-        spec:
-          containers:
-          - name: tensorflow
-            image: tensorflow/tensorflow:2.12.0-gpu
-            command: ["python", "train.py"]
-            resources:
-              limits:
-                nvidia.com/gpu: 1
-```
-
-#### 优点
-
-| 优点 | 说明 |
-|------|------|
-| **策略丰富** | 支持多种分布式策略 |
-| **自动配置** | 自动注入`TF_CONFIG`环境变量 |
-| **生态完善** | `TensorFlow`生态系统支持 |
-| **TPU支持** | 原生支持`Google TPU` |
-| **SavedModel** | 标准化模型导出格式 |
-
-#### 缺点
-
-| 缺点 | 说明 |
-|------|------|
-| **无弹性** | 不支持动态扩缩容 |
-| **复杂度高** | `PS`模式配置复杂 |
-| **性能开销** | `PS`模式存在通信瓶颈 |
-| **版本碎片** | `TF1.x`和`TF2.x` `API`差异大 |
-
-
-
-### 5.4 PaddlePaddle Operator
-
-#### 简介
-
-`PaddlePaddle Operator`是百度飞桨深度学习框架的`Kubernetes Operator`，支持国产`AI`框架的分布式训练。作为国内最成熟的深度学习框架之一，飞桨在中文`NLP`、`OCR`、推荐系统等领域有广泛应用。
-
-#### 支持的训练模式
-
-| 模式 | 说明 | 适用场景 |
-|------|------|----------|
-| **Collective模式** | 基于`AllReduce`的数据并行 | 密集模型、中小规模 |
-| **Parameter Server模式** | `PS`架构，适合稀疏特征 | 大规模稀疏模型、推荐系统 |
-| **Elastic模式** | 弹性训练，支持动态扩缩容 | 资源弹性需求场景 |
-
-#### 飞桨特色能力
-
-| 能力 | 说明 |
-|------|------|
-| **自动混合精度** | 自动`FP16/BF16`训练 |
-| **梯度累积** | 支持大`batch`训练 |
-| **分布式推理** | 支持大模型分布式推理 |
-| **模型压缩** | 量化、剪枝、蒸馏一体化 |
-
-#### 配置示例
-```yaml
-apiVersion: batch.paddlepaddle.org/v1
-kind: PaddleJob
-metadata:
-  name: paddle-job
-spec:
-  cleanPodPolicy: Never
-  withGloo: 1
-  worker:
-    replicas: 2
-    template:
-      spec:
-        containers:
-        - name: paddle
-          image: registry.baidubce.com/paddlepaddle/paddle:2.4.2-gpu-cuda11.7
-          command: ["python", "-m", "paddle.distributed.launch", "train.py"]
-          resources:
-            limits:
-              nvidia.com/gpu: 1
-  ps:
-    replicas: 1
-    template:
-      spec:
-        containers:
-        - name: paddle
-          image: registry.baidubce.com/paddlepaddle/paddle:2.4.2
-          command: ["python", "train.py"]
-```
-
-#### 优点
-
-| 优点 | 说明 |
-|------|------|
-| **国产化** | 支持国产`AI`框架，符合信创要求 |
-| **弹性训练** | 支持`Elastic`模式 |
-| **易用性** | 与飞桨`API`深度集成 |
-| **中文生态** | 中文文档完善，社区支持好 |
-| **行业模型** | 提供丰富的预训练模型库 |
-
-#### 缺点
-
-| 缺点 | 说明 |
-|------|------|
-| **生态较小** | 相比`PyTorch/TF`国际社区较小 |
-| **国际化** | 国际社区支持有限 |
-| **第三方集成** | 部分第三方工具支持不如`PyTorch` |
-
-
-
 ### 5.5 Horovod
 
 #### 简介
 
 `Horovod`是`Uber`开源的分布式深度学习框架，基于`MPI`的`AllReduce`通信模式，支持多种深度学习框架。其核心优势是只需少量代码修改即可将单机训练代码转换为分布式训练，实现接近线性的扩展效率。
+
+项目地址：https://github.com/horovod/horovod
 
 #### 核心设计理念
 
@@ -645,269 +671,80 @@ spec:
 
 
 
-### 5.6 Ray Operator
+
+
+### 5.6 PaddleCloud
 
 #### 简介
 
-`Ray`是由`UC Berkeley RISELab`开发的通用分布式计算框架，特别适合强化学习、超参数调优和分布式`Python`应用。`Ray Operator`将`Ray`集群管理能力带入`Kubernetes`，支持自动扩缩容和故障恢复。
+`PaddlePaddle Operator`是百度飞桨深度学习框架的`Kubernetes Operator`，支持国产`AI`框架的分布式训练。作为国内最成熟的深度学习框架之一，飞桨在中文`NLP`、`OCR`、推荐系统等领域有广泛应用。
 
-#### 核心组件
+项目地址：https://github.com/PaddlePaddle/PaddleCloud
 
-| 组件 | 功能 | 适用场景 |
-|------|------|----------|
-| **Ray Core** | 分布式计算基础设施 | 通用分布式应用 |
-| **Ray Train** | 分布式训练 | 深度学习训练 |
-| **Ray Tune** | 超参数调优 | `AutoML`、`HPO` |
-| **Ray Serve** | 模型服务 | 在线推理 |
-| **RLlib** | 强化学习库 | `RL`训练 |
-| **Ray Data** | 分布式数据处理 | 数据预处理 |
-
-#### Actor编程模型
-
-`Ray`的核心是`Actor`编程模型：
-
-```python
-import ray
-
-# 定义Actor
-@ray.remote
-class Counter:
-    def __init__(self):
-        self.value = 0
-    
-    def increment(self):
-        self.value += 1
-        return self.value
-
-# 创建Actor实例
-counter = Counter.remote()
-
-# 调用Actor方法
-result = ray.get(counter.increment.remote())
-```
-
-#### 配置示例
-```yaml
-apiVersion: ray.io/v1
-kind: RayJob
-metadata:
-  name: ray-job-sample
-spec:
-  entrypoint: python train.py
-  runtimeEnvYAML: |
-    pip:
-      - torch
-      - ray[train]
-  rayClusterSpec:
-    headGroupSpec:
-      rayStartParams:
-        dashboard-host: '0.0.0.0'
-      template:
-        spec:
-          containers:
-          - name: ray-head
-            image: rayproject/ray:2.7.0-py310-gpu
-            resources:
-              limits:
-                nvidia.com/gpu: 1
-    workerGroupSpecs:
-    - replicas: 2
-      minReplicas: 1
-      maxReplicas: 4
-      groupName: gpu-workers
-      rayStartParams: {}
-      template:
-        spec:
-          containers:
-          - name: ray-worker
-            image: rayproject/ray:2.7.0-py310-gpu
-            resources:
-              limits:
-                nvidia.com/gpu: 1
-```
-
-#### 优点
-
-| 优点 | 说明 |
-|------|------|
-| **弹性扩展** | 支持自动扩缩容 |
-| **通用性强** | 不限于深度学习 |
-| **Actor模型** | 灵活的分布式编程模型 |
-| **生态丰富** | 内置多种`AI`工具库 |
-| **故障恢复** | 自动重启失败的`Actor`|
-| **资源管理** | 细粒度资源分配 |
-
-#### 缺点
-
-| 缺点 | 说明 |
-|------|------|
-| **学习成本** | `Ray`编程模型需要学习 |
-| **资源开销** | `Head`节点资源消耗 |
-| **复杂度** | 集群管理相对复杂 |
-| **调试难度** | 分布式`Actor`调试困难 |
-
-
-
-### 5.7 Spark Operator
-
-#### 简介
-
-`Spark Operator`支持在`Kubernetes`上运行`Apache Spark`应用，适合大数据处理和机器学习工作负载。`Spark`是大数据领域最流行的计算引擎，支持批处理、流处理、机器学习和图计算。
-
-#### 支持的运行模式
+#### 支持的训练模式
 
 | 模式 | 说明 | 适用场景 |
 |------|------|----------|
-| **Cluster Mode** | `Driver`运行在集群内 | 生产环境、长时间运行 |
-| **Client Mode** | `Driver`运行在提交节点 | 交互式开发、调试 |
+| **Collective模式** | 基于`AllReduce`的数据并行 | 密集模型、中小规模 |
+| **Parameter Server模式** | `PS`架构，适合稀疏特征 | 大规模稀疏模型、推荐系统 |
+| **Elastic模式** | 弹性训练，支持动态扩缩容 | 资源弹性需求场景 |
 
-#### Spark核心组件
+#### 飞桨特色能力
 
-| 组件 | 功能 |
+| 能力 | 说明 |
 |------|------|
-| **Spark SQL** | 结构化数据处理 |
-| **Spark Streaming** | 实时流处理 |
-| **MLlib** | 机器学习库 |
-| **GraphX** | 图计算 |
-| **Structured Streaming** | 统一批流处理 |
+| **自动混合精度** | 自动`FP16/BF16`训练 |
+| **梯度累积** | 支持大`batch`训练 |
+| **分布式推理** | 支持大模型分布式推理 |
+| **模型压缩** | 量化、剪枝、蒸馏一体化 |
 
 #### 配置示例
 ```yaml
-apiVersion: sparkoperator.k8s.io/v1beta2
-kind: SparkApplication
+apiVersion: batch.paddlepaddle.org/v1
+kind: PaddleJob
 metadata:
-  name: spark-pi
+  name: paddle-job
 spec:
-  type: Scala
-  mode: cluster
-  image: spark:3.4.0
-  mainClass: org.apache.spark.examples.SparkPi
-  mainApplicationFile: local:///opt/spark/examples/jars/spark-examples.jar
-  sparkVersion: "3.4.0"
-  restartPolicy:
-    type: Never
-  driver:
-    cores: 1
-    memory: "512m"
-    serviceAccount: spark
-  executor:
-    cores: 1
-    instances: 2
-    memory: "512m"
-  dynamicAllocation:
-    enabled: true
-    initialExecutors: 2
-    minExecutors: 1
-    maxExecutors: 10
+  cleanPodPolicy: Never
+  withGloo: 1
+  worker:
+    replicas: 2
+    template:
+      spec:
+        containers:
+        - name: paddle
+          image: registry.baidubce.com/paddlepaddle/paddle:2.4.2-gpu-cuda11.7
+          command: ["python", "-m", "paddle.distributed.launch", "train.py"]
+          resources:
+            limits:
+              nvidia.com/gpu: 1
+  ps:
+    replicas: 1
+    template:
+      spec:
+        containers:
+        - name: paddle
+          image: registry.baidubce.com/paddlepaddle/paddle:2.4.2
+          command: ["python", "train.py"]
 ```
 
 #### 优点
 
 | 优点 | 说明 |
 |------|------|
-| **动态分配** | 支持`Executor`动态扩缩容 |
-| **生态成熟** | `Spark`生态系统完善 |
-| **大数据支持** | 适合大规模数据处理 |
-| **多语言** | 支持`Scala/Java/Python/R` |
-| **统一引擎** | 批处理、流处理、ML统一 |
+| **国产化** | 支持国产`AI`框架，符合信创要求 |
+| **弹性训练** | 支持`Elastic`模式 |
+| **易用性** | 与飞桨`API`深度集成 |
+| **中文生态** | 中文文档完善，社区支持好 |
+| **行业模型** | 提供丰富的预训练模型库 |
 
 #### 缺点
 
 | 缺点 | 说明 |
 |------|------|
-| **资源开销** | `JVM`内存开销较大 |
-| **启动延迟** | 冷启动时间较长 |
-| **复杂配置** | `Spark`配置参数众多 |
-| **小文件问题** | 处理大量小文件效率低 |
-
-
-
-### 5.8 Kubeflow Training Operator
-
-#### 简介
-
-`Kubeflow Training Operator`是一个统一的训练作业管理组件，整合了多种框架的`Operator`功能。它是`Kubeflow`项目的核心组件之一，提供统一的作业管理接口，原生支持`Volcano`调度器集成。
-
-#### 支持的作业类型
-
-| 作业类型 | CRD | 说明 |
-|----------|-----|------|
-| **PyTorch** | `PyTorchJob` | `PyTorch`分布式训练 |
-| **TensorFlow** | `TFJob` | `TensorFlow`分布式训练 |
-| **MPI** | `MPIJob` | `MPI`并行计算 |
-| **XGBoost** | `XGBoostJob` | `XGBoost`分布式训练 |
-| **PaddlePaddle** | `PaddleJob` | 飞桨分布式训练 |
-| **MXNet** | `MXJob` | `MXNet`分布式训练 |
-
-#### 与Volcano集成
-
-`Kubeflow Training Operator`原生支持`Volcano`调度器：
-
-```yaml
-spec:
-  runPolicy:
-    schedulingPolicy:
-      minAvailable: 2
-      queue: default
-      priorityClass: high-priority
-  pytorchReplicaSpecs:
-    Master:
-      template:
-        spec:
-          schedulerName: volcano  # 使用Volcano调度器
-```
-
-#### 配置示例
-```yaml
-apiVersion: kubeflow.org/v1
-kind: PyTorchJob
-metadata:
-  name: unified-pytorch-job
-spec:
-  runPolicy:
-    cleanPodPolicy: Running
-    schedulingPolicy:
-      minAvailable: 2
-      queue: default
-      priorityClass: high-priority
-  pytorchReplicaSpecs:
-    Master:
-      replicas: 1
-      template:
-        spec:
-          schedulerName: volcano
-          containers:
-          - name: pytorch
-            image: pytorch/pytorch:2.0.0
-            command: ["python", "train.py"]
-    Worker:
-      replicas: 3
-      template:
-        spec:
-          schedulerName: volcano
-          containers:
-          - name: pytorch
-            image: pytorch/pytorch:2.0.0
-```
-
-#### 优点
-
-| 优点 | 说明 |
-|------|------|
-| **统一管理** | 一个`Operator`管理多种框架 |
-| **Volcano集成** | 原生支持`Volcano`调度 |
-| **标准化** | 统一的作业管理接口 |
-| **维护简单** | 减少`Operator`数量 |
-| **社区活跃** | `Kubeflow`社区持续维护 |
-
-#### 缺点
-
-| 缺点 | 说明 |
-|------|------|
-| **功能滞后** | 新特性支持可能滞后 |
-| **依赖复杂** | `Kubeflow`组件依赖 |
-| **资源开销** | 控制器本身有一定资源消耗 |
-
+| **生态较小** | 相比`PyTorch/TF`国际社区较小 |
+| **国际化** | 国际社区支持有限 |
+| **第三方集成** | 部分第三方工具支持不如`PyTorch` |
 
 
 
