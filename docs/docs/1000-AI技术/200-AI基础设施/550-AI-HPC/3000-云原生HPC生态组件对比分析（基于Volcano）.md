@@ -1,6 +1,6 @@
 ---
 slug: "/ai/volcano-hpc-ecosystem"
-title: "Volcano HPC生态组件对比分析"
+title: "云原生HPC生态组件对比分析（基于Volcano）"
 hide_title: true
 keywords:
   [
