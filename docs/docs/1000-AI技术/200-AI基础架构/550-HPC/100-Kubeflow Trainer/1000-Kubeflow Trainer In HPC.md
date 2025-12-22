@@ -105,7 +105,7 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 `TrainJob`是面向数据科学家的简化`CRD`，允许从预部署的训练运行时启动训练和微调任务。
 
 ```yaml
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: TrainJob
 metadata:
   name: torch-ddp
@@ -128,7 +128,7 @@ spec:
 `TrainingRuntime`和`ClusterTrainingRuntime`是由平台工程师管理的训练蓝图，定义了如何启动各种类型的训练或微调任务。
 
 ```yaml
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
   name: torch-distributed-multi-node
@@ -149,7 +149,7 @@ spec:
                     trainer.kubeflow.org/trainjob-ancestor-step: trainer
                 spec:
                   containers:
-                    - name: trainer
+                    - name: node
                       image: docker.io/kubeflow/pytorch-mnist
                       env:
                         - name: MASTER_ADDR
@@ -299,7 +299,7 @@ spec:
 **PyTorch分布式训练示例：**
 
 ```yaml
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
   name: torch-distributed-multi-node
@@ -315,9 +315,12 @@ spec:
           template:
             spec:
               template:
+                metadata:
+                  labels:
+                    trainer.kubeflow.org/trainjob-ancestor-step: trainer
                 spec:
                   containers:
-                    - name: trainer
+                    - name: node
                       image: docker.io/kubeflow/pytorch-mnist
                       resources:
                         limits:
@@ -339,7 +342,7 @@ spec:
 **DeepSpeed训练示例：**
 
 ```yaml
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
   name: deepspeed-training
@@ -356,9 +359,12 @@ spec:
           template:
             spec:
               template:
+                metadata:
+                  labels:
+                    trainer.kubeflow.org/trainjob-ancestor-step: trainer
                 spec:
                   containers:
-                    - name: mpi-launcher
+                    - name: launcher
                       image: docker.io/deepspeed-launcher
                       command:
                         - deepspeed
@@ -369,9 +375,12 @@ spec:
           template:
             spec:
               template:
+                metadata:
+                  labels:
+                    trainer.kubeflow.org/trainjob-ancestor-step: trainer
                 spec:
                   containers:
-                    - name: trainer
+                    - name: node
                       image: docker.io/deepspeed-trainer
                       resources:
                         limits:
@@ -393,7 +402,7 @@ spec:
 - 支持`slot`配置
 
 ```yaml
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
   name: mpi-training
@@ -572,7 +581,7 @@ kubectl get pods -n volcano-system
 在`TrainingRuntime`或`ClusterTrainingRuntime`中配置`Volcano`：
 
 ```yaml
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
   name: torch-distributed-volcano
@@ -590,11 +599,14 @@ spec:
           template:
             spec:
               template:
+                metadata:
+                  labels:
+                    trainer.kubeflow.org/trainjob-ancestor-step: trainer
                 spec:
                   schedulerName: volcano  # 指定Volcano调度器
                   priorityClassName: high-priority
                   containers:
-                    - name: trainer
+                    - name: node
                       image: docker.io/kubeflow/pytorch-mnist
                       resources:
                         limits:
@@ -624,7 +636,7 @@ spec:
 **步骤2：在TrainingRuntime中引用Queue**
 
 ```yaml
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
   name: torch-high-priority
@@ -641,17 +653,20 @@ spec:
           template:
             spec:
               template:
+                metadata:
+                  labels:
+                    trainer.kubeflow.org/trainjob-ancestor-step: trainer
                 spec:
                   schedulerName: volcano
                   containers:
-                    - name: trainer
+                    - name: node
                       image: docker.io/kubeflow/pytorch-mnist
 ```
 
 **步骤3：在TrainJob中覆盖Queue（可选）**
 
 ```yaml
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: TrainJob
 metadata:
   name: urgent-training
@@ -669,7 +684,7 @@ spec:
 `Volcano`支持网络拓扑感知调度，可以将`Pod`调度到网络拓扑相近的节点，减少通信延迟：
 
 ```yaml
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
   name: torch-topology-aware
@@ -686,10 +701,13 @@ spec:
           template:
             spec:
               template:
+                metadata:
+                  labels:
+                    trainer.kubeflow.org/trainjob-ancestor-step: trainer
                 spec:
                   schedulerName: volcano
                   containers:
-                    - name: trainer
+                    - name: node
                       image: docker.io/kubeflow/pytorch-mnist
 ```
 
@@ -815,7 +833,7 @@ spec:
 
 ```yaml
 # ClusterTrainingRuntime（平台工程师配置一次）
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: ClusterTrainingRuntime
 metadata:
   name: torch-distributed-volcano
@@ -833,10 +851,13 @@ spec:
           template:
             spec:
               template:
+                metadata:
+                  labels:
+                    trainer.kubeflow.org/trainjob-ancestor-step: trainer
                 spec:
                   schedulerName: volcano
                   containers:
-                    - name: trainer
+                    - name: node
                       image: docker.io/pytorch-training
                       resources:
                         limits:
@@ -845,7 +866,7 @@ spec:
                         - torchrun train.py
 ---
 # TrainJob（数据科学家使用）
-apiVersion: trainer.kubeflow.org/v2alpha1
+apiVersion: trainer.kubeflow.org/v1alpha1
 kind: TrainJob
 metadata:
   name: my-training
