@@ -76,6 +76,16 @@ graph TB
     D4 --> SYNC
 ```
 
+上图涉及到的一些术语解释如下：
+
+| 术语 | 含义 | 在数据并行中的作用/对应关系 |
+|------|------|----------------------------|
+| **数据分片（Data Sharding）** | 将数据集/一个`batch`按样本维度切分给不同进程 | 图中`GPU 0/1/2/3`各自处理不同“数据分片”；通常用`DistributedSampler`保证不重复取样 |
+| **梯度（Gradient）** | 反向传播产生的参数导数 $\nabla W$ | 每个进程先算出一份“本地梯度”，然后再做同步 |
+| **梯度同步（Gradient Synchronization）** | 让所有进程得到一致的梯度（或等价的更新量） | 数据并行的关键：同步后每个进程用“同一份梯度”更新参数，模型保持一致 |
+
+
+
 #### 1.3.1 数据并行（Data Parallelism）
 
 数据并行是最常用的并行策略，其核心思想是：
@@ -117,6 +127,7 @@ graph TB
 | **Local Rank** | 当前进程在本节点的标识 | `0, 1, ..., 7` |
 | **Process Group** | 进程组，用于集合通信 | 默认组包含所有进程 |
 | **Backend** | 通信后端 | `nccl, gloo, mpi` |
+| **AllReduce** | 集合通信算子：对所有进程的张量做规约（`sum/avg`）并广播回所有进程 |  |
 
 ### 2.2 分布式数据并行（DDP）
 
@@ -159,6 +170,12 @@ sequenceDiagram
     GPU2->>GPU2: optimizer.step()
     GPU3->>GPU3: optimizer.step()
 ```
+
+**DDP训练流程说明**：
+
+1. **前向传播阶段**：各`GPU`独立执行，互不通信。每个进程用自己的数据分片（如`data_0`、`data_1`等）通过模型得到输出。
+2. **反向传播阶段**：在计算梯度时，`DDP`会自动将梯度按`bucket`分组进行`AllReduce`同步，确保所有进程得到相同的梯度。这个过程与梯度计算重叠执行，减少等待时间。
+3. **参数更新阶段**：因为所有进程的梯度已同步，各进程独立执行`optimizer.step()`后，模型参数仍保持一致。
 
 **DDP核心优势**：
 - 梯度同步与反向传播重叠，减少通信开销
@@ -224,7 +241,7 @@ graph TB
         TR["TrainingRuntime"]
     end
     
-    subgraph "Kubeflow Trainer Controller Manager"
+    subgraph "Trainer Controller Manager"
         TC["TrainJob Controller"]
         RF["Runtime Framework"]
         TP["Torch Plugin<br/>(EnforceMLPolicy)"]
