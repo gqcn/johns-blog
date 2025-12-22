@@ -174,7 +174,7 @@ Events:
 
 `Volcano`安装完成后，我们需要模拟节点特征发现（`Node Feature Discovery`，`NFD`）和`GPU`特征发现（`GPU Feature Discovery`，`GFD`）的标签。在真实集群中，这些标签会由`NFD`和`GFD`自动发现并添加到节点上，但在我们的模拟环境中，需要手动添加这些标签。这些标签将用于让调度器识别不同节点的硬件特性，便于进行精准调度：
 
-关于`NFD&GFD`的介绍请参考我另一篇文章：[NFD&GFD技术介绍](../../1000-AI技术/200-AI基础设施/100-NVIDIA/2000-NFD&GFD.md)
+关于`NFD&GFD`的介绍请参考我另一篇文章：[NFD&GFD技术介绍](../../1000-AI技术/200-AI基础架构/100-NVIDIA/2000-NFD&GFD.md)
 
 ### 模拟标签脚本
 
