@@ -240,23 +240,67 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 
 #### 自定义标签
 
+`custom`特性源旨在创建用户定义的标签。然而，它有一些静态定义的内置标签，特别是针对`RDMA`（远程直接内存访问）功能的检测：
+
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
-| `custom-rdma.capable` | `boolean` | 节点具有支持`RDMA`的网络适配器 | `true` |
-| `custom-rdma.enabled` | `boolean` | 节点已加载运行`RDMA`流量所需的模块 | `true` |
+| `custom-rdma.capable` | `boolean` | 节点具有支持`RDMA`的网络适配器（检测供应商`ID`为`15b3`的`Mellanox`设备） | `true` |
+| `custom-rdma.available` | `boolean` | 节点已加载运行`RDMA`流量所需的内核模块（`ib_uverbs`和`rdma_ucm`） | `true` |
+
+:::info 注意
+通常，`NFD`使用`feature.node.kubernetes.io/rdma.capable`和`feature.node.kubernetes.io/rdma.available`作为标签前缀。然而，为了避免与其他可能使用相同标签名称的系统冲突，`NFD`在某些部署中使用了`custom-`前缀来区分这些标签。
+:::
+
+**标签说明**：
+
+- **`custom-rdma.capable`**：通过检测`PCI`总线上供应商`ID`为`15b3`（`Mellanox`）的网络设备来判断节点是否具有`RDMA`能力。`Mellanox`（现已被`NVIDIA`收购）是高性能网络设备的主要制造商，其`InfiniBand`和以太网适配器广泛支持`RDMA`技术。
+  
+- **`custom-rdma.available`**：通过检测内核是否加载了必要的`RDMA`模块来判断节点是否可以实际运行`RDMA`流量：
+  - `ib_uverbs`：`InfiniBand`用户空间动词模块，提供用户空间应用程序访问`RDMA`设备的接口
+  - `rdma_ucm`：`RDMA`用户空间连接管理器模块，处理`RDMA`连接的建立和管理
+
+这两个标签的组合可以帮助判断节点的`RDMA`就绪状态：
+- 如果只有`rdma.capable`为`true`，说明硬件支持但驱动未加载
+- 如果两个标签都为`true`，说明节点完全具备运行`RDMA`工作负载的能力
+
+**应用场景**：
+
+`RDMA`技术在以下场景中特别重要：
+- **高性能计算（HPC）**：科学计算、天气预报等需要大规模节点间通信的应用
+- **分布式存储**：`Ceph`、`GlusterFS`等分布式存储系统可利用`RDMA`提高性能
+- **AI训练**：大模型分布式训练需要高带宽、低延迟的节点间通信，`RDMA`可显著提升训练效率
+- **数据库集群**：`Oracle RAC`、分布式数据库等可通过`RDMA`降低网络延迟
 
 ### 标签示例
 
 `NFD`生成的标签示例：
 
 ```yaml
+# CPU相关标签
 feature.node.kubernetes.io/cpu-hardware_multithreading: "true"
 feature.node.kubernetes.io/cpu-pstate.turbo: "true"
+
+# 内核相关标签
 feature.node.kubernetes.io/kernel-version.full: "5.4.0-90-generic"
+
+# 内存相关标签
 feature.node.kubernetes.io/memory-numa: "true"
+
+# 网络相关标签
 feature.node.kubernetes.io/network-sriov.capable: "true"
+feature.node.kubernetes.io/network-sriov.configured: "true"
+
+# PCI设备相关标签
 feature.node.kubernetes.io/pci-10de.present: "true"  # NVIDIA GPU存在
+feature.node.kubernetes.io/pci-15b3.present: "true"  # Mellanox网络设备存在
+
+# 系统相关标签
 feature.node.kubernetes.io/system-os_release.id: "ubuntu"
+feature.node.kubernetes.io/system-os_release.VERSION_ID: "22.04"
+
+# 自定义RDMA相关标签
+feature.node.kubernetes.io/rdma.capable: "true"    # 具有RDMA能力的网络适配器(例如IB设备)
+feature.node.kubernetes.io/rdma.available: "true"  # RDMA模块已加载
 ```
 
 在上面的示例中，`pci-10de.present: "true"` 表示检测到`NVIDIA GPU`存在。这里的`10de`是`NVIDIA`公司在`PCI`设备中的供应商ID（`Vendor ID`）。
@@ -274,11 +318,14 @@ feature.node.kubernetes.io/system-os_release.id: "ubuntu"
 其他常见的`PCI`供应商ID包括：
 - `Intel`: `8086`
 - `AMD`: `1022`
-- `Mellanox/NVIDIA`网络: `15b3`
+- `Mellanox/NVIDIA`网络设备: `15b3`（`Mellanox`已被`NVIDIA`收购，但仍保留原有供应商ID）
+- `Broadcom`: `14e4`
 
 更多供应商ID请参考网站：https://admin.pci-ids.ucw.cz/read/PC/
 
 这种基于供应商ID的标签方式使`Kubernetes`能够精确识别节点上的硬件设备，从而实现更精细的工作负载调度。
+
+**注意**：`pci-15b3.present: "true"`标签表示检测到`Mellanox`网络设备，这通常意味着节点可能具有高性能网络能力（如`InfiniBand`或`RoCE`），这对于需要高带宽、低延迟网络通信的工作负载（如分布式AI训练、HPC应用）非常重要。
 
 ### 监控指标
 
