@@ -28,7 +28,7 @@ keywords:
 description: "详细介绍Kubeflow Trainer的三个核心CRD（TrainJob、TrainingRuntime、ClusterTrainingRuntime）的完整配置格式，包括每个配置项的注释说明、复杂配置项的表格解释、特殊标签和注解的使用，以及最佳实践指南"
 ---
 
-## 1. 概述
+## 概述
 
 `Kubeflow Trainer`提供了三个核心的`CRD（Custom Resource Definition）`来支持分布式训练任务的定义和执行：
 
@@ -40,11 +40,11 @@ description: "详细介绍Kubeflow Trainer的三个核心CRD（TrainJob、Traini
 
 本文将详细介绍这三个`CRD`的完整配置格式，并对每个配置项进行说明。
 
-## 2. TrainJob
+## TrainJob
 
 `TrainJob`是用户创建分布式训练任务的核心`CRD`，它定义了训练任务的所有配置参数。
 
-### 2.1 完整模板示例
+### 完整模板示例
 
 ```yaml
 apiVersion: trainer.kubeflow.org/v1alpha1
@@ -252,9 +252,9 @@ spec:
   managedBy: trainer.kubeflow.org/trainjob-controller
 ```
 
-### 2.2 重要字段说明
+### 重要字段说明
 
-#### 2.2.1 runtimeRef
+#### runtimeRef
 
 `runtimeRef` 是必填字段，用于引用训练运行时配置：
 
@@ -264,7 +264,7 @@ spec:
 | `apiGroup` | `string` | 否 | `trainer.kubeflow.org` | 运行时的`API`组 |
 | `kind` | `string` | 否 | `ClusterTrainingRuntime` | 运行时类型，可选 `TrainingRuntime` 或 `ClusterTrainingRuntime` |
 
-#### 2.2.2 numProcPerNode
+#### numProcPerNode
 
 每个节点的进程/`worker`数量配置：
 
@@ -274,7 +274,7 @@ spec:
 | `MPI` | 整数 | 只能设置具体的整数值 |
 | `DeepSpeed` | 整数 | 只能设置具体的整数值 |
 
-#### 2.2.3 managedBy
+#### managedBy
 
 控制`TrainJob`的管理者：
 
@@ -284,11 +284,11 @@ spec:
 | `kueue.x-k8s.io/multikueue` | 委托给 Kueue 进行管理，支持多集群调度 |
 
 
-#### 2.2.4 initializer（初始化器）
+#### initializer（初始化器）
 
 初始化器用于在训练开始前自动完成数据集和预训练模型的准备工作，极大简化了训练任务的配置和管理。
 
-##### 2.2.4.1 dataset（数据集初始化器）
+##### dataset（数据集初始化器）
 
 数据集初始化器的作用：
 
@@ -354,7 +354,7 @@ initializer:
 
 这种机制确保了训练任务启动时所有必需的资源都已就绪，避免了训练过程中的资源加载失败。
 
-#### 2.2.5 Status Conditions
+#### Status Conditions
 
 | Type | Reason | 说明 |
 |------|--------|------|
@@ -363,11 +363,11 @@ initializer:
 | `Failed` | `TrainingRuntimeNotSupported` | 引用的`TrainingRuntime`不受支持 |
 | `Complete` | `JobsCompleted` | `TrainJob` 成功完成 |
 
-## 3. TrainingRuntime
+## TrainingRuntime
 
 `TrainingRuntime`是命名空间级别的训练运行时模板，定义了特定`ML`框架的执行环境。它只能被同一命名空间中的`TrainJob`引用。
 
-### 3.1 完整模板示例
+### 完整模板示例
 
 ```yaml
 apiVersion: trainer.kubeflow.org/v1alpha1
@@ -533,9 +533,9 @@ spec:
 ```
 
 
-### 3.2 重要字段说明
+### 重要字段说明
 
-#### 3.2.1 mlPolicy
+#### mlPolicy
 
 `ML`策略配置的互斥规则：
 
@@ -545,7 +545,7 @@ spec:
 | `torch` | 不能与 `mpi` 同时使用 | 只能配置一种运行时策略 |
 | `mpi` | 不能与 `torch` 同时使用 | 只能配置一种运行时策略 |
 
-#### 3.2.2 PyTorch 弹性训练
+#### PyTorch 弹性训练
 
 启用`PyTorch`弹性训练时的关键配置：
 
@@ -556,7 +556,7 @@ spec:
 | `maxNodes` | 插入到 `torchrun` 的 `--nnodes` 参数的最大值 |
 | `metrics` | 用于创建`HPA（Horizontal Pod Autoscaler）`进行自动缩放 |
 
-#### 3.2.3 MPI 实现类型
+#### MPI 实现类型
 
 支持的`MPI`实现：
 
@@ -567,11 +567,11 @@ spec:
 | `MPICH` | `MPICH` 实现 |
 
 
-### 3.3 特殊标签和注解
+### 特殊标签和注解
 
 `Kubeflow Trainer`使用一些特殊的标签和注解来控制训练任务的行为和标识资源关系。
 
-#### 3.3.1 系统预留标签
+#### 系统预留标签
 
 | 标签键 | 可能的值 | 用途 | 应用位置 |
 |--------|---------|------|----------|
@@ -579,9 +579,9 @@ spec:
 | `trainer.kubeflow.org/framework` | `torch`<br/>`deepspeed`<br/>`mpi`<br/>`mlx`<br/>`torchtune` | 标识 `Runtime` 支持的训练框架类型 | `TrainingRuntime/ClusterTrainingRuntime` 的 `metadata.labels` |
 | `trainer.kubeflow.org/support` | `deprecated` |标识`Runtime`的支持状态，当值为 `deprecated` 时会在创建 `TrainJob`时发出警告 | `TrainingRuntime/ClusterTrainingRuntime` 的 `metadata.labels` |
 
-#### 3.3.2 标签使用说明
+#### 标签使用说明
 
-##### 3.3.2.1 trainer.kubeflow.org/trainjob-ancestor-step
+##### trainer.kubeflow.org/trainjob-ancestor-step
 
 这是最重要的系统标签，用于建立`TrainJob`配置与`Runtime`中`Job`模板之间的映射关系：
 
@@ -666,7 +666,7 @@ spec:
                 trainer.kubeflow.org/trainjob-ancestor-step: trainer
 ```
 
-##### 3.3.2.2 trainer.kubeflow.org/framework
+##### trainer.kubeflow.org/framework
 
 用于标识`Runtime`的框架类型，便于用户筛选和管理。
 
@@ -744,7 +744,7 @@ metadata:
     trainer.kubeflow.org/framework: torch  # 标识这是 PyTorch 运行时
 ```
 
-##### 3.3.2.3 trainer.kubeflow.org/support
+##### trainer.kubeflow.org/support
 
 用于标识`Runtime`的废弃状态：
 
@@ -760,7 +760,7 @@ metadata:
 当引用带有 `deprecated` 标签的`Runtime`时，`TrainJob`创建时会收到警告，提示用户该`Runtime`将在未来版本中移除。详见[运行时废弃策略](https://www.kubeflow.org/docs/components/trainer/operator-guides/runtime/#runtime-deprecation-policy)。
 
 
-#### 3.3.3 用户自定义标签和注解
+#### 用户自定义标签和注解
 
 除了系统预留标签外，用户可以在以下位置添加自定义标签和注解：
 
@@ -775,11 +775,11 @@ metadata:
 
 
 
-## 4. ClusterTrainingRuntime
+## ClusterTrainingRuntime
 
 `ClusterTrainingRuntime`是集群级别的训练运行时模板，可以被任何命名空间中的`TrainJob`引用。其配置格式与`TrainingRuntime`完全相同，唯一区别是资源作用域。
 
-### 4.1 完整模板示例
+### 完整模板示例
 
 ```yaml
 apiVersion: trainer.kubeflow.org/v1alpha1
@@ -886,7 +886,7 @@ spec:
         enableDNSHostnames: true
 ```
 
-### 4.2 集群级数据初始化运行时示例
+### 集群级数据初始化运行时示例
 
 ```yaml
 apiVersion: trainer.kubeflow.org/v1alpha1
@@ -1008,7 +1008,7 @@ spec:
         publishNotReadyAddresses: true
 ```
 
-### 4.3 TrainingRuntime vs ClusterTrainingRuntime
+### TrainingRuntime vs ClusterTrainingRuntime
 
 两种运行时的对比：
 
@@ -1020,15 +1020,15 @@ spec:
 | 权限要求 | 命名空间级别的权限 | 集群级别的权限 |
 | 配置格式 | 完全相同 | 完全相同 |
 
-## 5. 环境变量注入
+## 环境变量注入
 
 `Kubeflow Trainer`会根据使用的训练框架，为训练容器自动注入相应的环境变量。不同框架使用的环境变量不同。
 
-### 5.1 PyTorch框架环境变量
+### PyTorch框架环境变量
 
 使用`PyTorch`（通过`torchrun`启动）时，`Torch Plugin`会自动注入以下环境变量：
 
-#### 5.1.1 PET_*系列（PyTorch Elastic Training）
+#### PET_*系列（PyTorch Elastic Training）
 
 这些是`torchrun`使用的标准环境变量，由`Kubeflow Trainer`自动注入：
 
@@ -1045,7 +1045,7 @@ spec:
 - 这些变量在`TrainingRuntime`的`command`中使用，如：`torchrun --nproc_per_node=$(PET_NPROC_PER_NODE) ...`
 - `PET_NODE_RANK`通过`Kubernetes`的`fieldRef`机制自动从`JOB_COMPLETION_INDEX`获取
 
-#### 5.1.2 标准分布式训练环境变量
+#### 标准分布式训练环境变量
 
 `torchrun`会根据`PET_*`变量，为每个进程设置以下标准环境变量：
 
@@ -1061,7 +1061,7 @@ spec:
 - 这些变量由`torchrun`自动设置，无需在`TrainingRuntime`中配置
 - 训练代码中可直接使用`torch.distributed.get_rank()`等`API`，或通过`os.environ`访问
 
-### 5.2 OpenMPI框架环境变量
+### OpenMPI框架环境变量
 
 使用`OpenMPI`（如`DeepSpeed`）时，会注入以下环境变量：
 
@@ -1075,7 +1075,7 @@ spec:
 - 这些变量用于配置`OpenMPI`运行时行为
 - 通常由`ClusterTrainingRuntime`的容器模板配置
 
-### 5.3 通用环境变量
+### 通用环境变量
 
 所有框架都可以使用以下`Kubernetes`原生环境变量：
 
@@ -1087,9 +1087,9 @@ spec:
 - 此变量来自`Kubernetes Job`的索引机制，表示当前`Pod`在`Job`中的序号
 - 可用于获取节点编号或配置节点特定行为
 
-### 5.4 使用示例
+### 使用示例
 
-#### 5.4.1 PyTorch训练脚本示例
+#### PyTorch训练脚本示例
 
 ```python
 import os
@@ -1109,7 +1109,7 @@ print(f"Global Rank: {rank}, World Size: {world_size}")
 print(f"Local Rank: {local_rank}")
 ```
 
-#### 5.4.2 TrainingRuntime command配置示例
+#### TrainingRuntime command配置示例
 
 ```yaml
 command:
@@ -1122,7 +1122,7 @@ command:
   - /workspace/train.py
 ```
 
-## 6. 最佳实践
+## 最佳实践
 
 1. **资源配置**
     - 为训练任务设置合理的资源请求（`requests`）和限制（`limits`）
@@ -1154,7 +1154,7 @@ command:
     - 使用`TrainingRuntime`为特定团队或项目定制运行时
     - 保持运行时配置的版本化管理
 
-## 7. 参考资料
+## 参考资料
 
 - [Kubeflow Trainer 官方文档](https://www.kubeflow.org/docs/components/trainer/)
 - [Kubeflow Trainer GitHub 仓库](https://github.com/kubeflow/trainer)

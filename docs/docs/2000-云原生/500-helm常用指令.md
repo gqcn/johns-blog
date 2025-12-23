@@ -121,7 +121,7 @@ helm repo list
 
 ## Helm常用指令及使用示例
 
-### 1. 仓库管理
+### 仓库管理
 
 #### 添加仓库
 ```bash
@@ -161,7 +161,7 @@ helm repo remove <仓库名称>
 helm repo remove stable
 ```
 
-### 2. 搜索和查看
+### 搜索和查看
 
 #### 搜索Chart
 ```bash
@@ -275,7 +275,7 @@ helm pull https://example.com/charts/my-app-1.0.0.tgz --untar
 helm pull https://example.com/charts/my-app-1.0.0.tgz --verify
 ```
 
-### 3. 应用部署
+### 应用部署
 
 #### 安装应用
 ```bash
@@ -304,7 +304,7 @@ helm install my-nginx bitnami/nginx --dry-run --debug
 helm template my-nginx bitnami/nginx > nginx-manifests.yaml
 ```
 
-### 4. 升级回滚卸载
+### 升级回滚卸载
 
 #### 查看Release
 ```bash
@@ -359,7 +359,7 @@ helm uninstall my-nginx -n my-apps
 helm uninstall my-nginx -n my-apps --keep-history
 ```
 
-### 5. Chart开发
+### Chart开发
 
 #### 创建Chart
 ```bash
@@ -402,7 +402,7 @@ helm dependency update my-app
 helm package my-app
 ```
 
-### 6. 依赖管理
+### 依赖管理
 
 #### 管理Chart依赖
 ```bash
@@ -416,7 +416,7 @@ helm dependency build my-app
 helm dependency list my-app
 ```
 
-### 7. 插件管理
+### 插件管理
 
 #### 安装插件
 ```bash
@@ -430,7 +430,7 @@ helm plugin list
 helm diff upgrade my-nginx bitnami/nginx --set replicaCount=3
 ```
 
-### 8. 实用技巧
+### 实用技巧
 
 #### 获取Release值
 ```bash

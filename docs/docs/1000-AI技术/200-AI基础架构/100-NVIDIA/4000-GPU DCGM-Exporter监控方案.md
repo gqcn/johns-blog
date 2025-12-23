@@ -10,7 +10,7 @@ description: "本文详细介绍GPU DCGM-Exporter监控方案，提供完整的�
 ---
 
 
-## 1. DCGM-Exporter简介
+## DCGM-Exporter简介
 
 `DCGM-Exporter`是一个专为`GPU`监控设计的强大工具，它基于`DCGM (Data Center GPU Manager) API`，能够收集`NVIDIA GPU`的详细指标并以`Prometheus`格式暴露。它是`NVIDIA GPU Operator`的一部分，但也可以独立部署使用。
 
@@ -18,7 +18,7 @@ description: "本文详细介绍GPU DCGM-Exporter监控方案，提供完整的�
 
 > **重要说明：** `DCGM-Exporter`仅适用于`NVIDIA`品牌的`GPU硬件`，如`Tesla`、`Quadro`、`GeForce`等系列。它不支持其他厂商的`GPU`产品，如`AMD`的`Radeon`系列、`Intel`的`Xe`系列、`华为`的`昇腾`系列或`寒武纪`的`MLU`系列等。如果您的环境中使用了非`NVIDIA`的`GPU`，需要采用相应厂商提供的监控解决方案。
 
-## 2. 主要特点
+## 主要特点
 
 - **全面的指标收集**：提供超过`40`种`GPU`相关指标，包括利用率、内存、温度、功耗等
 - **低开销**：相比直接调用`nvidia-smi`，`DCGM-Exporter`的资源消耗更低
@@ -26,7 +26,7 @@ description: "本文详细介绍GPU DCGM-Exporter监控方案，提供完整的�
 - **云原生友好**：提供容器化部署方案，易于在`Kubernetes`环境中集成
 - **可扩展性**：支持从单个节点到大型集群的监控
 
-## 3. 架构
+## 架构
 
 `DCGM-Exporter`的基本架构如下：
 
@@ -53,7 +53,7 @@ description: "本文详细介绍GPU DCGM-Exporter监控方案，提供完整的�
 ```
 
 
-## 4. DCGM-Exporter提供的监控指标
+## DCGM-Exporter提供的监控指标
 
 `DCGM-Exporter`提供了丰富的`GPU`监控指标，以下是主要指标的详细说明：
 
@@ -382,16 +382,16 @@ DCGM_FI_PROF_PCIE_RX_BYTES{gpu="6",UUID="GPU-c07eb90d-74b0-d3b4-e6ce-f1868756424
 DCGM_FI_PROF_PCIE_RX_BYTES{gpu="7",UUID="GPU-4e75c9ab-0ed7-8a57-75f5-23761b9f053f",device="nvidia7",modelName="NVIDIA A800-SXM4-80GB",Hostname="msxf-hpc-64-35-ai",DCGM_FI_DRIVER_VERSION="535.129.03",DCGM_FI_PROCESS_NAME="/usr/bin/dcgm-exporter"} 213124
 ```
 
-## 5. 安装部署
+## 安装部署
 
-### 5.1 前提条件
+### 前提条件
 
 - `NVIDIA`驱动 (`450.80.02`或更高版本)
 - `NVIDIA DCGM` (`2.0.13`或更高版本)
 - `Kubernetes`集群 (如果在`Kubernetes`环境中部署)
 - `Prometheus`服务器
 
-### 5.2 在`Kubernetes`中部署
+### 在`Kubernetes`中部署
 
 使用`Helm`安装`DCGM-Exporter`：
 
@@ -415,7 +415,7 @@ cd dcgm-exporter
 kubectl apply -f deployment/kubernetes/dcgm-exporter-daemonset.yaml
 ```
 
-### 5.3 在非Kubernetes环境中部署
+### 在非Kubernetes环境中部署
 
 使用`Docker`运行`DCGM-Exporter`：
 
@@ -424,9 +424,9 @@ docker run -d --gpus all --rm -p 9400:9400 nvcr.io/nvidia/k8s/dcgm-exporter:2.4.
 ```
 
 
-## 6. Prometheus配置示例
+## Prometheus配置示例
 
-### 6.1 Prometheus服务发现配置
+### Prometheus服务发现配置
 
 以下是在`Kubernetes`环境中配置`Prometheus`抓取`DCGM-Exporter`指标的示例：
 
@@ -447,7 +447,7 @@ scrape_configs:
         regex: metrics
 ```
 
-### 6.2 告警规则配置
+### 告警规则配置
 
 以下是一些常用的`GPU`监控告警规则示例：
 
@@ -499,7 +499,7 @@ groups:
       description: "GPU {{ $labels.gpu }} 在过去1小时内检测到不可纠正的ECC错误，这可能表示硬件问题。"
 ```
 
-## 7. 总结
+## 总结
 
 `NVIDIA DCGM-Exporter`是目前最全面、最易于集成的`NVIDIA GPU监控解决方案`，特别适合在`Kubernetes`环境中部署。它提供了丰富的监控指标，可以帮助运维人员和开发人员全面了解`GPU`的使用情况、性能状态和健康状况。
 

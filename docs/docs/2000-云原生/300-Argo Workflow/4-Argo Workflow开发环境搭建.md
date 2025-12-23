@@ -20,44 +20,44 @@ description: "详细介绍如何搭建 Argo Workflow 的本地开发环境，包
 
 本地搭建的Argo Workflow基于`v3.1.5`版本，搭建开发环境也踩了一些坑，做下笔记，方便后面的同学有所准备。
 
-## 一、服务准备
+## 服务准备
 
 
 :::warning
 `MacOS`环境先安装好`brew`命令：[https://brew.sh/](https://brew.sh/)
 :::
 
-### 1、Golang
+### Golang
 
 至少安装`v1.15`以上版本。
 
-### 2、Yarn
+### Yarn
 
 ```bash
 brew install yarn
 ```
 
-### 3、Docker
+### Docker
 
 [https://docs.docker.com/docker-for-mac/install/](https://docs.docker.com/docker-for-mac/install/)
 
-### 4、Kustomize
+### Kustomize
 
 当前使用到的是v3.8.8版本：[https://github.com/kubernetes-sigs/kustomize/releases/tag/kustomize/v3.8.8](https://github.com/kubernetes-sigs/kustomize/releases/tag/kustomize%2Fv3.8.8)
 
 下载对应的预编译二进制打包文件，解压后拷贝一份放到`$GOPATH/bin`目录下（全局用）；再拷贝一份到`argo-workflow`项目的`dist`目录下（后面argo编译的时候需要）。
 
-### 5、Protoc
+### Protoc
 
 ```bash
 brew install protobuf
 ```
 
-### 6、Minikube
+### Minikube
 
 [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/)
 
-## 三、设置hosts别名
+## 设置hosts别名
 
 便于后续服务的内部别名访问，修改 `/etc/hosts`：
 
@@ -68,9 +68,9 @@ brew install protobuf
 127.0.0.1 mysql
 ```
 
-## 四、编译运行服务
+## 编译运行服务
 
-### 1、使用本地MySQL
+### 使用本地MySQL
 
 由于我本地安装有mysql，因此argo-workflows项目安装的mysql会与我本地的端口号冲突。于是在我本地的MySQL上创建一个argo数据库以及对应的账号，不使用minikube中的MySQL服务。
 
@@ -86,7 +86,7 @@ GRANT ALL ON argo.* TO 'mysql'@'%';
 
 ![](/attachments/image2021-8-9_16-34-51.png)
 
-### 2、执行代码编译&运行
+### 执行代码编译&运行
 
 在argo-workflows项目根目录下执行以下命令执行编译安装argo-workflows相关服务到本地，并在minikube中创建相应的argo资源：
 
@@ -101,9 +101,9 @@ make start PROFILE=mysql
 ![](/attachments/image2021-8-9_16-36-46.png)
 :::
 
-## 五、检查服务状态
+## 检查服务状态
 
-### 1、`Argo Server API`
+### `Argo Server API`
 
 [http://localhost:2746](http://localhost:2746)
 
@@ -111,7 +111,7 @@ make start PROFILE=mysql
 注意查看终端日志输出信息，不是HTTPS访问。
 :::
 
-### 2、`Argo UI`
+### `Argo UI`
 
 [http://localhost:8080](http://localhost:8080)
 
@@ -119,7 +119,7 @@ make start PROFILE=mysql
 初次访问的时候会比较慢，注意查看终端日志输出信息。
 :::
 
-### 3、`MinIO UI`
+### `MinIO UI`
 
 [http://localhost:9000](http://localhost:9000) 
 
@@ -127,13 +127,13 @@ make start PROFILE=mysql
 
 密码：`password`
 
-## 六、构建Image镜像
+## 构建Image镜像
 
 :::info
 正常完整编译约5分钟左右。
 :::
 
-### 1、构建镜像
+### 构建镜像
 
 **这一步是非常重要的，否则你无法创建workflow资源，因为argo相关的image在本地没有，拉取镜像会失败。**执行以下命令编译即可：
 
@@ -145,7 +145,7 @@ eval $(minikube -p minikube docker-env) && make build
 其中的 `eval $(minikube -p minikube docker-env)` 命令用以设置当前的`Docker`为`Minikube`的`Docker`，后续常见错误中有介绍。
 :::
 
-### 2、常见错误
+### 常见错误
 
 #### 1）checksum mismatch
 
@@ -193,6 +193,6 @@ golang.org/x/sys => github.com/golang/sys v0.0.0-20200317113312-5766fd39f98d
 eval $(minikube -p minikube docker-env) && make build
 ```
 
-#### 3、编译镜像结果
+#### 编译镜像结果
 
 ![](/attachments/image2021-8-9_15-9-35.png)

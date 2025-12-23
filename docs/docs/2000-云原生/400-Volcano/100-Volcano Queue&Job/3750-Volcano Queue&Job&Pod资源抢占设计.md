@@ -10,9 +10,9 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 ---
 
 
-## 1. 资源抢占的背景和用途
+## 资源抢占的背景和用途
 
-### 1.1 什么是资源抢占
+### 什么是资源抢占
 
 在`Kubernetes`集群中，资源抢占(`Preemption`)是指当高优先级的工作负载需要资源但集群资源不足时，调度系统会终止低优先级的工作负载以释放资源，从而确保高优先级工作负载能够正常运行的机制。
 
@@ -23,7 +23,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 - **弹性计算**：在需求波动较大的环境中，通过优先级机制实现资源的动态分配
 - **多租户环境**：在多用户共享集群的情况下，通过优先级和抢占机制实现资源隔离和公平分配
 
-### 1.2 Kubernetes原生抢占机制的局限性
+### Kubernetes原生抢占机制的局限性
 
 `Kubernetes`原生的抢占机制主要基于`Pod`级别的`PriorityClass`实现，虽然提供了基本的资源抢占能力，但在复杂的高性能计算和`AI/ML`工作负载场景中存在以下局限性：
 
@@ -44,7 +44,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
    - 缺乏队列级资源保障和隔离机制
    - 难以为不同部门或团队提供差异化的资源配额和服务质量保障
 
-### 1.3 Volcano抢占机制的优势
+### Volcano抢占机制的优势
 
 `Volcano`作为一个面向高性能计算和`AI/ML`工作负载的调度系统，提供了更加完善的资源抢占机制：
 
@@ -54,13 +54,13 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 4. **队列级资源管理**：支持队列级别的资源分配和抢占，适合多租户环境
 5. **公平性保障**：通过`DRF`(主导资源公平)算法等机制，确保资源分配的公平性
 
-## 2. Volcano资源抢占的设计与实现
+## Volcano资源抢占的设计与实现
 
 `Volcano`的资源抢占机制设计为三个层级：`Queue`(队列)、`Job`(作业)和`Pod`(容器组)，形成了一个层级分明的抢占体系。
 
-### 2.1 Queue级别抢占
+### Queue级别抢占
 
-#### 2.1.1 设计原理
+#### 设计原理
 
 `Queue`是`Volcano`中最高层级的资源管理单位，比如在业务上可以代表一个租户或一个业务线。`Queue`级别的抢占主要基于以下原则：
 
@@ -76,7 +76,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
   - `proportion`插件会根据`Queue`的`weight`属性决定资源分配比例和抢占顺序。每个队列的`deserved`资源 = 剩余资源 × (队列`weight` / 总`weight`)
   - `capacity`插件会根据`Queue`的`deserved`属性决定资源分配比例和抢占顺序。当`priority`相同时，按照`allocated/deserved`的比率排序。
 
-#### 2.1.2 实现方式
+#### 实现方式
 
 `Volcano`主要通过以下核心组件实现`Queue`级别的资源抢占：
 
@@ -115,9 +115,9 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
       priority: 100      # 队列优先级，值越大优先级越高
     ```
 
-### 2.2 Job级别抢占
+### Job级别抢占
 
-#### 2.2.1 设计原理
+#### 设计原理
 
 `Job`代表一个完整的工作单元，如一个`AI`训练任务或批处理作业。`Job`级别的抢占主要基于以下原则：
 
@@ -134,7 +134,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
    - 支持`All-or-Nothing`的调度模式
    - 确保作业所有关键任务同时调度，避免资源碎片化
 
-#### 2.2.2 实现方式
+#### 实现方式
 
 `Volcano`主要通过以下核心组件实现`Job`级别的抢占：
 
@@ -160,9 +160,9 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
                   name: worker
     ```
 
-### 2.3 Pod级别抢占
+### Pod级别抢占
 
-#### 2.3.1 设计原理
+#### 设计原理
 
 `Pod`是`Kubernetes`中最小的调度单位，也是`Volcano`调度的基本单位。`Pod`级别的抢占主要基于以下原则：
 
@@ -170,7 +170,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 2. **可抢占性**：`Pod`可以通过`volcano.sh/preemptable`注解标记是否可被抢占
 3. **资源需求**：`Pod`的资源请求(`requests`)决定了需要多少资源
 
-#### 2.3.2 实现方式
+#### 实现方式
 
 `Volcano`主要通过以下核心组件实现`Pod`级别的抢占：
 
@@ -195,11 +195,11 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
       schedulerName: volcano                 # 使用Volcano调度器
     ```
 
-## 3. 资源抢占的层级关系
+## 资源抢占的层级关系
 
 在`Volcano`的抢占体系中，`Queue`、`Job`和`Pod`三个层级之间存在明确的优先级关系，形成了一个层级化的抢占机制。
 
-### 3.1 `Queue`与`Queue`之间的抢占
+### `Queue`与`Queue`之间的抢占
 
 当集群资源紧张时，`Queue`之间的抢占遵循以下规则：
 
@@ -216,7 +216,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 4. 从可抢占的低优先级`Queue`中选择可抢占的`Job`和`Pod`
 5. 驱逐选中的`Pod`，释放资源给高优先级`Queue`
 
-### 3.2 `Job`与`Job`之间的抢占
+### `Job`与`Job`之间的抢占
 
 在同一`Queue`内，`Job`之间的抢占遵循以下规则：
 
@@ -231,7 +231,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 3. 从低优先级`Job`中选择可抢占的`Pod`
 4. 驱逐选中的`Pod`，释放资源给高优先级`Job`
 
-### 3.3 `Pod`与`Pod`之间的抢占
+### `Pod`与`Pod`之间的抢占
 
 在同一`Job`内，`Pod`之间的抢占遵循以下规则：
 
@@ -246,7 +246,7 @@ description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个
 3. 检查`Pod`的可抢占性和其他约束条件
 4. 驱逐选中的`Pod`，释放资源给高优先级`Pod`
 
-### 3.4 跨层级抢占的优先顺序
+### 跨层级抢占的优先顺序
 
 当涉及跨层级的资源抢占时，`Volcano`遵循以下优先顺序：
 

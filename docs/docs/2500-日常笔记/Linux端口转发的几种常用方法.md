@@ -6,7 +6,7 @@ keywords: ["Linux", "网络配置", "端口转发", "SSH隧道", "iptables", "�
 description: "详细介绍Linux系统下实现端口转发的多种方法，包括SSH隧道、iptables等常用技术"
 ---
 
-## 一、`SSH` 端口转发
+## `SSH` 端口转发
 
 `SSH`提供了一个非常有意思的功能，就是端口转发，它能够将其他 `TCP` 端口的网络数据通过 `SSH` 链接来转发，并且自动提供了相应的加密及解密服务。
 
@@ -28,7 +28,7 @@ ssh -fgN -R 2222:host1:22 localhost
 ssh -fgN -D 12345 root@host1
 ```
 
-## 二、`iptables` 端口转发
+## `iptables` 端口转发
 
 `CentOS 7.0` 以下使用的是`iptables`，可以通过`iptables`实现数据包的转发。
 
@@ -58,7 +58,7 @@ iptables -t nat -A POSTROUTING -d 192.168.172.131 -p tcp --dport 80 -j SNAT --to
 iptables -t nat -F PREROUTING
 ```
 
-## 三、`firewall` 端口转发
+## `firewall` 端口转发
 
 `CentOS 7.0`以上使用的是`firewall`，通过命令行配置实现端口转发。
 
@@ -80,7 +80,7 @@ firewall-cmd --permanent --add-forward-port=port=12345:proto=tcp:toaddr=192.168.
 firewall-cmd --reload
 ```
 
-## 四、`rinetd` 端口转发
+## `rinetd` 端口转发
 
 `rinetd`是一个轻量级`TCP`转发工具，简单配置就可以实现端口映射/转发/重定向。
 
@@ -109,7 +109,7 @@ vi rinetd.conf
 rinetd -c /etc/rinetd.conf
 ```
 
-## 五、`ncat` 端口转发
+## `ncat` 端口转发
 
 `netcat`（简称`nc`）被誉为网络安全界的”瑞士军刀“，一个简单而有用的工具，这里介绍一种使用`netcat`实现端口转发的方法。
 
@@ -125,7 +125,7 @@ yum install nmap-ncat -y
 ncat --sh-exec "ncat 192.168.172.131 80" -l 9876  --keep-open
 ```
 
-## 六、`socat` 端口转发
+## `socat` 端口转发
 
 `socat`是一个多功能的网络工具，使用`socat`进行端口转发。
 
@@ -141,7 +141,7 @@ yum install -y socat
 socat TCP4-LISTEN:12345,reuseaddr,fork TCP4:192.168.172.131:22
 ```
 
-## 七、 `portmap` 端口转发
+## `portmap` 端口转发
 
 `Linux` 版的`lcx`，内网端口转发工具。
 

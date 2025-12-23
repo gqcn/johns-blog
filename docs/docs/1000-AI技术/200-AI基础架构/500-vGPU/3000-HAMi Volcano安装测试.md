@@ -11,8 +11,8 @@ description: "详细介绍Volcano vGPU的完整部署流程，包括volcano-vgpu
 `Volcano vgpu`仅在`volcano > 1.9`版本中可用。
 
 
-## 1. 准备工作
-### 1.1 镜像准备
+## 准备工作
+### 镜像准备
 `Volcano`调度器已集成支持`HAMI vGPU`，我们需要以前准备以下镜像到本地集群中：
 ```text
 docker.io/projecthami/volcano-vgpu-device-plugin:v1.11.0
@@ -21,8 +21,8 @@ docker.io/projecthami/volcano-vgpu-device-plugin:v1.11.0
 ```text
 aiharbor.msxf.local/test/projecthami/volcano-vgpu-device-plugin:v1.11.0
 ```
-### 1.2 节点准备
-#### 1.2.1 vGPU节点标签污点
+### 节点准备
+#### vGPU节点标签污点
 需要给需要安装`vGPU`组件的节点打上特定的标签和污点，以方便管理启用`vGPU`的节点，并且避免原有的`nvidia device plugin`对该`vGPU`节点的资源管理造成影响和资源分配冲突。
 标签如下：
 ```yaml
@@ -33,20 +33,20 @@ volcano.sh/vgpu.enabled: "true"
 volcano.sh/vgpu=hami:NoSchedule
 ```
 
-#### 1.2.2 卸载vGPU节点的nvidia-device-plugin
+#### 卸载vGPU节点的nvidia-device-plugin
 在已经给`vGPU`节点标记标签和污点后，需要通过`kubectl delete`指令删除对应`vGPU`节点的`nvidia device plugin pod`，例如：
 ```bash
 kubectl delete pod nvidia-device-plugin-daemonset-vx6fk
 ```
 
-## 2. 执行部署
-### 2.1 部署volcano-vgpu-device-plugin
-#### 2.1.1 部署文件
+## 执行部署
+### 部署volcano-vgpu-device-plugin
+#### 部署文件
 
 注意部署文件中`Daemonset`中的`nodeSelector`及`tolerations`：[volcano-vgpu-device-plugin.yaml](./assets/3000-HAMi%20Volcano安装测试/volcano-vgpu-device-plugin.yaml)
 
 
-#### 2.1.2 配置说明
+#### 配置说明
 
 `Volcano vGPU`的默认配置如下：
 ```yaml title="device-config.yaml"
@@ -75,7 +75,7 @@ nvidia:
 |`resourceMemoryPercentageName`|`vGPU`显存比例的资源名称，仅用在`Pod`的资源申请中|`volcano.sh/vgpu-memory-percentage`|
 |`deviceSplitCount`|`GPU`分割数，每张`GPU`最多可同时运行的任务数|`10`|
 
-#### 2.1.3 执行结果
+#### 执行结果
 ```bash
 $ kubectl apply -f volcano-vgpu-device-plugin.yaml
 configmap/volcano-vgpu-device-config created
@@ -137,7 +137,7 @@ Allocatable:
 |`volcano.sh/vgpu-memory`|`vGPU`显存的总资源量，单位`Mi`，是节点上`总卡数*单卡显存数`。由于`4090`显卡的单卡显存为`24564Mi`，那么这里的总显存量为`196512Mi`|`196512`|
 |`volcano.sh/vgpu-number`|`vGPU`个数，是节点上`总卡数*deviceSplitCount配置`|`80`|
 
-### 2.2 启用volcano调度器支持vGPU
+### 启用volcano调度器支持vGPU
 修改`volcano-scheduler-configmap`，增加以下插件支持：
 ```yaml
 - name: deviceshare
@@ -177,8 +177,8 @@ tiers:
 ```
 修改后重启`volcano-scheduler`。
 
-## 3. 运行测试
-### 3.1 vGPU基本使用
+## 运行测试
+### vGPU基本使用
 该测试`Pod`使用的镜像为`nvidia/cuda:12.2.0-base`，下载到本地集群`harbor`仓库的镜像地址`aiharbor.msxf.local/test/nvidia/cuda:12.2.0-base-ubuntu22.04`：
 ```yaml title="test-vgpu.yaml"
 apiVersion: v1
@@ -268,7 +268,7 @@ root@test-vgpu:/#
 ```
 在标准输出中以`HAMI-core`开头的信息属于`HAMI-core`通过`CUDA API`劫持的调试信息，表示`HAMI-core`实际以及起作用，例如`[HAMI-core Msg(18:140441960732480:multiprocess_memory_limit.c:455)]: Calling exit handler 18`表示是由`HAMi-core`组件执行完成，它会在`nvidia-smi`命令末尾执行一些资源清理工作。
 
-### 3.2 使用nvidia-device-plugin的资源
+### 使用nvidia-device-plugin的资源
 
 原本使用`nvidia device plugin`的节点资源不会受影响，部署的`Pod YAML`如下：
 ```yaml title="test-nvidia-device-plugin.yaml"
@@ -311,12 +311,12 @@ spec:
           nvidia.com/gpu: 2
 ```
 
-### 3.3 vGPU资源与NVIDIA资源名称兼容
+### vGPU资源与NVIDIA资源名称兼容
 
 按照节点维度启用`vGPU`后，该`vGPU`节点只能使用`vGPU`的资源名称进行`Pod`资源申请，无法再使用原有的资源名称调度到`vGPU`节点上。
 `Volcano vGPU`也支持将整卡和`vGPU`进行兼容性的资源名称配置，例如将`vGPU`的资源名称和`nvidia`的资源名称保持一致（`nvidia.com/gpu`）。我们来做一下兼容性测试。
 
-#### 3.3.1 配置文件变化
+#### 配置文件变化
 调整`vGPU`全局资源名称的配置如下（`resourceCountName`配置从`volcano.sh/vgpu-number`改为`nvidia.com/gpu`）：
 ```yaml
 nvidia:
@@ -361,7 +361,7 @@ containers:
   ]
 ```
 
-#### 3.3.2 部署文件示例
+#### 部署文件示例
 
 这是完整的`volcano-vgpu-device-plugin`组件部署文件，仅供参考：[volcano-vgpu-device-config.compatible.yaml](./assets/3000-HAMi%20Volcano安装测试/volcano-vgpu-device-config.compatible.yaml)
 
@@ -395,7 +395,7 @@ Allocatable:
 # ...
 ```
 
-#### 3.3.3 测试文件示例
+#### 测试文件示例
 
 运行以下示例将`Pod`调度到`vGPU`节点上：
 ```yaml title="test-vgpu-compatible.yaml"
@@ -473,7 +473,7 @@ Tue Nov 25 09:26:16 2025
 [HAMI-core Msg(15:139748339885888:multiprocess_memory_limit.c:455)]: Calling exit handler 15
 root@test-vgpu-compatible:/# 
 ```
-## 4. 监控指标
+## 监控指标
 
 `Volcano vgpu`的指标通过`volcano scheduler`暴露，可以通过进入集群中任一支持`curl`命令的`Pod`，随后`curl`一下`volcano scheduler`的接口地址，例如：
 ```yaml
@@ -484,8 +484,8 @@ curl 10.233.75.65:8080/metrics
 返回的指标比较重，其中与`vGPU`相关的指标：[volcano-vgpu-metrics.txt](./assets/3000-HAMi%20Volcano安装测试/volcano-vgpu-metrics.txt)
 
 
-## 5. 常见问题
-### 5.1 vGPU Pod部署时报错UnexpectedAdmissionError
+## 常见问题
+### vGPU Pod部署时报错UnexpectedAdmissionError
 在调整完`volcano-vgpu-device-config`这个`ConfigMap`中的`resourceCountName`配置项为自定义的资源名称后，`Pod`部署时状态为`UnexpectedAdmissionError`：
 ```bash
 $ kubectl get pod

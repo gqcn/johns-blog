@@ -34,7 +34,7 @@ description: "详细介绍如何从现有的admin权限kubeconfig文件生成可
 以下方式生成的`Bearer Token`是长期有效的，请妥善保管。
 :::
 
-## 1. 创建ServiceAccount和相关资源
+## 创建ServiceAccount和相关资源
 
 其中的命名空间`kube-system`可根据需要调整。
 
@@ -69,7 +69,7 @@ subjects:
   namespace: kube-system
 ```
 
-## 2. 应用配置并获取Token
+## 应用配置并获取Token
 
 
 ```bash
@@ -89,7 +89,7 @@ echo "Token: $TOKEN"
 echo "API Server: $API_SERVER"
 ```
 
-## 3. 生成新的kubeconfig文件
+## 生成新的kubeconfig文件
 
 ```bash
 # 创建新的kubeconfig文件
@@ -114,7 +114,7 @@ users:
 EOF
 ```
 
-## 4. 验证生成的Bearer Token kubeconfig
+## 验证生成的Bearer Token kubeconfig
 
 ```bash
 # 使用新的kubeconfig测试连接
@@ -130,7 +130,7 @@ kubectl auth can-i "*" "*" --all-namespaces
 kubectl get nodes
 ```
 
-## 5. 使用curl验证Bearer Token
+## 使用curl验证Bearer Token
 
 ```bash
 curl -k -H "Authorization: Bearer $TOKEN" \

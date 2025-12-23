@@ -24,9 +24,9 @@ description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNod
 ---
 
 
-## 1. 背景与价值
+## 背景与价值
 
-### 1.1 AI大模型训练的网络挑战
+### AI大模型训练的网络挑战
 
 在`AI`大模型训练场景中，特别是采用模型并行（`Model Parallelism`）策略时，模型被分割到多个节点上进行训练。训练过程中，这些节点需要频繁进行大量的数据交互，包括：
 
@@ -36,7 +36,7 @@ description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNod
 
 此时，**节点间的网络传输性能往往成为训练的瓶颈**，显著影响训练效率。
 
-### 1.2 数据中心网络的复杂性
+### 数据中心网络的复杂性
 
 现代数据中心的网络环境具有以下特点：
 
@@ -56,7 +56,7 @@ description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNod
    - 跨一层交换机通信：性能有所下降
    - 跨多层交换机通信：性能显著降低
 
-### 1.3 网络拓扑感知调度的价值
+### 网络拓扑感知调度的价值
 
 **核心价值**：将工作负载调度到具有最高吞吐量和最低延迟的最佳性能域，尽可能减少跨交换机的通信，从而：
 
@@ -70,9 +70,9 @@ description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNod
 - `GPU`利用率可提升`20-30%`
 - 支持更大规模的分布式训练任务
 
-## 2. Volcano网络拓扑感知调度实现原理
+## Volcano网络拓扑感知调度实现原理
 
-### 2.1 核心设计理念
+### 核心设计理念
 
 `Volcano`的网络拓扑感知调度基于以下核心设计：
 
@@ -80,9 +80,9 @@ description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNod
 2. **拓扑感知调度策略**：基于网络拓扑信息进行智能调度决策
 3. **灵活的约束模式**：支持`Hard`和`Soft`两种调度约束模式
 
-### 2.2 HyperNode CRD
+### HyperNode CRD
 
-#### 2.2.1 HyperNode概念
+#### HyperNode概念
 
 `HyperNode` 是一个性能域（`Performance Domain`），表示一组具有相同网络带宽和延迟特性的节点或子性能域。通常映射到一个交换机或`Tor（Top of Rack）`。
 
@@ -91,7 +91,7 @@ description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNod
 - 同一`Tier`内的节点具有相同的网络性能特征
 - 不同`Tier`代表不同层级的交换机
 
-#### 2.2.2 HyperNode的优势
+#### HyperNode的优势
 
 相比传统的通过节点标签（`Label`）表示网络拓扑的方式，`HyperNode`具有以下优势：
 
@@ -102,7 +102,7 @@ description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNod
 | **管理便捷** | 需要手动维护大量标签 | 支持自动发现和集中管理 |
 | **扩展性** | 扩展困难 | 易于扩展和定制 |
 
-#### 2.2.3 HyperNode关键字段
+#### HyperNode关键字段
 
 ```yaml
 apiVersion: topology.volcano.sh/v1alpha1
@@ -139,7 +139,7 @@ spec:
 - 三种`selector`不能同时配置，通常只配置一种选择器
 - 非叶子`HyperNode`只支持`exactMatch`
 
-### 2.3 网络拓扑树状结构
+### 网络拓扑树状结构
 
 多个`HyperNode`通过层级连接，形成树状结构。例如：
 
@@ -156,7 +156,7 @@ spec:
 - `node0`和`node2`：需跨`s0→s4→s1`，通信效率**较低**
 - `node0`和`node4`：需跨`s0→s4→s5→s2`，通信效率**最低**
 
-### 2.4 调度策略：Hard/Soft模式
+### 调度策略：Hard/Soft模式
 
 `Volcano Job`和`PodGroup`可以通过`networkTopology`字段设置拓扑约束：
 
@@ -167,7 +167,7 @@ spec:
     highestTierAllowed: 2
 ```
 
-#### 2.4.1 Hard模式（硬约束）
+#### Hard模式（硬约束）
 
 **特点**：
 - 作业中的**所有任务必须**被调度到`highestTierAllowed`定义的单个`HyperNode`层级（或更低层级）内
@@ -179,7 +179,7 @@ spec:
 - 需要保证所有节点在同一高速网络域内
 - 模型并行训练，节点间通信频繁
 
-#### 2.4.2 Soft模式（软约束）
+#### Soft模式（软约束）
 
 **特点**：
 - 调度器会**尽最大努力**将任务调度到同一个`HyperNode`内
@@ -191,11 +191,11 @@ spec:
 - 集群资源紧张，需要平衡性能和资源利用率
 - 数据并行训练，网络通信相对较少
 
-### 2.5 调度打分逻辑
+### 调度打分逻辑
 
 `network-topology-aware`插件在调度时采用以下打分策略：
 
-#### 2.5.1 基于Tier的打分
+#### 基于Tier的打分
 
 **目标**：`HyperNode`的`Tier`越低，得分越高
 
@@ -210,7 +210,7 @@ tierScore = (maxTier - currentTier) / (maxTier - minTier) * 100
 - `Tier=2`的`HyperNode`得分：`(3-2)/(3-1) * 100 = 50分`
 - `Tier=3`的`HyperNode`得分：`(3-3)/(3-1) * 100 = 0分`
 
-#### 2.5.2 基于任务分布的打分
+#### 基于任务分布的打分
 
 **目标**：作业在该`HyperNode`内已成功调度的`Pod`数量越多，得分越高
 
@@ -221,7 +221,7 @@ taskNumScore = (hyperNodeTaskNum / totalTaskNum) * 100
 
 **作用**：鼓励将同一作业的任务调度到同一`HyperNode`，减少跨`HyperNode`通信
 
-#### 2.5.3 综合打分流程
+#### 综合打分流程
 
 1. **首次调度**：所有候选`HyperNode`得分为`0`，调度成功后记录`JobAllocatedHyperNode`
 2. **后续调度**：
@@ -230,9 +230,9 @@ taskNumScore = (hyperNodeTaskNum / totalTaskNum) * 100
    - 如果有多个`HyperNode`得分相同，进一步基于任务分布计算`taskNumScore`
 3. **最终得分**：`finalScore = tierScore + taskNumScore`
 
-## 3. 配置方式
+## 配置方式
 
-### 3.1 配置Volcano调度器
+### 配置Volcano调度器
 
 要启用网络拓扑感知调度功能，需要修改`Volcano`调度器的`ConfigMap`：
 
@@ -253,9 +253,9 @@ tiers:
       weight: 10  # 设置插件权重，默认为1
 ```
 
-### 3.2 HyperNode管理方式
+### HyperNode管理方式
 
-#### 3.2.1 自动发现机制（推荐）
+#### 自动发现机制（推荐）
 
 `Volcano`通过集成可插拔的网络拓扑发现工具（`Discoverer`）实现`HyperNode`的自动发现与管理。
 
@@ -327,7 +327,7 @@ networkTopologyDiscovery:
 - `enabled`：是否启用该发现源
 - 基于标签的发现需要预先在节点上打好相应的标签
 
-#### 3.2.2 手动配置HyperNode（基于标签）
+#### 手动配置HyperNode（基于标签）
 
 如果不使用自动发现，可以手动创建`HyperNode`资源。
 
@@ -421,13 +421,13 @@ spec:
             network-type: infiniband
 ```
 
-## 4. 使用示例
+## 使用示例
 
-### 4.1 网络拓扑感知配置参数说明
+### 网络拓扑感知配置参数说明
 
 `Volcano Job`和`PodGroup`通过`networkTopology`字段配置网络拓扑约束，该字段包含以下参数：
 
-#### 4.1.1 参数详解
+#### 参数详解
 
 ```yaml
 networkTopology:
@@ -442,7 +442,7 @@ networkTopology:
 | `mode` | `string` | 是 | 调度模式，可选值：<br/>- `hard`：硬约束，所有任务必须在指定`Tier`内<br/>- `soft`：软约束，尽力而为，允许降级 |
 | `highestTierAllowed` | `int` | 是 | 允许的最高`Tier`层级值<br/>- 所有任务必须调度到`Tier ≤ highestTierAllowed`的同一`HyperNode`内<br/>- 值越小，网络性能要求越高 |
 
-#### 4.1.2 Deployment工作负载支持
+#### Deployment工作负载支持
 
 网络拓扑感知调度特性**不直接支持**`Deployment`类型的工作负载，因为：
 
@@ -501,9 +501,9 @@ spec:
 - `Pod`会继承`PodGroup`的网络拓扑约束
 
 
-### 4.2 Volcano Job配置示例
+### Volcano Job配置示例
 
-#### 4.2.1 Hard模式调度
+#### Hard模式调度
 
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
@@ -542,7 +542,7 @@ spec:
 - 如果没有满足条件的`HyperNode`，`Job`将保持`Pending`状态
 - 适用于对网络性能要求极高的训练任务
 
-#### 4.2.2 Soft模式示例
+#### Soft模式示例
 
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
@@ -578,7 +578,7 @@ spec:
 - 保证作业能够尽快启动
 
 
-## 5. 参考资料
+## 参考资料
 
 - [Volcano官方文档 - 网络拓扑感知调度](https://volcano.sh/zh/docs/network_topology_aware_scheduling/)
 - [Volcano GitHub - Network Topology Aware Scheduling设计文档](https://github.com/volcano-sh/volcano/blob/master/docs/design/Network%20Topology%20Aware%20Scheduling.md)

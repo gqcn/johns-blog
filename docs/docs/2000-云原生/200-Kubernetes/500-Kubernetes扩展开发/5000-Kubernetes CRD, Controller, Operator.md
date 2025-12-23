@@ -17,9 +17,9 @@ description: "详细介绍 Kubernetes 中的 CRD、Controller 和 Operator 概�
 
 由于[Kubernetes官网](https://kubernetes.io/zh/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)已经对CRD做了比较详细的介绍，并且也有想用的工具和组件来开发Operator项目，因此本文仅做简单的概念介绍。
 
-## 一、基本介绍
+## 基本介绍
 
-### 1、CRD
+### CRD
 
 Kubernetes 里资源类型有如下所示：
 
@@ -83,7 +83,7 @@ spec:
 
 Kuberentes 里并没有 KafkaSource 这个资源可以使用，所以直接执行 `kubectl create -f kafka-source.yaml` 的时候，会出错。但是 kubernetes 提供的 CRD 机制可以让我们轻松的把上述功能添加到 kubernetes 里。
 
-### 2、Controller
+### Controller
 
 CRD 机制以上述 Kafkasource 为例，如下：
 
@@ -104,18 +104,18 @@ CRD 机制以上述 Kafkasource 为例，如下：
 
 在这个流程里，大部分是 client-go 为用户提供的框架和逻辑，可以直接使用，灰色的 AddFunc等是用户需要实现的关于该扩展资源的业务逻辑。informer 会借助 APIServer 跟踪该扩展资源定义的变化，一旦被触发就会调用回调函数，并把变更的具体内容放到 Workqueue 中，自定义 controller 里面的 worker会获取Workqueue 里面内容，并进行相应的业务处理。关于Informer的介绍请参考章节：[Kubernetes Informer及client-go资料](https://iwiki.woa.com/pages/viewpage.action?pageId=709639220)
 
-### 3、Operator
+### Operator
 
 `Operator = CRD + Controller`
 
-## 二、项目开发
+## 项目开发
 
 一个Operator的开发可以使用KubeBuilder工具，具体请参考：
 
 *   [https://github.com/kubernetes-sigs/kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
 *   [https://cloudnative.to/kubebuilder/introduction.html](https://cloudnative.to/kubebuilder/introduction.html)
 
-## 三、参考资料
+## 参考资料
 
 *   [https://zhuanlan.zhihu.com/p/52367044](https://zhuanlan.zhihu.com/p/52367044)
 *   [https://kubernetes.io/zh/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/](https://kubernetes.io/zh/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)

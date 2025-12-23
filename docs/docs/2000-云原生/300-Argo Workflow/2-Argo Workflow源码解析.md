@@ -19,7 +19,7 @@ description: "深入分析 Argo Workflow 的源代码实现，探讨其核心组
 
 本文主要对Argo Workflow的核心Feature以及核心执行流程的源码实现进行解析讲解，Feature的实现细节请翻看Argo Workflow源码进行更深入的了解。
 
-## 一、知识梳理
+## 知识梳理
 
 由于Argo本身的概念和内容较多，我这里先通过思维导图的方式梳理出其中较为关键的知识点，作为前置预备知识：
 
@@ -29,7 +29,7 @@ description: "深入分析 Argo Workflow 的源代码实现，探讨其核心组
 
 ![](/attachments/KubernetesArgoFramework.png)
 
-## 二、充满好奇
+## 充满好奇
 
 为了更好地学习Argo Workflow，这里有几个问题，我们带着问题去探究Argo效果可能会更好一些：
 
@@ -40,7 +40,7 @@ description: "深入分析 Argo Workflow 的源代码实现，探讨其核心组
 
 接下来我们先梳理一下Argo Workflow的核心流程以及一些关键逻辑，然后我们再回过头来解答这些问题。
 
-## 三、工程结构
+## 工程结构
 
 `Argo Workflow`的整个工程是使用经典的`kubebuilder`搭建的，因此大部分目录结构和`kubebuilder`保持一致。关于`kubebuilder`的介绍可参考：[https://cloudnative.to/kubebuilder/](https://cloudnative.to/kubebuilder/)
 
@@ -71,15 +71,15 @@ description: "深入分析 Argo Workflow 的源代码实现，探讨其核心组
 | `util` | 项目封装的工具包模块 |
 | `workflow` | `Argo Workflow`的核心功能逻辑封装 |
 
-## 四、Workflow Controller
+## Workflow Controller
 
 `Argo`中最核心也最复杂的便是`Workflow Controller`的实现。`Argo Workflow Controller`的主要职责是`CRD`的实现，以及`Pod`的创建创建。由于`Argo`采用的是`Kubernetes CRD`设计，因此整体架构以及流程控制采用的是`Kubernetes Informer`实现，相关背景知识可以参考之前的两篇文章：[Kubernetes Informer及client-go资料](../200-Kubernetes/500-Kubernetes扩展开发/3000-Kubernetes%20Informer及client-go资料.md)、[Kubernetes CRD, Controller, Operator](../200-Kubernetes/500-Kubernetes扩展开发/5000-Kubernetes%20CRD,%20Controller,%20Operator.md)。
 
-### 1、基本架构
+### 基本架构
 
 ![](/attachments/architecture.jpeg)
 
-### 2、重要设计
+### 重要设计
 
 `Argo Workflow Controller`组件有一些，我个人觉得较为重要的设计给大家分享下。
 
@@ -121,7 +121,7 @@ description: "深入分析 Argo Workflow 的源代码实现，探讨其核心组
 
 并且这两种方式可以混合使用，使得`Argo Workflow`基本能满足绝大部分的任务调度业务场景。
 
-### 3、核心结构
+### 核心结构
 
 整个`Controller`逻辑中涉及到的核心数据结构如下。
 
@@ -135,7 +135,7 @@ description: "深入分析 Argo Workflow 的源代码实现，探讨其核心组
 | `wfOperationCtx` | ![](/attachments/image2021-7-1_11-27-8.png)<br/><br/>`Workflow`业务逻辑封装对象。<br/><br/>几点重要的说明：<br/><br/>1、`wf/orig/execWf`<br/><br/>1）`wf`<br/><br/>该对象是开发者通过`yaml`创建的`Workflow`对象的深度拷贝对象。官方注释建议运行时逻辑处理中应当使用`execWf`而不是`wf`对象，wf对象未来可能会被废弃掉。<br/><br/>2）`orig`<br/><br/>该对象是开发者通过`yaml`创建的`Workflow`对象，任何时候开发者都不应当去修改它，该对象主要用于后续可以对`Workflow`的`patch`更新判断。<br/><br/>3）`execWf`<br/><br/>该对象是运行时逻辑处理中修改的`Workflow`对象，因为`Workflow`对象会在逻辑处理中不断被修改更新，特别是`execWf`是多个模板`(Wf/WfDefault/WfTemplate)`的合并结构。<br/><br/>*   关于`TemplateDefault`的介绍请参考官方文档：[https://argoproj.github.io/argo-workflows/template-defaults/](https://argoproj.github.io/argo-workflows/template-defaults/)<br/>*   `WfTemplate`来源于`templateRef`配置，具体请参考官方文档：[https://argoproj.github.io/argo-workflows/workflow-templates/#referencing-other-workflowtemplates](https://argoproj.github.io/argo-workflows/workflow-templates/#referencing-other-workflowtemplates)<br/><br/>2、`globalParams`<br/><br/>全局变量，类型为`map[string]string`，该`Workflow`中的所有`template`共享该变量，该变量的名称也可被用于`template`中的模板变量。<br/><br/>3、`update`<br/><br/>该属性用于标识当前`Workflow`对象是否已更新，以便判断是否同步到`Kubernetes`中。<br/><br/>4、`node`<br/><br/>在`woc`处理流程的源码中会出现`node`的概念，这里的`node`是`Steps/DAG中`的执行节点，每一个节点都会运行一个`Pod`来执行。注意它和`Template`不是一个概念。 |
 | `templateresolution.`<br/><br/>`Context` | ![](/attachments/image2021-7-1_16-56-26.png)<br/><br/>如注释所示，用于`Workflow`中的`template`检索。 |
 
-### 4、核心流程
+### 核心流程
 
 主要节点流程图：[https://whimsical.com/kubernetes-argo-controller-4BkPmeF1ZNP548D3JmaHhS@2Ux7TurymME7dMV1vz75](https://whimsical.com/kubernetes-argo-controller-4BkPmeF1ZNP548D3JmaHhS@2Ux7TurymME7dMV1vz75)
 
@@ -330,9 +330,9 @@ h）`kubeclientset.CoreV1.Pods.Create` 将之前创建的`Pod`提交到`Kubernet
 
 ![](/attachments/image2021-7-3_10-37-11.png)
 
-## 五、ArgoExec Container
+## ArgoExec Container
 
-### 1、核心结构
+### 核心结构
 
 整个`agoexec`逻辑中涉及到的核心数据结构如下。
 
@@ -344,7 +344,7 @@ h）`kubeclientset.CoreV1.Pods.Create` 将之前创建的`Pod`提交到`Kubernet
 | `ArtifactDriver` | ![](/attachments/image2021-7-3_11-27-19.png)<br/><br/>![](/attachments/image2021-7-3_11-31-15.png)<br/><br/>用于`Artifacts`的驱动管理。`Argo`默认支持多种`Artifacts`驱动。 |
 | `ArchiveStrategy` | ![](/attachments/image2021-7-3_11-36-44.png)<br/><br/>`ArchiveStrategy`用以标识该`Artifact`的压缩策略。 |
 
-### 2、`ArgoExec Init`
+### `ArgoExec Init`
 
 只有在`Template`类型为`Script`或者带有`Artifacts`功能时，`Argo Workflow Controller`才会为`Pod`创建`Init Container`，该`Container`使用的是`argoexec`镜像，通过 `argoexec init` 命令启动运行。`Init Container`主要的职责是将`Script`的`Resource`读取或将依赖的`Artifacts`内容拉取，保存到本地挂载的共享`Volume`上，便于后续启动的`Main Container`使用。
 
@@ -376,7 +376,7 @@ h）`kubeclientset.CoreV1.Pods.Create` 将之前创建的`Pod`提交到`Kubernet
 
 该方法仅在使用了`Artifacts`功能的场景下有效。负责将配置的`Artifact`拉取到本地，并根据压缩策略进行解压，修改权限，以便下一步`Main Container`访问。为便于扩展，`Artifacts`使用了`ArtifactDrive`接口设计，不同类型的`Artifact`可以分开实现，并根据类型进行引入，通过接口进行使用。
 
-### 3、`ArgoExec Wait`
+### `ArgoExec Wait`
 
 所有的`Argo Workflow Template`在执行时都会创建一个`Wait Container`，**这是一个非常关键的`Container`**。该`Container`负责监控 `Main Container`的生命周期，在 `Main Container` 中的主要逻辑运行结束之后，负责将输出部分读取、持久化，这样 `Main Container` 就不用操心如何将该步产生的结果传到后面的步骤上的问题。
 
@@ -436,11 +436,11 @@ h）`kubeclientset.CoreV1.Pods.Create` 将之前创建的`Pod`提交到`Kubernet
 
 归根到底，从底层实现来讲，多个`Template`传递流程数据的方式主要依靠`Annotations、Artifacts`及共享`Volume`。
 
-### 4、ArgoExec其他命令
+### ArgoExec其他命令
 
 `ArgoExec`的其他命令（`data/resource/emissary`）主要用于流程调度过程中的内容解析，比较简单，这里不再做介绍，感兴趣可以看下源码。
 
-## 六、常见问题
+## 常见问题
 
 `Argo Workflow`的流程和主要逻辑梳理完了，接下来我们回答最开始的那几个问题。
 

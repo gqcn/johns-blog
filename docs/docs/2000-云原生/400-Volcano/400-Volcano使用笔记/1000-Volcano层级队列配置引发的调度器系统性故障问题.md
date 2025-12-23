@@ -26,16 +26,16 @@ description: "详细分析Volcano调度器中层级队列配置不当导致的�
 
 
 
-## 1. 背景
+## 背景
 
-### 1.1 版本信息
+### 版本信息
 
 | 关键组件 | 版本 |
 | ---- | ---- |
 | `kubernetes` | `1.27.5` |
 | `volcano` | `1.12.1` |
 
-### 1.2 问题描述
+### 问题描述
 
 
 `Volcano Job`一直处于`Pending`状态，`Pod`没有创建出来。查看对应`PodGroup`的状态，也是处于`Pending`状态，且存在报错信息：
@@ -66,10 +66,10 @@ E0815 05:55:34.455546 1 capacity.go:612] Failed to check queue's hierarchical st
 该问题在`1.8.2`的`volcano`版本中（目前笔者旧版本集群使用的`volcano`版本），将会导致调度器组件直接`panic crash`。而在新版本如`1.12.1`以后，调度器不会`panic crash`，但是调度器仍然不能系统性工作，并且会在日志中不断打印错误日志。
 
 
-## 2. 问题排查
+## 问题排查
 
 
-### 2.1 源码实现逻辑梳理
+### 源码实现逻辑梳理
 
 通过错误日志所指向的源码文件，去理解源码的实现逻辑，关键代码在这里：https://github.com/volcano-sh/volcano/blob/f7acc998d1b23f045b3e3f53cdccff1695bbff37/pkg/scheduler/plugins/capacity/capacity.go#L659
 
@@ -81,7 +81,7 @@ E0815 05:55:34.455546 1 capacity.go:612] Failed to check queue's hierarchical st
 2. `capacity`插件会递归检查所有队列下的子级队列的`capability`、`deserved`和`guarantee`任一资源配额是否大于父队列的资源配额（任一资源）。如果发现有队列的资源配额大于父队列的资源配额，则会返回错误信息，并停止调度。
 3. `volcano`资源队列默认的`root`队列资源配额是集群的所有资源的总和（`nodes allocatable`），并且会随着节点变化或节点资源的变化而自动改变：https://github.com/volcano-sh/volcano/blob/f7acc998d1b23f045b3e3f53cdccff1695bbff37/pkg/scheduler/plugins/capacity/capacity.go#L503
 
-### 2.2 为何子级队列配额会大于父级队列配额？
+### 为何子级队列配额会大于父级队列配额？
 
 大致可分为以下几种情况：
 
@@ -90,7 +90,7 @@ E0815 05:55:34.455546 1 capacity.go:612] Failed to check queue's hierarchical st
 3. **在GPU Share场景中，对GPU进行拆卡后，整卡资源减少**：在AI智算场景中，以`GPU`为例，当对`GPU`卡进行`MPS/MIG`拆卡后，会产生新的资源类型，但是原有的`GPU`整卡资源类型数量会减少。例如，原有节点有`8`张整卡的`nvidia.com/gpu`资源，对其中`4`张卡进行`MIG`拆卡后，原有的`nvidia.com/gpu`资源数量就会变为`4`，如果资源队列中有指定配额为`8`张卡，这个时候也会触发调度问题。
 
 
-## 3. 解决方案
+## 解决方案
 
 同样的，这种使用开源组件的问题，通常不是我们第一个遇到，应该也会有其他的使用者遇到类似问题。因此检索了`volcano`社区的`issue`和`pr`，果然发现一个`pr`解决的问题和我们遇到的问题很类似：https://github.com/volcano-sh/volcano/pull/4354
 
@@ -106,11 +106,11 @@ E0815 05:55:34.455546 1 capacity.go:612] Failed to check queue's hierarchical st
 2. 虽然该`pr`已经合并入主分支，但目前`volcano`已发布的最新版本（`1.12.2`）并未包含该内容，如果需要使用该功能，需要自己编译源码和镜像来使用。
 
 
-## 4. 测试内容
+## 测试内容
 
 以下是用于测试该问题的部署内容，主要使用CPU和内存进行测试。
 
-### 4.1 调度器配置
+### 调度器配置
 
 需要在`volcano`调度器的配置文件中，增加`capacity`插件，并配置使用`hierarchy`功能：
 ```yaml
@@ -154,7 +154,7 @@ metadata:
 
 3. `capacity`插件和`proportion`插件是互斥的，两者只留其一。其中`proportion`插件是默认启用的，建议将`capacity`插件的配置位置修改到`proportion`位置处。
 
-### 4.2 队列配置
+### 队列配置
 
 修改`root`队列的配置，配置如下：
 ```yaml title="root.yaml"
@@ -190,7 +190,7 @@ spec:
 ```
 
 
-### 4.3 Job 配置
+### Job 配置
 
 创建一个`test-job`，配置如下：
 ```yaml title="test-job.yaml"

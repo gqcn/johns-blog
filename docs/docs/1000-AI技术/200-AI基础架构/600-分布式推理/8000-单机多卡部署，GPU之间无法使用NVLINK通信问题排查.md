@@ -11,11 +11,11 @@ description: 详细分析和解决单机多卡部署中GPU之间无法使用NVLI
 > `PD`分离的部署架构正常应当是多机多卡部署，本文主要是基于测试目的，使用了单机多卡部署。
 
 
-## 1. 问题介绍
+## 问题介绍
 `PD（Prefill & Decode）`分离技术中，如果`Prefill`和`Decode`部署到同节点下，`Prefill`和`Decode`两个`Pod`无法使用`NVLINK`通信，导致`Prefill`和`Decode`之间的通信性能较差。
 
-## 2. 问题复现
-### 2.1 复现环境
+## 问题复现
+### 复现环境
 节点系统版本：
 ```text
 $ cat /etc/issue
@@ -63,11 +63,11 @@ NIC Legend:
   NIC4: rocep32s0f0
 ```
 
-### 2.2 部署内容
+### 部署内容
 
 以下部署内容示例仅供参考，内容无法独立部署。
 
-#### 2.2.1 prefill
+#### prefill
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -136,7 +136,7 @@ spec:
 # ...
 ```
 
-#### 2.2.2 decode
+#### decode
 
 ```yaml
 apiVersion: apps/v1
@@ -207,7 +207,7 @@ spec:
 # ...
 ```
 
-### 2.3 测试过程
+### 测试过程
 
 执行后，查看`Pod`列表：
 ```bash
@@ -253,21 +253,21 @@ qwen25-72b-int4-dhzn-pd-prefill-88f47f885-d2c9h    1/1     Running   0          
     GPU 1: NVIDIA H20 (UUID: GPU-9648f14e-6ab2-46f0-221f-777f7652630b)
     ```
 
-## 3. 排查过程
+## 排查过程
 
 篇幅太长，已省略。
 
-## 4. 解决方案
+## 解决方案
 
-### 4.1 问题原因
+### 问题原因
 - `GPU`卡资源的分配是由底层`GPU`的`device plugin`来实现的，而GPU资源分配是按照容器维度做了资源隔离。
 - 每个容器中只能看到自身分配到的`GPU`卡（并且索引号都是从`0`开始），无法看到其他`GPU`卡，造成不同的容器之间无法发现完整`GPU`拓扑结构，从而引发`NCCL`的`NVLINK`失效。
 
-### 4.2 关键技术
+### 关键技术
 
-#### 4.2.1 关键配置
+#### 关键配置
 
-#### 4.2.1.1 privileged
+#### privileged
 
 **配置类型：** 容器配置
 
@@ -279,7 +279,7 @@ securityContext:
   privileged: true
 ```
 
-#### 4.2.1.2 NVIDIA_VISIBLE_DEVICES
+#### NVIDIA_VISIBLE_DEVICES
 
 **配置类型：** 容器运行时控制面环境变量
 
@@ -296,7 +296,7 @@ securityContext:
 export NVIDIA_VISIBLE_DEVICES="GPU-f055d080-1808-96f1-1c87-70fad19d9040,GPU-4650fca3-dbba-f168-d6bd-338a4ba8f044"
 ```
 
-#### 4.2.1.3 CUDA_VISIBLE_DEVICES
+#### CUDA_VISIBLE_DEVICES
 
 **配置类型：** 容器运行时控制面环境变量
 
@@ -313,13 +313,13 @@ export NVIDIA_VISIBLE_DEVICES="GPU-f055d080-1808-96f1-1c87-70fad19d9040,GPU-4650
 export CUDA_VISIBLE_DEVICES="1,2,3,4"
 ```
 
-#### 4.2.2 技术原理
+#### 技术原理
 1. 通过配置`privileged`开启容器的特权模式，这样业务容器能够访问所有的硬件资源，包括完整的`GPU`卡列表，这样每个容器能够看到完整的`GPU`拓扑结构，以便能确认是否能够和目标进行`NVLINK`通信。
 2. 业务容器仍然使用`nvidia.com/gpu: "2"`这样的资源申请方式来申请`GPU`卡，让`device plugin`自动分配可用的`GPU`卡给业务容器，并自动注入`NVIDIA_VISIBLE_DEVICES`环境变量到业务容器中。
 3. 由于特权容器能够看到宿主机所有的`GPU`卡，默认情况下，业务容器的`CUDA`应用程序会自动从容器中挂载的索引`0`号的`GPU`卡开始使用。当存在多个特权容器时，都访问索引`0`号的`GPU`卡就会出现资源冲突。为了解决这个问题，我们需要让业务容器感知到自身被`device plugin`分配的`GPU`卡是哪些，通过`CUDA_VISIBLE_DEVICES`环境变量设置`CUDA`应用程序允许使用的正确的`GPU`卡索引号。
 4. 其中`NVIDIA_VISIBLE_DEVICES`是`device plugin`自动分配的`GPU`卡`UUID`，我们需要将这些`UUID`转换为宿主机上对应卡的索引号，并将该索引号注入到`CUDA_VISIBLE_DEVICES`环境变量即可。
 
-#### 4.2.3 部署示例
+#### 部署示例
 
 实现原理：
 - 通过给容器`privileged`权限，挂载所有的`GPU`设备，提供拓扑信息。
@@ -411,7 +411,7 @@ spec:
 # ...
 ```
 
-## 5. 参考资料
+## 参考资料
 - https://github.com/NVIDIA/k8s-device-plugin/issues/347
 - https://github.com/NVIDIA/nvidia-docker/issues/1255
 - https://github.com/NVIDIA/nccl/issues/324

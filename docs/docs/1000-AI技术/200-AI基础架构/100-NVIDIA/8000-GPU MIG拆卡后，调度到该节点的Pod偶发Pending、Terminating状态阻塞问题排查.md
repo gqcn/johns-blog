@@ -11,7 +11,7 @@ description: "深入分析GPU MIG拆卡后Pod一直处于Pending或Terminating�
 
 
 
-## 1. 背景描述
+## 背景描述
 
 在对`GPU H20`加速卡进行`MIG`拆卡后，模型推理任务调度到该卡的节点上偶尔会阻塞在`Pending`的状态，无法正常启动。查看`Pod`的状态时，`Event`信息如下：
 ```text
@@ -27,7 +27,7 @@ Events:
 
 并且该问题是偶现的，但问题出现后，所有调度到该节点的`Pod`都会出现该问题，无论该`Pod`是否会请求`GPU`卡或者`MIG`子卡，均无法自动恢复，必须要手动取消对该节点上的`GPU MIG`拆卡策略后才能恢复。
 
-## 2. 环境信息
+## 环境信息
 
 
 系统内核信息：
@@ -75,11 +75,11 @@ Kustomize Version: v5.0.4-0.20230601165947-6ce0bf390ce3
 Server Version: v1.27.5
 ```
 
-## 3. 排查过程
+## 排查过程
 
-### 3.1 关键日志排查
+### 关键日志排查
 
-#### 3.1.1 kubelet日志初查
+#### kubelet日志初查
 
 从`Pod`（`neal-0729-6-68b4895fb7-6868w`）的状态信息来看：
 ```text
@@ -100,7 +100,7 @@ journalctl -u kubelet | grep neal-0729-6-68b4895fb7
 通过查询日志，观察产生的日志，实际上没有看到太有用的日志信息。
 
 
-#### 3.1.2 device plugin日志
+#### device plugin日志
 
 由于该问题现象与`GPU MIG`有关，因此我们很有必要去看看`nvidia device plugin`的日志。我们是使用`GPU Operator`来安装的`GPU`的相关组件，`nvidia device plugin`被安装到了`gpu-operator`的命名空间下。查看状态如下：
 ```bash
@@ -127,7 +127,7 @@ kubectl logs -n gpu-operator nvidia-device-plugin-daemonset-bbp4x -c nvidia-devi
 实际上，`nvidia-device-plugin`的日志输出的相当少，根本没有任何有用的信息。
 
 
-#### 3.1.3 containerd日志
+#### containerd日志
 
 在节点上看看该`Pod`对应的容器有没有成功启动，通过以下命令：
 ```bash
@@ -145,7 +145,7 @@ journalctl -u containerd -f
 
 果然，之前通过查看`Pod`信息，里面连`容器ID`都没有，看`containerd`日志也没什么用。
 
-#### 3.1.4 查看系统内核日志
+#### 查看系统内核日志
 
 查看系统内核日志，通过以下命令：
 ```bash
@@ -168,7 +168,7 @@ dmesg -T
 ...
 ```
 
-#### 3.1.5 网络社区资料检索
+#### 网络社区资料检索
 
 通常工作中我们遇到的大部分问题，我们都不会是第一个遇到的，网络上特别是开源社区中通常也会有类似问题的反馈。关键在于你能否找到这些信息，看看大家是怎么处理的，官方是如何回复的。
 
@@ -186,7 +186,7 @@ gpu pod pending terminating
 
 等等各种组合检索了资料，但是并未找到任何相关联和有用的信息。
 
-#### 3.1.6 kubelet日志深挖
+#### kubelet日志深挖
 
 既然都已经排查了一圈，没有发现有用的信息，由于从`Pod`现象来看和`kubelet`关联性更大一些，因此继续排查`kubelet`的日志。
 
@@ -337,13 +337,13 @@ Jul 30 20:39:03 ai-app-8-1-msxf kubelet[45878]: I0730 20:39:03.753013   45878 ma
 ```
 看样子是这个操作`Issuing a GetPreferredAllocation call for container`之后，要么请求断掉了、要么`kubelet`执行流程被阻塞了。如果是`kubelet`执行流程被阻塞的话，那么便能够解释异常`Pod`的现象。因为后续所有`Pod`的创建/销毁都被阻塞了，事件和状态未更新，这种情况只有在`kubelet`假死才可能出现。
 
-### 3.2 日志结果分析
+### 日志结果分析
 
 从前面的日志排查来看，关键突破口在`Issuing a GetPreferredAllocation call for container`这个日志这个地方。该日志是由`kubelet`的`DeviceManager`打印的，该`DeviceManager`负责与注册的`DevicePlugin`交互。
 
 `DevicePlugin`是`kubenetes`的插件机制，负责与`kubelet`进行交互，管理扩展设备，比如`GPU`、`NPU`、`PPU`等`AI`模型训练中常用的加速卡设备。关于`Kubernetes DevicePlugin`机制的详细介绍，请参考我另一篇文章：[Kubernetes DevicePlugin](../../../2000-云原生/200-Kubernetes/9000-Decvice%20Plugin.md)
 
-#### 3.2.1 kubelet与DevicePlugin交互流程
+#### kubelet与DevicePlugin交互流程
 
 `kubelet`与`DevicePlugin`的交互涉及的接口请参考`kubeket`中的源码定义：https://github.com/kubernetes/kubernetes/blob/b57c7e2fe4bb466ff1614aa9df7cc164e90b24b6/staging/src/k8s.io/kubelet/pkg/apis/deviceplugin/v1beta1/api.proto
 
@@ -400,9 +400,9 @@ service DevicePlugin {
 由于在`nvidia device plugin`组件中没有查到有用的日志，因此我们优先去排查下`kubelet`的主流程是否会因为`DevicePlugin.GetPreferredAllocation`接口的调用而被阻塞。
 
 
-#### 3.2.2 kubelet主流程分析
+#### kubelet主流程分析
 
-##### 3.2.2.1 完整调用链路
+##### 完整调用链路
 
 `kubelet`调用`DevicePlugin.GetPreferredAllocation`接口的完整调用链路如下：
 
@@ -429,7 +429,7 @@ service DevicePlugin {
 
 12. [endpoint.go:126](https://github.com/kubernetes/kubernetes/blob/f1e7386fbc4008e8079ff0d3eb142c935ec3ba57/pkg/kubelet/cm/endpoint.go#L126) `endpoint.getPreferredAllocation`：通过`gRPC`调用设备插件的`GetPreferredAllocation`接口
 
-##### 3.2.2.2 关键阻塞点
+##### 关键阻塞点
 
 源码位置：https://github.com/kubernetes/kubernetes/blob/c635a7e7d8362ac7c706680e77f7680895b1d517/pkg/kubelet/cm/devicemanager/manager.go#L995
 
@@ -449,7 +449,7 @@ func (m *ManagerImpl) callGetPreferredAllocationIfAvailable(...) {
 }
 ```
 
-##### 3.2.2.3 阻塞问题分析
+##### 阻塞问题分析
 
 1. **同步阻塞调用**：`getPreferredAllocation`是同步`gRPC`调用，会一直阻塞直到`nvidia device plugin`返回响应。
 2. **无超时机制**：代码中没有设置`gRPC`调用超时，如果`nvidia device plugin`响应慢或卡死，`kubelet`会无限等待。
@@ -460,7 +460,7 @@ func (m *ManagerImpl) callGetPreferredAllocationIfAvailable(...) {
 
 那么，为什么`nvidia device plugin`的`GetPreferredAllocation`接口调用会卡死呢？
 
-### 3.3 DevicePlugin分析
+### DevicePlugin分析
 
 由于`nvidia device plugin`组件中没发现有用的日志（其实压根就没打关键日志），为了排查`GetPreferredAllocation`接口的阻塞原因，我这里手动修改了`nvidia device plugin`组件的源码，给`GetPreferredAllocation`接口的调用链路的关键方法添加了关键日志。并编译重新部署到集群中，经过一定时间的调试，发现最终问题阻塞在了`nvml`的初始化方法上。
 
@@ -482,7 +482,7 @@ func (l *library) Init() Return {
 
 优先去查看了`nvidia device plugin`组件的配置介绍，在`README.md`中，经过和本地配置文件对比，并没有什么配置使用上的不对。估计问题还是出在底层。
 
-### 3.4 问题出现在更底层
+### 问题出现在更底层
 
 既然如此，那么尝试升级了`nvidia device plugin`组件的版本，从当前的`0.16.2`升级到最新的`0.17.3`，结果问题依旧存在。因为问题出在`nvml`初始化，并不是`device plugin`的实现问题，那么是否是底层硬件驱动有问题？
 
@@ -553,7 +553,7 @@ $ nvidia-smi
 ...
 ```
 
-## 4. 解决方案
+## 解决方案
 
 根据官方人员的建议，升级到最新`570.172.08`驱动，并且该驱动是`8`小时前才发布的。估计这个问题后续还会有很多人踩上去。
 
@@ -580,9 +580,9 @@ sudo apt-get upgrade nvidia-driver-570
 PS：至于`kubelet`假死的风险，目前`kubernetes`的最新版本也存在这个问题，`kubernetes`社区也有`issue`和`PR`在跟进：https://github.com/kubernetes/kubernetes/issues/130855 、 https://github.com/kubernetes/kubernetes/pull/131383 大家注意存在这个问题即可。
 
 
-## 5. 常见问题
+## 常见问题
 
-### 5.1 为何在575或580系列驱动该问题任然存在
+### 为何在575或580系列驱动该问题任然存在
 
 
 截止目前（`2025.08.12`），`570.172.08`版本是唯一一个修复该问题的驱动。大版本号（`575`或`580`）高于`570`并不意味着其子版本号或者修复版本号是晚于`570.172.08`版本的。
@@ -590,7 +590,7 @@ PS：至于`kubelet`假死的风险，目前`kubernetes`的最新版本也存在
 `570`、`575`、`580`都是长期维护的驱动版本，出现重大问题的时候会同时合并到这几个大版本号的驱动中，但目前该修复还未合并到`580`系列驱动中。
 
 
-### 5.2 升级驱动后MPS拆卡失败
+### 升级驱动后MPS拆卡失败
 如果升级驱动后出现`MPS`拆卡失败，具体现象为`MPS`的`nvidia-device-plugin-mps-control-daemon`组件处于`CrashLoopBackOff`状态：
 
 ```bash
@@ -674,7 +674,7 @@ sudo apt-get install nvidia-compute-utils-570
 
 
 
-## 6. 参考链接
+## 参考链接
 
 - https://github.com/NVIDIA/gpu-operator/issues/1361
 - https://github.com/kubernetes/kubernetes/issues/130855

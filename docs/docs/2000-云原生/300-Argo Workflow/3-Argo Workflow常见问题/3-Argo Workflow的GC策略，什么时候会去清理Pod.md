@@ -13,7 +13,7 @@ description: "详细说明 Argo Workflow 的垃圾回收策略，包括 Pod 的�
 
 官方提供了三种建议性的方案，其中`TTLStrategy`和`PodGC`比较常用一些，一个是`Workflow清理策略`，一个是`Pod清理策略`。我们来看看这两种清理策略的具体逻辑是怎么样的吧。
 
-## 一、`TTLStrategy`
+## `TTLStrategy`
 
 执行流程图：
 
@@ -29,7 +29,7 @@ description: "详细说明 Argo Workflow 的垃圾回收策略，包括 Pod 的�
 
 ![](/attachments/image2021-7-6_16-50-23.png)
 
-## 二、`PodGC`
+## `PodGC`
 
 我们在之前的源码分析中已经发现有`podCleanQueue`这么一个队列，用于清理`Pod`资源。在之前对`Argo Workflow Controller`的核心流程的介绍中有一个`woc.operate`操作，该操作执行完成后`Workflow`核心流程便执行完成了。在这之后还有一个操作便是`PodGC处理逻辑`。
 

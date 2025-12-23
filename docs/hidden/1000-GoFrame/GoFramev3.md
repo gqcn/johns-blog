@@ -9,7 +9,7 @@ description: "深入探讨 GoFrame 框架的特性、最佳实践和应用场景
 
 ## GoFrame v3 非兼容性修改项分析
 
-### 1. ORM 操作强制增加 ctx 参数
+### ORM 操作强制增加 ctx 参数
 
 **现状分析：**
 GoFrame v2 版本 ORM 操作通过链式调用 `Ctx(ctx)` 方法设置 context，并未强制要求。虽然可通过代码生成工具规范，但实际开发中存在如下问题：
@@ -28,7 +28,7 @@ GoFrame v2 版本 ORM 操作通过链式调用 `Ctx(ctx)` 方法设置 context�
 
 ---
 
-### 2. HTTP Server 参数传递方式与标准库对齐
+### HTTP Server 参数传递方式与标准库对齐
 
 **现状分析：**
 GoFrame v2 的 HTTP 服务端参数解析方式与 Go 标准库（如 `net/http`）存在差异。例如，GoFrame 支持通过 slice 参数批量接收同名参数，但其行为与标准库不完全一致，容易导致开发者迁移或集成时产生困惑。
@@ -46,7 +46,7 @@ GoFrame v2 的 HTTP 服务端参数解析方式与 Go 标准库（如 `net/http`
 
 ---
 
-### 3. gtime.Format 避免与标准库 time.Format 冲突
+### gtime.Format 避免与标准库 time.Format 冲突
 
 **现状分析：**
 GoFrame v2 的 `gtime.Format` 方法采用自定义格式字符串（如 `Y-m-d H:i:s`），与 Go 标准库 `time.Format` 的 layout 机制（如 `2006-01-02 15:04:05`）完全不同。虽然功能强大、兼容 PHP 风格，但极易让开发者误用或混淆，尤其在混合使用 Go 标准库和 GoFrame 时，容易出现格式错误或不可预期的结果。

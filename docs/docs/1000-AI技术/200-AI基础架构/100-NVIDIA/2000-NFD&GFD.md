@@ -13,9 +13,9 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 
 在`Kubernetes`集群中，有效识别节点**硬件特性**并进行自动标记是实现智能资源调度的关键前提。`Node Feature Discovery` (`NFD`)和`GPU Feature Discovery` (`GFD`)正是专为此目的设计的技术组件，它们的核心功能是自动检测集群中各节点的硬件与系统特性，并将这些信息转化为标准化的节点标签(`Node Labels`)。通过这些标签，`Kubernetes`调度器能够精确了解每个节点的能力边界，从而实现基于硬件感知的智能工作负载分配。本文将详细介绍这两种节点标记技术的背景、作用和实现原理，重点阐述它们如何通过自动化的硬件发现和标记机制优化集群资源利用。
 
-## 1. Node Feature Discovery (NFD)
+## Node Feature Discovery (NFD)
 
-### 1.1 基本介绍
+### 基本介绍
 
 ![alt text](assets/NFD&GFD技术介绍/image.png)
 
@@ -24,7 +24,7 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 - 官网地址：https://nfd.sigs.k8s.io/get-started/index.html
 - 开源仓库：https://github.com/kubernetes-sigs/node-feature-discovery
 
-### 1.2 背景与作用
+### 背景与作用
 
 在传统的`Kubernetes`环境中，管理员通常需要手动为节点添加标签以指示其特性，这不仅繁琐且容易出错，还难以跟上硬件变化。随着异构计算的普及，集群中可能包含各种不同硬件配置的节点，如`CPU`型号、`GPU`数量、特殊指令集支持等。
 
@@ -36,7 +36,7 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 4. **支持异构集群**：有效管理包含不同硬件配置的混合集群
 5. **提高资源利用率**：通过精确匹配工作负载和硬件特性，提高整体资源利用效率
 
-### 1.3 业务场景示例
+### 业务场景示例
 
 为了更直观地理解`NFD`的必要性和实际价值，考虑以下业务场景：
 
@@ -109,27 +109,27 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 
 这个场景展示了`NFD`如何在一个复杂的异构计算环境中自动化硬件发现和标记过程，从而显著提高运维效率和资源利用率。
 
-### 1.4 实现原理
+### 实现原理
 
 `NFD`由四个主要组件组成：
 
-#### 1.4.1 NFD-Master
+#### NFD-Master
 
 `NFD-Master`是负责与`Kubernetes API`通信的守护进程。它接收来自`NFD-Worker`的标签请求，并相应地修改节点对象。通常作为`Deployment`部署在集群中，只需要一个实例。
 
-#### 1.4.2 NFD-Worker
+#### NFD-Worker
 
 `NFD-Worker`是负责特性检测的守护进程。它在每个节点上运行，检测节点的硬件和软件特性，然后将这些信息传递给`NFD-Master`进行实际的节点标记。通常作为`DaemonSet`部署，确保集群中的每个节点都运行一个实例。
 
-#### 1.4.3 NFD-Topology-Updater
+#### NFD-Topology-Updater
 
 `NFD-Topology-Updater`是负责检查节点上已分配资源的守护进程，用于按区域(如`NUMA`节点)记录可分配给新`Pod`的资源。它创建或更新特定于该节点的`NodeResourceTopology`自定义资源对象。
 
-#### 1.4.4 NFD-GC
+#### NFD-GC
 
 `NFD-GC`是负责清理过时的`NodeFeature`和`NodeResourceTopology`对象的守护进程。在集群中通常只需要运行一个实例。
 
-### 1.5 特性发现机制
+### 特性发现机制
 
 `NFD`将特性发现分为多个特定领域的特性源：
 
@@ -145,11 +145,11 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 
 这些特性源负责检测一组特性，然后转换为节点特性标签。特性标签以`feature.node.kubernetes.io/`为前缀，并包含特性源的名称。
 
-### 1.6 NFD支持的标签
+### NFD支持的标签
 
 以下是`NFD`支持的主要标签类别及其详细说明：
 
-#### 1.6.1 CPU标签
+#### CPU标签
 
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
@@ -183,7 +183,7 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 | `AMXBF16` | 高级矩阵扩展，`BFLOAT16`数字的瓦片乘法操作 |
 | `AMXINT8` | 高级矩阵扩展，8位整数的瓦片乘法操作 |
 
-#### 1.6.2 内核标签
+#### 内核标签
 
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
@@ -194,7 +194,7 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 | `kernel-version.minor` | `string` | 内核版本次要组件 | `15` |
 | `kernel-version.revision` | `string` | 内核版本修订组件 | `0` |
 
-#### 1.6.3 内存标签
+#### 内存标签
 
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
@@ -203,33 +203,33 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 | `memory-nv.dax` | `boolean` | 存在配置为`DAX`模式的`NVDIMM`区域 | `true` |
 | `memory-swap.enabled` | `boolean` | 节点上已启用交换空间 | `true` |
 
-#### 1.6.4 网络标签
+#### 网络标签
 
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
 | `network-sriov.capable` | `boolean` | 存在支持`SR-IOV`的网络接口卡 | `true` |
 | `network-sriov.configured` | `boolean` | 已配置`SR-IOV`虚拟功能 | `true` |
 
-#### 1.6.5 PCI设备标签
+#### PCI设备标签
 
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
 | `pci-<device label>.present` | `boolean` | 检测到`PCI`设备 | `true` |
 | `pci-<device label>.sriov.capable` | `boolean` | 存在支持`SR-IOV`的`PCI`设备 | `true` |
 
-#### 1.6.6 USB设备标签
+#### USB设备标签
 
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
 | `usb-<device label>.present` | `boolean` | 检测到`USB`设备 | `true` |
 
-#### 1.6.7 存储标签
+#### 存储标签
 
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
 | `storage-nonrotationaldisk` | `boolean` | 节点中存在非旋转磁盘(如`SSD`) | `true` |
 
-#### 1.6.8 系统标签
+#### 系统标签
 
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
@@ -238,14 +238,14 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 | `system-os_release.VERSION_ID.major` | `string` | 操作系统版本ID的第一个组件 | `22` |
 | `system-os_release.VERSION_ID.minor` | `string` | 操作系统版本ID的第二个组件 | `04` |
 
-#### 1.6.9 自定义标签
+#### 自定义标签
 
 | 标签名称 | 类型 | 描述 | 示例值 |
 | --- | --- | --- | --- |
 | `custom-rdma.capable` | `boolean` | 节点具有支持`RDMA`的网络适配器 | `true` |
 | `custom-rdma.enabled` | `boolean` | 节点已加载运行`RDMA`流量所需的模块 | `true` |
 
-### 1.7 标签示例
+### 标签示例
 
 `NFD`生成的标签示例：
 
@@ -280,14 +280,14 @@ feature.node.kubernetes.io/system-os_release.id: "ubuntu"
 
 这种基于供应商ID的标签方式使`Kubernetes`能够精确识别节点上的硬件设备，从而实现更精细的工作负载调度。
 
-### 1.8 监控指标
+### 监控指标
 
 `NFD`提供了丰富的`Prometheus`监控指标，可用于监控和跟踪其各个组件的运行状态。
 这些指标通过标准的`Prometheus接`口暴露，默认情况下在端口`8080`上的`/metrics`路径提供。每个`NFD`组件都有自己的一组监控指标。
 
 参考链接：https://kubernetes-sigs.github.io/node-feature-discovery/v0.17/deployment/metrics.html
 
-#### 1.8.1 NFD-Master监控指标
+#### NFD-Master监控指标
 
 `NFD-Master`组件暴露以下监控指标，所有指标都使用`nfd_master`前缀：
 
@@ -304,7 +304,7 @@ feature.node.kubernetes.io/system-os_release.id: "ubuntu"
 | `nfd_master_nodefeaturerule_processing_duration_seconds` | `Histogram` | 处理`NodeFeatureRule`对象所需的时间 |
 | `nfd_master_nodefeaturerule_processing_errors_total` | `Counter` | `NodeFeatureRule`处理错误的数量 |
 
-#### 1.8.2 NFD-Worker监控指标
+#### NFD-Worker监控指标
 
 `NFD-Worker`组件暴露以下监控指标，所有指标都使用`nfd_worker`前缀：
 
@@ -313,7 +313,7 @@ feature.node.kubernetes.io/system-os_release.id: "ubuntu"
 | `nfd_worker_build_info` | `Gauge` | `NFD-Worker`的构建版本信息 |
 | `nfd_worker_feature_discovery_duration_seconds` | `Histogram` | 发现特性所需的时间 |
 
-#### 1.8.3 NFD-Topology-Updater监控指标
+#### NFD-Topology-Updater监控指标
 
 `NFD-Topology-Updater`组件暴露以下监控指标，所有指标都使用`nfd_topology_updater`前缀：
 
@@ -322,7 +322,7 @@ feature.node.kubernetes.io/system-os_release.id: "ubuntu"
 | `nfd_topology_updater_build_info` | `Gauge` | `NFD-Topology-Updater`的构建版本信息 |
 | `nfd_topology_updater_scan_errors_total` | `Counter` | 扫描`Pod`资源分配时的错误数量 |
 
-#### 1.8.4 NFD-GC监控指标
+#### NFD-GC监控指标
 
 `NFD-GC`(垃圾回收)组件暴露以下监控指标，所有指标都使用`nfd_gc`前缀：
 
@@ -332,7 +332,7 @@ feature.node.kubernetes.io/system-os_release.id: "ubuntu"
 | `nfd_gc_objects_deleted_total` | `Counter` | 垃圾回收的`NodeFeature`和`NodeResourceTopology`对象数量 |
 | `nfd_gc_object_delete_failures_total` | `Counter` | 删除`NodeFeature`和`NodeResourceTopology`对象时的错误数量 |
 
-#### 1.8.5 监控指标的使用
+#### 监控指标的使用
 
 这些监控指标可以集成到`Prometheus`监控系统中，并通过`Grafana`等工具进行可视化展示。以下是一个简单的`Prometheus`配置示例：
 
@@ -361,15 +361,15 @@ scrape_configs:
 
 
 
-## 2. GPU Feature Discovery (GFD)
+## GPU Feature Discovery (GFD)
 
-### 2.1 基本介绍
+### 基本介绍
 
 `GPU Feature Discovery` (`GFD`)是`NVIDIA`开发的一个`Kubernetes`插件，专门用于自动发现和标记`NVIDIA GPU`的特性和能力。它是`NFD`的一个扩展，专注于提供更详细的`GPU`相关信息。`GFD`是`NVIDIA GPU Operator`的一个核心组件，但也可以独立部署和使用。
 
 - 开源仓库：https://github.com/NVIDIA/k8s-device-plugin
 
-### 2.2 背景与作用
+### 背景与作用
 
 随着人工智能和高性能计算工作负载在`Kubernetes`集群中的大规模部署，对`GPU`资源的精细化管理需求变得越来越迫切。不同型号和不同代的`GPU`具有各自的特点：
 
@@ -390,14 +390,14 @@ scrape_configs:
 5. **支持MIG技术**：对`NVIDIA Multi-Instance GPU` (`MIG`)技术提供特殊支持，实现`GPU`资源的细粒度划分
 6. **与NFD无缝集成**：与`NFD`完美配合，扩展其`GPU`特性发现能力
 
-### 2.3 实现原理
+### 实现原理
 
-#### 2.3.1 架构概述
+#### 架构概述
 
 `GFD`作为`NFD`的插件运行，通过`NFD`的本地特性文件机制与`NFD`集成。它的架构设计专注于`GPU`特性的发现和标记。
 `GFD`通常作为`DaemonSet`部署在集群中，只在具有`NVIDIA GPU`的节点上运行。它可以作为`NVIDIA GPU Operator`的一个组件部署，也可以独立部署。
 
-#### 2.3.2 工作流程
+#### 工作流程
 
 `GFD`的工作流程如下：
 
@@ -415,7 +415,7 @@ scrape_configs:
 7. **标记节点**：`NFD-Master`将这些标签应用到节点对象上
 8. **周期性更新**：`GFD`会定期重新检测`GPU`信息，以响应可能的硬件变化（如`MIG`配置更改）
 
-#### 2.3.3 与NFD的集成
+#### 与NFD的集成
 
 `GFD`与`NFD`的集成是通过`NFD`的本地特性文件机制实现的：
 
@@ -426,14 +426,14 @@ scrape_configs:
 
 这种集成方式使`GFD`能够专注于`GPU`特性的发现，而将标签管理的职责留给`NFD`，形成了清晰的职责分离。
 
-### 2.4 GFD支持的标签
+### GFD支持的标签
 
-#### 2.4.1 标签命名规则
+#### 标签命名规则
 
 `GFD`生成的所有标签都使用`nvidia.com/`前缀，这与`NFD`使用的`feature.node.kubernetes.io/`前缀不同。这种命名方式可以清晰地区分不同来源的标签，并确保标签的唯一性。
 
 
-##### 2.4.1.1 基础标签
+##### 基础标签
 
 | 标签 | 类型 | 说明 | 示例值 |
 | --- | --- | --- | --- |
@@ -448,7 +448,7 @@ scrape_configs:
 | `nvidia.com/gpu.sharing-strategy` | `string` | `GPU`共享策略类型 | `none`、`mps`或`time-slicing` |
 | `nvidia.com/gpu.mode` | `string` | `GPU`工作模式 | `compute`或`graphics` |
 
-##### 2.4.1.2 CUDA相关标签
+##### CUDA相关标签
 
 | 标签 | 类型 | 说明 | 示例值 |
 | --- | --- | --- | --- |
@@ -460,7 +460,7 @@ scrape_configs:
 
 
 
-##### 2.4.1.3 特性支持标签
+##### 特性支持标签
 
 | 标签 | 类型 | 说明 | 示例值 |
 | --- | --- | --- | --- |
@@ -471,7 +471,7 @@ scrape_configs:
 | `nvidia.com/vgpu.host-driver-branch` | `string` | `vGPU`主机驱动分支 | `r525` |
 | `nvidia.com/gfd.timestamp` | `string` | `GPU`特征发现的时间戳 | `1736224460` |
 
-##### 2.4.1.4 MIG相关标签（当启用`MIG`功能时）
+##### MIG相关标签（当启用`MIG`功能时）
 
 | 标签 | 类型 | 说明 | 示例值 |
 | --- | --- | --- | --- |
@@ -489,7 +489,7 @@ scrape_configs:
 
 
 
-#### 2.4.5 标签的使用场景
+#### 标签的使用场景
 
 这些标签可以在多种场景中使用：
 
@@ -519,9 +519,9 @@ scrape_configs:
      nvidia.com/gpu.engines.decoder: "2"
    ```
 
-### 2.5 标签示例
+### 标签示例
 
-#### 2.5.1 不同型号GPU的标签示例
+#### 不同型号GPU的标签示例
 
 以下展示了不同型号`GPU`的`GFD`标签示例，这些标签反映了各自的硬件特性和能力。
 
@@ -600,7 +600,7 @@ nvidia.com/gpu.engines.jpeg: "2"
 nvidia.com/gpu.engines.ofa: "1"
 ```
 
-#### 2.5.2 如何查看节点标签
+#### 如何查看节点标签
 
 可以使用以下命令查看节点上的`GFD`生成的标签：
 
@@ -612,7 +612,7 @@ kubectl get nodes -o json | jq '.items[] | {name: .metadata.name, labels: .metad
 kubectl get node <node-name> -o json | jq '.metadata.labels | with_entries(select(.key | startswith("nvidia.com")))'
 ```
 
-#### 2.5.3 标签的实际应用
+#### 标签的实际应用
 
 使用这些标签可以实现精确的工作负载调度，例如：
 
@@ -651,7 +651,7 @@ spec:
     nvidia.com/gpu.engines.encoder: "3"
 ```
 
-## 3. NFD与GFD的协同工作
+## NFD与GFD的协同工作
 
 `NFD`和`GFD`协同工作，为`Kubernetes`提供全面的节点特性信息，特别是在`GPU`资源管理方面：
 
@@ -661,18 +661,18 @@ spec:
 4. **调度协同**：调度器可以同时使用`NFD`和`GFD`提供的标签来做出更精确的调度决策
 
 
-## 4. 参考资料
+## 参考资料
 
-### 4.1 NFD相关资料
+### NFD相关资料
 - [Node Feature Discovery 官方文档](https://nfd.sigs.k8s.io/)
 - [Node Feature Discovery GitHub 仓库](https://github.com/kubernetes-sigs/node-feature-discovery)
 - [NFD 安装指南](https://kubernetes-sigs.github.io/node-feature-discovery/stable/get-started/deployment-and-usage.html)
 
-### 4.2 NVIDIA相关资料
+### NVIDIA相关资料
 - [GPU Feature Discovery GitHub 仓库](https://github.com/NVIDIA/gpu-feature-discovery)
 - [NVIDIA GPU Operator 文档](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
 - [NVIDIA Device Plugin GitHub 仓库](https://github.com/NVIDIA/k8s-device-plugin)
 
-### 4.3 Kubernetes官方资料
+### Kubernetes官方资料
 - [Kubernetes 官方文档 - 调度 GPU](https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/)
 - [Kubernetes Device Plugin 机制](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/)

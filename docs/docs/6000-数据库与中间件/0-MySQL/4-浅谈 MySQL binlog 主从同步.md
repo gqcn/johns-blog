@@ -9,13 +9,13 @@ description: "深入讲解 MySQL binlog 主从同步的原理、配置方法和�
 
 
 
-## 一、binlog 的基础知识
+## binlog 的基础知识
 
-### 1、binlog 的概念
+### binlog 的概念
 
 Server 层的日志系统（归档日志），binlog 中跟踪对其数据库的所有更改操作。是逻辑日志，以追加日志的形式记录。
 
-### 2、binLog 的三种格式
+### binLog 的三种格式
 
 #### **1）statement**
 
@@ -36,7 +36,7 @@ Server 层的日志系统（归档日志），binlog 中跟踪对其数据库的
 
 一般语句使用 statement 格式保存，如果使用了一些函数，statement 格式无法完成主从复制的操作，采用 row 格式。MySQL 自己会判断这条 SQL 语句是否可能引起主备不一致，如果有可能就用 row 格式，否则就用 statement 格式。
 
-## 二、主从同步的基础流程
+## 主从同步的基础流程
 
 ![](/attachments/linkedkeeper0_bb790df4-28f3-4e4e-9de0-9e6a233b0348.png)
 
@@ -60,7 +60,7 @@ Server 层的日志系统（归档日志），binlog 中跟踪对其数据库的
 *   sql thread：读取 relay log 执行命令实现从库数据的更新
 
 
-## 三、主从延迟问题
+## 主从延迟问题
 
 ### 1，什么是主从延迟
 
@@ -130,27 +130,27 @@ writeset，对于事务涉及更新的每一行计算出这行的 hash 值组成
 
 `wrtieset_session`，是在 writeset 的基础上多了个约束，在主库上同一个线程先后执行的两个事务，在备库执行的时候要保证先后顺序。
 
-## 四、延伸
+## 延伸
 
-### 1、从库连接到主库请求 binlog 日志
+### 从库连接到主库请求 binlog 日志
 
 从库主动从主库请求 binlog 的副本，而不是主库主动将数据推送到从库。也就是说每个从库都是独立独立地与主库进行连接，每个从库只能通过向主库请求来接收 binlog 的副本，因此从库能够以自己的速度读取和更新数据库的副本，并且可以随意启动和停止赋值过程，而不会影响到主库或者其他从库的状态。
 
-### 2、relay log（中继日志）
+### relay log（中继日志）
 
 中继日志与 binlog 相同，由一组包含描述数据库更改的文件和一个包含所有已使用的中继日志文件名称的索引文件组成。在5.6以前，日志是存在 relay [log.info](http://log.info) 文件中的，在5.6以后可以使用 `--relay log info repository=table` 启动 slave，将此日志写入 `mysql.slave_relay_log_info` 表，而不是文件。
 
-### 3、复制通道概念
+### 复制通道概念
 
 MySQL5.7.6 引入了复制通道的概念，表示事务从主库流到从库的路径。MySQL 服务器会在启动时自动创建一个默认通道，其名称为空字符串（””）。此通道始终存在；用户无法创建或销毁它。如果没有创建其他通道（具有非空名称），则复制语句仅作用于默认通道，以便所有来自旧从属服务器的复制语句都按预期工作。应用于复制通道的语句只能在至少有一个命名通道时使用。
 
 在多源复制中，从库打开多个通道，每个主通道一个，每个通道都有自己的中继日志和 sql thread，一旦复制通道的接收器（I/O 线程）接收到事务，他们将被添加到通道的中继日志文件中并传递到 sql thread，使通道能够独立工作。
 
-### 4、主库和从库用不同引擎
+### 主库和从库用不同引擎
 
 对于复制过程来说，主库表和从库表是否使用不同的引擎类型并不重要，实际上，在复制过程中不会复制存储引擎系统变量，用户可以针对不同的复制方案为从库设置不同的存储引擎。
 
-### 5、undo log
+### undo log
 
 每一个事务对数据的修改都会被记录到 undo log ，当执行事务过程中出现错误或者需要执行回滚操作的话，MySQL 可以利用 undo log 将数据恢复到事务开始之前的状态。
 
@@ -160,7 +160,7 @@ undo log 是采用 segment（段）的方式来记录的，每个 undo 操作在
 
 通常情况下， **rollback segment header**（通常在回滚段的第一个页）负责管理 rollback segment。rollback segment header 是 rollback segment 的一部分，通常在回滚段的第一个页。**history list** 是 rollback segment header 的一部分，它的主要作用是记录所有已经提交但还没有被清理（purge）的事务的 undo log。这个列表使得 purge 线程能够找到并清理那些不再需要的 undo log 记录。
 
-## 五、参考资料
+## 参考资料
 
 *   [http://www.linkedkeeper.com/1503.html](http://www.linkedkeeper.com/1503.html) 
 *   [https://javaguide.cn/database/mysql/mysql-logs.html](https://javaguide.cn/database/mysql/mysql-logs.html)

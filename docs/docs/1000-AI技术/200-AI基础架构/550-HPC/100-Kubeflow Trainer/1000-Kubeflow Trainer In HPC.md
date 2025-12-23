@@ -28,11 +28,11 @@ keywords:
 description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项目背景、核心架构、支持的框架（PyTorch/DeepSpeed/MPI）、训练任务创建流程、与Volcano调度器的集成方案，以及与Volcano Job的对比分析"
 ---
 
-## 1. Kubeflow项目简介
+## Kubeflow项目简介
 
 ![Kubeflow](../assets/AI模型开发训练平台开源项目调研/image.png)
 
-### 1.1 项目背景
+### 项目背景
 
 [Kubeflow](https://www.kubeflow.org/) 是一个开源的机器学习平台，旨在使机器学习工作流在`Kubernetes`上的部署变得简单、可移植和可扩展。该项目于2017年由`Google`发起，现已成为`CNCF`（云原生计算基金会）的孵化项目。
 
@@ -42,7 +42,7 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 - **框架无关**：支持`TensorFlow`、`PyTorch`、`MXNet`等主流`ML`框架
 - **可扩展性**：支持从单机到大规模分布式训练的无缝扩展
 
-### 1.2 核心组件
+### 核心组件
 
 `Kubeflow`生态系统包含多个核心组件：
 
@@ -55,7 +55,7 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 | **Notebooks** | 基于`Jupyter`的交互式开发环境 |
 | **Model Registry** | 模型版本管理和元数据存储 |
 
-### 1.3 使用者
+### 使用者
 
 `Kubeflow`已被众多知名企业使用，包括：
 
@@ -64,11 +64,11 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 - **金融机构**：`Bloomberg`、`Ant Group`
 - **其他企业**：`Red Hat`、`Polyaxon`、`TuSimple`等
 
-## 2. Kubeflow Trainer详细介绍
+## Kubeflow Trainer详细介绍
 
 
 
-### 2.1 项目演进
+### 项目演进
 
 `Kubeflow Trainer`（原名`Training Operator`）代表了`Kubeflow`训练组件的下一代演进，建立在超过七年的`Kubernetes ML`工作负载运行经验之上。
 
@@ -81,7 +81,7 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 ![Kubeflow Trainer](<assets/4000-Kubeflow Trainer In HPC/image-1.png>)
 
 
-### 2.2 Trainer v2核心特性
+### Trainer v2核心特性
 
 ![Kubeflow Trainer](<assets/4000-Kubeflow Trainer In HPC/image.png>)
 
@@ -95,12 +95,12 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 - 对`AI`从业者屏蔽`Kubernetes`复杂性
 - 整合`Kubernetes Batch WG`和`Kubeflow`社区的努力
 
-### 2.3 核心API设计
+### 核心API设计
 
 
 `Kubeflow Trainer v2`引入了三个核心`CRD`：
 
-#### 2.3.1 TrainJob
+#### TrainJob
 
 `TrainJob`是面向数据科学家的简化`CRD`，允许从预部署的训练运行时启动训练和微调任务。
 
@@ -123,7 +123,7 @@ spec:
         nvidia.com/gpu: 2
 ```
 
-#### 2.3.2 TrainingRuntime / ClusterTrainingRuntime
+#### TrainingRuntime / ClusterTrainingRuntime
 
 `TrainingRuntime`和`ClusterTrainingRuntime`是由平台工程师管理的训练蓝图，定义了如何启动各种类型的训练或微调任务。
 
@@ -160,7 +160,7 @@ spec:
                         - torchrun train.py
 ```
 
-### 2.4 用户角色分离
+### 用户角色分离
 
 
 
@@ -179,9 +179,9 @@ spec:
 
 ![Kubeflow Trainer](<assets/4000-Kubeflow Trainer In HPC/image-2.png>)
 
-## 3. HPC训练场景技术挑战与解决方案
+## HPC训练场景技术挑战与解决方案
 
-### 3.1 常见技术挑战
+### 常见技术挑战
 
 在`HPC`（高性能计算）训练场景中，存在以下常见技术挑战：
 
@@ -195,11 +195,11 @@ spec:
 | **环境配置复杂** | 不同框架需要不同的环境变量和启动命令 | 配置繁琐，易出错 |
 | **多租户隔离** | 多团队共享集群资源时缺乏有效隔离 | 资源竞争，优先级混乱 |
 
-### 3.2 Kubeflow Trainer解决方案
+### Kubeflow Trainer解决方案
 
 `Kubeflow Trainer`针对上述挑战提供了系统性的解决方案：
 
-#### 3.2.1 简化分布式训练配置
+#### 简化分布式训练配置
 
 **问题**：配置`torchrun`、`MPI`等分布式训练参数复杂且易出错。
 
@@ -219,7 +219,7 @@ spec:
 # Trainer自动转换为：torchrun --nnodes=5 --nproc-per-node=2 train.py
 ```
 
-#### 3.2.2 Gang调度支持
+#### Gang调度支持
 
 **问题**：分布式训练需要所有`Pod`同时启动，否则会造成资源浪费。
 
@@ -237,7 +237,7 @@ spec:
     # volcano: {}
 ```
 
-#### 3.2.3 数据集和模型初始化器
+#### 数据集和模型初始化器
 
 **问题**：每个训练`Pod`独立下载数据会造成网络瓶颈和`GPU`空闲。
 
@@ -255,7 +255,7 @@ spec:
       storageUri: hf://meta-llama/Llama-2-7b
 ```
 
-#### 3.2.4 容错与恢复
+#### 容错与恢复
 
 **问题**：长时间训练任务在节点故障时需要从头开始。
 
@@ -274,7 +274,7 @@ spec:
         maxNodes: 10
 ```
 
-#### 3.2.5 LLM微调内置支持
+#### LLM微调内置支持
 
 **问题**：大语言模型微调需要复杂的配置和专业知识。
 
@@ -283,9 +283,9 @@ spec:
 - 预配置的`LLM`微调`Runtime`（`Llama`、`Gemma`等）
 - 支持`LoRA`、`QLoRA`等参数高效微调方法
 
-## 4. 支持的框架
+## 支持的框架
 
-### 4.1 PyTorch
+### PyTorch
 
 `Kubeflow Trainer`对`PyTorch`提供最全面的支持，包括：
 
@@ -329,7 +329,7 @@ spec:
                         - torchrun train.py
 ```
 
-### 4.2 DeepSpeed
+### DeepSpeed
 
 `DeepSpeed`是微软开发的深度学习优化库，`Kubeflow Trainer`通过`MPI Runtime`提供支持：
 
@@ -387,7 +387,7 @@ spec:
                           nvidia.com/gpu: 4
 ```
 
-### 4.3 MPI
+### MPI
 
 `MPI`（`Message Passing Interface`）是HPC领域的标准通信协议，`Kubeflow Trainer`提供完整的`MPI v2`支持：
 
@@ -415,7 +415,7 @@ spec:
       sshAuthMountPath: /root/.ssh
 ```
 
-### 4.4 其他框架支持
+### 其他框架支持
 
 | 框架 | 状态 | 说明 |
 |------|------|------|
@@ -425,7 +425,7 @@ spec:
 | **XGBoost** | 待实现 | `PyTorch`实现完成后添加 |
 | **PaddlePaddle** | 待实现 | `PyTorch`实现完成后添加 |
 
-### 4.5 LLM微调框架
+### LLM微调框架
 
 `Kubeflow Trainer v2`内置支持多种`LLM`微调框架：
 
@@ -436,9 +436,9 @@ spec:
 | **Unsloth** | 高效`LLM`微调库 | 计划中 |
 | **LLaMA-Factory** | 一站式`LLM`微调框架 | 计划中 |
 
-## 5. 训练任务创建流程
+## 训练任务创建流程
 
-### 5.1 整体架构
+### 整体架构
 
 ```mermaid
 graph TB
@@ -489,7 +489,7 @@ graph TB
     JOB --> POD
 ```
 
-### 5.2 详细创建流程
+### 详细创建流程
 
 ```mermaid
 sequenceDiagram
@@ -535,7 +535,7 @@ sequenceDiagram
     TC->>API: 22. 更新TrainJob状态
 ```
 
-### 5.3 Pipeline Framework详解
+### Pipeline Framework详解
 
 `Kubeflow Trainer v2`引入了`Pipeline Framework`作为内部扩展机制，包含四个阶段：
 
@@ -546,9 +546,9 @@ sequenceDiagram
 | **Build Phase** | 构建和部署资源 | `EnforcePodGroupPolicy`, `EnforceMLPolicy`, `ComponentBuilder` |
 | **PostExecution Phase** | 状态更新 | `TerminalCondition` |
 
-## 6. Volcano调度器集成
+## Volcano调度器集成
 
-### 6.1 为什么需要Volcano
+### 为什么需要Volcano
 
 `Kubeflow Trainer v2`默认使用`Coscheduling`插件提供`Gang`调度支持，但`Coscheduling`存在一些局限性：
 
@@ -562,9 +562,9 @@ sequenceDiagram
 | 抢占机制 | 有限 | ✅ |
 | 生态成熟度 | 一般 | 成熟 |
 
-### 6.2 集成配置
+### 集成配置
 
-#### 6.2.1 前置条件
+#### 前置条件
 
 首先需要在`Kubernetes`集群中安装`Volcano`：
 
@@ -576,7 +576,7 @@ kubectl apply -f https://raw.githubusercontent.com/volcano-sh/volcano/master/ins
 kubectl get pods -n volcano-system
 ```
 
-#### 6.2.2 启用Volcano插件
+#### 启用Volcano插件
 
 在`TrainingRuntime`或`ClusterTrainingRuntime`中配置`Volcano`：
 
@@ -615,7 +615,7 @@ spec:
                         - torchrun train.py
 ```
 
-#### 6.2.3 配置优先级队列
+#### 配置优先级队列
 
 **步骤1：创建Volcano Queue**
 
@@ -679,7 +679,7 @@ spec:
     numNodes: 8
 ```
 
-#### 6.2.4 拓扑感知调度
+#### 拓扑感知调度
 
 `Volcano`支持网络拓扑感知调度，可以将`Pod`调度到网络拓扑相近的节点，减少通信延迟：
 
@@ -711,7 +711,7 @@ spec:
                       image: docker.io/kubeflow/pytorch-mnist
 ```
 
-### 6.3 Volcano调度器配置建议
+### Volcano调度器配置建议
 
 为了与`Kubeflow Trainer`配合使用，建议配置`Volcano`调度器启用以下插件：
 
@@ -735,9 +735,9 @@ data:
       - name: network-topology-aware  # 拓扑感知调度
 ```
 
-## 7. Volcano Job对比分析
+## Volcano Job对比分析
 
-### 7.1 两种方案比较
+### 两种方案比较
 
 在`Kubernetes`上运行`HPC`训练任务，有两种主要方案：
 
@@ -767,7 +767,7 @@ data:
 
 
 
-### 7.2 Volcano Job示例
+### Volcano Job示例
 
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
@@ -829,7 +829,7 @@ spec:
                   nvidia.com/gpu: 4
 ```
 
-### 7.3 Kubeflow Trainer示例
+### Kubeflow Trainer示例
 
 ```yaml
 # ClusterTrainingRuntime（平台工程师配置一次）
@@ -879,9 +879,9 @@ spec:
       - --epochs=100
 ```
 
-### 7.4 工作负载类型与PodGroup分析
+### 工作负载类型与PodGroup分析
 
-#### 7.4.1 Kubeflow Trainer生成的工作负载类型
+#### Kubeflow Trainer生成的工作负载类型
 
 `Kubeflow Trainer`与`Volcano`集成时，**生成的工作负载不是`Volcano Job`，而是`JobSet` + `PodGroup`**。
 
@@ -927,7 +927,7 @@ func (v *Volcano) Build(...) ([]apiruntime.ApplyConfiguration, error) {
 }
 ```
 
-#### 7.4.2 PodGroup是同一类型
+#### PodGroup是同一类型
 
 `Kubeflow Trainer`创建的`PodGroup`与`Volcano`原生的`PodGroup`是完全相同的`CRD`类型。
 
@@ -948,7 +948,7 @@ func (v *Volcano) Build(...) ([]apiruntime.ApplyConfiguration, error) {
 | **最小资源检查** | ✅ | 通过`minResources`字段 |
 | **网络拓扑感知** | ✅ | 通过`networkTopology`字段 |
 
-#### 7.4.3 Volcano Job特有功能的缺失
+#### Volcano Job特有功能的缺失
 
 由于`Kubeflow Trainer`使用`JobSet`而非`Volcano Job`作为工作负载，以下`Volcano Job`特有的功能**无法使用**：
 
@@ -960,7 +960,7 @@ func (v *Volcano) Build(...) ([]apiruntime.ApplyConfiguration, error) {
 | **minAvailable动态调整** | 运行时调整最小可用数 | 不支持 |
 | **Lifecycle管理** | `Pending`/`Running`/`Completed`等状态 | 使用`JobSet`状态 |
 
-#### 7.4.4 架构对比图
+#### 架构对比图
 
 ```mermaid
 graph TB
@@ -995,7 +995,7 @@ graph TB
     end
 ```
 
-#### 7.4.5 选型建议
+#### 选型建议
 
 | 场景 | 推荐方案 | 原因 |
 |------|---------|------|
@@ -1006,7 +1006,7 @@ graph TB
 | 需要`Python SDK`提交任务 | `Kubeflow Trainer` | 提供`Pythonic`接口 |
 | 纯`HPC`批处理场景 | `Volcano Job` | 更成熟的批处理生态 |
 
-### 7.5 Volcano + Kubeflow Trainer
+### Volcano + Kubeflow Trainer
 
 将`Volcano`与`Kubeflow Trainer`结合使用，可以充分发挥两者的优势，构建企业级`HPC`训练平台。
 
@@ -1046,7 +1046,7 @@ graph TB
 
 
 
-## 8. 参考资料
+## 参考资料
 
 - [Kubeflow Trainer官方文档](https://www.kubeflow.org/docs/components/trainer/)
 - [Kubeflow Trainer GitHub仓库](https://github.com/kubeflow/trainer)

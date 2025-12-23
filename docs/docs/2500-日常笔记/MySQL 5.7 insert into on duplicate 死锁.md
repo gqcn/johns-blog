@@ -8,7 +8,7 @@ description: "分析 MySQL 5.7 中使用 insert into on duplicate 语句时可�
 ---
 
 
-## 一、问题复现
+## 问题复现
 
 表结构：
 
@@ -42,7 +42,7 @@ insert into test(alias,age) values(1,1),(3,3),(5,5),(7,7);
 | T3  |     |     | ``begin;insert into  `test`(`alias`,`age`) values(11,11) on duplicate key update age=11;`` |
 | T4  | `commit;` |     | `ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction` |
 
-## 二、锁机制分析
+## 锁机制分析
 
 这里我们来具体分析一下到底加了什么锁，我们知道insert插入操作的时候会加 X锁和插入意向锁，这里我们看看 `insert into on duplicate key`加什么锁,
 
@@ -61,7 +61,7 @@ MySQL的锁统计，这个线上不推荐打开打开的话日志会记录得比
 
 同样的如果我们执行第三个SQL，插入意向锁也会被第一个事务`gap锁`阻塞，如果第一个事务的`gap锁`提交，他们首先又会先获取`gap锁(`这里从锁的信息判断，被阻塞的时候是没有`gap锁`)，其次再获取插入意向锁，就导致了T2、T3两个形成循环链路，最终导致死锁。
 
-## 三、为什么会有gap锁
+## 为什么会有gap锁
 
 `gap锁`是`RR`隔离级别下用来解决幻读的一个手段，一般出现在`delete`中，为什么会出现在这里呢？这其实是一个`BUG`，在 [https://bugs.mysql.com/bug.php?id=50413](https://bugs.mysql.com/bug.php?id=50413) 这个`BUG`中可以看见：
 
@@ -71,7 +71,7 @@ MySQL的锁统计，这个线上不推荐打开打开的话日志会记录得比
 
 当我们并发的用`INSERT …ON DUPLICATE KEY UPDATE`的时候，如果我们有多个唯一索引，那么有可能会导致binlog错误，也就是会导致主从复制不一致，具体的一些测试可以去链接中查看。
 
-## 三、关于gap锁介绍
+## 关于gap锁介绍
 
 间隙锁实质上是对索引前后的间隙上锁，不对索引本身上锁。根据检索条件向左寻找最靠近检索条件的记录值A，作为左区间，向右寻找最靠近检索条件的记录值B作为右区间，即锁定的间隙为（A，B）。间隙锁的目的是为了防止幻读，其主要通过两个方面实现这个目的：
 
@@ -94,13 +94,13 @@ MySQL的锁统计，这个线上不推荐打开打开的话日志会记录得比
 
 如果事务A开启一个事务，执行`select * from test where n = 105 for update`会对 `n` 在 `(102,105), (105, 107)`的数据上锁。
 
-## 四、解决方案
+## 解决方案
 
-### 1、升级版本
+### 升级版本
 
 由于是一个BUG，因此升级`MySQL`版本到`5.7.35`及以上版本即可解决，比如MySQL 8以上版本也没类似问题。
 
-### 2、就是要用5.7版本
+### 就是要用5.7版本
 
 *   使用`RC`级别，`RC`隔离级别下不会有`gap锁`
 *   在数据库表中只建立主键，不建立其他唯一索引。

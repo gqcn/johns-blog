@@ -5,7 +5,7 @@ import styles from './styles.module.css';
 export default function AboutMe(): JSX.Element {
     return (
         <Layout>
-            <div className="container margin-vert--lg">
+            <div className="container margin-vert--lg disable_numbered_headings">
                 <div className="row">
                     <div className="col col--8 col--offset-2">
                         <div className={styles.aboutSection}>

@@ -7,7 +7,7 @@ keywords:
 description: "详解Kubernetes NetworkPolicy的功能、配置方法、常见用法及业务场景实践。"
 ---
 
-## 1. NetworkPolicy简介
+## NetworkPolicy简介
 
 在`Kubernetes`集群中，`NetworkPolicy`（网络策略）是一种用于控制`Pod`之间及`Pod`与外部网络之间流量的资源对象。通过定义`NetworkPolicy`，可以实现细粒度的网络访问控制，提升集群的安全性，防止未经授权的流量访问敏感服务。
 
@@ -29,7 +29,7 @@ description: "详解Kubernetes NetworkPolicy的功能、配置方法、常见用
 
 **结论**：`Kubernetes`的`NetworkPolicy`是“显式生效”，未定义时网络是“全通”的。若需实现安全隔离，务必主动为关键业务`Pod`编写`NetworkPolicy`策略。
 
-## 2. NetworkPolicy配置与YAML属性详解
+## NetworkPolicy配置与YAML属性详解
 
 `NetworkPolicy`通过`YAML`文件进行定义，主要包含以下关键字段：
 
@@ -72,9 +72,9 @@ spec:
 - `ports`：允许的端口和协议
 - `ipBlock`：基于`IP`范围的规则
 
-## 3. 常见NetworkPolicy功能配置
+## 常见NetworkPolicy功能配置
 
-### 3.1 只允许同命名空间内访问
+### 只允许同命名空间内访问
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -90,7 +90,7 @@ spec:
               kubernetes.io/metadata.name: default
 ```
 
-### 3.2 只允许特定Pod访问
+### 只允许特定Pod访问
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -108,7 +108,7 @@ spec:
               app: frontend
 ```
 
-### 3.3 拒绝所有入站流量（默认拒绝）
+### 拒绝所有入站流量（默认拒绝）
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -122,7 +122,7 @@ spec:
   ingress: []
 ```
 
-### 3.4 允许DNS和外部互联网访问
+### 允许DNS和外部互联网访问
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -142,9 +142,9 @@ spec:
           port: 53
 ```
 
-## 4. 典型业务场景与实现示例
+## 典型业务场景与实现示例
 
-### 4.1 数据库仅允许应用层访问
+### 数据库仅允许应用层访问
 **场景说明**：数据库`Pod`只允许来自应用`Pod`的访问，禁止其他流量。
 
 ```yaml
@@ -167,7 +167,7 @@ spec:
           port: 3306
 ```
 
-### 4.2 多租户环境下的命名空间隔离
+### 多租户环境下的命名空间隔离
 **场景说明**：不同租户的命名空间之间完全隔离，互不访问。
 
 ```yaml
@@ -185,7 +185,7 @@ spec:
               name: tenant-a
 ```
 
-### 4.3 允许监控系统访问所有Pod
+### 允许监控系统访问所有Pod
 **场景说明**：`Prometheus`等监控`Pod`需要采集全集群数据。
 
 ```yaml
@@ -204,7 +204,7 @@ spec:
               app: prometheus
 ```
 
-### 4.4 仅允许Pod访问外部特定IP
+### 仅允许Pod访问外部特定IP
 **场景说明**：业务`Pod`只能访问公司内网或指定外部服务。
 
 ```yaml
@@ -225,7 +225,7 @@ spec:
             cidr: 10.1.0.0/16
 ```
 
-## 5. 总结与最佳实践
+## 总结与最佳实践
 
 - 制定`NetworkPolicy`时建议先从最小权限原则出发，逐步放开必要流量
 - 配合标签、命名空间合理划分访问边界
@@ -234,6 +234,6 @@ spec:
 
 `NetworkPolicy`是提升`Kubernetes`集群安全性的重要手段，合理配置可有效防止横向攻击和数据泄露，是生产环境必不可少的安全保障。
 
-## 6. 参考资料
+## 参考资料
 
 - https://kubernetes.io/docs/concepts/services-networking/network-policies/

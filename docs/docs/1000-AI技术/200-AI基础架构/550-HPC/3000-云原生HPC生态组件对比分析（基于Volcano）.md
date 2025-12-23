@@ -28,18 +28,18 @@ description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概�
 ---
 
 
-## 1. 概述
+## 概述
 
 `Volcano`是`CNCF`云原生批处理调度系统，专为高性能计算（`HPC`）、机器学习、大数据等批处理工作负载设计。本文档详细梳理`Volcano`生态中支持`HPC`的各个组件，并进行对比分析。
 
 
-## 2. 什么是HPC
+## 什么是HPC
 
-### 3.1 HPC定义
+### HPC定义
 
 **HPC（High Performance Computing，高性能计算）** 是指利用聚合计算能力处理标准工作站无法完成的复杂计算任务的技术。`HPC`系统通过将大量计算节点互联，协同工作以解决科学、工程和商业领域中的大规模计算问题。
 
-### 3.2 HPC的核心特征
+### HPC的核心特征
 
 | 特征 | 说明 |
 |------|------|
@@ -49,7 +49,7 @@ description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概�
 | **高吞吐量** | 单位时间内完成大量计算任务 |
 | **可扩展性** | 支持从数十到数万个计算节点的扩展 |
 
-### 3.3 HPC典型应用场景
+### HPC典型应用场景
 
 | 领域 | 应用场景 | 计算特点 |
 |------|----------|----------|
@@ -61,9 +61,9 @@ description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概�
 | **能源勘探** | 地震数据处理、油藏模拟 | 大规模数据处理、复杂算法 |
 
 
-## 3. 实现HPC的关键能力
+## 实现HPC的关键能力
 
-### 3.1 并行计算能力
+### 并行计算能力
 
 并行计算是`HPC`的核心，主要包括以下几种并行模式：
 
@@ -74,7 +74,7 @@ description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概�
 | **流水线并行** | 将计算分阶段，形成流水线处理 | `Pipeline Parallel` | 深度学习模型训练 |
 | **模型并行** | 将模型分片到不同设备 | `Tensor Parallel` | 超大模型训练 |
 
-### 3.2 高速网络互连
+### 高速网络互连
 
 节点间通信效率直接影响`HPC`系统性能：
 
@@ -86,7 +86,7 @@ description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概�
 | **NVLink** | `600-900 GB/s` | 极低 | `GPU`间直连通信 |
 | **以太网** | `10-100 Gbps` | `10-100 μs` | 通用计算、成本敏感 |
 
-### 3.3 分布式通信框架
+### 分布式通信框架
 
 `HPC`依赖高效的通信框架实现节点间数据交换：
 
@@ -97,7 +97,7 @@ description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概�
 | **Gloo** | `Facebook`开源通信库 | 跨平台、支持`CPU/GPU` |
 | **UCX** | 统一通信框架 | 硬件抽象、多传输支持 |
 
-### 3.4 资源调度与管理
+### 资源调度与管理
 
 `HPC`系统需要高效的资源调度能力：
 
@@ -110,7 +110,7 @@ description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概�
 | **拓扑感知** | 考虑网络拓扑优化任务放置 | ⭐⭐⭐⭐ |
 | **亲和性调度** | 将相关任务调度到相近节点 | ⭐⭐⭐⭐ |
 
-### 3.5 存储与I/O能力
+### 存储与I/O能力
 
 `HPC`对存储系统有特殊要求：
 
@@ -121,7 +121,7 @@ description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概�
 | **本地NVMe** | 超低延迟、高`IOPS` | 本地`SSD`缓存 |
 | **内存文件系统** | 极致性能、临时数据 | `tmpfs`、`ramfs` |
 
-### 3.6 容错与检查点
+### 容错与检查点
 
 大规模长时间运行的`HPC`任务需要容错机制：
 
@@ -132,7 +132,7 @@ description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概�
 | **节点替换** | 故障节点自动替换，任务继续运行 |
 | **数据冗余** | 关键数据多副本存储 |
 
-### 3.7 HPC关键能力总览
+### HPC关键能力总览
 
 ```mermaid
 flowchart TB
@@ -167,7 +167,7 @@ flowchart TB
 ```
 
 
-## 4. 生态组件总览对比
+## 生态组件总览对比
 
 
 | 对比项 | [Kubeflow Trainer](https://github.com/kubeflow/trainer) | [Spark Operator](https://github.com/kubeflow/spark-operator) | [Kuberay](https://github.com/ray-project/kuberay) | [MPI Operator](https://github.com/kubeflow/mpi-operator) | [Horovod](https://github.com/horovod/horovod) | [PaddleCloud](https://github.com/PaddlePaddle/PaddleCloud) |
@@ -183,9 +183,9 @@ flowchart TB
 | **社区活跃度** | 高 | 高 | 高 | 中 | 低（维护模式） | 低 |
 
 
-## 5. 各组件详细介绍
+## 各组件详细介绍
 
-### 5.1 Kubeflow Trainer
+### Kubeflow Trainer
 
 #### 简介
 
@@ -275,7 +275,7 @@ spec:
 
 
 
-### 5.2 Spark Operator
+### Spark Operator
 
 #### 简介
 
@@ -350,7 +350,7 @@ spec:
 | **小文件问题** | 处理大量小文件效率低 |
 
 
-### 5.3 Kuberay
+### Kuberay
 
 #### 简介
 
@@ -458,7 +458,7 @@ spec:
 
 
 
-### 5.4 MPI Operator
+### MPI Operator
 
 #### 简介
 
@@ -566,7 +566,7 @@ spec:
 | **调试困难** | 分布式环境下问题定位复杂 |
 
 
-### 5.5 Horovod
+### Horovod
 
 #### 简介
 
@@ -673,7 +673,7 @@ spec:
 
 
 
-### 5.6 PaddleCloud
+### PaddleCloud
 
 #### 简介
 
@@ -749,9 +749,9 @@ spec:
 
 
 
-## 6. 与Volcano调度器集成
+## 与Volcano调度器集成
 
-### 6.1 集成方式
+### 集成方式
 
 所有上述组件都可以通过以下方式与`Volcano`调度器集成：
 
@@ -762,7 +762,7 @@ spec:
       schedulerName: volcano  # 指定使用Volcano调度器
 ```
 
-### 6.2 Volcano提供的HPC增强特性
+### Volcano提供的HPC增强特性
 
 | 特性 | 说明 | 适用组件 |
 |------|------|----------|
@@ -775,7 +775,7 @@ spec:
 | **SSH Plugin** | 自动配置`SSH`免密 | `MPI` |
 | **ENV Plugin** | 自动注入环境变量 | 全部 |
 
-### 6.3 Volcano Job示例
+### Volcano Job示例
 
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1

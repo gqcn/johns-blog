@@ -15,7 +15,7 @@ description: "本文详细介绍了Kubernetes中的Device Plugin机制，包括�
 本文主要分析`kubernetes`中的`device-plugin`机制工作原理，并通过实现一个简单的`device-plugin`来加深理解。
 
 
-## 1. 背景
+## 背景
 
 默认情况下，`kubernetes`中的`Pod`只能申请`CPU`和`Memory`这两种资源，就像下面这样：
 ```yaml
@@ -39,7 +39,7 @@ resources:
 *   首先它可以代表`kubernetes`中的`Device Plugin`框架
 *   其次也可以代表厂家的具体实现，比如`NVIDIA/kubernetes-device-plugin`，就是用于接入`NVIDIA GPU`资源的`Device Plugin`实现
 
-## 2. 原理
+## 原理
 
 `Device Plugin`的工作原理其实不复杂，可以分为`插件注册`和`kubelet 调用插件`两部分。
 
@@ -112,7 +112,7 @@ service Registration {
 
 ![](../assets/k8s-device-plugin-timeline.png)
 
-## 3. 实现
+## 实现
 
 > 源码：[https://github.com/lixd/i-device-plugin](https://github.com/lixd/i-device-plugin)
 
@@ -556,7 +556,7 @@ func main() {
 }
 ```
 
-## 4. 测试
+## 测试
 
 
 ### 部署
@@ -770,7 +770,7 @@ I0719 14:03:55.905267       1 api.go:32] device update,new device list [g1]
 
 对应资源也变成 1 个了，一切正常。
 
-## 5. 小结
+## 小结
 
 本文主要分析了`kubernetes`中的`Device Plugin`机制的工作原理，并实现了一个简单的`i-device-plugin`来进一步加深理解。
 
@@ -825,7 +825,7 @@ sudo docker run --shm-size="32g" -it -v /usr/src:/usr/src -v /lib/modules:/lib/m
 
 至于为什么`device plugin`一般也会跟着重启，是因为`device plugin`在启动时会调用因此注册接口，因此感知到`Kubelet`重启了，直接让`device plugin`退出即可，然后`DaemonSet`会重新拉起 Pod，这样启动后自动调用注册接口。
 
-## 6. 参考
+## 参考
 
 - https://www.lixueduan.com/posts/kubernetes/21-device-plugin
 - [kubernetes 文档：device-plugins](https://kubernetes.io/zh-cn/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/)

@@ -12,7 +12,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 ---
 
 
-## 1. 背景与用途
+## 背景与用途
 
 `NVIDIA Dynamo`是一个高吞吐量、低延迟的推理框架，专为在多节点分布式环境中部署生成式AI和推理模型而设计。随着AI模型规模的急剧增长（近年来开源模型大小增长了近`2000`倍），以及这些模型越来越多地集成到需要与多个其他模型交互的智能体（`Agent`）工作流中，传统的推理服务架构面临着巨大挑战。
 
@@ -30,7 +30,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 `NVIDIA Dynamo`正是为解决这些挑战而设计的，它通过分离式服务、智能路由、分布式`KV`缓存管理和优化的数据传输等创新技术，显著提高了推理性能和资源利用效率。
 
-## 2. 架构设计
+## 架构设计
 
 `NVIDIA Dynamo`采用模块化架构设计，旨在为分布式环境中的生成式AI模型提供高效的推理服务。它支持所有主要的LLM框架，包括`NVIDIA TensorRT-LLM`、`vLLM`和`SGLang`，并整合了最先进的`LLM`推理服务优化技术。
 
@@ -38,9 +38,9 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 `NVIDIA Dynamo`包含多项关键特性，使其能够实现大规模分布式和分离式推理服务。
 
-## 3. 核心技术与工作原理
+## 核心技术与工作原理
 
-### 3.1 分离式服务（Disaggregated Serving）
+### 分离式服务（Disaggregated Serving）
 
 ![alt text](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-6.png>)
 
@@ -55,7 +55,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 在`NVIDIA GB200 NVL72`上服务开源`DeepSeek-R1`模型时，使用分离式服务的`NVIDIA Dynamo`将处理的请求数量提高了30倍。在`NVIDIA Hopper`上服务`Llama 70B`模型时，吞吐量性能提高了一倍以上。
 
-### 3.2 NVIDIA Dynamo 规划器：优化分布式推理中的GPU资源
+### NVIDIA Dynamo 规划器：优化分布式推理中的GPU资源
 
 ![Dynamo 规划器工作流程](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-2.png>)
 
@@ -70,7 +70,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 
 
-### 3.3 NVIDIA Dynamo 智能路由：减少KV缓存的高成本重新计算
+### NVIDIA Dynamo 智能路由：减少KV缓存的高成本重新计算
 
 ![Dynamo Smart Router工作原理](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-4.png>)
 
@@ -78,7 +78,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 `NVIDIA Dynamo`智能路由跨多节点和解耦式部署的大规模`GPU`集群追踪`KV`缓存，智能路由新请求，最大限度减少其重新计算。它通过`Radix Tree`哈希存储请求，实现在分布式环境中追踪`KV`位置。同时采用专用算法管理`KV`缓存的插入和淘汰，确保保留最相关数据块。 
 
-### 3.4 NVIDIA Dynamo 分布式KV缓存管理器：将KV缓存卸载至成本效益更高的存储
+### NVIDIA Dynamo 分布式KV缓存管理器：将KV缓存卸载至成本效益更高的存储
 
 构建用户请求的`KV`缓存资源密集且成本高昂。复用`KV`缓存以减少重新计算是常见做法。但随着AI需求增长，需存储在`GPU`内存中供复用的`KV`缓存量可能迅速超出预算。这对试图高效管理`KV`缓存复用的AI推理团队构成重大挑战。  
 
@@ -92,7 +92,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 `NVIDIA Dynamo`分布式`KV`缓存管理器与`PyTorch`、`SGLang`、`TensorRT-LLM`和`vLLM`等后端兼容，支持通过`NVIDIA NVLink`、`NVIDIA Quantum`交换机和`NVIDIA Spectrum`交换机扩展大规模分布式集群的`KV`缓存存储。
 
-### 3.5 NVIDIA推理传输库（NIXL）：低延迟、硬件无关的通信
+### NVIDIA推理传输库（NIXL）：低延迟、硬件无关的通信
 
 大规模分布式推理依赖张量、流水线和专家并行等模型并行技术，需跨节点和节点内低延迟、高吞吐通信，利用`GPUDirect RDMA`。这些系统还需在解耦式服务环境中快速传输预填充与解码`GPU`工作者间的`KV`缓存。  
 
@@ -109,7 +109,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 
 
-## 4. 参考资料
+## 参考资料
 
 1. https://github.com/ai-dynamo/dynamo
 2. https://cloud.tencent.com/developer/article/2508888

@@ -11,7 +11,7 @@ description: "详细介绍如何在裸机、Docker和Kubernetes环境中配置�
 
 > 本来打算编写一篇从`0`到`1`搭建`GPU`环境的教程，但是发现网上已经有很多优秀的教程了，本文参考的原文链接：https://www.lixueduan.com/posts/ai/01-how-to-use-gpu/
 
-## 1. 概述
+## 概述
 
 仅以比较常见的`NVIDIA GPU`举例，系统为`Ubuntu`，对于其他厂家的`GPU`设备理论上流程都是一样的。
 
@@ -28,7 +28,7 @@ description: "详细介绍如何在裸机、Docker和Kubernetes环境中配置�
 
 注意：一般在`K8S`中使用都会直接使用`gpu-operator`方式进行安装，本文主要为了搞清各个组件的作用，因此进行手动安装。
 
-## 2. 裸机环境
+## 裸机环境
 
 裸机中要使用上`GPU`需要安装以下组件：
 
@@ -227,7 +227,7 @@ PyTorch 版本是: 2.3.0+cu121
 设备 0 的显存最大使用量: 0.00 GB
 ```
 
-## 3. Docker 环境
+## Docker 环境
 
 上一步中我们已经在裸机上安装了`GPU Driver`、`CUDA Toolkit` 等工具，实现了在宿主机上使用`GPU`。
 
@@ -331,7 +331,7 @@ docker run --rm --gpus all nvidia/cuda:12.0.1-runtime-ubuntu22.04 nvidia-smi
 
 正常情况下应该是可以打印出容器中的`GPU`信息的。
 
-## 4. K8S 环境
+## K8S 环境
 
 更进一步，在`K8S`环境中使用`GPU`，则需要在集群中部署以下组件：
 
@@ -453,7 +453,7 @@ spec:
 
 至此，在`K8S`环境中也可以使用`GPU`了。
 
-## 5. 小结
+## 小结
 
 本文主要分享了在裸机、`Docker`环境、`K8S`环境中如何使用`GPU`。
 

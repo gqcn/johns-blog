@@ -16,29 +16,29 @@ description: "详细说明 Kubernetes Aggregation APIServer 的原理和实现�
 
 我们自定义扩展Kubernetes的能力通常有两种方式：CRD及Aggregation Layer。CRD的介绍请参考章节：[Kubernetes CRD, Controller, Operator](https://iwiki.woa.com/display/~txqiangguo/Kubernetes+CRD%2C+Controller%2C+Operator)，本文我们简单介绍一下Aggregation Layer。
 
-## 一、基本介绍
+## 基本介绍
 
 ![](/attachments/prku_0401.png)
 
 Kubernetes API内部的请求转发模型
 
-### 1、聚合层
+### 聚合层
 
 聚合层在 kube-apiserver 进程内运行。在扩展资源注册之前，聚合层不做任何事情。 要注册 API，用户必须添加一个 APIService 对象，用它来“申领” Kubernetes API 中的 URL 路径。 自此以后，聚合层将会把发给该 API 路径的所有内容（例如  `/apis/[myextension.mycompany.io/v1/…](http://myextension.mycompany.io/v1/…)` ） 转发到已注册的 APIService。
 
 APIService 的最常见实现方式是在集群中某 Pod 内运行  *扩展 API 服务器*。 如果你在使用扩展 API 服务器来管理集群中的资源，该扩展 API 服务器（也被写成“extension-apiserver”） 一般需要和一个或多个控制器一起使用。 apiserver-builder 库同时提供构造扩展 API 服务器和控制器框架代码。
 
-### 2、反应延迟
+### 反应延迟
 
 扩展 API 服务器与 kube-apiserver 之间需要存在低延迟的网络连接。 发现请求需要在五秒钟或更短的时间内完成到 kube-apiserver 的往返。
 
 如果你的扩展 API 服务器无法满足这一延迟要求，应考虑如何更改配置已满足需要。
 
-### 3、扩展方式对比
+### 扩展方式对比
 
 关于是否选择CRD还是AggregationAPI来实现自定义扩展的对比：[https://kubernetes.feisky.xyz/extension/api](https://kubernetes.feisky.xyz/extension/api)
 
-## 二、开启 API Aggregation
+## 开启 API Aggregation
 
 kube-apiserver 增加以下配置：
 
@@ -58,7 +58,7 @@ kube-apiserver 增加以下配置：
 --enable-aggregator-routing=true
 ```
 
-## 三、创建扩展 API
+## 创建扩展 API
 
 1.  确保开启 APIService API（默认开启，可用 `kubectl get apiservice` 命令验证）
 
@@ -102,11 +102,11 @@ $ apiserver-boot run in-cluster --name nameofservicetorun --namespace default --
 $ kubectl create -f sample/<type>.yaml
 ```
 
-## 四、参考示例
+## 参考示例
 
 见 [sample-apiserver](https://github.com/kubernetes/sample-apiserver) 和 [apiserver-builder/example](https://github.com/kubernetes-incubator/apiserver-builder/tree/master/example)。
 
-## 五、参考资料
+## 参考资料
 
 *   [https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/apiserver-aggregation/](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/apiserver-aggregation/)
 *   [https://www.yisu.com/zixun/9840.html](https://www.yisu.com/zixun/9840.html)

@@ -9,7 +9,7 @@ description: "探讨 Argo Workflow 中的模板数据存储机制，包括模板
 
 从之前的源码的梳理我们可以发现，Argo Framework对于Workflow以及其Template数据没有自身的存储逻辑，而是通过KubeClient直接调用Kubernetes的接口处理对象查询、创建、更新、销毁。也就是说，这些数据应该是交给Kubernetes来负责维护的，当然也包括存储。我们都知道Kubernetes底层是使用的etcd服务作为存储，为了验证Workflow/Template数据存储的这一点猜测，我们直接去看Kubernetes中etcd的数据不就行了吗。想不如做，`Let's do it`。
 
-## 一、本地环境
+## 本地环境
 
 *   为了方便操作，我本地搭建的是`minikube`来愉快玩耍`Kubernetes`，安装的`Kubernetes`版本为`v1.20.7`。
 *   本地安装的`argo`版本为`v3.0.3，安装在ago命名空间下`。
@@ -18,7 +18,7 @@ description: "探讨 Argo Workflow 中的模板数据存储机制，包括模板
 
 ![](/attachments/image2021-7-5_16-34-59.png)
 
-## 二、查看`Kubernetes etcd`
+## 查看`Kubernetes etcd`
 
 *   进入到`kube-system`命名空间下的`etcd`容器中：
 
@@ -46,7 +46,7 @@ description: "探讨 Argo Workflow 中的模板数据存储机制，包括模板
 
 *   可以看到这里面包含了`Workflow`的所有信息（也包括`Workflow`中的`Template`），而这个数据结构正好跟我们上面介绍到的程序中的`Workflow`数据结构一一对应。
 
-## 三、已完成`Workflow`的数据存储
+## 已完成`Workflow`的数据存储
 
 已经执行完成的`Workflow`是有一定的清理策略，默认情况下是永久保留，具体的清理策略介绍请参考下一个常见问题介绍。如果想要将已经完成的`Workflow`数据永久保存下来，官方提供了数据库存储的支持，仅需简单的配置即可将已执行完成的数据保存到`PgSQL/MySQL`数据库中。具体请参考官方文档：[https://argoproj.github.io/argo-workflows/workflow-archive/](https://argoproj.github.io/argo-workflows/workflow-archive/)
 

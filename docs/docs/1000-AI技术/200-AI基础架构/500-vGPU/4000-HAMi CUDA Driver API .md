@@ -9,7 +9,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 
 `HAMi Core`通过`LD_PRELOAD`机制劫持`CUDA Driver API`调用，实现显存隔离和算力限制。以下是完整的劫持`API`列表：
 
-## 1. 初始化与设备管理 (18个)
+## 初始化与设备管理 (18个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -32,7 +32,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuDeviceSetMemPool` | 设置内存池 | 透传 |
 | `cuFlushGPUDirectRDMAWrites` | 刷新`RDMA`写入 | 透传 |
 
-## 2. 上下文管理 (23个)
+## 上下文管理 (23个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -60,7 +60,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuCtxSynchronize` | 同步上下文 | 透传 |
 | `cuGetExportTable` | 获取导出表 | 透传 |
 
-## 3. 流管理 (3个)
+## 流管理 (3个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -68,7 +68,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuStreamDestroy_v2` | 销毁流 | 透传 |
 | `cuStreamSynchronize` | 同步流 | 透传 |
 
-## 4. 显存分配与释放 (18个)
+## 显存分配与释放 (18个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -91,7 +91,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuMemAllocAsync` | 异步分配显存 | **检查配额并记录** |
 | `cuMemFreeAsync` | 异步释放显存 | **更新使用记录** |
 
-## 5. 显存拷贝 (20个)
+## 显存拷贝 (20个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -116,7 +116,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuMemcpy3DPeerAsync` | 异步跨设备3D拷贝 | 透传 |
 | `cuMemPrefetchAsync` | 异步预取内存 | 透传 |
 
-## 6. 显存设置 (12个)
+## 显存设置 (12个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -133,7 +133,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuMemsetD2D16Async` | 异步2D设置16位 | 透传 |
 | `cuMemsetD2D32Async` | 异步2D设置32位 | 透传 |
 
-## 7. 内核启动 (7个)
+## 内核启动 (7个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -145,14 +145,14 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuFuncSetAttribute` | 设置函数属性 | 透传 |
 | `cuMemAdvise` | 内存建议 | 透传 |
 
-## 8. 事件管理 (2个)
+## 事件管理 (2个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
 | `cuEventCreate` | 创建事件 | 透传 |
 | `cuEventDestroy_v2` | 销毁事件 | 透传 |
 
-## 9. 模块加载 (11个)
+## 模块加载 (11个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|

@@ -57,6 +57,7 @@ const config: Config = {
   // 添加 Mermaid 主题
   themes: ['@docusaurus/theme-mermaid'],
   plugins: [
+    "docusaurus-numbered-headings",
     require.resolve('docusaurus-plugin-image-zoom'),
     [
       'ideal-image',

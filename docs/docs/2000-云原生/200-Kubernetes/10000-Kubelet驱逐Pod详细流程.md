@@ -29,7 +29,7 @@ description: "深入解析Kubernetes中kubelet的Pod驱逐机制，包括驱逐�
 ---
 
 
-## 1. 前言
+## 前言
 `kubelet`监控集群节点的内存、磁盘空间和文件系统的`inode`等资源。 当这些资源中的一个或者多个达到特定的消耗水平，`kubelet`可以主动驱逐节点上一个或者多个`Pod`，以回收资源防止节点最终崩溃。
 
 **需要注意的是**：由`Kubelet`发起的驱逐并不会遵循`PodDisruptionBudget`和`terminationGracePeriodSeconds`的配置。对`K8S`来说，保证节点资源充足优先级更高，牺牲小部分`Pod`来保证剩余的大部分`Pod`。
@@ -38,7 +38,7 @@ description: "深入解析Kubernetes中kubelet的Pod驱逐机制，包括驱逐�
 
 在`kubelet`中实现`Pod`驱逐逻辑的具体源码位于：https://github.com/kubernetes/kubernetes/blob/4096c9209cbf20c51d184e83ab6ffa3853bd2ee6/pkg/kubelet/eviction/eviction_manager.go
 
-## 2. 驱逐信号和阈值：什么时候会驱逐 Pod?
+## 驱逐信号和阈值：什么时候会驱逐 Pod?
 
 首先，新的`Pod`调度不会引发驱逐动作，驱逐动作只会在节点资源紧张时才会发生，例如某些`Pod`的资源使用率（`CPU/Memory/Disk/PID`等）飙升（因为`Container limits`可以超过节点可分配资源总量），或者节点上其他进程引发的节点资源压力。
 
@@ -48,9 +48,9 @@ description: "深入解析Kubernetes中kubelet的Pod驱逐机制，包括驱逐�
 *   2）驱逐条件
 *   3）监控间隔
 
-### 2.1 驱逐信号与节点condition
+### 驱逐信号与节点condition
 
-#### 2.1.1 驱逐信号
+#### 驱逐信号
 
 **`Kubelet`使用驱逐信号来代表特定资源在特定时间点的状态**，根据不同资源，`Kubelet` 中定义了`5`种驱逐信号。
 
@@ -72,7 +72,7 @@ description: "深入解析Kubernetes中kubelet的Pod驱逐机制，包括驱逐�
 1.  `nodefs`：节点的主要文件系统，用于本地磁盘卷、不受内存支持的`emptyDir`卷、日志存储等。 例如，`nodefs` 包含 `/var/lib/kubelet/`。
 2.  `imagefs`：可选文件系统，供容器运行时存储容器镜像和容器可写层。
 
-#### 2.1.2 节点condition与污点
+#### 节点condition与污点
 
 除了用驱逐信号来判断是否需要驱逐`Pod`之外，`Kubelet` 还会把驱逐信号反应为节点的状态。
 
@@ -102,7 +102,7 @@ description: "深入解析Kubernetes中kubelet的Pod驱逐机制，包括驱逐�
 
 > 一般这种检测状态的为了提升稳定性，都会给一个静默期，比如`K8S`中的`HPA`扩缩容也会设置静默期，防止频繁触发扩缩容动作。
 
-### 2.2 驱逐阈值：判断条件
+### 驱逐阈值：判断条件
 
 拿到资源当前状态之后，就可以根据阈值判断是否需要触发驱逐动作了。
 
@@ -120,7 +120,7 @@ description: "深入解析Kubernetes中kubelet的Pod驱逐机制，包括驱逐�
 
 根据紧急程度驱逐条件又分为**软驱逐 `eviction-soft`** 和 **硬驱逐 `eviction-hard`**：
 
-#### 2.2.1 软驱逐 eviction-soft
+#### 软驱逐 eviction-soft
 
 一般驱逐条件比较保守，此时还可以等待`Pod`优雅终止，需要配置以下参数
 
@@ -144,7 +144,7 @@ spec:
 
 然后驱逐这里又配置了一个 `eviction-max-pod-grace-period`,实际驱逐发生时，**`Kubelet`会取二者中的较小值来作为最终优雅终止宽限期**。
 
-#### 2.2.2 硬驱逐 eviction-hard
+#### 硬驱逐 eviction-hard
 
 相比之下则是比较紧急，配置条件都很极限，在往上节点可能会崩溃的那种。
 
@@ -170,11 +170,11 @@ spec:
 
 如果节点内存可用余量低于`100Mi`，则`kubelet`进入硬驱逐，立马`kill`掉被选中的`Pod`。
 
-### 2.3 状态检测 & 驱逐频率
+### 状态检测 & 驱逐频率
 
 `Kubelet`默认每`10s`会检测一次节点状态，即驱逐判断条件为`10s`一次，当然也可以通过`housekeeping-interval`参数进行配置。
 
-## 3. 回收节点级资源
+## 回收节点级资源
 
 为了提升稳定性，减少`Pod`驱逐次数，`Kubelet`在执行驱逐前会进行一次垃圾回收。如果本地垃圾回收后资源充足了就不再驱逐。
 
@@ -192,13 +192,13 @@ spec:
 
 对于CPU、内存资源则是只能驱逐`Pod`方式进行回收。
 
-## 4. 驱逐对象：哪些 Pod 会被驱逐
+## 驱逐对象：哪些 Pod 会被驱逐
 
 如果进行垃圾回收后，节点资源也满足驱逐条件，那么为了保证当前节点不被压垮，`kubelet`只能驱逐`Pod`了。
 
 根据触发驱逐的资源不同，驱逐目标筛选逻辑也有不同。
 
-### 4.1 内存资源导致的驱逐
+### 内存资源导致的驱逐
 
 对于内存资源`kubelet`使用以下参数来确定`Pod`驱逐顺序：https://github.com/kubernetes/kubernetes/blob/4096c9209cbf20c51d184e83ab6ffa3853bd2ee6/pkg/kubelet/eviction/eviction_manager.go#L254
 
@@ -208,7 +208,7 @@ spec:
 
 因此，虽然没有严格按照`QoS`来排序，但是整个驱逐顺序和`Pod`的`QoS`是有很大关系的：
 
-#### 4.1.1 QoS 级别介绍
+#### QoS 级别介绍
 
 在`Kubernetes`中，`Pod`根据其资源配置被分为三个`QoS`（`Quality of Service`）级别：
 
@@ -265,12 +265,12 @@ spec:
     resources: {}  # 没有设置任何资源限制
 ```
 
-#### 4.1.2 驱逐优先级关系
+#### 驱逐优先级关系
 
 *   首先考虑资源使用量超过其请求的`QoS`级别为`BestEffort`或`Burstable`的`Pod`。 这些`Pod`会根据它们的优先级以及它们的资源使用级别超过其请求的程度被驱逐。
 *   资源使用量少于请求量的`Guaranteed`级别的`Pod`和`Burstable Pod`根据其优先级被最后驱逐。
 
-### 4.2 inode & pid 导致的驱逐
+### inode & pid 导致的驱逐
 
 当`kubelet`因 **inode** 或 **进程标识符(pid)** 不足而驱逐`Pod`时， 它使用`Pod`的相对优先级来确定驱逐顺序，因为`inode`和`PID`没有对应的请求字段。
 
@@ -287,18 +287,18 @@ spec:
 
 3. 即：`inode、pid`导致的驱逐，`Kubelet`会优先驱逐磁盘消耗大的`Pod`，而不是根据`Pod QoS`来。
 
-### 4.3 小结
+### 小结
 
 `Kubelet`并没有使用`QoS`来作为驱逐顺序，但是对于**内存资源回收**的场景，驱逐顺序和`QoS`是相差不大的。不过对于 **磁盘和 PID** 资源的回收则完全不一样的，会优先考虑驱逐磁盘占用多的`Pod`，即使`Pod QoS`等级为 `Guaranteed`。
 
 > 毕竟不是所有资源都有`requests`和`limits`，只能先驱逐占用量大的。
 
-### 4.4 最少资源回收量
+### 最少资源回收量
 
 为了保证尽量少的`Pod`，`kubelet`每次只会驱逐一个`Pod`，驱逐后就会判断一次资源是否充足。
 
 这样可能导致该节点资源一直处于驱逐阈值，反复达到驱逐条件从而触发多次驱逐，`kubelet`也提供了参数 `--eviction-minimum-reclaim` 来指定每次驱逐最低回收资源，达到该值后才停止驱逐。从而减少触发驱逐的次数。
 
-## 5. 参考资料
+## 参考资料
 
 - https://www.lixueduan.com/posts/kubernetes/20-pod-eviction

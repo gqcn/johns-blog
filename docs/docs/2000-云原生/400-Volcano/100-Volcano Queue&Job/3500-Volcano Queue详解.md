@@ -860,7 +860,7 @@ spec:
 
 `Volcano Queue`可以与多种`Kubernetes`工作负载类型结合使用。以下是不同工作负载类型如何关联到指定队列的示例：
 
-### 1. Volcano Job
+### Volcano Job
 
 `Volcano Job`可以直接在定义中指定队列名称：
 
@@ -882,7 +882,7 @@ spec:
               image: tensorflow/tensorflow:latest-gpu
 ```
 
-### 2. Kubernetes Pod
+### Kubernetes Pod
 
 对于普通的`Kubernetes Pod`，可以通过添加特定注解来指定队列：
 
@@ -900,7 +900,7 @@ spec:
     image: ml-model:v1
 ```
 
-### 3. Kubernetes Deployment
+### Kubernetes Deployment
 
 对于`Deployment`，需要在`Pod`模板中添加相关注解：
 
@@ -934,7 +934,7 @@ spec:
 > kubectl get pods -l volcano.sh/queue-name=web-queue
 > ```
 
-### 4. Kubernetes StatefulSet
+### Kubernetes StatefulSet
 
 `StatefulSet`的配置方式与`Deployment`类似：
 
@@ -962,7 +962,7 @@ spec:
         image: mysql:5.7
 ```
 
-### 5. PodGroup
+### PodGroup
 
 `PodGroup`是`Volcano`提供的一种自定义资源，用于将多个`Pod`作为一个组进行调度：
 

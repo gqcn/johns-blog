@@ -7,7 +7,7 @@ keywords:
 description: "详细介绍NVIDIA GPU共享技术MPS和MIG的原理、优缺点、适用场景以及在Kubernetes环境中的具体配置和操作步骤，帮助用户实现GPU资源的高效利用" 
 ---
 
-## 1. 基本介绍
+## 基本介绍
 
 **MPS**：`MPS`是`NVIDIA`官方的`CUDA`应用编程接口，是`CUDA`应用程序编程接口的一种可替代、二进制兼容的实现方式，以利用`NVIDIA GPU`的`Hyper-Q`功能，允许`CUDA`内核在同一个`GPU`上并发处理：https://docs.nvidia.com/deploy/mps/index.html
 
@@ -28,19 +28,19 @@ description: "详细介绍NVIDIA GPU共享技术MPS和MIG的原理、优缺点�
 
 ![alt text](<assets/7000-GPU Share MPS&MIG具体操作步骤/image.png>)
 
-## 2. MPS拆卡方案
-### 2.1 依赖与限制
-#### 2.1.1 环境依赖
+## MPS拆卡方案
+### 依赖与限制
+#### 环境依赖
 - 资源限制
 - 仅支持`Linux`系统
 - 不管进程的GPU资源独占设置。MPS控制守护进程会对来自不同用户的请求进行排队访问的
 
-#### 2.1.2 部署依赖
+#### 部署依赖
 - 需要依赖`GPU Operator`组件。
 - `Kubernetes`版本要求 `1.22-1.29`（`GPU Operator`）要求。
 - 需要完全解除`GPU`占用，需要驱逐所有的`GPU`使用`POD`（建议驱逐节点上所有的`POD`）。
 
-### 2.2 优缺点分析
+### 优缺点分析
 #### 优势
 1. 由于它在单卡上跑多服务，能有效提高单卡的`GPU`利用率和吞吐量。
 2. 拆分相对轻量，只是纯软件层的配置即可。
@@ -54,7 +54,7 @@ description: "详细介绍NVIDIA GPU共享技术MPS和MIG的原理、优缺点�
 #### 适用场景
 考虑到故障传播的问题，通常用它来部署多副本的推理服务、小模型。
 
-### 2.3 如何识别GPU卡是否支持MPS
+### 如何识别GPU卡是否支持MPS
 `MPS`要求 `nvidia.com/gpu.compute.major` 计算能力版本 `>= 3.5` (查询地址 https://developer.nvidia.com/cuda-gpus ）几乎主流卡都支持。具体查看节点标签内容：
 
 ```yaml
@@ -77,10 +77,10 @@ nvidia.com/mps.capable: "true"
 # 省略...
 ```
 
-### 2.4 特性的启用流程
+### 特性的启用流程
 安装完成`GPU Operator`后，默认情况下所有节点的`MPS`特性是关闭的，可以看到带有`GPU`卡机器的标签值为`nvidia.com/mps.capable=false`。`MPS`特性需要通过配置文件为当前节点启用`MPS`策略后才能开启。以下是具体操作步骤：
 
-#### 2.4.1 确认GPU卡的机器节点标签
+#### 确认GPU卡的机器节点标签
 默认情况下`MPS`特性是关闭的。
 ```yaml
 # 省略...
@@ -98,7 +98,7 @@ nvidia.com/mps.capable: "false" # MPS特性未开启
 # 省略...
 ```
 
-#### 2.4.2 确定MPS使用的配置项名称
+#### 确定MPS使用的配置项名称
 通过节点标签中的`nvidia.com/device-plugin.config: default`可以得知具体的配置项名称为`default`。
 ```yaml
 # 省略...
@@ -194,7 +194,7 @@ kubectl get pod -n gpu-operator nvidia-device-plugin-daemonset-rcgf9 -oyaml
 # 省略...
 ```
 
-#### 2.4.3 添加MPS拆卡配置项
+#### 添加MPS拆卡配置项
 
 查看`device-plugin-config`的配置内容：
 ```bash
@@ -301,7 +301,7 @@ stable-node-feature-discovery-worker-qjprr              1/1     Running     23 (
 stable-node-feature-discovery-worker-xn6sl              1/1     Running     25 (59d ago)   77d
 ```
 
-#### 2.5 如何对节点GPU进行MPS拆卡
+#### 如何对节点GPU进行MPS拆卡
 拆卡的原理实际上就是修改`device-plugin-config`配置文件，通过手动或者程序自动增加/修改对应的配置项，随后修改对应机器节点的`nvidia.com/device-plugin.config`标签值即可。
 拆卡完成后，在节点上会增加`nvidia.com/gpu.share`的资源类型，随后训练推理任务在申请资源时可申请该类型的资源。
 
@@ -328,14 +328,14 @@ Allocatable:
   rdma/hca_ib_dev:        0
 ```
 
-## 3. MIG拆卡方案
+## MIG拆卡方案
 
-### 3.1 依赖与限制
+### 依赖与限制
 - 需要依赖`GPU Operator`组件。
 - `Kubernetes`版本要求 `1.22-1.29`（`GPU Operator`）要求。
 - 需要完全解除`GPU`占用，需要驱逐所有的`GPU`使用`POD`（建议驱逐节点上所有的`POD`）。
 
-### 3.2 优缺点分析
+### 优缺点分析
 #### 优势
 1. 每个实例都有自己的内存和计算单元，资源隔离性好，不会存在故障传播的问题。
 2. 多租户场景下，其隔离性强，更适合业务。
@@ -353,9 +353,9 @@ Allocatable:
 #### 适用场景
 `QoS`要求高，隔离性强的业务。
 
-### 3.3 如何识别GPU卡是否支持MIG
+### 如何识别GPU卡是否支持MIG
 
-#### 3.3.1 通过GPU Operator的配置文件识别
+#### 通过GPU Operator的配置文件识别
 可以参考`GPU Operator`的源码：https://github.com/NVIDIA/gpu-operator/blob/main/assets/state-mig-manager/0400_configmap.yaml
 
 ![alt text](<assets/7000-GPU Share MPS&MIG具体操作步骤/image-1.png>)
@@ -366,7 +366,7 @@ Allocatable:
 nvidia-smi -q -x | grep '<pci_device_id>' | sed 's/.*<pci_device_id>\(.*\)<\/pci_device_id>.*/\1/'| uniq
 ```
 
-#### 3.3.2 通过nvidia-smi命令识别
+#### 通过nvidia-smi命令识别
 
 如果智算卡已经到位，并且有可以访问`NVIDIA`卡的权限，那么可以使用`nvidia-smi mig -ligp`命令来识别`MIG`是否支持。
 
@@ -552,8 +552,8 @@ $ nvidia-smi mig -lgip
 +-------------------------------------------------------------------------------+
 ```
 
-### 3.4 特性的启用流程
-#### 3.4.1 确认GPU卡的机器节点标签
+### 特性的启用流程
+#### 确认GPU卡的机器节点标签
 查看节点标签，可以看到`nvidia.com/mig.capable: "false"`表示没有启用`MIG`特性：
 ```yaml
 # 省略...
@@ -569,7 +569,7 @@ nvidia.com/mig.config: all-disabled
 # 省略...
 ```
 
-#### 3.4.2 确定MIG使用的配置项名称
+#### 确定MIG使用的配置项名称
 查询`clusterpolicy`，并查看其中对于`mig`配置项的名称
 ```bash
 kubectl get clusterpolicy -oyaml
@@ -595,8 +595,8 @@ kubectl get clusterpolicy -oyaml
       version: v0.12.1-ubuntu20.04
 # 省略 ...
 ```
-#### 3.4.3 修改MIG全局配置文件
-##### 3.4.3.1 device-plugin-config
+#### 修改MIG全局配置文件
+##### device-plugin-config
 
 执行以下命令查看`device plugin`的配置内容中是否存在`mig-mixed`的配置项，如果没有则添加该配置：
 ```bash
@@ -612,7 +612,7 @@ kubectl get cm -n gpu-operator device-plugin-config -oyaml
 # 省略 ...
 ```
 
-##### 3.4.3.2 clusterpolicy
+##### clusterpolicy
 修改`clusterpolicy`中的相关配置内容如下：
 ```yaml
 # 省略 ...
@@ -639,8 +639,8 @@ kubectl get cm -n gpu-operator device-plugin-config -oyaml
 
 与`MPS`特性类似，`MIG`特性只有增加拆卡配置并且为特定`GPU`卡节点标签添加对应配置项名称关联后才会真实启用。我们继续看看如何配置`MIG`拆卡内容。
 
-### 3.5 如何对节点GPU进行MIG拆卡
-#### 3.5.1 查看现有MIG配置内容
+### 如何对节点GPU进行MIG拆卡
+#### 查看现有MIG配置内容
 查看`custom-mig-parted-config`配置项内容：
 ```bash
 kubectl get cm -n gpu-operator custom-mig-parted-config -oyaml
@@ -686,7 +686,7 @@ data:
 拆卡设备名称规则：
 ![alt text](<assets/7000-GPU Share MPS&MIG具体操作步骤/image-2.png>)
 
-#### 3.5.2 增加自定义MIG拆卡内容
+#### 增加自定义MIG拆卡内容
 我们在`custom-mig-parted-config`这个`ConfigMap`内容的最末尾增加一个自定义的`MIG`拆卡配置，该配置的变更可以手动但通常是由程序自动更新完成：
 ```yaml
 # 省略 ...
@@ -701,7 +701,7 @@ data:
 ```
 这个节点上本来有`8`张`NVIDIA-H20`的`GPU`卡，这个配置项表示将其中索引为`3`的`GPU`卡拆为`4`张虚拟卡：`2`张`1g.12gb`、`1`张`1g.24gb`、`1`张`3g.48gb`。
 
-#### 3.5.3 为节点增加拆卡配置项关联
+#### 为节点增加拆卡配置项关联
 
 与`MIG`特性相关的机器节点标签如下：
 ```yaml
@@ -796,7 +796,7 @@ nvidia.com/mig-1g.24gb: "1"
 nvidia.com/mig-3g.48gb: "1"
 ```
 
-## 4. 注意事项
+## 注意事项
 
 1. 在`MPS`拆卡中，`failRequestsGreaterThanOne`参数配置默认为`true`(无法配置)，因此在使用`nvidia.com/gpu.shared`资源时，如果申请的资源数量大于`1`，则会导致请求失败，具体请参考`GitHub`首页介绍：https://github.com/NVIDIA/k8s-device-plugin
 2. `MIG`拆卡会引发`GPU Pod`的重启，甚至`Node`的重启，具体请参考官方文档：https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html
@@ -809,7 +809,7 @@ nvidia.com/mig-3g.48gb: "1"
 
     ![alt text](<assets/6000-GPU Share MPS&MIG具体操作步骤/image.png>)
 
-## 5. 总结
+## 总结
 
 `NVIDIA`的`MPS`和`MIG`技术为解决`GPU`资源利用率低下和多租户隔离的问题提供了有效的解决方案。`MPS`采用软件级隔离，支持动态资源分配，适合多副本推理服务和轻量级训练场景；而`MIG`提供硬件级隔离，确保完全的性能隔离和故障隔离，更适合多租户环境和需要强隔离的业务场景。选择哪种技术应基于业务需求、硬件条件、运维复杂度和应用场景等因素综合考量。在实际部署中，应注重资源监控、自动化配置和安全防护，以确保系统的稳定性和性能。通过合理应用这些`GPU`共享技术，企业可以显著提高`GPU`资源利用率，降低`AI`应用部署成本，同时满足不同业务场景的需求。
 

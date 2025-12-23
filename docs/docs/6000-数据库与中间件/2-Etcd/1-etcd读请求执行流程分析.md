@@ -19,7 +19,7 @@ description: "深入分析etcd读请求的执行流程，包括请求处理、�
 
 本文主要分析了 etcd 中一个读请求的具体执行流程。
 
-## 1. 概述
+## 概述
 
 下面是一张 etcd 的简要基础架构图：
 
@@ -33,7 +33,7 @@ description: "深入分析etcd读请求的执行流程，包括请求处理、�
 *   **功能逻辑层**：etcd 核心特性实现层，如典型的 KVServer 模块、MVCC 模块、Auth 鉴权模块、Lease 租约模块、Compactor 压缩模块等，其中 MVCC 模块主要由 treeIndex 模块和 boltdb 模块组成。
 *   **存储层**：存储层包含预写日志 (WAL) 模块、快照 (Snapshot) 模块、boltdb 模块。其中 WAL 可保障 etcd crash 后数据不丢失，boltdb 则保存了集群元数据和用户写入的数据。
 
-## 2. 读请求流程
+## 读请求流程
 
 具体流程如下图所示：
 
@@ -49,7 +49,7 @@ ok
 world
 ```
 
-#### 2.1 Client
+#### Client
 
 **1）首先，etcdctl 会对命令中的参数进行解析。**
 
@@ -63,7 +63,7 @@ world
 
 etcd clientv3 库采用的负载均衡算法为 **Round-robin**。针对每一个请求，Round-robin 算法通过轮询的方式依次从 endpoint 列表中选择一个 endpoint 访问 (长连接)，使 etcd server 负载尽量均衡。
 
-#### 2.2 KVServer 与 拦截器
+#### KVServer 与 拦截器
 
 client 发送 Range RPC 请求到了 server 后就进入了 KVServer 模块。
 
@@ -76,7 +76,7 @@ etcd 通过**拦截器**以非侵入式的方式实现了许多特性，例如�
 
 server 收到 client 的 Range RPC 请求后，根据 ServiceName 和 RPC Method 将请求转发到对应的 handler 实现，handler 首先会将上面描述的一系列拦截器串联成一个拦截器再执行（具体实现见[这里](https://github.com/grpc/grpc-go/blob/master/server.go##L1093)），在拦截器逻辑中，通过调用 KVServer 模块的 Range 接口获取数据。
 
-#### 2.3 串行读与线性读
+#### 串行读与线性读
 
 etcd 为了保证服务高可用，生产环境一般部署多个节点，多节点之间的数据由于延迟等关系可能会存在不一致的情况。
 
@@ -97,7 +97,7 @@ etcd 为了保证服务高可用，生产环境一般部署多个节点，多节
 *   1）**串行 (Serializable) 读**：直接读状态机数据返回、无需通过 Raft 协议与集群进行交互，它具有低延时、高吞吐量的特点，适合对数据一致性要求不高的场景。
 *   2）**线性读**：需要经过 Raft 协议模块，反应的是集群共识，因此在延时和吞吐量上相比串行读略差一点，适用于对数据一致性要求高的场景。
 
-#### 2.4 ReadIndex
+#### ReadIndex
 
 在 etcd 3.1 时引入了 ReadIndex 机制，保证在串行读的时候，也能读到最新的数据。
 
@@ -108,7 +108,7 @@ etcd 为了保证服务高可用，生产环境一般部署多个节点，多节
 
 > 所以根据ReadIndex的特性，如果出现网络分区，少数派所在的部分读写都将会失败。
 
-#### 2.5 MVCC
+#### MVCC
 
 MVCC 即多版本并发控制 (Multiversion concurrency control) ，**MVCC模块是为了解决 etcd v2 不支持保存 key 的历史版本、不支持多 key 事务等问题而产生的**。
 
@@ -130,7 +130,7 @@ treeIndex 模块是基于 Google 开源的内存版 btree 库实现的，treeInd
 
 etcd 出于数据一致性、性能等考虑，在访问 boltdb 前，首先会从一个内存读事务 buffer 中，二分查找你要访问 key 是否在 buffer 里面，若命中则直接返回。
 
-#### 2.6 boltdb
+#### boltdb
 
 若 buffer 未命中，此时就真正需要向 boltdb 模块查询数据了。
 
@@ -140,19 +140,19 @@ boltdb 使用 B+ tree 来组织用户的 key-value 数据，获取 bucket key �
 
 到这里，一个读请求之路执行完成。
 
-## 3. FAQ
+## FAQ
 
 Q：**readIndex 需要请求 leader，那为什么不直接让 leader 返回读请求的结果？**
 
 A：**主要是性能因素**，如果将所有读请求都转发到 Leader，会导致 Leader 负载升高，内存、cpu、网络带宽资源都很容易耗尽。特别是expensive request场景，会让 Leader 节点性能会急剧下降。read index 机制的引入，使得每个follower节点都可以处理读请求，极大扩展提升了写性能。
 
-## 4. 小结
+## 小结
 
 一个读请求从 client 通过 Round-robin 负载均衡算法，选择一个 etcd server 节点，发出 gRPC 请求，经过 etcd server 的 KVServer 模块、线性读模块、MVCC 的 treeIndex 和 boltdb 模块紧密协作，完成了一个读请求。
 
 
 
-## 5. 参考资料：
+## 参考资料：
 
 *   [https://ms2008.github.io/2019/12/04/etcd-rumor/](https://ms2008.github.io/2019/12/04/etcd-rumor/)
 *   [https://www.cnblogs.com/ricklz/p/15204381.html](https://www.cnblogs.com/ricklz/p/15204381.html)

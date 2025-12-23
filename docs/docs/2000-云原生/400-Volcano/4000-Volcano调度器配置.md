@@ -194,7 +194,7 @@ tiers:
 
 ### 常见插件 Arguments 示例
 
-#### 1. binpack 插件
+#### binpack 插件
 
 ```yaml
 - name: binpack
@@ -214,7 +214,7 @@ tiers:
 - `binpack.resources`：需要考虑的扩展资源列表
 - `binpack.resources.<resource-name>`：特定扩展资源的权重
 
-#### 2. nodeorder 插件
+#### nodeorder 插件
 
 ```yaml
 - name: nodeorder
@@ -225,7 +225,7 @@ tiers:
 **说明**：
 - `nodeorder.weight`：节点排序的权重，影响节点打分的重要程度
 
-#### 3. capacity-card 插件（自定义插件示例）
+#### capacity-card 插件（自定义插件示例）
 
 ```yaml
 - name: capacity-card
@@ -238,7 +238,7 @@ tiers:
 - `cardUnlimitedCpuMemory`：是否对使用`GPU`卡的`Pod`取消`CPU`和内存限制
 - `allowServiceTypeByPodOwnerReferences`：是否通过`Pod`的`OwnerReferences`来判断是推理还是训练类型
 
-#### 4. drf 插件
+#### drf 插件
 
 ```yaml
 - name: drf
@@ -331,7 +331,7 @@ tiers:
 
 ## 配置最佳实践
 
-### 1. 插件分层
+### 插件分层
 
 将功能相关的插件放在同一层，不同层之间按照执行优先级排列：
 
@@ -350,7 +350,7 @@ tiers:
   - name: binpack
 ```
 
-### 2. 选择性启用回调函数
+### 选择性启用回调函数
 
 根据实际需求选择性启用或禁用回调函数：
 
@@ -360,7 +360,7 @@ tiers:
   enablePreemptable: true   # 启用同队列内抢占
 ```
 
-### 3. 合理配置 Arguments
+### 合理配置 Arguments
 
 根据业务场景调整插件参数：
 
@@ -374,7 +374,7 @@ tiers:
     binpack.resources.nvidia.com/gpu: 100  # GPU权重远大于CPU和内存
 ```
 
-### 4. 避免插件冲突
+### 避免插件冲突
 
 注意某些插件不能同时使用：
 
@@ -394,7 +394,7 @@ tiers:
   - name: proportion
 ```
 
-### 5. 监控配置
+### 监控配置
 
 配置监控指标以便观察调度器行为：
 

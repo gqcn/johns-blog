@@ -6,7 +6,7 @@ keywords: ["Goroutine", "调度器", "GMP模型", "并发编程", "线程调度"
 description: "深入解析 Go 语言的 Goroutine 调度器原理，包括 GMP 模型、调度策略、上下文切换等核心机制"
 ---
 
-## 一、P、M、G关系
+## P、M、G关系
 
 在了解Go的运行时的`scheduler`之前，需要先了解为什么需要它，因为我们可能会想，OS内核不是已经有一个线程`scheduler`了嘛？  
 熟悉`POSIX API`的人都知道，`POSIX`的方案在很大程度上是对`Unix process`进程模型的一个逻辑描述和扩展，两者有很多相似的地方。 `Thread`有自己的信号掩码、`CPU affinity`等。但是很多特征对于`Go`程序来说都是累赘。 尤其是`context`上下文切换的耗时。另一个原因是`Go`的垃圾回收需要所有的`goroutine`停止，使得内存在一个一致的状态。垃圾回收的时间点是不确定的，如果依靠`OS`自身的`scheduler`来调度，那么会有大量的线程需要停止工作。
@@ -41,7 +41,7 @@ description: "深入解析 Go 语言的 Goroutine 调度器原理，包括 GMP �
 
 另一种情况是**P**所分配的任务**G**很快就执行完了（分配不均），这就导致了一个上下文**P**闲着没事儿干而系统却任然忙碌。但是如果`global runqueue`没有任务**G**了，那么**P**就不得不从其他的上下文**P**那里拿一些**G**来执行。一般来说，如果上下文**P**从其他的上下文**P**那里要偷一个任务的话，一般就"偷"`runqueue`的**一半**，这就确保了每个`OS`线程都能充分的使用。
 
-## 二、调度流程简述
+## 调度流程简述
 
 我们都知道`Go`语言是原生支持语言级并发的，这个并发的最小逻辑单元就是`goroutine`。`goroutine`就类似于`Go`语言提供的一种“**用户态线程**”，当然这种“用户态线程”是跑在**内核级线程**之上的。当我们创建了很多的`goroutine`，并且它们都是跑在同一个内核线程之上的时候，就需要一个调度器来维护这些`goroutine`，确保所有的`goroutine`都使用`CPU`，并且是尽可能公平的使用`CPU`资源。
 
@@ -181,7 +181,7 @@ static void schedule(void) {
 
 `goroutine`在主动放弃**CPU**的时候(`park/gosched`)，都会涉及到调用`runtime.mcall`函数，此函数也是汇编实现，主要将`goroutine`的栈地址和程序计数器保存到**G**结构的`sched`字段中，`mcall`就完成了现场保存。恢复现场的函数是`runtime.gogocall`，这个函数主要在`execute`中调用，就是在执行`goroutine`前，需要重新装载相应的寄存器。
 
-## 三、参考链接
+## 参考链接
 
 *   [https://johng.cn/goroutine1-pmg/](https://johng.cn/goroutine1-pmg/)
 *   [https://johng.cn/goroutine-scheduler-brief/](https://johng.cn/goroutine-scheduler-brief/)

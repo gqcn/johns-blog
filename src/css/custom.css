@@ -250,3 +250,19 @@ pre {
   -moz-tab-size: 4;
   -o-tab-size: 4;
 }
+
+/* 禁用博客页面的自动序号功能 - 针对博客列表页、文章页等所有博客相关页面 */
+html.blog-wrapper h2::before,
+html.blog-wrapper h3::before,
+html.blog-wrapper h4::before,
+html.blog-wrapper h5::before {
+  content: none !important;
+}
+
+/* 禁用博客文章详情页 TOC (目录) 中的自动序号 */
+html.blog-wrapper ul.table-of-contents > li::before,
+html.blog-wrapper ul.table-of-contents > li > ul > li::before,
+html.blog-wrapper ul.table-of-contents > li > ul > li > ul > li::before,
+html.blog-wrapper ul.table-of-contents > li > ul > li > ul > li > ul > li::before {
+  content: none !important;
+}

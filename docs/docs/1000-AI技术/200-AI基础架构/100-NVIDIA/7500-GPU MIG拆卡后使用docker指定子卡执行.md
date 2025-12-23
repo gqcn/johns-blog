@@ -10,7 +10,7 @@ description: "详细介绍NVIDIA GPU通过MIG拆卡后，如何在Docker容器�
 ---
 
 
-## 1. 背景介绍
+## 背景介绍
 对`H200`进行`MIG`拆卡，拆分为`1`张`2g35gb`，`5`张`1g18gb`，拆卡已经通过`Kubernetes MIG Manager`实现。在节点上使用`nvidia-smi -L`查看，如下：
 ```bash
 $ nvidia-smi -L
@@ -30,14 +30,14 @@ GPU 6: NVIDIA H200 (UUID: GPU-4e19f7d9-e5d6-1223-e9d2-983f01ef45f6)
 GPU 7: NVIDIA H200 (UUID: GPU-5b73e21c-9b5d-4156-8b8d-aed96f9f8d86)
 ```
 
-## 2. 解决方案
+## 解决方案
 参考官方文档：https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/docker-specialized.html
 
-### 2.1 使用镜像
+### 使用镜像
 这里使用到了公司测试环境的内网镜像：`aiharbor.msxf.local/test/sglang:0.4.8.post1-cu128`
 如果需要使用公网镜像，那么可以使用`nvidia`官方提供的镜像：`nvidia/cuda`
 
-### 2.2 指定runtime
+### 指定runtime
 首先需要保证`docker`的`runtime`配置为`nvidia`：
 ```bash
 $ cat /etc/docker/daemon.json
@@ -62,11 +62,11 @@ $ cat /etc/docker/daemon.json
 docker run --rm --runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=2,3 aiharbor.msxf.local/test/sglang:0.4.8.post1-cu128 nvidia-smi
 ```
 
-### 2.3 指定使用MIG子卡
-#### 2.3.1 通过docker device指定子卡
+### 指定使用MIG子卡
+#### 通过docker device指定子卡
 指定子卡执行`docker`镜像。可以通过子卡的`UUID`或者`索引号`来指定。
 
-##### 2.3.1.1 通过指定UUID
+##### 通过指定UUID
 ```bash
 docker run --rm --gpus device=MIG-b05c0034-4d0e-5d3c-a25c-e6795d1779df aiharbor.msxf.local/test/sglang:0.4.8.post1-cu128 nvidia-smi
 ```
@@ -104,7 +104,7 @@ Mon Jul 28 01:58:33 2025
 |  No running processes found                                                             |
 +-----------------------------------------------------------------------------------------+
 ```
-##### 2.3.1.2 通过指定子卡索引
+##### 通过指定子卡索引
 注意这里指定的子卡索引:
 ```bash
 docker run --rm --gpus '"device=0:0,0:1"' aiharbor.msxf.local/test/sglang:0.4.8.post1-cu128 nvidia-smi
@@ -146,10 +146,10 @@ Mon Jul 28 02:00:04 2025
 |  No running processes found                                                             |
 +-----------------------------------------------------------------------------------------+
 ```
-### 2.3.2 通过环境变量指定子卡
+### 通过环境变量指定子卡
 也可以通过`NVIDIA_VISIBLE_DEVICES`环境变量来指定使用的子卡，当然该环境变量也支持使用子卡的`UUID`或者`索引号`。
 
-#### 2.3.2.1 通过指定UUID
+#### 通过指定UUID
 ```bash
 docker run -e NVIDIA_VISIBLE_DEVICES=MIG-b05c0034-4d0e-5d3c-a25c-e6795d1779df,MIG-be041b89-b751-5c96-84aa-85315833c669 aiharbor.msxf.local/test/sglang:0.4.8.post1-cu128 nvidia-smi
 ```
@@ -190,7 +190,7 @@ Mon Jul 28 02:04:51 2025
 |  No running processes found                                                             |
 +-----------------------------------------------------------------------------------------+
 ```
-#### 2.3.2.2 通过指定子卡索引
+#### 通过指定子卡索引
 ```bash
 docker run -e NVIDIA_VISIBLE_DEVICES=0:0,0:1 aiharbor.msxf.local/test/sglang:0.4.8.post1-cu128 nvidia-smi
 ```
@@ -234,9 +234,9 @@ Mon Jul 28 02:02:51 2025
 +-----------------------------------------------------------------------------------------+
 ```
 
-## 3. 相关问题
-### 3.1 sglang v0.4.9.post4以下版本不支持指定MIG子卡
-#### 3.1.1 问题描述
+## 相关问题
+### sglang v0.4.9.post4以下版本不支持指定MIG子卡
+#### 问题描述
 尝试在`H200`的节点上指定`MIG`子卡，执行以下命令运行推理服务：
 ```bash
 docker run -it --rm \
@@ -282,7 +282,7 @@ Traceback (most recent call last):
     raise ValueError("No GPU memory values found.")
 ValueError: No GPU memory values found.
 ```
-#### 3.1.2 问题原因
+#### 问题原因
 根据社区检索和源码排查，最终确定问题出在`sglang`上，相关连接：https://github.com/sgl-project/sglang/pull/8167
 
 问题原因是`sglang`当前版本（`v0.4.8`）默认通过命令行的方式去获取`GPU`卡的内存信息，然后整卡的内存获取和`MIG`子卡的内存获取方式会不太一样，具体源码在这里：https://github.com/sgl-project/sglang/blob/7c3a12c0002e33fed1e72f4157e74a64a998f251/python/sglang/srt/utils.py#L1235
@@ -291,7 +291,7 @@ ValueError: No GPU memory values found.
 
 ![alt text](<assets/7500-GPU MIG拆卡后使用docker指定子卡执行/image.png>)
 
-#### 3.1.3 验证方式
+#### 验证方式
 
 根据源码分析，当前`sglang`版本也就是通过以下方式获取显存大小：
 ```bash
@@ -341,6 +341,6 @@ docker run --rm --gpus '"device=MIG-b05c0034-4d0e-5d3c-a25c-e6795d1779df"'  aiha
     Device name: NVIDIA H200 MIG 2g.35gb
     Memory: 32.5 GB
     ```
-#### 3.1.4 解决方案
+#### 解决方案
 - 【推荐】升级使用的`sglang`版本到`v0.4.9.post4`或以上解决该问题。
 - 考虑切换到`vllm`框架，并参考`vllm`框架解决方案。
