@@ -168,7 +168,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuLinkCreate_v2` | 创建链接 | 透传 |
 | `cuLinkDestroy` | 销毁链接 | 透传 |
 
-## 10. 虚拟内存管理 (5个)
+## 虚拟内存管理 (5个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -178,7 +178,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuMemMap` | 映射内存 | 透传 |
 | `cuMemImportFromShareableHandle` | 导入共享句柄 | 透传 |
 
-## 11. 内存池管理 (14个)
+## 内存池管理 (14个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -197,7 +197,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuMemPoolExportPointer` | 导出内存池指针 | 透传 |
 | `cuMemPoolImportPointer` | 导入内存池指针 | 透传 |
 
-## 12. 指针属性 (6个)
+## 指针属性 (6个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -208,7 +208,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuMemRangeGetAttributes` | 获取多个范围属性 | 透传 |
 | `cuIpcCloseMemHandle` | 关闭`IPC`内存句柄 | 透传 |
 
-## 13. 外部资源互操作 (8个)
+## 外部资源互操作 (8个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -221,7 +221,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuWaitExternalSemaphoresAsync` | 异步等待外部信号量 | 透传 |
 | `cuDestroyExternalSemaphore` | 销毁外部信号量 | 透传 |
 
-## 14. CUDA Graph (47个)
+## CUDA Graph (47个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -273,7 +273,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuGraphExecDestroy` | 销毁图执行 | 透传 |
 | `cuGraphDestroy` | 销毁图 | 透传 |
 
-## 15. 其他 (4个)
+## 其他 (4个)
 
 | API名称 | 功能说明 | 劫持目的 |
 |---------|---------|---------|
@@ -282,7 +282,7 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 | `cuGetProcAddress` | 获取函数地址 | **劫持动态加载的API** |
 | `cuGetProcAddress_v2` | 获取函数地址(`v2`) | **劫持动态加载的API** |
 
-## 16. 统计汇总
+## 统计汇总
 
 | 分类 | API数量 | 核心劫持 | 透传 |
 |------|---------|---------|------|
@@ -311,6 +311,6 @@ description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Dri
 
 
 
-## 17. 参考资料
+## 参考资料
 
 - https://github.com/Project-HAMi/HAMi-core

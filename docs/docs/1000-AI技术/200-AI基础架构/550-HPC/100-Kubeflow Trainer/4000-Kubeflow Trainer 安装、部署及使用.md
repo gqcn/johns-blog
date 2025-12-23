@@ -42,19 +42,19 @@ description: "详细介绍Kubeflow Trainer的真实安装、部署及使用过�
 
 `Helm`是最简单和推荐的部署方式，可以方便地管理`Kubeflow Trainer`的生命周期。
 
-#### 1. 拉取 Chart 到本地
+#### 拉取 Chart 到本地
 
 ```bash
 helm pull oci://ghcr.io/kubeflow/charts/kubeflow-trainer --version 2.1.0 --untar
 ```
 
-#### 2. 部署 Kubeflow Trainer
+#### 部署 Kubeflow Trainer
 
 ```bash
 helm install kubeflow-trainer ./kubeflow-trainer -n kubeflow-system --create-namespace
 ```
 
-#### 3. 验证部署结果
+#### 验证部署结果
 
 ```bash
 kubectl get pods -n kubeflow-system
@@ -407,7 +407,7 @@ Epoch [5/5], Average Loss: 0.0103
 
 ### 部署步骤
 
-#### 1. 创建 ConfigMap
+#### 创建 ConfigMap
 
 将训练脚本打包到`ConfigMap`中：
 
@@ -422,7 +422,7 @@ kubectl get configmap pytorch-demo-script
 kubectl describe configmap pytorch-demo-script
 ```
 
-#### 2. 创建 TrainJob
+#### 创建 TrainJob
 
 创建`trainjob-demo-with-configmap.yaml`：
 
@@ -476,7 +476,7 @@ spec:
 kubectl apply -f trainjob-demo-with-configmap.yaml
 ```
 
-#### 3. 查看训练状态
+#### 查看训练状态
 
 ```bash
 # 查看 TrainJob 状态
@@ -492,7 +492,7 @@ kubectl logs -l training.kubeflow.org/job-name=trainjob-demo-with-configmap -f
 kubectl describe trainjob trainjob-demo-with-configmap
 ```
 
-#### 4. 预期输出
+#### 预期输出
 
 从任一训练`Pod`的日志中，你应该看到类似的输出：
 
@@ -518,7 +518,7 @@ Epoch [5/5], Average Loss: 0.0103
 - 查看`MASTER_ADDR`确认主节点地址
 :::
 
-#### 5. 清理资源
+#### 清理资源
 
 ```bash
 kubectl delete trainjob trainjob-demo-with-configmap
@@ -543,7 +543,7 @@ kubectl delete configmap pytorch-demo-script
 
 ### 部署步骤
 
-#### 1. 准备宿主机目录
+#### 准备宿主机目录
 
 在所有训练节点上创建相同的目录结构并放置脚本：
 
@@ -558,7 +558,7 @@ sudo chmod -R 755 /data/kubeflow-training/scripts
 使用`HostPath`时，必须确保脚本文件在所有可能调度训练`Pod`的节点上都存在，且路径完全一致。
 :::
 
-#### 2. 创建 TrainJob
+#### 创建 TrainJob
 
 创建`trainjob-demo-with-hostpath.yaml`：
 
@@ -616,7 +616,7 @@ spec:
 kubectl apply -f trainjob-demo-with-hostpath.yaml
 ```
 
-#### 3. 查看训练状态
+#### 查看训练状态
 
 ```bash
 # 查看 TrainJob 状态
@@ -629,7 +629,7 @@ kubectl get pods -l training.kubeflow.org/job-name=trainjob-demo-with-hostpath
 kubectl logs -l training.kubeflow.org/job-name=trainjob-demo-with-hostpath -f
 ```
 
-#### 4. 动态更新脚本
+#### 动态更新脚本
 
 `HostPath`的优势在于可以动态更新脚本而无需重建镜像：
 
@@ -644,7 +644,7 @@ kubectl delete trainjob trainjob-demo-with-hostpath
 kubectl apply -f trainjob-demo-with-hostpath.yaml
 ```
 
-#### 5. 清理资源
+#### 清理资源
 
 ```bash
 kubectl delete trainjob trainjob-demo-with-hostpath
@@ -671,7 +671,7 @@ sudo rm -rf /data/kubeflow-training/scripts
 
 ### 部署步骤
 
-#### 1. 创建 Dockerfile
+#### 创建 Dockerfile
 
 创建`Dockerfile`：
 
@@ -694,7 +694,7 @@ ENV PYTHONUNBUFFERED=1
 - 工作目录：将脚本放在`/workspace`目录，与前面的配置保持一致
 :::
 
-#### 2. 构建镜像
+#### 构建镜像
 
 ```bash
 docker buildx build --load --platform linux/amd64 -t pytorch-demo:latest .
@@ -712,7 +712,7 @@ docker buildx build --load --platform linux/amd64 -t pytorch-demo:latest .
 docker images | grep pytorch-demo
 ```
 
-#### 3. 推送镜像到仓库（可选）
+#### 推送镜像到仓库（可选）
 
 如果是多节点集群，需要将镜像推送到镜像仓库：
 
@@ -736,7 +736,7 @@ minikube image load pytorch-demo:latest
 ```
 :::
 
-#### 4. 创建 TrainJob
+#### 创建 TrainJob
 
 创建`trainjob-demo-with-image.yaml`：
 
@@ -782,7 +782,7 @@ spec:
 kubectl apply -f trainjob-demo-with-image.yaml
 ```
 
-#### 5. 查看训练状态
+#### 查看训练状态
 
 ```bash
 # 查看 TrainJob 状态
@@ -795,7 +795,7 @@ kubectl get pods -l training.kubeflow.org/job-name=trainjob-demo-with-image
 kubectl logs -l training.kubeflow.org/job-name=trainjob-demo-with-image -f
 ```
 
-#### 6. 更新训练脚本
+#### 更新训练脚本
 
 当需要更新训练脚本时：
 
@@ -821,7 +821,7 @@ kubectl apply -f trainjob-demo-with-image.yaml
 - 使用`CI/CD`自动化镜像构建和推送流程
 :::
 
-#### 7. 清理资源
+#### 清理资源
 
 ```bash
 kubectl delete trainjob trainjob-demo-with-image

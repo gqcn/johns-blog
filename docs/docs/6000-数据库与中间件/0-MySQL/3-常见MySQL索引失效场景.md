@@ -432,7 +432,7 @@ explain select * from t_user where id != 2;
 
 **第九种索引失效情况：查询条件使用不等进行比较时，需要慎重，普通索引会查询结果集占比较大时索引会失效。**
 
-### 10、is not null
+### is not null
 
 示例：
 
@@ -448,7 +448,7 @@ explain select * from t_user where id_no is not null;
 
 **第十种索引失效情况：查询条件使用`is null`时正常走索引，使用`is not null`时，不走索引。**
 
-### 11、not in和not exists
+### not in和not exists
 
 在日常中使用比较多的范围查询有`in`、`exists`、`not in`、`not exists`、`between and`等。
 
@@ -506,7 +506,7 @@ explain select * from t_user u1 where not exists (select 1 from t_user u2 where 
 
 **第十一种索引失效情况`not exists`：查询条件使用`not exists`时，索引失效。**
 
-### 12、order by导致索引失效
+### order by导致索引失效
 
 示例：
 
@@ -578,7 +578,7 @@ orderby多索引
 
 **第十三种索引失效情况：当查询条件涉及到`order by`、`limit`等条件时，是否走索引情况比较复杂，而且与mysql版本有关，通常普通索引，如果未使用`limit`，则不会走索引。`order by`多个索引字段时，可能不会走索引。其他情况，建议在使用时进行`expain`验证。**
 
-### 13、参数不同导致索引失效
+### 参数不同导致索引失效
 
 此时，如果你还未执行最开始创建的存储过程，建议你先执行一下存储过程，然后执行如下SQL：
 
@@ -620,7 +620,7 @@ explain select * from t_user where create_time > '2022-02-27 09:04:23';
 
 **第十四种索引失效情况：当查询条件为大于等于、`in`等范围查询时，根据查询结果占全表数据比例的不同，优化器有可能会放弃索引，进行全表扫描。**
 
-### 14、其他
+### 其他
 
 当然，还有其他一些是否走索引的规则，这与索引的类型是B-tree索引还是位图索引也有关系，就不再详细展开。
 
