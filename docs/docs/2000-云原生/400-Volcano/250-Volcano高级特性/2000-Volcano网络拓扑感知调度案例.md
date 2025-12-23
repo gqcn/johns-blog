@@ -21,11 +21,11 @@ keywords:
 description: "通过PD分离部署场景，详细演示如何使用Volcano网络拓扑感知调度功能，在IB网络环境下优化大模型推理服务的节点选择，降低网络延迟，提升带宽利用率。包含HyperNode配置、节点标签、Prefill和Decode服务部署的完整示例。"
 ---
 
-在大规模`GPU`集群中部署大模型推理服务时，网络拓扑对性能的影响至关重要。本文通过**PD（Prefill-Decode）分离部署**的实战场景案例，详细演示如何使用`Volcano`的网络拓扑感知调度功能，在`IB（InfiniBand）`网络环境下优化节点选择，实现：
+在大规模`GPU`集群中部署大模型推理服务时，网络拓扑对性能的影响至关重要。本文通过 **`PD（Prefill-Decode）`分离部署** 的实战场景案例，详细演示如何使用`Volcano`的网络拓扑感知调度功能，在`IB（InfiniBand）`网络环境下优化节点选择，实现：
 
 - 🎯 **延迟优化**：将跨交换机通信延迟从`5-10μs`降低到`2-5μs`，性能提升`2-5`倍
 - 🎯 **带宽优化**：保持`200Gbps`高带宽，避免`50%`的带宽损失，吞吐量提升`30-50%`
-- 🎯 **资源优化**：`Prefill`使用`H100`高性能`GPU`，`Decode`使用`RTX 4090`性价比`GPU`，降低整体成本
+- 🎯 **资源优化**：`Prefill`使用`NVIDIA-H100`高性能`GPU`，`Decode`使用`NVIDIA-GeForce-RTX-4090`性价比`GPU`，降低整体成本
 
 本文将从场景背景、技术方案分析、`HyperNode`拓扑设计到具体实施，提供完整的实践案例。
 
@@ -41,7 +41,7 @@ description: "通过PD分离部署场景，详细演示如何使用Volcano网络
   - 跨`IB`网络域通信需要经过以太网，延迟显著增加（`>10μs`）
 - **GPU配置**：
   - 每台服务器配置`8`张`GPU`卡
-  - 每个交换机下有各种卡型号服务器，以`A100/H100`和`4090/5090`为主。
+  - 每个交换机下有各种卡型号服务器，以`NVIDIA-A100/NVIDIA-H100`和`RTX 4090/RTX 5090`为主。
 
 大致的网络拓扑如下：
 
@@ -52,7 +52,7 @@ description: "通过PD分离部署场景，详细演示如何使用Volcano网络
               /                \                    /               \
       ib switch0           ib switch1         eth switch2      eth switch3
       /    |    \          /    |    \        /    |    \      /    |    \ 
- node0    ...   node63  node64 ... node127  ...   ...   ...  ...   ...   ...
+  node0   ...  node63   node64 ... node127  ...   ...   ...  ...   ...   ...
 ```
 
 
@@ -74,12 +74,12 @@ description: "通过PD分离部署场景，详细演示如何使用Volcano网络
 - **Prefill阶段**：处理输入`prompt`，生成初始`KV Cache`
   - 计算密集型，需要高算力
   - 输入长度可变，计算量大
-  - 适合部署在高性能数据中心`GPU`上（如`H100`、`A100`）
+  - 适合部署在高性能数据中心`GPU`上（如`NVIDIA-H100`、`NVIDIA-A100`）
 
 - **Decode阶段**：逐个生成输出`token`
   - 访存密集型，对带宽要求高
   - 计算量相对较小，但需要频繁访问`KV Cache`
-  - 可以使用性价比更高的消费级`GPU`（如`RTX 4090`、`RTX 5090`）
+  - 可以使用性价比更高的消费级`GPU`（如`NVIDIA-GeForce-RTX-4090`、`NVIDIA-GeForce-RTX-5090`）
 
 **PD分离的优势**：
 - ✅ 资源利用率提升：不同阶段使用最适合的`GPU`型号
@@ -93,17 +93,17 @@ description: "通过PD分离部署场景，详细演示如何使用Volcano网络
 在我们的场景中，需要部署分布式`PD`分离推理服务：
 
 1. **Prefill服务**：
-   - 需要`12`个`Pod`，每个`Pod`使用`1`张`GPU`（`H100`）
+   - 需要`12`个`Pod`，每个`Pod`使用`1`张`GPU`（`NVIDIA-H100`）
    - 要求在同一`IB`网络域内，以实现高效的`KV Cache`传输
 
 2. **Decode服务**：
-   - 需要`12`个`Pod`，每个`Pod`使用`1`张`GPU`（`RTX 4090`）
+   - 需要`12`个`Pod`，每个`Pod`使用`1`张`GPU`（`NVIDIA-GeForce-RTX-4090`）
    - 要求在同一`IB`网络域内，以实现高效的`KV Cache`访问
 
 **核心需求**：
 - ✅ **同域部署**：`Prefill`和`Decode`集群必须部署在同一`IB`网络域内，避免跨域通信延迟
 - ✅ **域内优化**：在`IB`网络域内，优化节点选择，减少跨交换机通信
-- ✅ **资源利用**：充分利用同一域内不同节点的`GPU`型号优势（`H100`用于`Prefill`，`RTX 4090`用于`Decode`）
+- ✅ **资源利用**：充分利用同一域内不同节点的`GPU`型号优势（`NVIDIA-H100`用于`Prefill`，`NVIDIA-GeForce-RTX-4090`用于`Decode`）
 
 ## 技术方案分析
 
@@ -120,10 +120,10 @@ affinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
         - matchExpressions:
-            - key: gpu-type
+            - key: nvidia.com/gpu.product
               operator: In
               values:
-                - h100  # 只能保证选择H100节点
+                - NVIDIA-H100  # 只能保证选择NVIDIA-H100节点
 ```
 
 **存在的问题**：
@@ -173,8 +173,8 @@ affinity:
 2. **性能优化**：
    - ✅ **延迟优化**：
      - `12`个`Prefill Pod`尽量集中在`IB`交换机下（`ib switch0`、`ib switch1`）
-     - `12`个`Decode Pod`也尽量集中在`IB`交换机下
-     - 两组`Pod`尽量在同一`IB`汇聚交换机（`ib switch4`）下，延迟保持在`2-5μs`
+     - `12`个`Decode Pod`也尽量集中在`IB`交换机下（`ib switch0`、`ib switch1`）
+     - 两组`Pod`尽量在同一`IB`交换机下（`ib switch0`、`ib switch1`），延迟保持在`2-5μs`
    - ✅ **带宽优化**：
      - 避免跨交换机类型通信，保持`200Gbps`带宽
      - 避免带宽损失（`50-95%`），确保`KV Cache`传输效率
@@ -188,7 +188,7 @@ affinity:
 
 **组合方案：节点亲和性 + 网络拓扑感知调度**
 
-- **节点亲和性**：硬约束，确保选择正确的`GPU`型号（`H100`或`RTX 4090`）
+- **节点亲和性**：硬约束，确保选择正确的`GPU`型号（`NVIDIA-H100`或`NVIDIA-GeForce-RTX-4090`）
 - **网络拓扑感知调度**：软约束，在满足`GPU`型号要求的前提下，优化网络拓扑
 
 **方案优势**：
@@ -228,8 +228,8 @@ tier1             ib switch0           ib switch1         eth switch2      eth s
 - **以太网交换机间**：延迟`>10μs`，带宽`10-100Gbps`（损失`50-95%`），不适合高性能任务
 
 **PD分离部署说明**：
-- `Prefill`服务：`12`个`Pod`，需要选择`H100`节点，**必须部署在`IB`交换机下**（`ib switch0`或`ib switch1`）
-- `Decode`服务：`12`个`Pod`，需要选择`RTX 4090`节点，**必须部署在`IB`交换机下**（`ib switch0`或`ib switch1`）
+- `Prefill`服务：`12`个`Pod`，需要选择`NVIDIA-H100`节点，**必须部署在`IB`交换机下**（`ib switch0`或`ib switch1`）
+- `Decode`服务：`12`个`Pod`，需要选择`NVIDIA-GeForce-RTX-4090`节点，**必须部署在`IB`交换机下**（`ib switch0`或`ib switch1`）
 - 两个服务的所有节点应尽量在同一`IB`汇聚交换机（`ib switch4`）下，以：
   - 保持`200Gbps`带宽，避免带宽损失
   - 保持`2-5μs`延迟，避免跨交换机类型通信
@@ -239,7 +239,9 @@ tier1             ib switch0           ib switch1         eth switch2      eth s
 
 为了支持网络拓扑感知调度，我们需要创建`HyperNode`资源来描述集群的网络拓扑（这里使用手动维护`HyperNode`的方式）。
 
-> 如果不基于以太网节点之间的网络拓扑实现感知调度，可以不创建以太网的`HyperNode`以简化维护成本。本示例为保证完整性，为所有交换机创建了`HyperNode`配置。
+:::info 提示
+如果不基于以太网节点之间的网络拓扑实现感知调度，可以不创建以太网的`HyperNode`以简化维护成本。本示例为保证完整性，为所有交换机创建了`HyperNode`配置。
+:::
 
 ```yaml
 # Tier 1: IB叶子交换机 ib-switch0
@@ -375,7 +377,9 @@ spec:
 
 ### 为节点打标签
 
-> 以下脚本仅做示例，主要阐述在使用网络拓扑感知调度之前，节点打标也是很重要一个环节。
+:::info 提示
+以下脚本仅做示例，主要阐述在使用网络拓扑感知调度之前，节点打标也是很重要一个环节。
+:::
 
 ```bash
 # 为 IB switch0 下的节点打标签（假设 node0-node63）
@@ -402,22 +406,13 @@ for i in {192..255}; do
   kubectl label node node$i topology.kubernetes.io/switch-type=ethernet
 done
 
-# 为 H100 节点打上 GPU 型号标签（仅在 IB 交换机下）
-# 假设 ib-switch0 和 ib-switch1 下有 H100 节点
-kubectl label node node0 node1 node5 node10 node15 node20 node64 node65 node70 node75 node80 node85 gpu-type=h100
-
-# 为 RTX 4090 节点打上 GPU 型号标签（仅在 IB 交换机下）
-# 假设 ib-switch0 和 ib-switch1 下也有 RTX 4090 节点
-kubectl label node node2 node3 node6 node11 node16 node21 node66 node67 node71 node76 node81 node86 gpu-type=rtx4090
-
 # 验证标签
-kubectl get nodes -L topology.kubernetes.io/switch,topology.kubernetes.io/switch-type,gpu-type
+kubectl get nodes -L topology.kubernetes.io/switch,topology.kubernetes.io/switch-type
 ```
 
 **标签说明**：
 - `topology.kubernetes.io/switch`：标识节点所属的叶子交换机（`ib-switch0`、`ib-switch1`、`eth-switch2`、`eth-switch3`）
 - `topology.kubernetes.io/switch-type`：标识交换机类型（`ib`或`ethernet`）
-- `gpu-type`：标识节点上的`GPU`型号（`h100`或`rtx4090`）
 
 **重要提示**：
 - `PD`分离服务的节点必须在`IB`交换机下（`topology.kubernetes.io/switch-type=ib`）
@@ -425,9 +420,11 @@ kubectl get nodes -L topology.kubernetes.io/switch,topology.kubernetes.io/switch
 
 ### Prefill服务配置
 
-**需求**：部署`Prefill`服务，`12`个`Pod`，选择`H100`节点，尽量集中在少数交换机下。
+**需求**：部署`Prefill`服务，`12`个`Pod`，选择`NVIDIA-H100`节点，尽量集中在少数交换机下。
 
-> 这里使用`Volcano Job`来演示`Prefill`服务的部署，若使用`Deployment`部署，相关配置一致。
+:::info 提示
+这里使用`Volcano Job`来演示`Prefill`服务的部署，若使用`Deployment`部署，相关配置一致。
+:::
 
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
@@ -441,7 +438,7 @@ spec:
   
   # 网络拓扑感知调度：优化节点选择，尽量集中在少数交换机下
   networkTopology:
-    mode: soft  # 软约束，尽量选择网络距离近的节点
+    mode: hard  # 硬约束，必须按照highestTierAllowed选择网络距离近的节点
     highestTierAllowed: 2  # 允许在Tier 2（汇聚交换机）内调度
   
   tasks:
@@ -455,10 +452,10 @@ spec:
               requiredDuringSchedulingIgnoredDuringExecution:
                 nodeSelectorTerms:
                   - matchExpressions:
-                      - key: gpu-type
+                      - key: nvidia.com/gpu.product
                         operator: In
                         values:
-                          - h100  # 必须在H100节点
+                          - NVIDIA-H100  # 必须在H100节点
                       - key: topology.kubernetes.io/switch-type
                         operator: In
                         values:
@@ -503,10 +500,10 @@ spec:
 
 **关键配置说明**：
 - `minAvailable: 12`：Gang调度，确保`12`个`Pod`同时满足才开始调度
-- `nodeAffinity`：硬约束，确保所有`Prefill Pod`调度到`IB`交换机下的`H100`节点
-  - `gpu-type: h100`：选择`H100`节点
+- `nodeAffinity`：硬约束，确保所有`Prefill Pod`调度到`IB`交换机下的`NVIDIA-H100`节点
+  - `nvidia.com/gpu.product: NVIDIA-H100`：选择`NVIDIA-H100`节点
   - `topology.kubernetes.io/switch-type: ib`：**必须在`IB`交换机下**
-- `networkTopology.mode: soft`：软约束，优化网络拓扑
+- `networkTopology.mode: hard`：硬约束，必须按照`highestTierAllowed`选择网络距离近的节点
 - `networkTopology.highestTierAllowed: 2`：允许在`Tier 2`（`IB`汇聚交换机）内调度
 - `podAntiAffinity`：软约束，尽量将`Pod`分散到不同节点
 - `NCCL_IB_DISABLE=0`：启用`IB`网络
@@ -527,9 +524,11 @@ spec:
 
 ### Decode服务配置
 
-**需求**：部署`Decode`服务，`12`个`Pod`，选择`RTX 4090`节点，尽量集中在少数交换机下，并与`Prefill`服务在同一汇聚交换机下。
+**需求**：部署`Decode`服务，`12`个`Pod`，选择`NVIDIA-GeForce-RTX-4090`节点，尽量集中在少数交换机下，并与`Prefill`服务在同一汇聚交换机下。
 
-> 这里使用`Volcano Job`来演示`Decode`服务的部署，若使用`Deployment`部署，相关配置一致。
+:::info 提示
+这里使用`Volcano Job`来演示`Decode`服务的部署，若使用`Deployment`部署，相关配置一致。
+:::
 
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
@@ -543,7 +542,7 @@ spec:
   
   # 网络拓扑感知调度：优化节点选择，尽量集中在少数交换机下
   networkTopology:
-    mode: soft  # 软约束，尽量选择网络距离近的节点
+    mode: hard  # 硬约束，必须按照highestTierAllowed选择网络距离近的节点
     highestTierAllowed: 2  # 允许在Tier 2（汇聚交换机）内调度
   
   tasks:
@@ -557,10 +556,10 @@ spec:
               requiredDuringSchedulingIgnoredDuringExecution:
                 nodeSelectorTerms:
                   - matchExpressions:
-                      - key: gpu-type
+                      - key: nvidia.com/gpu.product
                         operator: In
                         values:
-                          - rtx4090  # 必须在RTX 4090节点
+                          - NVIDIA-GeForce-RTX-4090  # 必须在RTX 4090节点
                       - key: topology.kubernetes.io/switch-type
                         operator: In
                         values:
@@ -605,10 +604,10 @@ spec:
 
 **关键配置说明**：
 - `minAvailable: 12`：`Gang`调度，确保`12`个`Pod`同时满足才开始调度
-- `nodeAffinity`：硬约束，确保所有`Decode Pod`调度到`IB`交换机下的`RTX 4090`节点
-  - `gpu-type: rtx4090`：选择`RTX 4090`节点
+- `nodeAffinity`：硬约束，确保所有`Decode Pod`调度到`IB`交换机下的`NVIDIA-GeForce-RTX-4090`节点
+  - `nvidia.com/gpu.product: NVIDIA-GeForce-RTX-4090`：选择`NVIDIA-GeForce-RTX-4090`节点
   - `topology.kubernetes.io/switch-type: ib`：**必须在`IB`交换机下**
-- `networkTopology.mode: soft`：软约束，优化网络拓扑
+- `networkTopology.mode: hard`：硬约束，必须按照`highestTierAllowed`选择网络距离近的节点
 - `networkTopology.highestTierAllowed: 2`：允许在`Tier 2`（`IB`汇聚交换机）内调度
 - `podAntiAffinity`：软约束，尽量将`Pod`分散到不同节点
 
@@ -616,7 +615,7 @@ spec:
 
 使用网络拓扑感知调度 + `IB`交换机约束后：
 - ✅ `12`个`Decode Pod`也全部部署在`IB`交换机下（`ib-switch0`和`ib-switch1`）
-- ✅ `Prefill`和`Decode`之间的`KV Cache`传输主要在同一`IB`汇聚交换机（`ib-switch4`）下，延迟`2-5μs`，带宽`200Gbps`
+- ✅ `Prefill`和`Decode`之间的`KV Cache`传输主要在同一`IB`交换机（`ib-switch0`和`ib-switch1`），或者汇聚交换机（`ib-switch4`）下，延迟`2-5μs`，带宽`200Gbps`
 - ✅ **避免跨交换机类型的`KV Cache`传输，无带宽损失**
 - ✅ 整体推理性能最优，吞吐量最高
 
@@ -642,7 +641,7 @@ spec:
    - ✅ 在大规模混合网络集群（`7`个交换机，其中`3`个`IB`交换机、`4`个以太网交换机，最多`384`台服务器）中，网络拓扑感知调度能够显著优化节点选择
    - ✅ 通过`IB`交换机类型约束，确保所有高性能任务部署在`IB`交换机下
    - ✅ `12`个`Prefill Pod`和`12`个`Decode Pod`集中在`IB`交换机下，避免跨交换机类型通信
-   - ✅ 通过`highestTierAllowed: 2`限制，确保所有`Pod`在同一`IB`汇聚交换机（Tier 2）下
+   - ✅ 通过`highestTierAllowed: 2`限制，确保所有`Pod`在同一`IB`汇聚交换机（`Tier 2`）下
    - ✅ **延迟优化**：从可能的`5-10μs`降低到`2-5μs`，性能提升`2-5`倍
    - ✅ **带宽优化**：保持`200Gbps`带宽，避免`50%`的带宽损失，吞吐量提升`30-50%`
 
@@ -652,8 +651,8 @@ spec:
    - ✅ 在满足`GPU`型号要求的前提下，进一步优化网络性能，避免跨交换机类型的带宽损失
 
 3. **资源精细化利用**：
-   - ✅ `Prefill`服务使用高性能`H100` `GPU`，满足计算密集型需求
-   - ✅ `Decode`服务使用性价比高的`RTX 4090` `GPU`，满足访存密集型需求
+   - ✅ `Prefill`服务使用高性能`NVIDIA-H100 GPU`，满足计算密集型需求
+   - ✅ `Decode`服务使用性价比高的`NVIDIA-GeForce-RTX-4090 GPU`，满足访存密集型需求
    - ✅ 充分发挥不同GPU型号的优势，降低整体成本
 
 4. **适应混合网络拓扑**：
