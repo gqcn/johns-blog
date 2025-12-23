@@ -465,6 +465,22 @@ spec:
               # Job 的 Pod 模板
               template:
                 spec:
+                  # 添加 initContainers
+                  initContainers:
+                    # 示例：环境准备
+                    - name: setup-env
+                      image: busybox:latest
+                      command:
+                        - sh
+                        - -c
+                        - |
+                          echo "Setting up environment..."
+                          mkdir -p /workspace/logs
+                          echo "Setup complete"
+                      volumeMounts:
+                        - name: workspace
+                          mountPath: /workspace
+
                   # 容器列表
                   containers:
                     - name: node
