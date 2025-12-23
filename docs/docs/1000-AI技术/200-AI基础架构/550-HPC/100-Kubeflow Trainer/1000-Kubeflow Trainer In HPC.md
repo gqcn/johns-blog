@@ -590,8 +590,6 @@ spec:
     numNodes: 4
     torch:
       numProcPerNode: 8
-  podGroupPolicy:
-    volcano: {}  # 启用Volcano调度
   template:
     spec:
       replicatedJobs:
@@ -603,7 +601,8 @@ spec:
                   labels:
                     trainer.kubeflow.org/trainjob-ancestor-step: trainer
                 spec:
-                  schedulerName: volcano  # 指定Volcano调度器
+                  # 指定Volcano调度器
+                  schedulerName: volcano  
                   priorityClassName: high-priority
                   containers:
                     - name: node
