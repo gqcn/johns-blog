@@ -7,6 +7,7 @@ keywords:
     "Volcano", "Kubernetes", "Plugins", "调度器插件", "priority", "gang", "drf", "predicates", "proportion", "nodeorder", "binpack", "deviceshare", "tdm", "sla", "capacity", "overcommit", "rescheduling", "network-topology-aware", "resource-strategy-fit", "插件配置", "插件参数", "tiers", "PluginOption", "Arguments"
   ]
 description: "全面解析Volcano调度器的24个核心Plugins（priority、gang、conformance、drf、predicates、proportion、nodeorder、binpack、numaaware、task-topology、sla、tdm、deviceshare、overcommit、pdb、resourcequota、rescheduling、capacity、cdp、extender、nodegroup、usage、network-topology-aware、resource-strategy-fit）的功能特性、工作原理、参数配置和使用场景，涵盖优先级调度、Gang调度、资源公平分配、节点过滤打分、设备共享、时分复用、服务质量保障、网络拓扑感知、资源策略适配等关键调度能力，为构建高效的批处理和AI训练调度系统提供完整的插件配置指南。"
+toc_max_heading_level: 2
 ---
 
 
