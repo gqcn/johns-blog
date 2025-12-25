@@ -555,6 +555,7 @@ topology-test-2-worker-3           1/1     Running   0          9s      10.244.3
 kubectl delete -f topology-test-2.yaml
 ```
 
+
 ### Hard模式 - Tier2约束 + 反亲和性
 
 在测试2的基础上增加反亲和性约束，确保`Pod`分散到不同节点，以达到更好的测试效果。
@@ -645,6 +646,117 @@ topology-test-3-worker-3           1/1     Running   0          10s   10.244.3.6
 ```bash
 kubectl delete -f topology-test-3.yaml
 ```
+
+### Hard模式 - Tier2约束 (Deployment)
+
+上面的示例都是基于`Volcano Job`工作负载，实际上网络拓扑感知调度也支持原生的`Deployment`工作负载。通过在`Deployment`的`Pod`模板中添加特定的`annotations`，可以实现同样的拓扑约束效果。
+
+创建文件 `topology-test-6.yaml`：
+
+```yaml title="topology-test-6.yaml"
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: topology-test-6
+  annotations:
+    # 组调度设置：最少需要4个Pod同时调度
+    scheduling.volcano.sh/group-min-member: "4"
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: exclusive-app
+  template:
+    metadata:
+      labels:
+        # 用于反亲和性规则，确保Pod分散到不同节点
+        app: exclusive-app
+      annotations:
+        # 队列名称
+        scheduling.volcano.sh/queue-name: default
+        # 设置网络拓扑为硬约束
+        volcano.sh/network-topology-mode: "hard"
+        # 设置允许调度的最高网络层级为2
+        volcano.sh/network-topology-highest-tier: "2"
+    spec:
+      schedulerName: volcano
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution: 
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - exclusive-app 
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: busybox
+          image: busybox:latest
+          command: ["sh", "-c", "sleep 3600"]
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+```
+
+**配置说明**：
+- **Deployment级别annotations**：
+  - `scheduling.volcano.sh/group-min-member: "4"`：启用组调度，要求最少`4`个`Pod`同时调度成功
+- **Pod模板annotations**：
+  - `scheduling.volcano.sh/queue-name: default`：指定使用的`Volcano`队列
+  - `volcano.sh/network-topology-mode: "hard"`：设置拓扑约束为硬约束
+  - `volcano.sh/network-topology-highest-tier: "2"`：限制最高在`tier2`内调度
+- **调度器**：`schedulerName: volcano`指定使用`Volcano`调度器
+- **反亲和性**：确保`4`个`Pod`分散到`4`个不同节点
+
+运行测试：
+
+```bash
+# 创建Deployment
+kubectl apply -f topology-test-6.yaml
+
+# 查看Deployment状态
+kubectl get deployment topology-test-6
+
+# 查看Pod调度情况
+kubectl get pods -o wide -l app=exclusive-app
+```
+
+预期调度结果：
+```text
+NAME                                READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES
+topology-test-6-7b8c9d5f6-2x4pk    1/1     Running   0          15s   10.244.7.5    node0   <none>           <none>
+topology-test-6-7b8c9d5f6-5h9km    1/1     Running   0          15s   10.244.2.6    node1   <none>           <none>
+topology-test-6-7b8c9d5f6-8n3qr    1/1     Running   0          15s   10.244.1.7    node2   <none>           <none>
+topology-test-6-7b8c9d5f6-9w5vp    1/1     Running   0          15s   10.244.3.8    node3   <none>           <none>
+```
+
+符合预期：
+- `4`个`Pod`成功调度并运行（满足组调度要求）
+- `4`个`Pod`分别调度到`4`个不同的节点（满足反亲和性）
+- 这`4`个节点都属于同一个`tier2` `HyperNode`，例如`s4`（包含`node0-node3`）或`s5`（包含`node4-node7`）
+- 网络拓扑和反亲和性约束同时得到满足
+
+验证`PodGroup`（`Volcano`自动为`Deployment`创建）：
+
+```bash
+# 查看自动创建的PodGroup
+kubectl get podgroup
+
+# 查看PodGroup详情
+kubectl get podgroup <podgroup-name> -o yaml
+```
+
+清理任务：
+
+```bash
+kubectl delete -f topology-test-6.yaml
+```
+
 
 ### 调度失败场景 - 跨Tier2约束
 

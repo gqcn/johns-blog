@@ -589,35 +589,20 @@ networkTopology:
 
 #### Deployment工作负载支持
 
-网络拓扑感知调度特性**不直接支持**`Deployment`类型的工作负载，因为：
+`Volcano`通过`annotations`机制**支持**`Deployment`类型工作负载的网络拓扑感知调度。
 
-**设计限制**：
-- 网络拓扑感知调度依赖于`Volcano`的`Gang`调度机制
-- 需要知道作业的所有`Pod`数量才能进行拓扑优化
-- `Deployment`是滚动更新模式，不符合`Gang`调度的原子性要求
+**实现方式**：
 
-**替代方案**：
-
-为`Deployment`创建对应的`PodGroup`资源：
+通过在`Deployment`的`metadata`和`Pod`模板中添加特定的`annotations`来实现：
 
 ```yaml
-apiVersion: scheduling.volcano.sh/v1beta1
-kind: PodGroup
-metadata:
-  name: inference-service-pg
-  namespace: default
-spec:
-  minMember: 4  # 最小Pod数量
-  queue: default
-  networkTopology:
-    mode: soft
-    highestTierAllowed: 2
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: inference-service
-  namespace: default
+  annotations:
+    # 组调度设置：最少需要4个Pod同时调度
+    scheduling.volcano.sh/group-min-member: "4"
 spec:
   replicas: 4
   selector:
@@ -628,22 +613,46 @@ spec:
       labels:
         app: inference
       annotations:
-        # 关联PodGroup
-        scheduling.volcano.sh/group-name: inference-service-pg  
+        # 队列名称
+        scheduling.volcano.sh/queue-name: default
+        # 设置网络拓扑为硬约束
+        volcano.sh/network-topology-mode: "hard"
+        # 设置允许调度的最高网络层级为2
+        volcano.sh/network-topology-highest-tier: "2"
     spec:
       schedulerName: volcano
       containers:
         - name: inference
           image: inference:latest
           resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+              nvidia.com/gpu: "1"
             limits:
+              cpu: "100m"
+              memory: "128Mi"
               nvidia.com/gpu: "1"
 ```
 
-**说明**：
-- 通过`annotations`中的`scheduling.volcano.sh/group-name`将`Deployment`的`Pod`关联到`PodGroup`
-- `PodGroup`的`minMember`应该等于`Deployment`的`replicas`
-- `Pod`会继承`PodGroup`的网络拓扑约束
+**配置说明**：
+
+| 位置 | Annotation | 说明 |
+|------|-----------|------|
+| Deployment级别 | `scheduling.volcano.sh/group-min-member` | 最少需要同时调度的`Pod`数量，启用组调度 |
+| Pod模板级别 | `scheduling.volcano.sh/queue-name` | 指定使用的`Volcano`队列 |
+| Pod模板级别 | `volcano.sh/network-topology-mode` | 网络拓扑约束模式：`hard`或`soft` |
+| Pod模板级别 | `volcano.sh/network-topology-highest-tier` | 允许的最高`Tier`层级 |
+
+**工作原理**：
+- `Volcano`会为该`Deployment`自动创建对应的`PodGroup`
+- 所有`Pod`会继承`PodGroup`的网络拓扑约束
+- 调度器按照网络拓扑感知策略进行调度决策
+
+**注意事项**：
+- `schedulerName`必须设置为`volcano`
+- 必须设置资源`requests`和`limits`，避免`BestEffort`类型
+- `group-min-member`通常设置为`replicas`的值
 
 
 ### Volcano Job配置示例
