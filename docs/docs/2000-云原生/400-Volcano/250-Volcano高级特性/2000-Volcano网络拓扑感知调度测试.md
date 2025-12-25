@@ -413,7 +413,7 @@ kubectl get hypernode s6 -o yaml
 
 ## 测试网络拓扑感知调度
 
-### 测试1：Hard模式 - Tier1约束
+### Hard模式 - Tier1约束
 
 创建一个只能在`tier1 HyperNode`内调度的任务。
 
@@ -482,7 +482,7 @@ topology-test-1-worker-1           1/1     Running   0          11s   10.244.2.3
 kubectl delete -f topology-test-1.yaml
 ```
 
-### 测试2：Hard模式 - Tier2约束
+### Hard模式 - Tier2约束
 
 创建一个可以跨`tier1`但必须在`tier2`内调度的任务。
 
@@ -555,7 +555,7 @@ topology-test-2-worker-3           1/1     Running   0          9s      10.244.3
 kubectl delete -f topology-test-2.yaml
 ```
 
-### 测试3：Hard模式 - Tier2约束 + 反亲和性
+### Hard模式 - Tier2约束 + 反亲和性
 
 在测试2的基础上增加反亲和性约束，确保`Pod`分散到不同节点，以达到更好的测试效果。
 
@@ -646,7 +646,7 @@ topology-test-3-worker-3           1/1     Running   0          10s   10.244.3.6
 kubectl delete -f topology-test-3.yaml
 ```
 
-### 测试4：调度失败场景 - 跨Tier2约束
+### 调度失败场景 - 跨Tier2约束
 
 测试当任务需要跨越`tier2`边界时，在`hard`模式下无法调度的情况。
 
@@ -752,7 +752,7 @@ kubectl get podgroup topology-test-4 -o yaml
 kubectl delete -f topology-test-4.yaml
 ```
 
-### 测试5：Soft模式 - 跨Tier2调度
+### Soft模式 - 跨Tier2调度
 
 将测试4中的示例使用`soft`模式运行，可实现跨`tier2`调度，比如`s4`和`s5`拓扑下各调度一部分`Pod`，但在真实业务场景中，这种跨多层网络拓扑的通信效率很差。本示例仅做测试和参考。
 
@@ -855,7 +855,7 @@ kubectl delete -f topology-test-5.yaml
 
 ## 常见问题
 
-### Q1: HyperNode创建失败
+### HyperNode创建失败
 
 **可能原因**：
 1. `CRD`未正确安装
@@ -921,7 +921,7 @@ spec:
         name: "s1"
 ```
 
-### Q2: 调度器未使用网络拓扑感知
+### 调度器未使用网络拓扑感知
 
 **可能原因**：
 1. 调度器配置未正确更新
@@ -970,7 +970,7 @@ resources:
     memory: "128Mi"
 ```
 
-### Q3: HyperNode的NODECOUNT显示不符合预期
+### HyperNode的NODECOUNT显示不符合预期
 
 **现象**：
 
