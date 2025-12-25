@@ -647,7 +647,7 @@ topology-test-3-worker-3           1/1     Running   0          10s   10.244.3.6
 kubectl delete -f topology-test-3.yaml
 ```
 
-### Hard模式 - Tier2约束 (Deployment)
+### Hard模式 - Deployment工作负载
 
 上面的示例都是基于`Volcano Job`工作负载，实际上网络拓扑感知调度也支持原生的`Deployment`工作负载。通过在`Deployment`的`Pod`模板中添加特定的`annotations`，可以实现同样的拓扑约束效果。
 
