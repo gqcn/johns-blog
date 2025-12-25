@@ -564,6 +564,8 @@ sequenceDiagram
 
 ### 集成配置
 
+`Kubeflow Trainer`可以与`Volcano`调度器无缝对接，通过源码级别实现了完美的集成，以下是配置步骤。
+
 #### 前置条件
 
 首先需要在`Kubernetes`集群中安装`Volcano`：
@@ -690,6 +692,7 @@ metadata:
 spec:
   podGroupPolicy:
     volcano:
+      # 具体的配置使用可以查看volcano网络拓扑感知调度章节
       networkTopology:
         mode: hard  # hard表示必须满足拓扑约束
         highestTierAllowed: 1  # 最高允许的拓扑层级
