@@ -6,7 +6,7 @@ keywords:
   [
     "Volcano", "Kubernetes", "跨队列抢占", "资源驱逐", "reclaim", "在线推理", "离线训练", "优先级调度", "GPU资源", "capacity-card", "多租户", "资源配额"
   ]
-description: "WIP"
+description: "详细阐述Volcano调度器跨队列资源抢占驱逐的改进设计方案,实现在线推理服务与离线训练任务间的智能资源调度,支持潮汐调度和Gang策略,提升GPU资源利用率。"
 ---
 
 ## 背景介绍

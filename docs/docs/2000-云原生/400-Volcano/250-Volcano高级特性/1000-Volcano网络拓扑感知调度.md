@@ -138,10 +138,11 @@ spec:
   - `regexMatch`：正则表达式匹配节点名称
   - `labelMatch`：基于标签匹配节点
 
-**注意事项**：
+:::warning 注意事项
 - `regexMatch`和`labelMatch`只能用在叶子`HyperNode`中
 - 三种`selector`不能同时配置，通常只配置一种选择器
 - 非叶子`HyperNode`只支持`exactMatch`
+:::
 
 ### 网络拓扑树状结构
 
