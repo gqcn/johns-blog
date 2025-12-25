@@ -25,7 +25,7 @@ description: "通过实际部署Kind集群、创建HyperNode、运行测试任�
 
 在`AI`大模型训练场景中，模型并行（`Model Parallelism`）将模型分割到多个节点上，训练过程中这些节点需要频繁进行大量数据交互。此时，节点间的网络传输性能往往成为训练的瓶颈，显著影响训练效率。
 
-`Volcano`的**网络拓扑感知调度（`Network Topology Aware Scheduling`）**特性，通过统一的网络拓扑`API`和智能调度策略，将工作负载调度到具有最高吞吐量和最低延迟的最佳性能域，尽可能减少跨交换机的通信，以加速数据交换，提升训练效率。
+`Volcano`的 **网络拓扑感知调度（`Network Topology Aware Scheduling`）** 特性，通过统一的网络拓扑`API`和智能调度策略，将工作负载调度到具有最高吞吐量和最低延迟的最佳性能域，尽可能减少跨交换机的通信，以加速数据交换，提升训练效率。
 
 本文将通过实际部署`Kind`集群、创建`HyperNode`、运行测试任务，来真实验证`Volcano`的网络拓扑感知调度能力。
 
@@ -34,13 +34,13 @@ description: "通过实际部署Kind集群、创建HyperNode、运行测试任�
 我们将构建如下的网络拓扑结构：
 
 ```text
-  tier3                                       s6
-                              /                               \
-  tier2                     s4                                 s5                         
-                    /               \                   /              \                 
-  tier1           s0                s1                 s2              s3              
-               /      \          /      \           /      \        /      \         
-            node0    node1    node2    node3      node4   node5   node6   node7   
+tier3                                       s6
+                            /                               \
+tier2                     s4                                 s5                         
+                  /               \                   /              \                 
+tier1           s0                s1                 s2              s3              
+             /      \          /      \           /      \        /      \         
+          node0    node1    node2    node3      node4   node5   node6   node7   
 ```
 
 这个拓扑结构模拟了一个典型的数据中心网络：
@@ -73,7 +73,7 @@ description: "通过实际部署Kind集群、创建HyperNode、运行测试任�
 
 创建文件 `kind-cluster.yaml`：
 
-```yaml
+```yaml title="kind-cluster.yaml"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: volcano-topology-test
@@ -218,21 +218,16 @@ kubectl get pods -n volcano-system
 预期输出：
 ```
 NAME                                   READY   STATUS    RESTARTS   AGE
-volcano-admission-b84bbd89-rqrvq       1/1     Running   0          46s
-volcano-controllers-7b97b6455c-d8hcv   1/1     Running   0          46s
-volcano-scheduler-65d4d4645b-k9vdl     1/1     Running   0          46s
+volcano-admission-b84bbd89-9k55v       1/1     Running   0          105s
+volcano-controllers-7b97b6455c-q2jf9   1/1     Running   0          105s
+volcano-scheduler-65d4d4645b-k6nmk     1/1     Running   0          105s
 ```
 
 ## 配置Volcano调度器
 
-为了启用网络拓扑感知调度功能，需要更新`Volcano`调度器配置：
+为了启用网络拓扑感知调度功能，需要更新`Volcano`调度器配置，启用`network-topology-aware`插件：
 
-修改调度器`ConfigMap`配置`volcano-scheduler-configmap`：
-```bash
-kubectl edit configmap volcano-scheduler-configmap -n volcano-system
-```
-启用`network-topology-aware`插件：
-```yaml
+```yaml title="volcano-scheduler-configmap.yaml"
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -259,10 +254,16 @@ data:
       - name: network-topology-aware
 ```
 
-重启调度器保证配置生效：
+应用配置：
 
 ```bash
-kubectl delete pod volcano-scheduler-65d4d4645b-k9vdl -n volcano-system
+kubectl apply -f volcano-scheduler-configmap.yaml
+```
+
+重启调度器保证配置生效（通过滚动重启优雅实现）：
+
+```bash
+kubectl rollout restart deployment volcano-scheduler -n volcano-system
 ```
 
 ## 创建HyperNode资源
@@ -271,7 +272,7 @@ kubectl delete pod volcano-scheduler-65d4d4645b-k9vdl -n volcano-system
 
 创建文件 `hypernodes.yaml`：
 
-```yaml
+```yaml title="hypernodes.yaml"
 # Tier1 - 叶子HyperNode
 apiVersion: topology.volcano.sh/v1alpha1
 kind: HyperNode
@@ -382,23 +383,23 @@ spec:
 # 创建HyperNode资源
 kubectl apply -f hypernodes.yaml
 
-# 查看HyperNode
+# 查看HyperNode（该CRD是Cluster作用域）
 kubectl get hypernodes
 ```
 
 预期输出：
 ```text
-NAME   TIER   AGE
-s0     1      10s
-s1     1      10s
-s2     1      10s
-s3     1      10s
-s4     2      10s
-s5     2      10s
-s6     3      10s
+NAME   TIER   NODECOUNT   AGE
+s0     1      2           10s
+s1     1      2           10s
+s2     1      2           10s
+s3     1      2           10s
+s4     2      2           10s
+s5     2      2           10s
+s6     3      2           10s
 ```
 
-查看HyperNode详细信息：
+查看`HyperNode`详细信息：
 ```bash
 # 查看tier1的s0
 kubectl get hypernode s0 -o yaml
@@ -414,16 +415,15 @@ kubectl get hypernode s6 -o yaml
 
 ### 测试1：Hard模式 - Tier1约束
 
-创建一个只能在tier1 HyperNode内调度的任务。
+创建一个只能在`tier1 HyperNode`内调度的任务。
 
-创建文件 `test-job-tier1.yaml`：
+创建简单的测试文件`topology-test-1.yaml`：
 
-```yaml
+```yaml title="topology-test-1.yaml"
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
-  name: topology-test-tier1
-  namespace: default
+  name: topology-test-1
 spec:
   minAvailable: 2
   schedulerName: volcano
@@ -442,63 +442,57 @@ spec:
           containers:
             - name: busybox
               image: busybox:latest
-              command: 
-                - sh
-                - -c
-                - |
-                  echo "Pod: $HOSTNAME"
-                  echo "Node: $(cat /etc/hostname)"
-                  echo "Starting sleep..."
-                  sleep 3600
+              command: ["sh", "-c", "sleep 3600"]
               resources:
                 requests:
-                  cpu: "500m"
-                  memory: "256Mi"
+                  cpu: "100m"
+                  memory: "128Mi"
                 limits:
-                  cpu: "500m"
-                  memory: "256Mi"
-          restartPolicy: OnFailure
+                  cpu: "100m"
+                  memory: "128Mi"
 ```
 
 运行测试：
 
 ```bash
 # 创建任务
-kubectl apply -f test-job-tier1.yaml
+kubectl apply -f topology-test-1.yaml
 
 # 查看任务状态
-kubectl get vcjob topology-test-tier1
+kubectl get vcjob topology-test-1
 
 # 查看Pod调度情况
-kubectl get pods -l volcano.sh/job-name=topology-test-tier1 -o wide
+kubectl get pods -o wide
 ```
 
-预期结果：
-- 所有2个Pod应该被调度到同一个tier1 HyperNode内（即同一个s0/s1/s2/s3）
-- 例如：都在 `volcano-topology-test-worker` 和 `volcano-topology-test-worker2`（s0）
+调度结果：
+```text
+NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE    NOMINATED NODE   READINESS GATES
+topology-test-1-worker-0           1/1     Running   0          11s   10.244.7.2   node0   <none>           <none>
+topology-test-1-worker-1           1/1     Running   0          11s   10.244.2.3   node1   <none>           <none>
+```
 
-验证调度结果：
+符合预期：
+- 所有`2`个`Pod`应该被调度到同一个`tier1 HyperNode`内（即同一个`s0/s1/s2/s3`）
+- 例如：都在 `node0` 和 `node1`（s0）
+
+清理任务：
+
 ```bash
-# 查看Pod所在节点
-PODS=$(kubectl get pods -l volcano.sh/job-name=topology-test-tier1 -o jsonpath='{.items[*].spec.nodeName}')
-echo "Pods scheduled on nodes: $PODS"
-
-# 验证是否在同一个tier1 HyperNode内
-# 应该看到节点名称连续（如worker和worker2，或worker3和worker4）
+kubectl delete -f topology-test-1.yaml
 ```
 
 ### 测试2：Hard模式 - Tier2约束
 
-创建一个可以跨tier1但必须在tier2内调度的任务。
+创建一个可以跨`tier1`但必须在`tier2`内调度的任务。
 
-创建文件 `test-job-tier2.yaml`：
+创建文件 `topology-test-2.yaml`：
 
-```yaml
+```yaml title="topology-test-2.yaml"
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
-  name: topology-test-tier2
-  namespace: default
+  name: topology-test-2
 spec:
   minAvailable: 4
   schedulerName: volcano
@@ -517,242 +511,357 @@ spec:
           containers:
             - name: busybox
               image: busybox:latest
-              command: 
-                - sh
-                - -c
-                - |
-                  echo "================================================"
-                  echo "Pod Information:"
-                  echo "  Pod Name: $HOSTNAME"
-                  echo "  Pod IP: $(hostname -i)"
-                  echo "  Node Name: $(cat /etc/hostname)"
-                  echo "================================================"
-                  echo "Starting sleep for 1 hour..."
-                  sleep 3600
+              command: ["sh", "-c", "sleep 3600"]
               resources:
                 requests:
-                  cpu: "500m"
-                  memory: "256Mi"
+                  cpu: "100m"
+                  memory: "128Mi"
                 limits:
-                  cpu: "500m"
-                  memory: "256Mi"
-          restartPolicy: OnFailure
+                  cpu: "100m"
+                  memory: "128Mi"
 ```
 
 运行测试：
 
 ```bash
-# 清理之前的任务
-kubectl delete vcjob topology-test-tier1
-
 # 创建新任务
-kubectl apply -f test-job-tier2.yaml
+kubectl apply -f topology-test-2.yaml
 
 # 查看任务状态
-kubectl get vcjob topology-test-tier2
+kubectl get vcjob topology-test-2
 
 # 查看Pod调度情况
-kubectl get pods -l volcano.sh/job-name=topology-test-tier2 -o wide
+kubectl get pods -o wide
 ```
 
-预期结果：
-- 所有4个Pod应该被调度到同一个tier2 HyperNode内
-- 可能跨越2个tier1 HyperNode，但都在s4（worker-worker4）或s5（worker5-worker8）内
+调度结果：
+```text
+NAME                                   READY   STATUS    RESTARTS   AGE     IP            NODE    NOMINATED NODE   READINESS GATES
+topology-test-2-worker-0           1/1     Running   0          9s      10.244.3.37   node3   <none>           <none>
+topology-test-2-worker-1           1/1     Running   0          9s      10.244.1.46   node2   <none>           <none>
+topology-test-2-worker-2           1/1     Running   0          9s      10.244.3.38   node3   <none>           <none>
+topology-test-2-worker-3           1/1     Running   0          9s      10.244.3.39   node3   <none>           <none>
+```
 
-验证调度结果：
+符合预期：
+- 所有`4`个`Pod`应该被调度到同一个`tier2 HyperNode`内
+- 可能跨越`2`个`tier1 HyperNode`，但都在`s4`（`s0-s1`）或`s5`（`s2-s3`）内
+
+
+
+清理任务：
+
 ```bash
-# 查看Pod所在节点
-kubectl get pods -l volcano.sh/job-name=topology-test-tier2 \
-  -o custom-columns=POD:metadata.name,NODE:spec.nodeName
-
-# 应该看到所有Pod都在s4（node0-3）或s5（node4-7）对应的节点上
+kubectl delete -f topology-test-2.yaml
 ```
 
-### 测试3：调度失败场景 - 资源不足
+### 测试3：Hard模式 - Tier2约束 + 反亲和性
 
-测试当tier1资源不足时，任务无法调度的情况。
+在测试2的基础上增加反亲和性约束，确保`Pod`分散到不同节点，以达到更好的测试效果。
 
-创建文件 `test-job-tier1-fail.yaml`：
+创建文件 `topology-test-3.yaml`：
 
-```yaml
+```yaml title="topology-test-3.yaml"
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
-  name: topology-test-tier1-fail
-  namespace: default
-spec:
-  minAvailable: 8  # 需要8个Pod，但一个tier1 HyperNode只有2个节点
-  schedulerName: volcano
-  queue: default
-  
-  networkTopology:
-    mode: hard
-    highestTierAllowed: 1  # 强制在tier1内
-  
-  tasks:
-    - replicas: 8
-      name: worker
-      template:
-        spec:
-          containers:
-            - name: busybox
-              image: busybox:latest
-              command: ["sh", "-c", "echo 'Hello from $HOSTNAME' && sleep 3600"]
-              resources:
-                requests:
-                  cpu: "500m"
-                  memory: "256Mi"
-                limits:
-                  cpu: "500m"
-                  memory: "256Mi"
-          restartPolicy: OnFailure
-```
-
-运行测试：
-
-```bash
-# 清理之前的任务
-kubectl delete vcjob topology-test-tier2
-
-# 创建任务
-kubectl apply -f test-job-tier1-fail.yaml
-
-# 查看任务状态（应该是Pending）
-kubectl get vcjob topology-test-tier1-fail
-
-# 查看调度事件
-kubectl describe vcjob topology-test-tier1-fail
-```
-
-预期结果：
-- Job状态应该是 `Pending`
-- 事件中应该显示类似 "cannot find a HyperNode to satisfy the networkTopology constraint" 的信息
-
-### 测试4：Soft模式（可选）
-
-如果想测试soft模式，可以将highestTierAllowed设置为tier3，此时调度器会尽力而为。
-
-创建文件 `test-job-soft.yaml`：
-
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: topology-test-soft
-  namespace: default
+  name: topology-test-3
 spec:
   minAvailable: 4
   schedulerName: volcano
   queue: default
   
-  # Soft模式：尽可能在低tier内调度，但允许跨越
+  # 网络拓扑约束：可以跨tier1，但必须在tier2内
   networkTopology:
     mode: hard
-    highestTierAllowed: 3  # 设置为最高tier，等效于soft模式
+    highestTierAllowed: 2
   
   tasks:
     - replicas: 4
       name: worker
       template:
+        metadata:
+          labels:
+            # 用于反亲和性规则，确保Pod分散到不同节点
+            app: exclusive-app
         spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution: 
+                - labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - exclusive-app 
+                  topologyKey: kubernetes.io/hostname
           containers:
             - name: busybox
               image: busybox:latest
-              command: ["sh", "-c", "echo 'Pod $HOSTNAME on node' && sleep 3600"]
+              command: ["sh", "-c", "sleep 3600"]
               resources:
                 requests:
-                  cpu: "500m"
-                  memory: "256Mi"
+                  cpu: "100m"
+                  memory: "128Mi"
                 limits:
-                  cpu: "500m"
-                  memory: "256Mi"
-          restartPolicy: OnFailure
+                  cpu: "100m"
+                  memory: "128Mi"
 ```
 
-## 调度结果分析
+**配置说明**：
+- **反亲和性约束**：通过`podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution`，确保具有相同`app=exclusive-app`标签的Pod不会被调度到同一个节点
+- **拓扑键**：`topologyKey: kubernetes.io/hostname`表示按节点主机名进行互斥判断
+- **综合效果**：`4`个`Pod`必须分散到`4`个不同节点，且这`4`个节点必须在同一个`tier2`的`HyperNode`内
 
-### 查看Pod分布
+运行测试：
 
 ```bash
-# 查看所有测试任务的Pod分布
-kubectl get pods -l volcano.sh/queue-name=default -o wide --sort-by=.spec.nodeName
+# 创建任务
+kubectl apply -f topology-test-3.yaml
 
-# 按节点统计Pod数量
-kubectl get pods -o wide --no-headers | awk '{print $7}' | sort | uniq -c
+# 查看任务状态
+kubectl get vcjob topology-test-3
+
+# 查看Pod调度情况
+kubectl get pods -o wide
 ```
 
-### 查看调度器日志
-
-```bash
-# 查看调度器日志，了解调度决策过程
-kubectl logs -n volcano-system -l app=volcano-scheduler --tail=100
-
-# 查找网络拓扑相关的日志
-kubectl logs -n volcano-system -l app=volcano-scheduler --tail=500 | grep -i "topology\|hypernode"
+预期调度结果：
+```text
+NAME                                   READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES
+topology-test-3-worker-0           1/1     Running   0          10s   10.244.7.3    node0   <none>           <none>
+topology-test-3-worker-1           1/1     Running   0          10s   10.244.2.4    node1   <none>           <none>
+topology-test-3-worker-2           1/1     Running   0          10s   10.244.1.5    node2   <none>           <none>
+topology-test-3-worker-3           1/1     Running   0          10s   10.244.3.6    node3   <none>           <none>
 ```
 
-### 验证网络拓扑约束
+符合预期：
+- `4`个`Pod`分别调度到`4`个不同的节点（满足反亲和性）
+- 这`4`个节点都属于同一个`tier2` `HyperNode`，例如`s4`（包含`node0-node3`）或`s5`（包含`node4-node7`）
+- 网络拓扑和反亲和性约束同时得到满足
+
+清理任务：
 
 ```bash
-# 检查tier1测试的Pod是否都在同一个tier1 HyperNode
-echo "=== Tier1 Test Pods ==="
-kubectl get pods -l volcano.sh/job-name=topology-test-tier1 \
-  -o custom-columns=POD:metadata.name,NODE:spec.nodeName
-
-# 检查tier2测试的Pod是否都在同一个tier2 HyperNode
-echo "=== Tier2 Test Pods ==="
-kubectl get pods -l volcano.sh/job-name=topology-test-tier2 \
-  -o custom-columns=POD:metadata.name,NODE:spec.nodeName
+kubectl delete -f topology-test-3.yaml
 ```
 
-## 清理环境
+### 测试4：调度失败场景 - 跨Tier2约束
 
-测试完成后清理资源：
+测试当任务需要跨越`tier2`边界时，在`hard`模式下无法调度的情况。
+
+创建文件 `topology-test-4.yaml`：
+
+```yaml title="topology-test-4.yaml"
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: topology-test-4
+spec:
+  minAvailable: 5
+  schedulerName: volcano
+  queue: default
+  
+  # 网络拓扑约束：必须在tier2内
+  networkTopology:
+    mode: hard
+    highestTierAllowed: 2
+  
+  tasks:
+    - replicas: 5
+      name: worker
+      template:
+        metadata:
+          labels:
+            # 用于反亲和性规则，确保Pod分散到不同节点
+            app: exclusive-app
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution: 
+                - labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - exclusive-app 
+                  topologyKey: kubernetes.io/hostname
+          containers:
+            - name: busybox
+              image: busybox:latest
+              command: ["sh", "-c", "sleep 3600"]
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "100m"
+                  memory: "128Mi"
+```
+
+**配置说明**：
+- **任务数量**：需要`5`个`Pod`，每个`Pod`必须在不同节点（反亲和性）
+- **拓扑约束**：`highestTierAllowed: 2`，要求所有`Pod`在同一个`tier2` `HyperNode`内
+- **资源冲突**：每个`tier2` `HyperNode`（`s4`或`s5`）只包含`4`个节点，无法满足`5`个不同节点的需求
+
+运行测试：
 
 ```bash
-# 删除测试任务
-kubectl delete vcjob --all
+# 创建任务
+kubectl apply -f topology-test-4.yaml
 
-# 删除HyperNode
-kubectl delete hypernodes --all
+# 查看任务状态（应该是Pending）
+kubectl get vcjob topology-test-4
 
-# 卸载Volcano
-helm uninstall volcano -n volcano-system
+# 查看Pod状态
+kubectl get pods -l volcano.sh/job-name=topology-test-4
 
-# 删除namespace
-kubectl delete namespace volcano-system
+# 查看调度事件
+kubectl describe vcjob topology-test-4
+```
 
-# 删除Kind集群
-kind delete cluster --name volcano-topology-test
+预期结果：
+```text
+NAME                                   READY   STATUS    RESTARTS   AGE     IP            NODE     NOMINATED NODE   READINESS GATES
+topology-test-4-worker-0           0/1     Pending   0          2m17s   <none>        <none>   <none>           <none>
+topology-test-4-worker-1           0/1     Pending   0          2m17s   <none>        <none>   <none>           <none>
+topology-test-4-worker-2           0/1     Pending   0          2m17s   <none>        <none>   <none>           <none>
+topology-test-4-worker-3           0/1     Pending   0          2m17s   <none>        <none>   <none>           <none>
+topology-test-4-worker-4           0/1     Pending   0          2m17s   <none>        <none>   <none>           <none>
+```
+
+符合预期：
+- 所有`5`个`Pod`处于`Pending`状态，无法被调度
+- 原因：每个`tier2` `HyperNode`只有`4`个节点，无法同时满足以下约束：
+  - `5`个`Pod`必须在`5`个不同节点（反亲和性，测试需要）
+  - 这些节点必须在同一个`tier2` `HyperNode`内（网络拓扑约束），只能使用`s4`或`s5`中的`4`个节点，不能两边各调度一部分`Pod`
+
+查看详细调度信息：
+
+```bash
+# 查看调度器日志
+kubectl logs -n volcano-system -l app=volcano-scheduler --tail=50 | grep -i "topology-test-4"
+
+# 查看PodGroup状态
+kubectl get podgroup topology-test-4 -o yaml
+```
+
+清理任务：
+
+```bash
+kubectl delete -f topology-test-4.yaml
+```
+
+### 测试5：Soft模式 - 跨Tier2调度
+
+将测试4中的示例使用`soft`模式运行，可实现跨`tier2`调度，比如`s4`和`s5`拓扑下各调度一部分`Pod`，但在真实业务场景中，这种跨多层网络拓扑的通信效率很差。本示例仅做测试和参考。
+
+创建文件 `topology-test-5.yaml`：
+
+```yaml title="topology-test-5.yaml"
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: topology-test-5
+spec:
+  minAvailable: 5
+  schedulerName: volcano
+  queue: default
+  
+  # 网络拓扑约束：尽可能在tier2内
+  networkTopology:
+    mode: soft
+    highestTierAllowed: 2
+  
+  tasks:
+    - replicas: 5
+      name: worker
+      template:
+        metadata:
+          labels:
+            # 用于反亲和性规则，确保Pod分散到不同节点
+            app: exclusive-app
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution: 
+                - labelSelector:
+                    matchExpressions:
+                      - key: app
+                        operator: In
+                        values:
+                          - exclusive-app 
+                  topologyKey: kubernetes.io/hostname
+          containers:
+            - name: busybox
+              image: busybox:latest
+              command: ["sh", "-c", "sleep 3600"]
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "100m"
+                  memory: "128Mi"
+```
+
+**配置说明**：
+- **调度模式**：`soft`模式（软约束），调度器会尽最大努力满足拓扑约束，但允许降级
+- **任务数量**：`5`个`Pod`，每个`Pod`必须在不同节点（反亲和性）
+- **拓扑约束**：`highestTierAllowed: 2`，尽可能在`tier2`内调度
+- **降级策略**：当单个`tier2` `HyperNode`无法满足时，允许跨越`tier2`边界进行调度
+
+运行测试：
+
+```bash
+# 创建任务
+kubectl apply -f topology-test-5.yaml
+
+# 查看任务状态
+kubectl get vcjob topology-test-5
+
+# 查看Pod调度情况
+kubectl get pods -o wide -l volcano.sh/job-name=topology-test-5
+```
+
+预期调度结果：
+```text
+NAME                                   READY   STATUS    RESTARTS   AGE     IP            NODE    NOMINATED NODE   READINESS GATES
+topology-test-5-worker-0               1/1     Running   0          13m     10.244.7.44   node0   <none>           <none>
+topology-test-5-worker-1               1/1     Running   0          13m     10.244.2.55   node1   <none>           <none>
+topology-test-5-worker-2               1/1     Running   0          13m     10.244.1.49   node2   <none>           <none>
+topology-test-5-worker-3               1/1     Running   0          13m     10.244.3.42   node3   <none>           <none>
+topology-test-5-worker-4               1/1     Running   0          13m     10.244.8.16   node4   <none>           <none>
+```
+
+符合预期：
+- 所有`5`个`Pod`成功调度并运行（与测试4的`Pending`状态形成对比）
+- `Pod`分散到`5`个不同节点（满足反亲和性）
+- 由于单个`tier2` `HyperNode`只有`4`个节点，调度器允许跨越`tier2`边界
+- 可能的分布：
+  - `4`个`Pod`在`s4`下（`node0-node3`）
+  - `1`个`Pod`在`s5`下（例如`node4`）
+- `node0-node3`与`node4`之间的通信需要跨越`tier2`，经过`tier3`（`s6`），通信效率较低
+
+**对比测试4**：
+- **测试4（hard模式）**：无法调度，所有`Pod`保持`Pending`状态
+- **测试5（soft模式）**：成功调度，但可能跨越拓扑边界，牺牲了部分网络性能
+
+清理任务：
+
+```bash
+kubectl delete -f topology-test-5.yaml
 ```
 
 ## 常见问题
 
-### Q1: Pod一直处于Pending状态
+### Q1: HyperNode创建失败
 
 **可能原因**：
-1. 网络拓扑约束过于严格，无法找到满足条件的HyperNode
-2. 节点资源不足
-3. HyperNode配置错误
-
-**解决方法**：
-```bash
-# 查看Pod事件
-kubectl describe pod <pod-name>
-
-# 查看调度器日志
-kubectl logs -n volcano-system -l app=volcano-scheduler --tail=100
-
-# 检查HyperNode配置
-kubectl get hypernodes -o yaml
-```
-
-### Q2: HyperNode创建失败
-
-**可能原因**：
-1. CRD未正确安装
+1. `CRD`未正确安装
 2. 节点名称不匹配
-3. YAML格式错误
+3. `YAML`格式错误
+4. 非叶子`HyperNode`使用了不支持的选择器类型（只支持`exactMatch`）
 
 **解决方法**：
 ```bash
@@ -766,11 +875,58 @@ kubectl get nodes --show-labels
 kubectl describe hypernode <hypernode-name>
 ```
 
-### Q3: 调度器未使用网络拓扑感知
+**关于选择器限制**：
+
+- **叶子`HyperNode`**（包含`Node`类型成员）：支持三种选择器
+  - `exactMatch`：精确匹配节点名称
+  - `regexMatch`：正则表达式匹配节点名称
+  - `labelMatch`：基于标签匹配节点
+
+- **非叶子`HyperNode`**（包含`HyperNode`类型成员）：**仅支持`exactMatch`**
+  - 必须使用`exactMatch`精确指定子`HyperNode`的名称
+  - 不支持`regexMatch`和`labelMatch`
+
+**错误示例**（非叶子`HyperNode`使用`labelMatch`会失败）：
+```yaml
+apiVersion: topology.volcano.sh/v1alpha1
+kind: HyperNode
+metadata:
+  name: s4
+spec:
+  tier: 2
+  members:
+  - type: HyperNode
+    selector:
+      labelMatch:  # ❌ 错误：非叶子HyperNode不支持labelMatch
+        matchLabels:
+          tier: "1"
+```
+
+**正确示例**：
+```yaml
+apiVersion: topology.volcano.sh/v1alpha1
+kind: HyperNode
+metadata:
+  name: s4
+spec:
+  tier: 2
+  members:
+  - type: HyperNode
+    selector:
+      exactMatch:  # ✅ 正确：使用exactMatch
+        name: "s0"
+  - type: HyperNode
+    selector:
+      exactMatch:
+        name: "s1"
+```
+
+### Q2: 调度器未使用网络拓扑感知
 
 **可能原因**：
 1. 调度器配置未正确更新
 2. 插件未启用
+3. 任务未设置资源请求和限制，被视为`BestEffort`类型
 
 **解决方法**：
 ```bash
@@ -784,24 +940,95 @@ kubectl rollout restart deployment volcano-scheduler -n volcano-system
 kubectl logs -n volcano-system -l app=volcano-scheduler | grep "network-topology-aware"
 ```
 
-## 总结
+**关于BestEffort任务**：
 
-通过本文的实践，我们：
+网络拓扑感知调度依赖于任务的资源请求信息来进行调度决策。如果`Pod`没有设置`resources.requests`和`resources.limits`，它会被标记为`BestEffort` `QoS`类型。对于`BestEffort`类型的任务，即使启用了网络拓扑调度插件，该插件也不会对其生效。
 
-1. **搭建了测试环境**：使用Kind创建了包含8个worker节点的K8s集群
-2. **定义了网络拓扑**：通过HyperNode CRD构建了三层网络拓扑结构
-3. **验证了调度能力**：
-   - Hard模式tier1约束：Pod被限制在同一个tier1 HyperNode内
-   - Hard模式tier2约束：Pod可以跨tier1但必须在tier2内
-   - 资源不足场景：任务正确地保持Pending状态
-4. **理解了调度原理**：网络拓扑感知调度通过HyperNode层级关系，确保任务在最优的网络性能域内运行
+**原因**：
+- `BestEffort`任务没有明确的资源需求，调度器无法准确评估其对网络拓扑的影响
+- 网络拓扑调度需要基于资源请求来计算节点得分和拓扑匹配度
+- 为保证调度质量，插件会跳过`BestEffort`类型的任务
 
-网络拓扑感知调度是Volcano针对AI大模型训练场景的重要优化特性，能够显著提升分布式训练的网络通信效率。在实际生产环境中，建议：
+**检查方法**：
+```bash
+# 查看Pod的QoS类型
+kubectl get pod <pod-name> -o jsonpath='{.status.qosClass}'
 
-- 根据实际的数据中心网络拓扑结构配置HyperNode
-- 使用HyperNode自动发现功能简化管理
-- 结合实际工作负载特点选择合适的tier约束
-- 监控调度效果，持续优化配置
+# 应该返回 Guaranteed 或 Burstable，而非 BestEffort
+```
+
+**解决方案**：
+
+在任务定义中必须设置资源请求和限制：
+```yaml
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+```
+
+### Q3: HyperNode的NODECOUNT显示不符合预期
+
+**现象**：
+
+查看`HyperNode`时，发现`s4`、`s5`、`s6`的`NODECOUNT`都显示为`2`：
+
+```bash
+NAME   TIER   NODECOUNT   AGE
+s0     1      2           10s
+s1     1      2           10s
+s2     1      2           10s
+s3     1      2           10s
+s4     2      2           10s    # 包含s0和s1，为什么不是4？
+s5     2      2           10s    # 包含s2和s3，为什么不是4？
+s6     3      2           10s    # 包含s4和s5，为什么不是8？
+```
+
+**原因**：
+
+这是正常现象。`NODECOUNT`字段统计的是`HyperNode`的**直接子成员数量**，而不是递归统计所有叶子节点的数量。
+
+**详细说明**：
+
+- **`s0-s3`（`tier1`）**：
+  - 直接包含`2`个`Node`类型的成员
+  - `NODECOUNT = 2`
+
+- **`s4-s5`（`tier2`）**：
+  - 直接包含`2`个`HyperNode`类型的成员（例如`s4`包含`s0`和`s1`）
+  - `NODECOUNT = 2`（统计的是`HyperNode`成员数，不是叶子节点数）
+
+- **`s6`（`tier3`）**：
+  - 直接包含`2`个`HyperNode`类型的成员（`s4`和`s5`）
+  - `NODECOUNT = 2`（统计的是`HyperNode`成员数，不是叶子节点数）
+
+**验证方法**：
+
+查看`HyperNode`的详细配置可以确认成员类型：
+
+```bash
+# 查看s4的成员
+kubectl get hypernode s4 -o yaml
+
+# 输出显示members包含2个HyperNode类型的成员
+spec:
+  tier: 2
+  members:
+  - type: HyperNode
+    selector:
+      exactMatch:
+        name: "s0"
+  - type: HyperNode
+    selector:
+      exactMatch:
+        name: "s1"
+```
+
+**总结**：`NODECOUNT`反映的是树状结构中的直接子节点数量，不是叶子节点总数。这种设计有助于清晰地理解`HyperNode`的层级结构。
+
 
 ## 参考资料
 

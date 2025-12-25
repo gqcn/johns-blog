@@ -144,11 +144,13 @@ spec:
 多个`HyperNode`通过层级连接，形成树状结构。例如：
 
 ```text
-  tier2                     s4                                 s5                         
-                    /               \                   /              \                 
-  tier1           s0                s1                 s2              s3              
-               /      \          /      \           /      \        /      \         
-            node0    node1    node2    node3      node4   node5   node6   node7       
+tier3                                       s6
+                            /                               \
+tier2                     s4                                 s5                         
+                  /               \                   /              \                 
+tier1           s0                s1                 s2              s3              
+             /      \          /      \           /      \        /      \         
+          node0    node1    node2    node3      node4   node5   node6   node7      
 ```
 
 **通信效率分析**：
@@ -250,7 +252,9 @@ tiers:
   # 启用网络拓扑感知插件
   - name: network-topology-aware  
     arguments:
-      weight: 10  # 设置插件权重，默认为1
+      # 设置插件权重，默认为1
+      # 当多个节点打分插件（如nodeorder、binpack等）同时存在时，该值决定该插件在总分中的占比
+      weight: 10  
 ```
 
 ### HyperNode管理方式
@@ -331,14 +335,14 @@ networkTopologyDiscovery:
 
 如果不使用自动发现，可以手动创建`HyperNode`资源。
 
-##### 示例1：基于精确匹配
+##### 示例1：基于精确匹配（完整三层拓扑）
 
 ```yaml
-# 叶子HyperNode - 使用exactMatch精确匹配节点
+# Tier 1: 叶子HyperNode - 包含真实节点
 apiVersion: topology.volcano.sh/v1alpha1
 kind: HyperNode
 metadata:
-  name: ib-network-0
+  name: s0
 spec:
   tier: 1
   members:
@@ -354,7 +358,7 @@ spec:
 apiVersion: topology.volcano.sh/v1alpha1
 kind: HyperNode
 metadata:
-  name: ib-network-1
+  name: s1
 spec:
   tier: 1
   members:
@@ -367,49 +371,127 @@ spec:
         exactMatch:
           name: node3
 ---
-# 非叶子HyperNode - 组合多个叶子HyperNode
 apiVersion: topology.volcano.sh/v1alpha1
 kind: HyperNode
 metadata:
-  name: ib-spine-0
+  name: s2
+spec:
+  tier: 1
+  members:
+    - type: Node
+      selector:
+        exactMatch:
+          name: node4
+    - type: Node
+      selector:
+        exactMatch:
+          name: node5
+---
+apiVersion: topology.volcano.sh/v1alpha1
+kind: HyperNode
+metadata:
+  name: s3
+spec:
+  tier: 1
+  members:
+    - type: Node
+      selector:
+        exactMatch:
+          name: node6
+    - type: Node
+      selector:
+        exactMatch:
+          name: node7
+---
+# Tier 2: 中间层HyperNode - 组合Tier 1的HyperNode
+apiVersion: topology.volcano.sh/v1alpha1
+kind: HyperNode
+metadata:
+  name: s4
 spec:
   tier: 2
   members:
     - type: HyperNode
       selector:
         exactMatch:
-          name: ib-network-0
+          name: s0
     - type: HyperNode
       selector:
         exactMatch:
-          name: ib-network-1
+          name: s1
+---
+apiVersion: topology.volcano.sh/v1alpha1
+kind: HyperNode
+metadata:
+  name: s5
+spec:
+  tier: 2
+  members:
+    - type: HyperNode
+      selector:
+        exactMatch:
+          name: s2
+    - type: HyperNode
+      selector:
+        exactMatch:
+          name: s3
+---
+# Tier 3: 根HyperNode - 组合Tier 2的HyperNode
+apiVersion: topology.volcano.sh/v1alpha1
+kind: HyperNode
+metadata:
+  name: s6
+spec:
+  tier: 3
+  members:
+    - type: HyperNode
+      selector:
+        exactMatch:
+          name: s4
+    - type: HyperNode
+      selector:
+        exactMatch:
+          name: s5
 ```
 
 ##### 示例2：基于正则匹配
 
 ```yaml
-# 使用regexMatch匹配一组节点
+# 使用regexMatch匹配一组节点（匹配s0下的node0和node1）
 apiVersion: topology.volcano.sh/v1alpha1
 kind: HyperNode
 metadata:
-  name: nvlink-group-0
+  name: s0-regex
 spec:
   tier: 1
   members:
     - type: Node
       selector:
         regexMatch:
-          pattern: "^gpu-node-[0-7]$"  # 匹配gpu-node-0到gpu-node-7
+          pattern: "^node[0-1]$"  # 匹配node0和node1
+---
+# 使用正则匹配所有节点
+apiVersion: topology.volcano.sh/v1alpha1
+kind: HyperNode
+metadata:
+  name: all-nodes-regex
+spec:
+  tier: 1
+  members:
+    - type: Node
+      selector:
+        regexMatch:
+          pattern: "^node[0-7]$"  # 匹配node0到node7
 ```
 
 ##### 示例3：基于标签匹配
 
 ```yaml
-# 使用labelMatch基于标签匹配节点
+# 使用labelMatch基于标签匹配节点（假设节点已打上相应标签）
 apiVersion: topology.volcano.sh/v1alpha1
 kind: HyperNode
 metadata:
-  name: rack-1-nodes
+  name: s0-labeled
 spec:
   tier: 1
   members:
@@ -417,9 +499,44 @@ spec:
       selector:
         labelMatch:
           matchLabels:
-            topology-rack: rack-1
+            volcano.sh/hypernode: s0
             network-type: infiniband
+---
+# 匹配特定Tier的所有节点
+apiVersion: topology.volcano.sh/v1alpha1
+kind: HyperNode
+metadata:
+  name: tier1-nodes
+spec:
+  tier: 1
+  members:
+    - type: Node
+      selector:
+        labelMatch:
+          matchLabels:
+            volcano.sh/tier: "1"
 ```
+
+## 注意事项
+
+
+### 必须设置任务资源量
+
+网络拓扑感知调度依赖于任务的资源请求信息来进行合理的调度决策，如果任务是`BestEffort`类型（没有资源请求或者限制），即便启用了网络拓扑调度插件，但该任务并不触发网络拓扑调度。因此，**必须在`Volcano Job`或`PodGroup`的任务模板中明确设置资源请求（`requests`）和限制（`limits`）**，例如：
+
+```yaml
+resources:
+  requests:
+    cpu: "4"
+    memory: "16Gi"
+    nvidia.com/gpu: "1"
+  limits:
+    cpu: "4"
+    memory: "16Gi"
+    nvidia.com/gpu: "1"
+```
+
+
 
 ## 使用示例
 
