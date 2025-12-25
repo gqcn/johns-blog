@@ -61,8 +61,8 @@ description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNod
 **核心价值**：将工作负载调度到具有最高吞吐量和最低延迟的最佳性能域，尽可能减少跨交换机的通信，从而：
 
 - **提升训练效率**：减少网络通信开销，加速数据交换
-- **降低延迟**：优先选择网络拓扑距离近的节点
-- **提高吞吐量**：充分利用高速网络互连（如`IB`、`NVLINK`）
+- **降低通信延迟**：优先选择网络拓扑距离近的节点
+- **提高网络吞吐**：充分利用高速网络互连（如`IB`、`NVLINK`）
 - **优化资源利用**：将任务调度到最合适的网络性能域
 
 **典型收益**：
@@ -71,6 +71,10 @@ description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNod
 - 支持更大规模的分布式训练任务
 
 ## Volcano网络拓扑感知调度实现原理
+
+:::info 提示
+本文档基于`volcano v1.13.0`版本梳理，由于网络拓扑插件更新较快，未来版本会有一些变化，例如本文未覆盖的一些新特性和配置。
+:::
 
 ### 核心设计理念
 
@@ -144,13 +148,13 @@ spec:
 多个`HyperNode`通过层级连接，形成树状结构。例如：
 
 ```text
-tier3                                       s6
-                            /                               \
-tier2                     s4                                 s5                         
-                  /               \                   /              \                 
-tier1           s0                s1                 s2              s3              
-             /      \          /      \           /      \        /      \         
-          node0    node1    node2    node3      node4   node5   node6   node7      
+tier3                                     s6
+                          /                                \
+tier2                   s4                                  s5                         
+                /               \                    /               \                 
+tier1         s0                s1                  s2               s3              
+           /      \          /      \            /      \         /      \         
+        node0    node1    node2    node3      node4    node5    node6    node7      
 ```
 
 **通信效率分析**：
@@ -181,6 +185,17 @@ spec:
 - 需要保证所有节点在同一高速网络域内
 - 模型并行训练，节点间通信频繁
 
+**使用举例**：
+
+以前面的网络拓扑为例，以下网络拓扑调度配置仅允许任务在`s4`或`s5`下调度，但不允许一部分任务调度到`s4`下，一部分任务调度到`s5`下：
+```yaml
+spec:
+  networkTopology:
+    mode: hard
+    highestTierAllowed: 2
+```
+
+
 #### Soft模式（软约束）
 
 **特点**：
@@ -192,6 +207,17 @@ spec:
 - 希望优化网络性能，但可接受一定的调度灵活性
 - 集群资源紧张，需要平衡性能和资源利用率
 - 数据并行训练，网络通信相对较少
+
+
+**使用举例**：
+
+以前面的网络拓扑为例，以下网络拓扑调度配置允许任务同时在`s4`和`s5`下调度，即一部分任务在`s4`，一部分在`s5`，但尽可能将所有任务调度到同一个`HyperNode`下：
+```yaml
+spec:
+  networkTopology:
+    mode: soft
+    highestTierAllowed: 2
+```
 
 ### 调度打分逻辑
 
@@ -248,13 +274,14 @@ tiers:
 - plugins:
   - name: predicates
   - name: proportion
-  - name: nodeorder
   # 启用网络拓扑感知插件
   - name: network-topology-aware  
     arguments:
       # 设置插件权重，默认为1
       # 当多个节点打分插件（如nodeorder、binpack等）同时存在时，该值决定该插件在总分中的占比
       weight: 10  
+  - name: nodeorder
+  - name: binpack
 ```
 
 ### HyperNode管理方式

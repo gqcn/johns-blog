@@ -34,13 +34,13 @@ description: "通过实际部署Kind集群、创建HyperNode、运行测试任�
 我们将构建如下的网络拓扑结构：
 
 ```text
-tier3                                       s6
-                            /                               \
-tier2                     s4                                 s5                         
-                  /               \                   /              \                 
-tier1           s0                s1                 s2              s3              
-             /      \          /      \           /      \        /      \         
-          node0    node1    node2    node3      node4   node5   node6   node7   
+tier3                                     s6
+                          /                                \
+tier2                   s4                                  s5                         
+                /               \                    /               \                 
+tier1         s0                s1                  s2               s3              
+           /      \          /      \            /      \         /      \         
+        node0    node1    node2    node3      node4    node5    node6    node7     
 ```
 
 这个拓扑结构模拟了一个典型的数据中心网络：
