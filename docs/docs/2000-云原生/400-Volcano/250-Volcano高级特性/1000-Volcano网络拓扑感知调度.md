@@ -699,10 +699,10 @@ spec:
 
 | 位置 | Annotation | 说明 |
 |------|-----------|------|
-| Deployment级别 | `scheduling.volcano.sh/group-min-member` | 最少需要同时调度的`Pod`数量，启用组调度 |
-| Pod模板级别 | `scheduling.volcano.sh/queue-name` | 指定使用的`Volcano`队列 |
-| Pod模板级别 | `volcano.sh/network-topology-mode` | 网络拓扑约束模式：`hard`或`soft` |
-| Pod模板级别 | `volcano.sh/network-topology-highest-tier` | 允许的最高`Tier`层级 |
+| `Deployment`级别 | `scheduling.volcano.sh/group-min-member` | 最少需要同时调度的`Pod`数量，启用组调度 |
+| `Pod`模板级别 | `scheduling.volcano.sh/queue-name` | 指定使用的`Volcano`队列 |
+| `Pod`模板级别 | `volcano.sh/network-topology-mode` | 网络拓扑约束模式：`hard`或`soft` |
+| `Pod`模板级别 | `volcano.sh/network-topology-highest-tier` | 允许的最高`Tier`层级 |
 
 **工作原理**：
 - `Volcano`会为该`Deployment`自动创建对应的`PodGroup`
