@@ -37,7 +37,7 @@ description: "详细介绍如何在裸机、Docker和Kubernetes环境中配置�
 
 二者的关系如`NVIDIA`官网上的这个图所示：
 
-![alt text](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image.png)
+![GPU Driver与CUDA Toolkit组件关系图](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image.png)
 
 `GPU Driver`包括了`GPU`驱动和`CUDA`驱动，`CUDA Toolkit`则包含了`CUDA Runtime`。
 
@@ -57,7 +57,7 @@ root@test:~# lspci | grep NVIDIA
 
 首先到 [NVIDIA 驱动下载](https://www.nvidia.cn/Download/index.aspx?lang=cn#) 下载对应的显卡驱动：
 
-![alt text](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-1.png)
+![NVIDIA驱动下载页面选择界面](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-1.png)
 
 最终下载得到的是一个`.run`文件，例如 `NVIDIA-Linux-x86_64-550.54.14.run`。
 
@@ -116,7 +116,7 @@ Wed Jul 10 05:41:52 2024
 
 也是到 [NVIDIA CUDA Toolkit 下载](https://developer.nvidia.com/cuda-toolkit-archive) 下载对应的安装包，选择操作系统和安装方式即可
 
-![alt text](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-2.png)
+![CUDA Toolkit下载页面选择界面](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-2.png)
 
 和安装驱动类似，也是一个`.run`文件。
 
@@ -173,7 +173,7 @@ Build cuda_12.2.r12.2/compiler.32965470_0
 
 整个调用链大概是这样的：
 
-![alt text](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-3.png)
+![裸机环境Pytorch调用CUDA的调用链图](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-3.png)
 
 使用下面代码来测试能够正常使用， `check_cuda_pytorch.py`内容如下：
 
@@ -301,7 +301,7 @@ sudo systemctl restart docker
 
 安装`nvidia-container-toolkit` 后，整个调用链如下：
 
-![alt text](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-4.png)
+![Docker环境容器运行时调用链图](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-4.png)
 
 调用链从`containerd –> runC`变成`containerd –> nvidia-container-runtime –> runC`。
 
@@ -309,7 +309,7 @@ sudo systemctl restart docker
 
 `Docker`环境中的`CUDA`调用大概是这样的：
 
-![alt text](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-5.png)
+![Docker容器内Pytorch调用CUDA的调用链图](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-5.png)
 
 从图中可以看到，`CUDA Toolkit`跑到容器里了，因此宿主机上不需要再安装`CUDA Toolkit`。
 
@@ -340,7 +340,7 @@ docker run --rm --gpus all nvidia/cuda:12.0.1-runtime-ubuntu22.04 nvidia-smi
 
 各组件关系如下图所示：
 
-![alt text](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-6.png)
+![Kubernetes集群GPU组件部署架构图](assets/9000-GPU环境搭建指南：在裸机、Docker、K8S环境中使用GPU/image-6.png)
 
 *   左图为手动安装的场景，只需要在集群中安装`device-plugin`和监控即可使用。
     

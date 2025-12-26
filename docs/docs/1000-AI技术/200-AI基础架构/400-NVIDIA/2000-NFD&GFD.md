@@ -17,7 +17,7 @@ description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和G
 
 ### 基本介绍
 
-![alt text](assets/NFD&GFD技术介绍/image.png)
+![Node Feature Discovery架构和工作原理图](assets/NFD&GFD技术介绍/image.png)
 
 `Node Feature Discovery` (`NFD`)是`Kubernetes`的一个插件，用于自动检测节点的硬件特性和系统配置，并将这些信息以标签(`labels`)的形式添加到`Kubernetes`节点对象上。`NFD`是`Kubernetes SIG` (`Special Interest Group`)下的一个项目，目前已成为云原生计算基金会(`CNCF`)的沙箱项目。
 

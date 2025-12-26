@@ -171,7 +171,7 @@ spec:
     
     
     如果设置`deserved`但未设置`guarantee`，就以`deserved`来保护队列资源。以`capacity`插件为例，资源回收的实现源码如下：
-    ![alt text](<assets/3500-Volcano Queue&Job详解/image.png>)
+    ![Capacity插件资源回收源码实现](<assets/3500-Volcano Queue&Job详解/image.png>)
 
 ### 使用 proportion 插件的资源管理机制
 

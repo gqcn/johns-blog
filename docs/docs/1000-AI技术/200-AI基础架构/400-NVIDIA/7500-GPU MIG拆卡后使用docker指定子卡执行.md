@@ -289,7 +289,7 @@ ValueError: No GPU memory values found.
 
 这种显存获取方式比较原始，通过命令行子进程的方式获取，感觉这里`sglang`的源码可以改进下，通过`nvml`获取靠谱一些。
 
-![alt text](<assets/7500-GPU MIG拆卡后使用docker指定子卡执行/image.png>)
+![sglang源码中获取GPU显存的代码截图](<assets/7500-GPU MIG拆卡后使用docker指定子卡执行/image.png>)
 
 #### 验证方式
 

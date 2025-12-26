@@ -42,9 +42,9 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 ### 分离式服务（Disaggregated Serving）
 
-![alt text](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-6.png>)
+![NVIDIA Dynamo分离式服务架构示意图](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-6.png>)
 
-![alt text](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-1.png>)
+![NVIDIA Dynamo Prefill和Decode分离部署架构图](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-1.png>)
 
 传统的`LLM`部署将推理的预填充（`Prefill`）和解码（`Decode`）阶段放在同一个`GPU`或节点上，这种方法阻碍了性能优化，无法充分利用`GPU`资源：
 

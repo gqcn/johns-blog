@@ -257,7 +257,7 @@ kubectl label node ${NODE_NAME} \
 kubectl describe node ai-cluster-worker
 ```
 
-![alt text](<assets/4000-使用Kubernetes Kind搭建AI算力测试集群/image.png>)
+![节点标签和资源信息展示](<assets/4000-使用Kubernetes Kind搭建AI算力测试集群/image.png>)
 
 ## 模拟GPU资源类型
 
@@ -280,7 +280,7 @@ NODE_NAME="john-worker2" kubectl get node ${NODE_NAME} -o json | jq '.status.cap
 kubectl describe node ai-cluster-worker
 ```
 
-![alt text](<assets/4000-使用Kubernetes Kind搭建AI算力测试集群/image-1.png>)
+![节点GPU资源配置验证结果](<assets/4000-使用Kubernetes Kind搭建AI算力测试集群/image-1.png>)
 
 
 ## 创建测试队列

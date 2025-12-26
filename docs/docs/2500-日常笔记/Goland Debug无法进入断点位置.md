@@ -17,15 +17,15 @@ keywords: [Goland, Debug, 断点, MacOS, XCode, Go, dlv]
 
 今天突然发现`Goland`的`Debug`功能失效了，`Debug`代码时无法进入断点位置。比如以下的这段`Hello World`程序：
 
-![alt text](<assets/Goland Debug无法进入断点位置/image.png>)
+![Goland中设置断点的Hello World程序代码](<assets/Goland Debug无法进入断点位置/image.png>)
 
 启动`Debug`后，总是会跳转到`asm_arm64.s`的源码文件处：
 
-![alt text](<assets/Goland Debug无法进入断点位置/image-1.png>)
+![调试器跳转到asm_arm64.s汇编源码文件](<assets/Goland Debug无法进入断点位置/image-1.png>)
 
 `Goland`版本为当前最新版本`2024.3.5`：
 
-![alt text](<assets/Goland Debug无法进入断点位置/image-2.png>)
+![Goland版本号2024.3.5显示界面](<assets/Goland Debug无法进入断点位置/image-2.png>)
 
 
 ## 解决
@@ -40,7 +40,7 @@ sudo rm -rf /Library/Developer/CommandLineTools
 
 再次执行`Debug`时便恢复了。
 
-![alt text](<assets/Goland Debug无法进入断点位置/image-3.png>)
+![调试功能恢复正常，成功进入断点位置](<assets/Goland Debug无法进入断点位置/image-3.png>)
 
 ## 存疑
 

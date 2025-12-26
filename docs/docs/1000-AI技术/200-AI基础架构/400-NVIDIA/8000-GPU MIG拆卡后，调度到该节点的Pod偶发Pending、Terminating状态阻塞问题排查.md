@@ -501,12 +501,12 @@ container nvml stuck
 ```
 经过一些尝试，最终在`GPU Operator`项目的`issue`中找到了类似的问题。搜索条件：https://github.com/search?q=nvidia+container+nvml+stuck+owner%3Anvidia&type=issues
 
-![alt text](<assets/8000-GPU MIG拆卡后，调度到该节点的Pod偶发Pending、Terminating状态阻塞问题排查/image-2.png>)
+![GitHub中NVIDIA nvml stuck问题搜索结果](<assets/8000-GPU MIG拆卡后，调度到该节点的Pod偶发Pending、Terminating状态阻塞问题排查/image-2.png>)
 
 
 `issue`链接：https://github.com/NVIDIA/gpu-operator/issues/1361 并且该用户反馈的问题现象和我们遇到的非常类似，估计是一个问题。官方的开发者也回复了该问题，以下是具体引发`nvml`阻塞的原因，并且给出了`workaround`方案：
 
-![alt text](<assets/8000-GPU MIG拆卡后，调度到该节点的Pod偶发Pending、Terminating状态阻塞问题排查/image.png>)
+![GPU Operator开发者关于MIG nvml阻塞问题的回复说明](<assets/8000-GPU MIG拆卡后，调度到该节点的Pod偶发Pending、Terminating状态阻塞问题排查/image.png>)
 
 我们看看`GPU`节点上的驱动版本，发现驱动版本是`570.158.01`，正好是踩上了这个驱动的`BUG`：
 ```bash
@@ -557,7 +557,7 @@ $ nvidia-smi
 
 根据官方人员的建议，升级到最新`570.172.08`驱动，并且该驱动是`8`小时前才发布的。估计这个问题后续还会有很多人踩上去。
 
-![alt text](<assets/8000-GPU MIG拆卡后，调度到该节点的Pod偶发Pending、Terminating状态阻塞问题排查/image-1.png>)
+![NVIDIA 570.172.08驱动版本发布时间信息](<assets/8000-GPU MIG拆卡后，调度到该节点的Pod偶发Pending、Terminating状态阻塞问题排查/image-1.png>)
 
 驱动升级方式（以`Ubuntu 22.04`系统为例）：
 

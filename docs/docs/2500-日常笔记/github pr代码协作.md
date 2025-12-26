@@ -6,7 +6,7 @@ keywords: ["github", "pr", "code review", "collaboration", "git"]
 description: "介绍如何在Github上直接修改他人PR分支进行代码协作的技巧"
 ---
 
-![alt text](assets/QQ_1741489371029.png)
+![GitHub PR代码协作流程示意图](assets/QQ_1741489371029.png)
 
 ## 背景
 

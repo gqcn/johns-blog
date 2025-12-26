@@ -43,9 +43,9 @@ description: "深入对比InfiniBand与RoCE v2两种主流RDMA网络解决方案
 
 全球知名芯片制造商`NVIDIA`，在推动高性能计算和高性能计算领域发展的同时，也成为了提供一系列`InfiniBand`网卡解决方案的主要力量。其中包括正在快速演进的`200Gbps HDR`技术及已大规模商业部署的`400Gbps NDR`网卡产品。此处展示的图表即为目前广泛应用的`InfiniBand`网络接口卡类型。
 
-![alt text](<assets/2000-InfiniBand vs RoCE/image.png>)
+![NVIDIA InfiniBand网卡产品系列型号列表](<assets/2000-InfiniBand vs RoCE/image.png>)
 
-![alt text](<assets/2000-InfiniBand vs RoCE/image-1.png>)
+![NVIDIA InfiniBand网卡详细规格参数对比表](<assets/2000-InfiniBand vs RoCE/image-1.png>)
 
 值得一提的是，`InfiniBand`交换机不运行传统路由协议，而是采用集中式管理机制，由子网管理器负责整个网络转发表的计算与分发工作，同时承担着配置`InfiniBand`子网内部特性的重要任务，例如分区策略和服务质量（`QoS`）。构建`InfiniBand`网络时，必须使用专为`InfiniBand`设计的电缆和光模块来确保交换机之间以及交换机与网卡之间的无缝连接。
 
@@ -55,7 +55,7 @@ description: "深入对比InfiniBand与RoCE v2两种主流RDMA网络解决方案
 
 `InfiniBand`网络创新性地采用了基于信用的信号控制策略，从底层设计上有效防止了缓冲区溢出和数据包丢失的问题。在数据发送前，发送端会确保接收端拥有充足的信用额度来处理相应数量的数据包。每条链路在`InfiniBand`架构中均预设了缓冲区，数据传输量严格受限于接收端当前可用的缓冲区容量。一旦接收端完成转发任务，即释放缓冲区，并实时更新并反馈当前剩余的缓冲区大小。这种链路级别的流量控制技术确保了发送端不会向网络中过度填充数据，从而有效地避免了因缓冲区满载而导致的数据包丢失。
 
-![alt text](<assets/2000-InfiniBand vs RoCE/image-2.png>)
+![InfiniBand基于信用的流量控制机制示意图](<assets/2000-InfiniBand vs RoCE/image-2.png>)
 
 ### 网卡扩展及自适应路由能力
 `InfiniBand`网络还采用了先进的自适应路由技术，支持针对每个数据包进行动态路径选择，这使得在网络大规模部署时能充分利用资源，实现最优性能表现。例如，在百度高性能计算云、微软Azure等大型云计算环境中，采用`InfiniBand`互联的GPU集群得到了广泛应用。
@@ -74,18 +74,18 @@ description: "深入对比InfiniBand与RoCE v2两种主流RDMA网络解决方案
 
 不同于依赖于集中式管理架构（如子网管理器`SM`）的`InfiniBand`网络，`RoCE v2`网络采用全分布式架构设计，并由具备`RoCEv2`功能的`NIC`（网络接口卡）和交换机共同构建，通常以两层架构部署在数据中心环境中。
 
-![alt text](<assets/2000-InfiniBand vs RoCE/image-3.png>)
+![RoCE v2网络分布式架构拓扑图](<assets/2000-InfiniBand vs RoCE/image-3.png>)
 
 多家主流制造商已提供支持`RoCE`技术的网络适配器产品，其中`NVIDIA`、`Intel`和`Broadcom`是主要供应商。作为数据中心服务器网络适配器的主要形态，`PCIe`卡广泛应用其中。`RDMA`卡普遍配置有`50Gbps`起步的端口`PHY`速率，目前市面上可购买到的商用单端口网络适配器最高速度已达`400Gbps`级别。
 
-![alt text](<assets/2000-InfiniBand vs RoCE/image-4.png>)
+![RDMA网卡产品速率和规格对比表](<assets/2000-InfiniBand vs RoCE/image-4.png>)
 
 当前大部分数据中心交换机均已集成`RDMA`流控技术，在与`RoCE`网络适配器协同工作时，能够实现从发送端到接收端的高效`RDMA`通信。全球顶尖的数据中心交换机厂商，如`Cisco`、`Hewlett Packard Enterprise（HPE）`以及`Arista`等，均提供了高性能且稳定的数据中心解决方案，以满足大规模数据中心对带宽和性能的需求。这些公司在网络技术创新、性能优化及扩展性方面积累了深厚的专业经验，并在全球范围内赢得了广泛的市场认可和应用实践。
 
 高性能交换机的核心竞争力在于其采用的转发芯片。在当前市场中，`Broadcom`公司的`Tomahawk`系列芯片被广泛应用于商业交换机的转发层面。其中，`Tomahawk3`系列芯片在现役交换机市场上占据主导地位，而随着技术迭代升级，越来越多的新型交换机开始支持更先进的`Tomahawk4`系列芯片。
 `RoCE v2`基于以太网协议运行，因此可以充分利用传统的以太网光纤和光模块资源进行部署。
 
-![alt text](<assets/2000-InfiniBand vs RoCE/image-5.png>)
+![数据中心交换机Broadcom Tomahawk芯片系列](<assets/2000-InfiniBand vs RoCE/image-5.png>)
 
 ## ROCE v2网络技术特性解析
 相比于`InfiniBand`，`RoCE v2`网络解决方案在灵活性和成本效益上展现出更多优势。该技术不仅能够构建高性能的`RDMA`（远程直接内存访问）网络环境，同时还能无缝融入传统以太网架构中。然而，在实际部署过程中，需要对交换机进行诸如`Headroom`预留、`PFC`（优先级流量控制）以及`ECN`（显式拥塞通知）等参数的精细配置，这可能会增加一定的实施复杂度。尤其是在大规模部署场景下，尤其是当涉及大量网络接口卡时，相较于`InfiniBand`网络，`RoCE v2`网络的整体吞吐性能可能略逊一筹。
@@ -95,13 +95,13 @@ description: "深入对比InfiniBand与RoCE v2两种主流RDMA网络解决方案
 ## InfiniBand vs. RoCE v2
 从技术层面剖析，`InfiniBand`通过整合多种创新技术手段，有效提升了网络数据转发效率、缩短了故障恢复时间、增强了网络扩展性，并简化了运维管理的复杂度。
 
-![alt text](<assets/2000-InfiniBand vs RoCE/image-6.png>)
+![InfiniBand与RoCE v2技术特性对比表](<assets/2000-InfiniBand vs RoCE/image-6.png>)
 
 在实际应用中，`RoCE v2`作为一项高效解决方案，在满足大多数智能计算场景需求的同时，`InfiniBand`则凭借其在特定领域的卓越性能表现而备受瞩目。
 
 **业务性能**：`InfiniBand`因其较低的端到端延迟特性，在应用层面上能提供更优的业务性能体验。尽管如此，`RoCE v2`同样能够在大部分智能计算场景下达到用户所需的业务处理效能标准。
 
-![alt text](<assets/2000-InfiniBand vs RoCE/image-7.png>)
+![InfiniBand与RoCE v2业务性能延迟对比图](<assets/2000-InfiniBand vs RoCE/image-7.png>)
 
 **业务规模**：`InfiniBand`具备强大的扩展能力，能够支持数万个GPU卡构建集群，且在大规模部署下仍可保持性能稳定无损，已在业界拥有大量成功商业应用案例。而`RoCE v2`网络也不甘示弱，它能够支撑数千张卡构成的集群，并且整体网络性能并无显著下滑。
 

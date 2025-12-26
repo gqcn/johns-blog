@@ -95,7 +95,7 @@ graph TD
 
 
 **调度器内部工作流程**：
-![alt text](assets/7000-Volcano调度器支持智算卡Quota改进方案/image.png)
+![Volcano调度器工作流程示意图](assets/7000-Volcano调度器支持智算卡Quota改进方案/image.png)
 
 这张图来源`volcano`官网，展示了`volcano`调度器执行的工作流程。调度器中存在`action`和`plugin`两种类型的可插拔资源，`action`用于实现一些关键步骤，如任务入队（`enqueue`）、资源分配（`allocate`）、抢占（`preempt`）、回收（`reclaim`）等；但是`action`的具体实现是依赖`plugin`注册的扩展点函数。`plugin`资源定义了具体的功能特性实现，用于在各个`action`步骤来实现具体的业务逻辑。
 

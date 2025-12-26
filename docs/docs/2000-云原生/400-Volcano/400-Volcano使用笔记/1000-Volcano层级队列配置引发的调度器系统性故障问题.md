@@ -56,12 +56,12 @@ status:
 ```text
 E0815 02:53:22.165811 1 capacity.go:510] Failed to check queue's hierarchical structure, error; queue <rot> capability is less than its child queue <test-queue>
 ```
-![alt text](assets/5000-Volcano层级队列配置引发的调度器系统性故障问题/image.png)
+![Volcano调度器队列层级结构检查错误日志](assets/5000-Volcano层级队列配置引发的调度器系统性故障问题/image.png)
 或者
 ```text
 E0815 05:55:34.455546 1 capacity.go:612] Failed to check queue's hierarchical structure, error: queue <root> capability <cpu 30000.00, memory 24652726272.00, pods 330.00, ephemeral-storage 3243300384768000.00, hugepages-1Gi 0.00, hugepages-2Mi 0.00, hugepages-32Mi 0.00, hugepages-64Ki 0.00> is less than its child queue <test-queue> capability <cpu 20000000.00, memory 21474836480000.00, hugepages-2Mi 0.00, hugepages-32Mi 0.00, hugepages-64Ki 0.00, pods 330.00, ephemeral-storage 3243300384768000.00, hugepages-1Gi 0.00>
 ```
-![alt text](assets/5000-Volcano层级队列配置引发的调度器系统性故障问题/image-1.png)
+![Volcano调度器root队列资源容量检查失败错误日志](assets/5000-Volcano层级队列配置引发的调度器系统性故障问题/image-1.png)
 
 该问题在`1.8.2`的`volcano`版本中（目前笔者旧版本集群使用的`volcano`版本），将会导致调度器组件直接`panic crash`。而在新版本如`1.12.1`以后，调度器不会`panic crash`，但是调度器仍然不能系统性工作，并且会在日志中不断打印错误日志。
 

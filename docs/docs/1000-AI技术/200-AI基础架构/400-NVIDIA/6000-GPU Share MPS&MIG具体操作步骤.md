@@ -26,7 +26,7 @@ description: "详细介绍NVIDIA GPU共享技术MPS和MIG的原理、优缺点�
 | 适用场景 | 多副本推理服务、小模型训练 | 多租户环境、需要强隔离的业务 |
 
 
-![alt text](<assets/7000-GPU Share MPS&MIG具体操作步骤/image.png>)
+![GPU MPS与MIG技术特性对比示意图](<assets/7000-GPU Share MPS&MIG具体操作步骤/image.png>)
 
 ## MPS拆卡方案
 ### 依赖与限制
@@ -358,7 +358,7 @@ Allocatable:
 #### 通过GPU Operator的配置文件识别
 可以参考`GPU Operator`的源码：https://github.com/NVIDIA/gpu-operator/blob/main/assets/state-mig-manager/0400_configmap.yaml
 
-![alt text](<assets/7000-GPU Share MPS&MIG具体操作步骤/image-1.png>)
+![GPU Operator支持MIG的GPU型号配置文件](<assets/7000-GPU Share MPS&MIG具体操作步骤/image-1.png>)
 
 里面有大概型号名称的注释以及十六进制型号编码，但是需要和`nvidia.com/gpu.product`配置对应的话，名称会存在一定差异不太好做自动化识别。前期可以做配置文件，将企业用到的卡型号配置进去进行识别；后续可以通过脚本识别底层`GPU`卡十六进制编号，并自动打标到节点上。
 使用`nvidia-smi`工具识别`GPU`设备十六进制型号的命令：
@@ -684,7 +684,7 @@ data:
 其实这个配置文件是默认的`MIG`拆卡配置，可以参考`GPU Operator`的源码：https://github.com/NVIDIA/gpu-operator/blob/main/assets/state-mig-manager/0400_configmap.yaml
 
 拆卡设备名称规则：
-![alt text](<assets/7000-GPU Share MPS&MIG具体操作步骤/image-2.png>)
+![MIG拆卡设备命名规则示意图](<assets/7000-GPU Share MPS&MIG具体操作步骤/image-2.png>)
 
 #### 增加自定义MIG拆卡内容
 我们在`custom-mig-parted-config`这个`ConfigMap`内容的最末尾增加一个自定义的`MIG`拆卡配置，该配置的变更可以手动但通常是由程序自动更新完成：
@@ -807,7 +807,7 @@ nvidia.com/mig-3g.48gb: "1"
     >
     > MIG Manager uses the mig-parted tool to apply the configuration changes to the GPU, including enabling MIG mode, with a node reboot as required by some scenarios.
 
-    ![alt text](<assets/6000-GPU Share MPS&MIG具体操作步骤/image.png>)
+    ![GPU Operator官方文档中MIG配置说明截图](<assets/6000-GPU Share MPS&MIG具体操作步骤/image.png>)
 
 ## 总结
 

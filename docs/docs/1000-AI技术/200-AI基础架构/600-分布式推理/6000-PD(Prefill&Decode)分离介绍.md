@@ -75,7 +75,7 @@ description: "深入探讨LLM推理中的PD(Prefill&Decode)分离技术，分析
 
 现代`LLM`推理系统广泛采用`Continuous Batching`技术来提高吞吐量。然而，`Prefill`和`Decode`阶段对批处理的响应特性截然不同：
 
-![alt text](assets/PD(Prefill&Decode)分离介绍/image.png)
+![Prefill和Decode阶段对Batch Size响应特性对比图](assets/PD(Prefill&Decode)分离介绍/image.png)
 
 - **Prefill阶段**：由于是计算密集型，随着`Batch Size`的增加，受算力限制，吞吐量增长趋势逐渐平缓
 - **Decode阶段**：由于是内存带宽密集型，随着`Batch Size`的增加，吞吐量增长趋势越来越显著
@@ -84,7 +84,7 @@ description: "深入探讨LLM推理中的PD(Prefill&Decode)分离技术，分析
 
 在传统的一体化部署模式中，当Prefill和Decode在同一设备上执行时，会出现严重的资源竞争问题：
 
-![alt text](assets/PD(Prefill&Decode)分离介绍/image-2.png)
+![传统Prefill和Decode一体化部署资源竞争示意图](assets/PD(Prefill&Decode)分离介绍/image-2.png)
 
 如上图所示，当新的请求（`request5`或`request6`）到达时，系统会优先处理新请求的`Prefill`阶段，这会直接影响正在进行的`Decode`任务（`request2/3/4`），导致：
 
@@ -96,7 +96,7 @@ description: "深入探讨LLM推理中的PD(Prefill&Decode)分离技术，分析
 
 为了解决上述问题，`PD`分离架构将`Prefill`和`Decode`部署在不同规格的集群中：
 
-![alt text](assets/PD(Prefill&Decode)分离介绍/image-1.png)
+![Prefill和Decode分离部署架构示意图](assets/PD(Prefill&Decode)分离介绍/image-1.png)
 
 通过这种分离部署方案，配合智能的任务调度策略，可以在满足`TTFT`和`TBT`指标的前提下，结合`Continuous Batching`机制最大化`Decode`阶段的并发处理能力，从而在提供更好用户体验的同时，显著提升算力利用率。
 

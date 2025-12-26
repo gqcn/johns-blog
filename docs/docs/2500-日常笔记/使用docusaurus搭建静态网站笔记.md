@@ -16,7 +16,7 @@ keywords: [docusaurus, 静态网站, github actions, nginx, ssl证书, certbot, 
 
 同时需要配置`github pages`部署的分支，在`Environments / Configure github-pages`中配置：
 
-![alt text](assets/使用docusaurus搭建静态网站笔记/image.png)
+![GitHub Pages部署分支配置界面](assets/使用docusaurus搭建静态网站笔记/image.png)
 
 ## 服务器配置
 

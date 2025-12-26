@@ -13,7 +13,7 @@ description: "本文详细介绍NVIDIA GPU Operator的主要作用、组件构�
 
 ## GPU Operator的主要作用
 
-![alt text](<assets/GPU Operator技术介绍/image.png>)
+![GPU Operator自动化部署GPU组件架构示意图](<assets/GPU Operator技术介绍/image.png>)
 
 `NVIDIA GPU Operator`是一个基于`Kubernetes Operator`框架开发的解决方案，旨在简化`Kubernetes`集群中`NVIDIA GPU`的管理和使用。在传统的`Kubernetes`环境中，要使用`GPU`资源，管理员需要手动完成多个复杂的配置步骤，包括：
 
@@ -72,7 +72,7 @@ description: "本文详细介绍NVIDIA GPU Operator的主要作用、组件构�
 
 `GPU Operator`使用状态机模式来管理其生命周期，主要包括以下状态转换过程：
 
-![alt text](<assets/GPU Operator技术介绍/image-1.png>)
+![GPU Operator状态机流程图](<assets/GPU Operator技术介绍/image-1.png>)
 
 状态机按照以下顺序执行：
 
@@ -111,7 +111,7 @@ feature.node.kubernetes.io/pci-10de.present=true
 
 ## GPU Operator包含的组件
 
-![alt text](./assets/GPU%20Operator技术介绍/image-2.png)
+![GPU Operator包含的核心组件架构图](./assets/GPU%20Operator技术介绍/image-2.png)
 
 `GPU Operator`采用容器化方式部署和管理以下核心组件：
 

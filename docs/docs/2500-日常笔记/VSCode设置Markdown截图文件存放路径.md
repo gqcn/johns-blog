@@ -10,15 +10,15 @@ keywords: [VSCode, Markdown, 截图, 图片路径, 文件管理]
 `VSCode`或者任何基于`VSCode`的编辑器，如`Windsurf`、`Cursor`等，设置将截图粘贴到`Markdown`文件时，自动将图片文件保存到指定的`Markdown`截图文件存放路径。
 
 1. 打开`Settings`
-    ![alt text](assets/VSCode设置截图文件存放路径/image.png)
+    ![VSCode打开设置界面](assets/VSCode设置截图文件存放路径/image.png)
 
 2. 输入`markdown.copy`, 找到 `Markdown> Copy Files:Destination`
 
 3. 新增项:
     - Key为: `**/*.md`, Value为目标路径：`assets/${documentBaseName}/${fileName}`
     - Key为: `**/*.MD`, Value为目标路径：`assets/${documentBaseName}/${fileName}`
-    ![alt text](assets/VSCode设置截图文件存放路径/image-1.png)
+    ![Markdown Copy Files Destination配置项](assets/VSCode设置截图文件存放路径/image-1.png)
 
 4. 如果以上方式仍旧无效，那么可以尝试搜索`paste`，找到`Paste As: Enabled`选项，打勾：
 
-    ![alt text](assets/VSCode设置截图文件存放路径/image-2.png)
+    ![Paste As Enabled选项配置](assets/VSCode设置截图文件存放路径/image-2.png)
