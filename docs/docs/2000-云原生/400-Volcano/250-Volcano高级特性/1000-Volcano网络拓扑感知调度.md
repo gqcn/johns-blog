@@ -545,24 +545,7 @@ spec:
             volcano.sh/tier: "1"
 ```
 
-## 注意事项
 
-
-### 必须设置任务资源量
-
-网络拓扑感知调度依赖于任务的资源请求信息来进行合理的调度决策，如果任务是`BestEffort`类型（没有资源请求或者限制），即便启用了网络拓扑调度插件，但该任务并不触发网络拓扑调度。因此，**必须在`Volcano Job`或`PodGroup`的任务模板中明确设置资源请求（`requests`）和限制（`limits`）**，例如：
-
-```yaml
-resources:
-  requests:
-    cpu: "4"
-    memory: "16Gi"
-    nvidia.com/gpu: "1"
-  limits:
-    cpu: "4"
-    memory: "16Gi"
-    nvidia.com/gpu: "1"
-```
 
 
 
@@ -731,6 +714,29 @@ spec:
 - 必须设置资源`requests`和`limits`，避免`BestEffort`类型
 - `group-min-member`通常设置为`replicas`的值
 
+
+## 注意事项
+
+
+### 必须设置任务资源量
+
+网络拓扑感知调度依赖于任务的资源请求信息来进行合理的调度决策，如果任务是`BestEffort`类型（没有资源请求或者限制），即便启用了网络拓扑调度插件，但该任务并不触发网络拓扑调度。因此，**必须在`Volcano Job`或`PodGroup`的任务模板中明确设置资源请求（`requests`）和限制（`limits`）**，例如：
+
+```yaml
+resources:
+  requests:
+    cpu: "4"
+    memory: "16Gi"
+    nvidia.com/gpu: "1"
+  limits:
+    cpu: "4"
+    memory: "16Gi"
+    nvidia.com/gpu: "1"
+```
+
+### 调度时不存在HyperNode
+
+如果任务中指定了网络拓扑调度的配置，但是集群中不存在任何`HyperNode`资源，那么该任务的调度不会受到网络拓扑感知调度插件的影响，调度器会按照默认的调度逻辑进行调度。
 
 ## 参考资料
 
