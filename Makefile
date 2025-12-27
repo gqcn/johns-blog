@@ -24,7 +24,7 @@ build:
 	@python3 convert_images_for_build.py
 	@echo ""
 	@echo "🔨 步骤3: 执行构建..."
-	@DOCUSAURUS_IGNORE_SSG_WARNINGS=true yarn run build
+	@yarn run build
 	@echo ""
 	@echo "♻️  步骤4: 恢复原始文件..."
 	@python3 convert_images_for_build.py --revert
