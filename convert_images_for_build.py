@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Markdown 图片引用转换脚本
+在构建前将普通 Markdown 图片语法转换为 ideal-image 组件
+
+功能：
+1. 扫描所有 Markdown 文件，转换为 MDX 格式
+2. 查找 ![alt](image.png) 格式的图片引用
+3. 转换为 <Image img={require('image.png')} alt="alt" /> 格式
+4. 自动添加 Image 组件导入语句
+5. 利用 Docusaurus ideal-image 插件自动生成响应式图片
+
+使用方法：
+  python3 convert_images_for_build.py          # 转换所有目录
+  python3 convert_images_for_build.py blog     # 只转换 blog 目录
+  python3 convert_images_for_build.py --revert # 恢复原始文件
+"""
+
+import os
+import re
+import sys
+import shutil
+from pathlib import Path
+from datetime import datetime
+from urllib.parse import unquote
+
+# 备份目录
+BACKUP_DIR = ".build-backup"
+# Image 组件导入语句
+IMAGE_IMPORT = "import Image from '@theme/IdealImage';\n\n"
+
+def convert_image_syntax(md_content, md_file_path):
+    """
+    转换 Markdown 中的图片语法为 ideal-image 组件
+    
+    ![alt](image.png) -> <Image img={require('./image.png')} alt="alt" />
+    """
+    # 如果文件包含 ./attachments/ 引用，跳过转换（这些目录通常不存在）
+    if './attachments/' in md_content or '(/attachments/' in md_content:
+        return md_content, 0
+    
+    # 匹配 Markdown 图片语法: ![alt](path) 或 ![alt](<path with spaces>)
+    pattern = r'!\[(.*?)\]\(<?([^)>]+?)>?\)'
+    
+    conversions = 0
+    has_images = False
+    
+    def replace_image(match):
+        nonlocal conversions, has_images
+        alt_text = match.group(1)
+        image_path = match.group(2).strip()
+        
+        # 只处理常见图片格式
+        if not re.search(r'\.(png|jpg|jpeg|webp|gif)$', image_path, re.IGNORECASE):
+            return match.group(0)
+        
+        has_images = True
+        conversions += 1
+        
+        # URL 解码路径（处理 %20 等编码字符）
+        image_path = unquote(image_path)
+        
+        # 移除开头的 /（避免 .// 双斜杠）
+        image_path = image_path.lstrip('/')
+        
+        # 转换为 ideal-image 组件语法
+        # 处理路径中的特殊字符
+        escaped_path = image_path.replace("'", "\\'")
+        
+        # 添加 ./ 前缀（require 需要相对路径）
+        if not escaped_path.startswith('./'):
+            escaped_path = './' + escaped_path
+        
+        return f"<Image img={{require('{escaped_path}')}} alt=\"{alt_text}\" />"
+    
+    new_content = re.sub(pattern, replace_image, md_content)
+    
+    # 如果有图片转换，需要添加 import 语句
+    if has_images and conversions > 0:
+        # 检查是否已经有 import 语句
+        if IMAGE_IMPORT.strip() not in new_content:
+            # 在文件开头添加 import（在 frontmatter 之后）
+            # 检查是否有 frontmatter
+            if new_content.startswith('---'):
+                # 找到第二个 ---
+                parts = new_content.split('---', 2)
+                if len(parts) >= 3:
+                    new_content = f"---{parts[1]}---\n{IMAGE_IMPORT}{parts[2]}"
+                else:
+                    new_content = IMAGE_IMPORT + new_content
+            else:
+                new_content = IMAGE_IMPORT + new_content
+    
+    return new_content, conversions
+
+def backup_file(file_path, backup_dir):
+    """备份文件"""
+    backup_path = Path(backup_dir) / file_path.relative_to(Path.cwd())
+    backup_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(file_path, backup_path)
+
+def convert_markdown_files(target_dirs, backup_root):
+    """转换指定目录下的所有 Markdown 文件为 MDX 格式"""
+    total_files = 0
+    converted_files = 0
+    total_images = 0
+    renamed_files = []
+    
+    print("🔄 开始转换 Markdown 图片引用为 ideal-image 组件...")
+    print(f"📦 备份目录: {backup_root}")
+    print("=" * 80)
+    
+    for target_dir in target_dirs:
+        if not target_dir.exists():
+            print(f"⚠️  跳过：目录不存在 - {target_dir}")
+            continue
+        
+        print(f"\n📁 处理目录: {target_dir}")
+        
+        # 遍历所有 Markdown 文件（包括 .md 和 .mdx）
+        for md_file in list(target_dir.rglob('*.md')) + list(target_dir.rglob('*.mdx')):
+            # 跳过备份目录
+            if BACKUP_DIR in md_file.parts or '.backup' in md_file.parts:
+                continue
+            
+            # 跳过 hidden 目录（与 docusaurus.config.ts 的 ignorePatterns 一致）
+            if 'hidden' in md_file.parts:
+                continue
+            
+            total_files += 1
+            
+            try:
+                # 读取文件
+                with open(md_file, 'r', encoding='utf-8') as f:
+                    original_content = f.read()
+                
+                # 转换图片语法
+                new_content, conversions = convert_image_syntax(original_content, md_file)
+                
+                if conversions > 0:
+                    # 备份原始文件
+                    backup_file(md_file, backup_root)
+                    
+                    # 如果是 .md 文件，重命名为 .mdx
+                    if md_file.suffix == '.md':
+                        mdx_file = md_file.with_suffix('.mdx')
+                        renamed_files.append((md_file, mdx_file))
+                        
+                        # 写入新内容到 .mdx 文件
+                        with open(mdx_file, 'w', encoding='utf-8') as f:
+                            f.write(new_content)
+                        
+                        # 删除原 .md 文件
+                        md_file.unlink()
+                        
+                        converted_files += 1
+                        total_images += conversions
+                        print(f"  ✅ {md_file.relative_to(target_dir)} → {mdx_file.name}: {conversions} 张图片已转换")
+                    else:
+                        # 已经是 .mdx 文件，直接覆盖
+                        with open(md_file, 'w', encoding='utf-8') as f:
+                            f.write(new_content)
+                        
+                        converted_files += 1
+                        total_images += conversions
+                        print(f"  ✅ {md_file.relative_to(target_dir)}: {conversions} 张图片已转换")
+            
+            except Exception as e:
+                print(f"  ❌ 处理失败 {md_file.name}: {e}")
+    
+    print("\n" + "=" * 80)
+    print("📊 转换汇总:")
+    print(f"  扫描文件数: {total_files}")
+    print(f"  已转换文件: {converted_files}")
+    print(f"  已转换图片: {total_images}")
+    print(f"  .md → .mdx: {len(renamed_files)}")
+    print(f"  未转换文件: {total_files - converted_files}")
+    print("=" * 80)
+    
+    return converted_files > 0
+
+def revert_files(backup_root):
+    """从备份恢复原始文件"""
+    if not backup_root.exists():
+        print("⚠️  没有找到备份目录，无需恢复")
+        return
+    
+    print("🔄 开始恢复原始文件...")
+    print(f"📦 备份目录: {backup_root}")
+    print("=" * 80)
+    
+    restored_count = 0
+    mdx_deleted_count = 0
+    
+    # 首先删除所有 .mdx 文件（这些是转换生成的）
+    for target_dir in [Path.cwd() / 'blog', Path.cwd() / 'docs']:
+        if target_dir.exists():
+            for mdx_file in target_dir.rglob('*.mdx'):
+                if BACKUP_DIR not in mdx_file.parts and '.backup' not in mdx_file.parts:
+                    # 检查是否有对应的备份 .md 文件
+                    md_file = mdx_file.with_suffix('.md')
+                    backup_md = backup_root / md_file.relative_to(Path.cwd())
+                    
+                    if backup_md.exists():
+                        try:
+                            mdx_file.unlink()
+                            mdx_deleted_count += 1
+                            print(f"  🗑️  已删除转换文件: {mdx_file.relative_to(Path.cwd())}")
+                        except Exception as e:
+                            print(f"  ❌ 删除失败 {mdx_file.name}: {e}")
+    
+    # 遍历备份目录，恢复所有文件
+    for backup_file_path in backup_root.rglob('*'):
+        if backup_file_path.is_file():
+            # 计算原始文件路径
+            relative_path = backup_file_path.relative_to(backup_root)
+            original_file = Path.cwd() / relative_path
+            
+            try:
+                # 确保目标目录存在
+                original_file.parent.mkdir(parents=True, exist_ok=True)
+                
+                # 恢复文件
+                shutil.copy2(backup_file_path, original_file)
+                restored_count += 1
+                print(f"  ✅ 已恢复: {relative_path}")
+            except Exception as e:
+                print(f"  ❌ 恢复失败 {relative_path}: {e}")
+    
+    # 删除备份目录
+    try:
+        shutil.rmtree(backup_root)
+        print(f"\n✅ 已删除备份目录: {backup_root}")
+    except Exception as e:
+        print(f"\n⚠️  删除备份目录失败: {e}")
+    
+    print("\n" + "=" * 80)
+    print(f"📊 恢复汇总:")
+    print(f"  已恢复 .md 文件: {restored_count}")
+    print(f"  已删除 .mdx 文件: {mdx_deleted_count}")
+    print("=" * 80)
+
+def main():
+    """主函数"""
+    script_dir = Path(__file__).parent
+    backup_root = script_dir / BACKUP_DIR
+    
+    # 检查是否是恢复模式
+    if '--revert' in sys.argv or '-r' in sys.argv:
+        revert_files(backup_root)
+        return
+    
+    # 确定要处理的目录
+    if len(sys.argv) > 1 and not sys.argv[1].startswith('--'):
+        target_dirs = [Path(arg) for arg in sys.argv[1:] if not arg.startswith('--')]
+    else:
+        target_dirs = [
+            script_dir / 'blog',
+            script_dir / 'docs',
+        ]
+    
+    print("🖼️  Markdown 图片引用转换工具（ideal-image 模式）")
+    print(f"⏰ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"📂 待处理目录数: {len(target_dirs)}")
+    
+    # 转换文件
+    has_changes = convert_markdown_files(target_dirs, backup_root)
+    
+    if has_changes:
+        print("\n💡 提示:")
+        print("  - 原始 .md 文件已备份到:", backup_root)
+        print("  - 已将包含图片的文件转换为 .mdx 格式")
+        print("  - ideal-image 插件会自动生成响应式图片")
+        print("  - 构建完成后运行以下命令恢复原始文件:")
+        print(f"    python3 {Path(__file__).name} --revert")
+        print("\n📝 配置说明:")
+        print("  - 可在 docusaurus.config.ts 中调整 ideal-image 插件配置")
+        print("  - quality: 图片质量 (1-100)")
+        print("  - max: PC端最大宽度")
+        print("  - min: 移动端最小宽度")
+        print("  - steps: 生成的尺寸版本数量")
+    else:
+        print("\n💡 没有找到需要转换的图片")
+    
+    print(f"\n⏰ 完成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+if __name__ == '__main__':
+    main()

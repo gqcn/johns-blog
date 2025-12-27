@@ -13,7 +13,7 @@ description: "Volcano是基于Kubernetes的高性能批处理系统，为机器�
 
 [Volcano](https://volcano.sh/zh/docs/) 是一个基于`Kubernetes`的批处理平台，提供了机器学习、深度学习、生物信息学、基因组学及其他大数据应用所需要而`Kubernetes`当前缺失的一系列特性，提供了高性能任务调度引擎、高性能异构芯片管理、高性能任务运行管理等通用计算能力。
 
-![Volcano架构](../assets/arch_2.PNG)
+![Volcano架构](../assets/arch_2.png)
 
 `Volcano`具有以下关键特性：
 

@@ -62,10 +62,10 @@ const config: Config = {
     [
       'ideal-image',
       {
-        quality: 70,
-        max: 1030,
-        min: 640,
-        steps: 2,
+        quality: 100,        // 100% 质量，不压缩
+        max: 5000,          // 最大宽度 5000px，确保原图不会被缩小
+        min: 640,           // 移动端仍使用 640px 优化版本
+        steps: 2,           // 生成 2 个版本：640px(移动) + 原图(PC)
         // Use false to debug, but it incurs huge perf costs
         disableInDev: true,
       } satisfies IdealImageOptions,
