@@ -96,8 +96,7 @@ span.LogFields(
 
 *   足够在系统中标识该`span`的信息，比如：`span_id, trace_id`。
 *   `Baggage Items`，为整条追踪连保存跨服务（跨进程）的`K/V`格式的用户自定义数据。`Baggage Items`与`tags`类似，也是`K/V`键值对。与`tags`不同的是：
-
-*   *   其`key`跟`value`都只能是字符串格式
+    *   其`key`跟`value`都只能是字符串格式
     *   `Baggage items`不仅当前`span`可见，其会随着`SpanContext`传递给后续所有的子`span`。要小心谨慎的使用`baggage items` - 因为在所有的`span`中传递这些`K,V`会带来不小的网络和`CPU`开销。
 
 ## References

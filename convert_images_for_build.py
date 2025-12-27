@@ -35,25 +35,21 @@ def convert_image_syntax(md_content, md_file_path):
     转换 Markdown 中的图片语法为 ideal-image 组件
     
     ![alt](image.png) -> <Image img={require('./image.png')} alt="alt" />
+    
+    特殊处理：
+    - ./attachments/ 或 /attachments/ 路径 -> 映射到 /static/attachments/
     """
-    # 如果文件包含 ./attachments/ 引用，跳过转换（这些目录通常不存在）
-    if './attachments/' in md_content or '(/attachments/' in md_content:
-        return md_content, 0
-    
-    # 匹配 Markdown 图片语法: ![alt](path) 或 ![alt](<path with spaces>)
-    pattern = r'!\[(.*?)\]\(<?([^)>]+?)>?\)'
-    
     conversions = 0
     has_images = False
+    
+    # 匹配 Markdown 图片语法: ![alt](path)
+    # 使用 .+? 非贪婪匹配直到找到图片扩展名，支持路径中的括号、&等特殊字符
+    pattern = r'!\[([^\]]*)\]\((.+?\.(?:png|jpg|jpeg|webp|gif))\)'
     
     def replace_image(match):
         nonlocal conversions, has_images
         alt_text = match.group(1)
         image_path = match.group(2).strip()
-        
-        # 只处理常见图片格式
-        if not re.search(r'\.(png|jpg|jpeg|webp|gif)$', image_path, re.IGNORECASE):
-            return match.group(0)
         
         has_images = True
         conversions += 1
@@ -61,6 +57,14 @@ def convert_image_syntax(md_content, md_file_path):
         # URL 解码路径（处理 %20 等编码字符）
         image_path = unquote(image_path)
         
+        # 特殊处理 attachments 路径
+        if 'attachments/' in image_path:
+            # 移除路径前的 ./ 或 /
+            clean_path = image_path.lstrip('./')
+            # 使用 @site 别名引用 static 目录
+            return f"<Image img={{require('@site/static/{clean_path}')}} alt=\"{alt_text}\" />"
+        
+        # 普通相对路径处理
         # 移除开头的 /（避免 .// 双斜杠）
         image_path = image_path.lstrip('/')
         
@@ -99,6 +103,89 @@ def backup_file(file_path, backup_dir):
     backup_path = Path(backup_dir) / file_path.relative_to(Path.cwd())
     backup_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(file_path, backup_path)
+
+def update_markdown_links(target_dirs, renamed_files):
+    """
+    更新其他文档中指向已重命名文件的链接
+    将 .md 链接更新为 .mdx 链接
+    """
+    if not renamed_files:
+        return
+    
+    print("\n🔗 更新文档链接...")
+    print("=" * 80)
+    
+    # 创建重命名映射字典：相对路径 -> 新扩展名
+    rename_map = {}
+    for old_path, new_path in renamed_files:
+        # 使用文件名作为键（因为链接通常是相对路径）
+        old_name = old_path.name
+        new_name = new_path.name
+        rename_map[old_name] = new_name
+    
+    updated_files = 0
+    updated_links = 0
+    
+    # 扫描所有 Markdown 和 MDX 文件
+    for target_dir in target_dirs:
+        if not target_dir.exists():
+            continue
+        
+        for file_path in list(target_dir.rglob('*.md')) + list(target_dir.rglob('*.mdx')):
+            # 跳过备份目录
+            if BACKUP_DIR in file_path.parts or '.backup' in file_path.parts:
+                continue
+            if 'hidden' in file_path.parts:
+                continue
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                original_content = content
+                file_updated = False
+                
+                # 查找所有 Markdown 链接：[text](path)
+                # 匹配 .md 文件链接
+                link_pattern = r'\[([^\]]+)\]\(([^)]+\.md)\)'
+                
+                def replace_link(match):
+                    nonlocal file_updated, updated_links
+                    link_text = match.group(1)
+                    link_path = match.group(2)
+                    
+                    # 提取文件名
+                    from urllib.parse import unquote
+                    decoded_path = unquote(link_path)
+                    file_name = Path(decoded_path).name
+                    
+                    # 检查是否在重命名映射中
+                    if file_name in rename_map:
+                        # 替换扩展名
+                        new_path = link_path.replace('.md', '.mdx')
+                        file_updated = True
+                        updated_links += 1
+                        return f'[{link_text}]({new_path})'
+                    
+                    return match.group(0)
+                
+                # 执行替换
+                content = re.sub(link_pattern, replace_link, content)
+                
+                # 如果有更新，写回文件
+                if file_updated:
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(content)
+                    updated_files += 1
+                    print(f"  ✅ {file_path.relative_to(target_dir)}: 更新了 {content.count('.mdx') - original_content.count('.mdx')} 个链接")
+            
+            except Exception as e:
+                print(f"  ❌ 更新失败 {file_path.name}: {e}")
+    
+    print(f"\n📊 链接更新汇总:")
+    print(f"  已更新文件: {updated_files}")
+    print(f"  已更新链接: {updated_links}")
+    print("=" * 80)
 
 def convert_markdown_files(target_dirs, backup_root):
     """转换指定目录下的所有 Markdown 文件为 MDX 格式"""
@@ -177,6 +264,10 @@ def convert_markdown_files(target_dirs, backup_root):
     print(f"  .md → .mdx: {len(renamed_files)}")
     print(f"  未转换文件: {total_files - converted_files}")
     print("=" * 80)
+    
+    # 更新其他文档中的链接
+    if renamed_files:
+        update_markdown_links(target_dirs, renamed_files)
     
     return converted_files > 0
 
