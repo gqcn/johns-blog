@@ -104,6 +104,106 @@ def backup_file(file_path, backup_dir):
     backup_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(file_path, backup_path)
 
+def convert_referencing_files(target_dirs, renamed_files, backup_root, iteration=1):
+    """
+    转换那些引用了被重命名文件的 .md 文件
+    这些文件本身可能没有图片，但因为引用了被转换的文件，链接会失效
+    所以也需要将它们转换为 .mdx 并更新链接
+    返回：新转换的文件列表 [(old_path, new_path), ...]
+    """
+    if not renamed_files:
+        return []
+    
+    if iteration == 1:
+        print("\n🔗 处理引用了被转换文件的其他文档...")
+        print("=" * 80)
+    else:
+        print(f"\n🔗 第 {iteration} 轮：处理新的引用关系...")
+        print("=" * 80)
+    
+    # 创建被重命名文件的映射：文件名 -> 新文件名
+    rename_map = {}
+    for old_path, new_path in renamed_files:
+        old_name = old_path.name
+        new_name = new_path.name
+        rename_map[old_name] = new_name
+    
+    converted_count = 0
+    link_pattern = r'\[([^\]]+)\]\(([^)]+\.md)\)'
+    newly_renamed = []  # 新转换的文件列表
+    
+    # 扫描所有剩余的 .md 文件和已存在的 .mdx 文件
+    for target_dir in target_dirs:
+        if not target_dir.exists():
+            continue
+        
+        # 处理 .md 文件
+        for file_path in target_dir.rglob('*.md'):
+            # 跳过备份目录
+            if BACKUP_DIR in file_path.parts or '.backup' in file_path.parts:
+                continue
+            if 'hidden' in file_path.parts:
+                continue
+            
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # 检查是否引用了被重命名的文件
+                has_reference = False
+                for match in re.finditer(link_pattern, content):
+                    link_path = match.group(2)
+                    from urllib.parse import unquote
+                    decoded_path = unquote(link_path)
+                    file_name = Path(decoded_path).name
+                    
+                    if file_name in rename_map:
+                        has_reference = True
+                        break
+                
+                # 如果引用了被转换的文件，将此文件也转换为 .mdx
+                if has_reference:
+                    # 备份原始文件
+                    backup_file(file_path, backup_root)
+                    
+                    # 重命名为 .mdx
+                    mdx_file = file_path.with_suffix('.mdx')
+                    
+                    # 更新链接
+                    def replace_link(match):
+                        link_text = match.group(1)
+                        link_path = match.group(2)
+                        from urllib.parse import unquote
+                        decoded_path = unquote(link_path)
+                        file_name = Path(decoded_path).name
+                        
+                        if file_name in rename_map:
+                            new_path = link_path.replace('.md', '.mdx')
+                            return f'[{link_text}]({new_path})'
+                        return match.group(0)
+                    
+                    updated_content = re.sub(link_pattern, replace_link, content)
+                    
+                    # 写入新文件
+                    with open(mdx_file, 'w', encoding='utf-8') as f:
+                        f.write(updated_content)
+                    
+                    # 删除原 .md 文件
+                    file_path.unlink()
+                    
+                    newly_renamed.append((file_path, mdx_file))  # 记录新转换的文件
+                    converted_count += 1
+                    print(f"  ✅ {file_path.relative_to(target_dir)} → {mdx_file.name}: 已更新链接")
+            
+            except Exception as e:
+                print(f"  ❌ 处理失败 {file_path.name}: {e}")
+    
+    if converted_count > 0:
+        print(f"\n📊 额外转换: {converted_count} 个文件因引用关系被转换")
+        print("=" * 80)
+    
+    return newly_renamed
+
 def update_markdown_links(target_dirs, renamed_files):
     """
     更新其他文档中指向已重命名文件的链接
@@ -126,12 +226,12 @@ def update_markdown_links(target_dirs, renamed_files):
     updated_files = 0
     updated_links = 0
     
-    # 扫描所有 Markdown 和 MDX 文件
+    # 只扫描 MDX 文件（已转换的文件），不修改源 .md 文件
     for target_dir in target_dirs:
         if not target_dir.exists():
             continue
         
-        for file_path in list(target_dir.rglob('*.md')) + list(target_dir.rglob('*.mdx')):
+        for file_path in target_dir.rglob('*.mdx'):
             # 跳过备份目录
             if BACKUP_DIR in file_path.parts or '.backup' in file_path.parts:
                 continue
@@ -265,8 +365,23 @@ def convert_markdown_files(target_dirs, backup_root):
     print(f"  未转换文件: {total_files - converted_files}")
     print("=" * 80)
     
-    # 更新其他文档中的链接
+    # 处理引用了被转换文件的其他 .md 文件
+    # 需要迭代处理，因为可能存在链式引用关系
     if renamed_files:
+        all_newly_renamed = []
+        iteration = 1
+        while True:
+            newly_renamed = convert_referencing_files(target_dirs, renamed_files, backup_root, iteration)
+            if not newly_renamed:
+                break  # 没有新的文件被转换，停止迭代
+            
+            all_newly_renamed.extend(newly_renamed)
+            renamed_files.extend(newly_renamed)  # 将新转换的文件加入列表，供下一轮使用
+            iteration += 1
+        
+        converted_files += len(all_newly_renamed)
+        
+        # 更新所有 .mdx 文件中的链接
         update_markdown_links(target_dirs, renamed_files)
     
     return converted_files > 0
