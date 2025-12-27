@@ -42,9 +42,10 @@ def convert_image_syntax(md_content, md_file_path):
     conversions = 0
     has_images = False
     
-    # 匹配 Markdown 图片语法: ![alt](path)
+    # 匹配 Markdown 图片语法: ![alt](path) 或 ![alt](<path>)
+    # 支持带角括号的路径（Markdown 处理空格路径的标准语法）
     # 使用 .+? 非贪婪匹配直到找到图片扩展名，支持路径中的括号、&等特殊字符
-    pattern = r'!\[([^\]]*)\]\((.+?\.(?:png|jpg|jpeg|webp|gif))\)'
+    pattern = r'!\[([^\]]*)\]\(<?(.*?\.(?:png|jpg|jpeg|webp|gif))>?\)'
     
     def replace_image(match):
         nonlocal conversions, has_images
@@ -100,9 +101,26 @@ def convert_image_syntax(md_content, md_file_path):
 
 def backup_file(file_path, backup_dir):
     """备份文件"""
-    backup_path = Path(backup_dir) / file_path.relative_to(Path.cwd())
+    # 将文件路径转为绝对路径，并尝试获取相对于当前工作目录的路径
+    abs_file_path = Path(file_path).resolve()
+    cwd = Path.cwd()
+    
+    try:
+        rel_path = abs_file_path.relative_to(cwd)
+    except ValueError:
+        # 如果文件不在当前工作目录下，使用文件名
+        rel_path = abs_file_path.name
+    
+    backup_path = Path(backup_dir) / rel_path
     backup_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(file_path, backup_path)
+
+def safe_relative_path(file_path, base_path):
+    """安全地获取相对路径，如果失败则返回文件名"""
+    try:
+        return Path(file_path).relative_to(base_path)
+    except ValueError:
+        return Path(file_path).name
 
 def convert_referencing_files(target_dirs, renamed_files, backup_root, iteration=1):
     """
@@ -193,7 +211,7 @@ def convert_referencing_files(target_dirs, renamed_files, backup_root, iteration
                     
                     newly_renamed.append((file_path, mdx_file))  # 记录新转换的文件
                     converted_count += 1
-                    print(f"  ✅ {file_path.relative_to(target_dir)} → {mdx_file.name}: 已更新链接")
+                    print(f"  ✅ {safe_relative_path(file_path, target_dir)} → {mdx_file.name}: 已更新链接")
             
             except Exception as e:
                 print(f"  ❌ 处理失败 {file_path.name}: {e}")
@@ -277,7 +295,7 @@ def update_markdown_links(target_dirs, renamed_files):
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(content)
                     updated_files += 1
-                    print(f"  ✅ {file_path.relative_to(target_dir)}: 更新了 {content.count('.mdx') - original_content.count('.mdx')} 个链接")
+                    print(f"  ✅ {safe_relative_path(file_path, target_dir)}: 更新了 {content.count('.mdx') - original_content.count('.mdx')} 个链接")
             
             except Exception as e:
                 print(f"  ❌ 更新失败 {file_path.name}: {e}")
@@ -343,7 +361,7 @@ def convert_markdown_files(target_dirs, backup_root):
                         
                         converted_files += 1
                         total_images += conversions
-                        print(f"  ✅ {md_file.relative_to(target_dir)} → {mdx_file.name}: {conversions} 张图片已转换")
+                        print(f"  ✅ {safe_relative_path(md_file, target_dir)} → {mdx_file.name}: {conversions} 张图片已转换")
                     else:
                         # 已经是 .mdx 文件，直接覆盖
                         with open(md_file, 'w', encoding='utf-8') as f:
@@ -351,7 +369,7 @@ def convert_markdown_files(target_dirs, backup_root):
                         
                         converted_files += 1
                         total_images += conversions
-                        print(f"  ✅ {md_file.relative_to(target_dir)}: {conversions} 张图片已转换")
+                        print(f"  ✅ {safe_relative_path(md_file, target_dir)}: {conversions} 张图片已转换")
             
             except Exception as e:
                 print(f"  ❌ 处理失败 {md_file.name}: {e}")
@@ -412,7 +430,7 @@ def revert_files(backup_root):
                         try:
                             mdx_file.unlink()
                             mdx_deleted_count += 1
-                            print(f"  🗑️  已删除转换文件: {mdx_file.relative_to(Path.cwd())}")
+                            print(f"  🗑️  已删除转换文件: {safe_relative_path(mdx_file, Path.cwd())}")
                         except Exception as e:
                             print(f"  ❌ 删除失败 {mdx_file.name}: {e}")
     
