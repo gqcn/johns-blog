@@ -20,6 +20,11 @@ import shutil
 from pathlib import Path
 from urllib.parse import unquote
 
+# 切换到项目根目录（脚本所在目录的父目录）
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+os.chdir(PROJECT_ROOT)
+
 def find_attachment_references():
     """查找所有 attachments 图片引用"""
     references = {}

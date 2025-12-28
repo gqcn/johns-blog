@@ -25,6 +25,11 @@ from pathlib import Path
 from datetime import datetime
 from urllib.parse import unquote
 
+# 切换到项目根目录（脚本所在目录的父目录）
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+os.chdir(PROJECT_ROOT)
+
 # 备份目录
 BACKUP_DIR = ".build-backup"
 # Image 组件导入语句
@@ -467,8 +472,8 @@ def revert_files(backup_root):
 
 def main():
     """主函数"""
-    script_dir = Path(__file__).parent
-    backup_root = script_dir / BACKUP_DIR
+    # 使用项目根目录而非脚本目录
+    backup_root = Path(BACKUP_DIR)
     
     # 检查是否是恢复模式
     if '--revert' in sys.argv or '-r' in sys.argv:
@@ -480,8 +485,8 @@ def main():
         target_dirs = [Path(arg) for arg in sys.argv[1:] if not arg.startswith('--')]
     else:
         target_dirs = [
-            script_dir / 'blog',
-            script_dir / 'docs',
+            Path('blog'),
+            Path('docs'),
         ]
     
     print("🖼️  Markdown 图片引用转换工具（ideal-image 模式）")
