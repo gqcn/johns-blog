@@ -126,7 +126,7 @@ def clean_directory(directory, referenced_files, dir_type):
                 os.remove(full_path)
                 removed_count += 1
                 removed_size += file_size
-                print(f"  ❌ 删除: {rel_path} ({file_size / 1024:.1f} KB)")
+                # print(f"  ❌ 删除: {rel_path} ({file_size / 1024:.1f} KB)")
             except Exception as e:
                 print(f"  ⚠️  删除失败 {rel_path}: {e}")
     

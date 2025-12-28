@@ -216,7 +216,7 @@ def convert_referencing_files(target_dirs, renamed_files, backup_root, iteration
                     
                     newly_renamed.append((file_path, mdx_file))  # 记录新转换的文件
                     converted_count += 1
-                    print(f"  ✅ {safe_relative_path(file_path, target_dir)} → {mdx_file.name}: 已更新链接")
+                    # print(f"  ✅ {safe_relative_path(file_path, target_dir)} → {mdx_file.name}: 已更新链接")
             
             except Exception as e:
                 print(f"  ❌ 处理失败 {file_path.name}: {e}")
@@ -300,7 +300,7 @@ def update_markdown_links(target_dirs, renamed_files):
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(content)
                     updated_files += 1
-                    print(f"  ✅ {safe_relative_path(file_path, target_dir)}: 更新了 {content.count('.mdx') - original_content.count('.mdx')} 个链接")
+                    # print(f"  ✅ {safe_relative_path(file_path, target_dir)}: 更新了 {content.count('.mdx') - original_content.count('.mdx')} 个链接")
             
             except Exception as e:
                 print(f"  ❌ 更新失败 {file_path.name}: {e}")
@@ -366,7 +366,7 @@ def convert_markdown_files(target_dirs, backup_root):
                         
                         converted_files += 1
                         total_images += conversions
-                        print(f"  ✅ {safe_relative_path(md_file, target_dir)} → {mdx_file.name}: {conversions} 张图片已转换")
+                        # print(f"  ✅ {safe_relative_path(md_file, target_dir)} → {mdx_file.name}: {conversions} 张图片已转换")
                     else:
                         # 已经是 .mdx 文件，直接覆盖
                         with open(md_file, 'w', encoding='utf-8') as f:
@@ -374,7 +374,7 @@ def convert_markdown_files(target_dirs, backup_root):
                         
                         converted_files += 1
                         total_images += conversions
-                        print(f"  ✅ {safe_relative_path(md_file, target_dir)}: {conversions} 张图片已转换")
+                        # print(f"  ✅ {safe_relative_path(md_file, target_dir)}: {conversions} 张图片已转换")
             
             except Exception as e:
                 print(f"  ❌ 处理失败 {md_file.name}: {e}")
@@ -453,7 +453,7 @@ def revert_files(backup_root):
                 # 恢复文件
                 shutil.copy2(backup_file_path, original_file)
                 restored_count += 1
-                print(f"  ✅ 已恢复: {relative_path}")
+                # print(f"  ✅ 已恢复: {relative_path}")
             except Exception as e:
                 print(f"  ❌ 恢复失败 {relative_path}: {e}")
     

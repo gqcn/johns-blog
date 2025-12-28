@@ -109,7 +109,7 @@ def collect_attachments(dry_run=False):
         # 如果目标已存在，跳过
         if target_path.exists():
             found_count += 1
-            print(f"  ⏭️  已存在: {clean_path}")
+            # print(f"  ⏭️  已存在: {clean_path}")
             continue
         
         # 尝试找到实际文件
