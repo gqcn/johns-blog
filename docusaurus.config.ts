@@ -58,18 +58,7 @@ const config: Config = {
   themes: ['@docusaurus/theme-mermaid'],
   plugins: [
     "docusaurus-numbered-headings",
-    require.resolve('docusaurus-plugin-image-zoom'),
-    [
-      'ideal-image',
-      {
-        quality: 70,
-        max: 1030,
-        min: 640,
-        steps: 2,
-        // Use false to debug, but it incurs huge perf costs
-        disableInDev: true,
-      } satisfies IdealImageOptions,
-    ]
+    require.resolve('docusaurus-plugin-image-zoom')
   ],
   themeConfig: {
     metadata: [
