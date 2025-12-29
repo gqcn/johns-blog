@@ -1,6 +1,6 @@
 ---
 slug: "/cloud-native/kubernetes-kind"
-title: "使用Kubernetes Kind搭建本地测试集群"
+title: "Kubernetes Kind基本介绍"
 hide_title: true
 keywords:
   [
