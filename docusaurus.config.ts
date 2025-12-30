@@ -131,11 +131,6 @@ const config: Config = {
         },
         {
           position: 'left',
-          label: '数据库与中间件',
-          to: '/database-and-middleware',
-        },
-        {
-          position: 'left',
           label: '生活笔记',
           to: '/life',
         },
