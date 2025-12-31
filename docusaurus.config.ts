@@ -64,11 +64,11 @@ const config: Config = {
     metadata: [
       {
         name: 'keywords',
-        content: 'AI技术,GPU虚拟化,Volcano,Kubernetes,云原生,GoFrame,Golang,微服务架构,分布式系统,容器技术,可观测性,Prometheus,链路跟踪,OpenTelemetry,数据库,中间件,技术博客',
+        content: 'AI技术,GPU虚拟化,NVIDIA,vGPU,RDMA,IB,RoCE,网络拓扑,NUMA,Volcano,Kubernetes,云原生,GoFrame,Golang,容器技术,可观测性,OpenTelemetry',
       },
       {
         name: 'description',
-        content: 'John\'s Blog - 专注AI技术、云原生技术、Kubernetes、Volcano、Go开发的技术博客。分享分布式系统、GPU虚拟化、微服务架构等实战经验与深度技术文章。',
+        content: 'John\'s Blog - 专注AI技术、云原生、Kubernetes、Volcano、Go开发的技术博客。分享分布式系统、GPU虚拟化、微服务架构等实战经验与深度技术文章。',
       },
       {
         name: 'author',

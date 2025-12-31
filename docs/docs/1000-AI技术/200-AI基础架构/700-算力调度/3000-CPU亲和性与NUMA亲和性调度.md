@@ -29,10 +29,6 @@ description: "深入探讨AI模型开发训练推理场景下的CPU亲和性与N
 ---
 
 
-:::danger 注意
-本文的内容还在编写中，示例代码还未进行严格测试。
-:::
-
 
 ## 引言
 
@@ -44,6 +40,8 @@ description: "深入探讨AI模型开发训练推理场景下的CPU亲和性与N
 
 ### 什么是NUMA
 
+
+
 `NUMA`（`Non-Uniform Memory Access`，非统一内存访问）是现代多处理器系统采用的一种内存访问架构。在`NUMA`架构中，系统内存被划分为多个`NUMA`节点（`NUMA Node`），每个节点包含一组`CPU`核心和本地内存。
 
 与传统的`UMA`（`Uniform Memory Access`，统一内存访问）架构相比，`NUMA`架构具有以下特点：
@@ -51,6 +49,8 @@ description: "深入探讨AI模型开发训练推理场景下的CPU亲和性与N
 - **本地访问优化**：`CPU`访问本地`NUMA`节点的内存速度最快
 - **远程访问代价**：`CPU`访问其他`NUMA`节点的内存（跨节点访问）会产生额外延迟
 - **可扩展性强**：通过增加`NUMA`节点可以线性扩展系统规模
+
+![CPU处理器架构：SMP、NUMA、MPP](../../../7000-操作系统和网络/assets/CPU处理器架构：SMP、NUMA、MPP/image-7.png)
 
 ### NUMA架构的层级结构
 
@@ -96,6 +96,10 @@ description: "深入探讨AI模型开发训练推理场景下的CPU亲和性与N
    - 主机到设备（`Host-to-Device`）传输
    - 设备到主机（`Device-to-Host`）传输  
    - 统一内存（`Unified Memory`）的页面迁移
+
+### NUMA的更多介绍
+
+关于`NUMA`架构的更多细节，可以参考我的另一篇文章：[CPU处理器架构：SMP、NUMA、MPP](../../../7000-操作系统和网络/CPU处理器架构：SMP、NUMA、MPP.md)
 
 ## CPU&NUMA亲和性的重要性
 
@@ -206,6 +210,40 @@ NUMA Node 0                          NUMA Node 1
 - 跨`NUMA`的`PCIe`访问会显著增加延迟并降低带宽
 - 最佳性能需要`CPU`、内存、`GPU`都在同一`NUMA`节点
 
+### GPU NUMA ID字段解析
+
+`GPU NUMA ID`列在支持的平台上显示`GPU`设备本身的`NUMA`节点`ID`。在上述示例中，所有`GPU`的`GPU NUMA ID`都显示为`N/A`，这表示：
+
+**`N/A`的含义**：
+- `GPU`没有自己的独立`NUMA`节点
+- `GPU`作为`PCIe`设备挂载在`CPU`的`NUMA`节点下
+- 应该参考`NUMA Affinity`列来确定`GPU`所属的`NUMA`节点
+
+**何时会显示具体的NUMA ID**：
+在某些高端系统架构中（如`AMD Infinity Fabric`架构或`NVIDIA Grace Hopper Superchip`），`GPU`可能拥有自己的`NUMA`节点：
+
+```text
+        GPU0    ...    CPU Affinity    NUMA Affinity   GPU NUMA ID
+GPU0     X      ...    0-31,64-95      0               2
+GPU1    PIX     ...    0-31,64-95      0               3
+```
+
+在这种情况下：
+- `NUMA Affinity: 0`表示`GPU`物理连接在`NUMA Node 0`的`PCIe`总线上
+- `GPU NUMA ID: 2`表示`GPU`本身被系统识别为`NUMA Node 2`
+- 这种架构下，`GPU`内存（显存）可以作为独立的`NUMA`节点被`CPU`直接访问
+- 支持`CPU`直接访问`GPU`内存，实现更高效的异构内存管理
+
+**对配置的影响**：
+- **N/A场景**（最常见）：按照`NUMA Affinity`列配置`CPU`和内存亲和性即可
+- **独立NUMA ID场景**：需要考虑`GPU`显存作为额外`NUMA`节点的影响，可能需要配置更复杂的内存策略（如允许访问`GPU NUMA`节点）
+
+**验证命令**：
+```bash
+# 查看系统所有NUMA节点
+numactl --hardware
+```
+
 ### 拓扑分析总结
 
 从上述拓扑信息可以得出以下结论：
@@ -225,555 +263,13 @@ NUMA Node 0                          NUMA Node 1
    - 2卡任务：优先选择`GPU0-GPU1`或`GPU2-GPU3`等`PIX`连接的`GPU`对
    - 4卡任务：选择`GPU0-GPU3`或`GPU4-GPU7`（同`NUMA`节点，性能最优）
    - 5卡任务：例如`GPU0-GPU4`，会跨`NUMA`节点，`GPU4`与`GPU0-3`通信性能较低（`SYS`连接）
-   - 跨`NUMA`任务：尽量选择4+4的组合（如`GPU0-3` + `GPU4-7`在不同节点），避免5卡这种不均衡配置
+   - 跨`NUMA`任务：尽量选择`4+4`的组合（如`GPU0-3` + `GPU4-7`在不同节点），避免`5`卡这种不均衡配置
 
 
 ## Docker中的CPU&NUMA亲和性配置
 
-### Docker的亲和性参数
-
-`Docker`提供了多个参数来控制容器的`CPU`和`NUMA`亲和性：
-
-| 参数 | 说明 | 示例 |
-|------|------|------|
-| `--cpuset-cpus` | 指定容器可使用的`CPU`核心 | `--cpuset-cpus="0-31,64-95"` |
-| `--cpuset-mems` | 指定容器可使用的`NUMA`内存节点 | `--cpuset-mems="0"` |
-| `--cpus` | 限制容器可使用的`CPU`核心数量 | `--cpus="8.0"` |
-| `--cpu-shares` | 设置`CPU`权重（相对值） | `--cpu-shares=1024` |
-
-### 示例1：单GPU训练任务
-
-假设我们要运行一个使用`GPU0`的训练任务：
-
-```bash
-# 查看GPU0的CPU亲和性和NUMA亲和性
-# GPU0: CPU Affinity: 0-31,64-95, NUMA Affinity: 0
-
-docker run -d \
-  --name ai-training-gpu0 \
-  --gpus '"device=0"' \
-  --cpuset-cpus="0-31,64-95" \
-  --cpuset-mems="0" \
-  --shm-size=16g \
-  -v /data:/data \
-  my-training-image:latest \
-  python train.py --gpu 0
-```
-
-**参数说明**：
-- `--gpus '"device=0"'`：使用`GPU0`
-- `--cpuset-cpus="0-31,64-95"`：将容器绑定到`GPU0`的亲和`CPU`核心
-- `--cpuset-mems="0"`：将容器的内存分配限制在`NUMA Node 0`
-- `--shm-size=16g`：设置共享内存大小（`AI`训练通常需要较大的共享内存）
-
-**为什么单GPU也需要设置CPU亲和性？**
-
-虽然是单`GPU`任务，设置`CPU`和`NUMA`亲和性仍然非常重要：
-
-1. **优化CPU-GPU数据传输（内存维度）**：`GPU0`连接在`NUMA Node 0`，即使进程运行在`Node 0`的`CPU`上，如果内存分配来自`NUMA Node 1`，数据从`CPU`内存传输到`GPU`时仍需要跨`NUMA`节点，延迟会增加`2-3`倍。
-
-2. **优化CPU-GPU通信（PCIe维度）**：`GPU`物理连接在特定`NUMA`节点的`PCIe`总线上（如`GPU0`连接在`Node 0`的`PCIe`），如果`CPU`进程运行在其他`NUMA`节点（如`Node 1`），`CPU`与`GPU`的控制命令、状态查询等`PCIe`通信都需要经过`NUMA`互联总线（`QPI/UPI`），增加额外延迟。
-
-3. **提升数据预处理性能**：训练任务通常需要大量`CPU`进行数据加载和预处理（如图像解码、数据增强），这些操作的内存访问如果跨`NUMA`会显著降低吞吐量。
-
-4. **减少延迟抖动**：即使`CPU`绑核，内存分配策略不当或`PCIe`访问跨`NUMA`仍可能导致性能不稳定。
-
-5. **实际性能提升**：根据测试，单`GPU`训练任务正确设置亲和性后，通常可获得`10%-20%`的性能提升。
-
-**重要理解：CPU亲和性 ≠ NUMA内存亲和性**
-
-这是一个常见误解，需要特别说明：
-
-- **`--cpuset-cpus`参数**：控制容器进程可以在**哪些`CPU`核心上执行**（进程调度层面）。
-- **`--cpuset-mems`参数**：控制容器进程的**内存分配来自哪些`NUMA`节点**（内存分配层面），同时也会影响 **`GPU`-内存之间的`PCIe DMA`传输效率**（因为`GPU`物理连接在特定`NUMA`节点的`PCIe`总线上）。
-
-**为什么指定了CPU亲和性还需要指定NUMA亲和性？**
-
-即使使用`--cpuset-cpus="0-31,64-95"`将进程限制在`NUMA Node 0`的`CPU`上运行，**并不意味着内存也会自动从`NUMA Node 0`分配**。原因如下：
-
-1. **Linux内核的内存分配策略**：
-   - 如果不指定`--cpuset-mems`，内核可能使用默认的内存策略（如`default`或`interleave`）
-   - 内核会根据内存压力从任何有可用内存的`NUMA`节点分配
-   - 当`NUMA Node 0`内存不足或碎片化时，会自动从`Node 1`分配
-
-2. **实际场景示例**：
-   ```bash
-   # 只指定CPU亲和性，不指定内存亲和性
-   docker run --cpuset-cpus="0-31,64-95" ...
-   
-   # 容器内查看内存分布
-   numastat -p <pid>
-   # 结果可能显示：
-   # Node 0: 8GB
-   # Node 1: 24GB  ← 大部分内存来自Node 1！
-
-3. **`PCIe`通信与`DMA`传输的影响**：
-   - `GPU`通过`PCIe`连接到特定`NUMA`节点（`GPU0-3`连接到`Node 0`的`PCIe Root Complex`）
-   - 如果`CPU`在`Node 0`但使用`Node 1`的`GPU`，或者`CPU`在`Node 1`但使用`Node 0`的`GPU`
-   - `CPU`与`GPU`之间的`PCIe`事务（寄存器访问、中断处理）都需要跨`NUMA`互联
-   - **`GPU`-内存`DMA`传输同样受`NUMA`影响**：如果`GPU`在`Node 0`但内存在`Node 1`，`GPU`读写内存时需要通过`QPI/UPI`跨`NUMA`访问，`DMA`带宽可能降低50%以上
-   - 跨`NUMA`的`PCIe`访问延迟增加，`DMA`传输效率降低，`GPU`利用率下降
-
-
-### 示例2：多GPU训练任务（同NUMA节点）
-
-使用`GPU0-GPU3`进行`4`卡训练：
-
-```bash
-docker run -d \
-  --name ai-training-4gpu \
-  --gpus '"device=0,1,2,3"' \
-  --cpuset-cpus="0-31,64-95" \
-  --cpuset-mems="0" \
-  --shm-size=32g \
-  -v /data:/data \
-  -e CUDA_VISIBLE_DEVICES=0,1,2,3 \
-  my-training-image:latest \
-  torchrun --nproc_per_node=4 train.py
-```
-
-**关键点**：
-- `4`张`GPU`都在`NUMA Node 0`，使用相同的`CPU`亲和性配置
-- 增加共享内存大小以支持多`GPU`通信
-- 使用`torchrun`启动分布式训练
-
-### 示例3：推理服务（优化延迟）
-
-运行一个使用`GPU0`的推理服务，需要绑定特定的`CPU`核心以降低延迟：
-
-```bash
-docker run -d \
-  --name ai-inference-gpu0 \
-  --gpus '"device=0"' \
-  --cpuset-cpus="0-7,64-71" \
-  --cpuset-mems="0" \
-  --memory="32g" \
-  --memory-reservation="28g" \
-  -p 8080:8080 \
-  -v /models:/models \
-  my-inference-image:latest \
-  python serve.py --gpu 0 --port 8080
-```
-
-**优化说明**：
-- `--cpuset-cpus="0-7,64-71"`：只使用`8`个物理核心（及其超线程），减少调度开销
-- `--memory-reservation`：预留内存，减少内存回收带来的延迟抖动
-- 绑定到`NUMA Node 0`确保本地内存访问
-
-### 示例4：跨NUMA节点的5卡训练
-
-当需要使用`5`张`GPU`时（`GPU0-4`，跨越两个`NUMA`节点），需要考虑跨`NUMA`节点的配置：
-
-```bash
-docker run -d \
-  --name ai-training-5gpu \
-  --gpus '"device=0,1,2,3,4"' \
-  --cpuset-cpus="0-63,64-127" \
-  --cpuset-mems="0,1" \
-  --shm-size=48g \
-  -v /data:/data \
-  -e CUDA_VISIBLE_DEVICES=0,1,2,3,4 \
-  -e OMP_NUM_THREADS=64 \
-  my-training-image:latest \
-  torchrun --nproc_per_node=5 train.py
-```
-
-**注意事项**：
-- **跨NUMA场景**：`GPU0-3`在`NUMA Node 0`，`GPU4`在`NUMA Node 1`，必然存在跨`NUMA`通信
-- `--cpuset-mems="0,1"`：允许使用两个`NUMA`节点的内存
-- 增加`OMP_NUM_THREADS`以充分利用所有`CPU`核心
-- 训练代码应注意`GPU`间通信模式，`GPU4`与`GPU0-3`的通信会经过`SYS`连接（性能较低）
-- **性能优化建议**：如果可能，优先使用`4`卡（`GPU0-3`或`GPU4-7`，单`NUMA`节点）而非`5`卡，可避免跨`NUMA`开销
-
-
-### Docker亲和性配置验证
-
-在容器内可以使用以下命令验证亲和性配置：
-
-```bash
-# 查看容器的CPU亲和性
-docker exec ai-training-gpu0 taskset -cp 1
-
-# 查看容器的NUMA策略
-docker exec ai-training-gpu0 numactl --show
-
-# 查看容器可见的GPU
-docker exec ai-training-gpu0 nvidia-smi -L
-
-# 查看进程的CPU绑定情况
-docker exec ai-training-gpu0 ps -eLo pid,tid,psr,comm | grep python
-```
+参考章节：[Docker中的CPU&NUMA亲和性配置](./4000-Docker中的CPU&NUMA亲和性配置.md)
 
 ## Kubernetes中CPU&NUMA亲和性配置
 
-### Kubernetes的亲和性机制
-
-`Kubernetes`提供了多种机制来控制`Pod`的`CPU`和`NUMA`亲和性：
-
-1. **CPU Manager**：静态策略下实现`CPU`绑核
-2. **Topology Manager**：协调`CPU Manager`和`Device Manager`实现拓扑感知调度
-3. **Device Plugin**：管理`GPU`等设备资源
-4. **节点亲和性**：控制`Pod`调度到特定节点
-
-### 前置条件配置
-
-#### 1. 启用Kubelet特性
-
-需要在`Kubelet`配置中启用以下特性：
-
-```yaml
-# /var/lib/kubelet/config.yaml
-apiVersion: kubelet.config.k8s.io/v1beta1
-kind: KubeletConfiguration
-cpuManagerPolicy: static
-cpuManagerReconcilePeriod: 10s
-topologyManagerPolicy: single-numa-node  # 或 best-effort、restricted
-topologyManagerScope: pod
-reservedSystemCPUs: "0,64"  # 为系统预留CPU核心
-# ...
-```
-
-**Topology Manager策略说明**：
-
-| 策略 | 说明 | 适用场景 |
-|------|------|---------|
-| `none` | 默认策略，不进行拓扑对齐 | 不关心`NUMA`亲和性 |
-| `best-effort` | 尽力对齐，对齐失败也允许调度 | 希望优化但不强制要求 |
-| `restricted` | 优先对齐，失败时放宽限制 | 平衡性能和调度成功率 |
-| `single-numa-node` | 强制所有资源在同一`NUMA`节点 | 对性能要求极高的场景 |
-
-#### 2. 重启Kubelet使配置生效
-
-```bash
-systemctl restart kubelet
-```
-
-
-### 示例1：单GPU训练任务（NUMA Node 0）
-
-创建一个使用`GPU0`的训练任务，绑定到`NUMA Node 0`：
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ai-training-gpu0
-  labels:
-    app: ai-training
-    gpu-id: "0"
-spec:
-  restartPolicy: Never
-  # 节点选择器：确保调度到有GPU0的节点
-  nodeSelector:
-    nvidia.com/gpu.present: "true"
-  
-  containers:
-  - name: training
-    image: my-training-image:latest
-    command: ["python", "train.py", "--gpu", "0"]
-    
-    resources:
-      requests:
-        cpu: "16"           # 请求16个CPU核心
-        memory: "64Gi"      # 请求64GB内存
-        nvidia.com/gpu: 1   # 请求1个GPU
-      limits:
-        cpu: "32"           # 限制最多使用32个CPU核心
-        memory: "128Gi"     # 限制最多使用128GB内存
-        nvidia.com/gpu: 1
-    
-    env:
-    - name: CUDA_VISIBLE_DEVICES
-      value: "0"
-    - name: OMP_NUM_THREADS
-      value: "16"
-    # NUMA绑定环境变量（需要容器支持）
-    - name: GOMP_CPU_AFFINITY
-      value: "0-31 64-95"
-    
-    volumeMounts:
-    - name: data
-      mountPath: /data
-    - name: shm
-      mountPath: /dev/shm
-  
-  volumes:
-  - name: data
-    hostPath:
-      path: /data
-      type: Directory
-  - name: shm
-    emptyDir:
-      medium: Memory
-      sizeLimit: 32Gi
-```
-
-**关键配置说明**：
-
-1. **CPU请求和限制**：
-   - `requests.cpu: "16"`确保`Pod`获得足够的`CPU`资源
-   - 在`static`策略下，`Kubernetes`会为该`Pod`独占分配`16`个`CPU`核心
-   
-2. **GPU资源**：
-   - `nvidia.com/gpu: 1`请求一个`GPU`
-   - `Device Plugin`会根据调度策略分配合适的`GPU`
-
-3. **共享内存**：
-   - 使用`emptyDir`卷挂载到`/dev/shm`，提供足够的共享内存
-
-### 示例2：多GPU训练任务（4卡，同NUMA节点）
-
-使用`GPU0-GPU3`进行`4`卡分布式训练：
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ai-training-4gpu
-  labels:
-    app: ai-training-distributed
-    gpu-count: "4"
-spec:
-  restartPolicy: Never
-  
-  # 节点亲和性：选择有足够GPU的节点
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: nvidia.com/gpu.count
-            operator: Gt
-            values: ["3"]
-  
-  containers:
-  - name: training
-    image: my-training-image:latest
-    command: 
-      - torchrun
-      - --nproc_per_node=4
-      - --nnodes=1
-      - --node_rank=0
-      - train.py
-    
-    resources:
-      requests:
-        cpu: "32"           # 4卡任务请求更多CPU
-        memory: "128Gi"
-        nvidia.com/gpu: 4   # 请求4个GPU
-      limits:
-        cpu: "64"
-        memory: "256Gi"
-        nvidia.com/gpu: 4
-    
-    env:
-    - name: CUDA_VISIBLE_DEVICES
-      value: "0,1,2,3"
-    - name: NCCL_DEBUG
-      value: "INFO"
-    - name: NCCL_IB_DISABLE
-      value: "0"          # 启用InfiniBand（如果可用）
-    - name: NCCL_SOCKET_IFNAME
-      value: "eth0"
-    - name: OMP_NUM_THREADS
-      value: "32"
-    
-    volumeMounts:
-    - name: data
-      mountPath: /data
-    - name: shm
-      mountPath: /dev/shm
-  
-  volumes:
-  - name: data
-    persistentVolumeClaim:
-      claimName: training-data-pvc
-  - name: shm
-    emptyDir:
-      medium: Memory
-      sizeLimit: 64Gi
-```
-
-### 示例3：推理服务（固定GPU和CPU绑核）
-
-部署一个低延迟的推理服务：
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ai-inference-service
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ai-inference
-  template:
-    metadata:
-      labels:
-        app: ai-inference
-    spec:
-      # 使用Guaranteed QoS确保独占CPU
-      containers:
-      - name: inference
-        image: my-inference-image:latest
-        command: ["python", "serve.py", "--gpu", "0", "--port", "8080"]
-        
-        ports:
-        - containerPort: 8080
-          name: http
-          protocol: TCP
-        
-        resources:
-          # requests和limits相同，确保Guaranteed QoS
-          requests:
-            cpu: "8"
-            memory: "32Gi"
-            nvidia.com/gpu: 1
-          limits:
-            cpu: "8"
-            memory: "32Gi"
-            nvidia.com/gpu: 1
-        
-        env:
-        - name: CUDA_VISIBLE_DEVICES
-          value: "0"
-        - name: OMP_NUM_THREADS
-          value: "8"
-        # 固定CPU亲和性
-        - name: GOMP_CPU_AFFINITY
-          value: "0-7 64-71"
-        
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 8080
-          initialDelaySeconds: 20
-          periodSeconds: 5
-        
-        volumeMounts:
-        - name: models
-          mountPath: /models
-          readOnly: true
-      
-      volumes:
-      - name: models
-        persistentVolumeClaim:
-          claimName: models-pvc
-```
-
-**推理服务优化要点**：
-
-1. **Guaranteed QoS**：requests和limits相同，确保Pod获得独占CPU资源
-2. **固定CPU数量**：使用较少的CPU核心，减少调度开销
-3. **健康检查**：配置liveness和readiness探针确保服务稳定
-
-### 示例4：跨NUMA节点的5卡训练
-
-使用5张GPU进行分布式训练（跨NUMA节点）：
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ai-training-5gpu
-  labels:
-    app: ai-training-distributed
-    gpu-count: "5"
-spec:
-  restartPolicy: Never
-  
-  containers:
-  - name: training
-    image: my-training-image:latest
-    command:
-      - torchrun
-      - --nproc_per_node=5
-      - --nnodes=1
-      - --node_rank=0
-      - train.py
-    
-    resources:
-      requests:
-        cpu: "48"
-        memory: "192Gi"
-        nvidia.com/gpu: 5
-      limits:
-        cpu: "96"
-        memory: "384Gi"
-        nvidia.com/gpu: 5
-    
-    env:
-    - name: CUDA_VISIBLE_DEVICES
-      value: "0,1,2,3,4"
-    - name: NCCL_DEBUG
-      value: "INFO"
-    - name: NCCL_IB_DISABLE
-      value: "0"
-    - name: NCCL_SOCKET_IFNAME
-      value: "eth0"
-    # 跨NUMA节点，允许使用所有CPU
-    - name: OMP_NUM_THREADS
-      value: "48"
-    # NCCL拓扑感知
-    - name: NCCL_TOPO_FILE
-      value: "/etc/nccl/topo.xml"
-    
-    volumeMounts:
-    - name: data
-      mountPath: /data
-    - name: shm
-      mountPath: /dev/shm
-    - name: nccl-topo
-      mountPath: /etc/nccl
-      readOnly: true
-  
-  volumes:
-  - name: data
-    persistentVolumeClaim:
-      claimName: training-data-pvc
-  - name: shm
-    emptyDir:
-      medium: Memory
-      sizeLimit: 96Gi
-  - name: nccl-topo
-    configMap:
-      name: nccl-topology-config
-```
-
-**跨NUMA配置说明**：
-
-- **资源分配**：`5`卡场景下，`4`卡在`NUMA Node 0`，`1`卡在`NUMA Node 1`
-- **CPU配置**：分配`48`个物理核心，足够支持`5`卡训练的数据预处理
-- **内存配置**：总共`192GB`请求内存，`Topology Manager`会尽量从两个`NUMA`节点分配
-- **性能考虑**：`GPU4`与`GPU0-3`之间的通信会通过`SYS`连接，带宽较低（8-16 GB/s）
-- **替代方案**：如果性能要求高，建议使用`4`卡（单`NUMA`节点）或`8`卡（双`NUMA`均衡）方案
-
-### 使用Topology Manager实现自动NUMA对齐
-
-当启用`Topology Manager`并设置为`single-numa-node`策略时，`Kubernetes`会自动确保：
-
-1. `Pod`请求的所有`GPU`在同一`NUMA`节点
-2. `Pod`分配的`CPU`核心在同一`NUMA`节点
-3. `Pod`的内存分配优先从同一`NUMA`节点分配
-
-**验证Topology对齐**：
-
-```bash
-# 进入Pod查看CPU绑定
-kubectl exec -it ai-training-gpu0 -- taskset -cp 1
-
-# 查看NUMA策略
-kubectl exec -it ai-training-gpu0 -- numactl --show
-
-# 查看GPU拓扑
-kubectl exec -it ai-training-gpu0 -- nvidia-smi topo -m
-```
-
+参考章节：[Kubernetes CPU&NUMA亲和性调度调度](../../../2000-云原生/200-Kubernetes/5000-Kubernetes%20CPU&NUMA%E4%BA%B2%E5%92%8C%E6%80%A7%E8%B0%83%E5%BA%A6.md)

@@ -213,7 +213,7 @@ spec:
 ```bash
 $ k get pod -owide
 NAME                                               READY   STATUS    RESTARTS   AGE   IP               NODE                                  NOMINATED NODE   READINESS GATES
-qwen25-72b-int4-dhzn-pd-decode-6f44bd8869-lhjv9   1/1     Running   0          20m   10.188.52.252    ai-app-8-1-msxf                       <none>           <none>
+qwen25-72b-int4-dhzn-pd-decode-6f44bd8869-lhjv9    1/1     Running   0          20m   10.188.52.252    ai-app-8-1-msxf                       <none>           <none>
 qwen25-72b-int4-dhzn-pd-prefill-88f47f885-d2c9h    1/1     Running   0          24m   10.188.52.247    ai-app-8-1-msxf                       <none>           <none>
 ```
 
