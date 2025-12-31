@@ -86,7 +86,7 @@ GPU7    SYS     SYS     SYS     SYS     NODE    NODE    PIX      X      32-63,96
 
 ## 关键组件配置详解
 
-以下是启用`CPU`亲和性和`NUMA`亲和性调度的完整`kubelet`配置，该配置通常位于宿主机上的`/var/lib/kubelet/config.yaml`。随后我们会详细介绍每个组件的配置项：
+以下是启用`CPU`亲和性和`NUMA`亲和性调度的完整`kubelet`配置示例，该配置通常位于宿主机上的`/var/lib/kubelet/config.yaml`。随后我们会详细介绍每个组件的配置项：
 
 ```yaml
 apiVersion: kubelet.config.k8s.io/v1beta1
@@ -188,14 +188,15 @@ reservedSystemCPUs: "0-3"                   # 预留CPU 0-3给系统
 
 #### cpuManagerPolicyOptions（策略选项）
 
-| 选项名称  | 说明 |
-|---------|------|
-| `full-pcpus-only` | **仅分配完整物理核心**：启用后，`CPU Manager`只会为容器分配完整的物理核心，而不会分配单个硬件线程（超线程）。这可以有效避免`SMT`（`Simultaneous Multithreading`，超线程）带来的"吵闹邻居"问题，即多个进程共享同一物理核心的执行单元导致的性能干扰。对于`CPU`密集型和延迟敏感的`AI`训练任务，建议启用此选项以获得更稳定的性能表现。例如，在开启超线程的`64`核服务器上（`128`个逻辑核心），启用此选项后容器最多只能获得`64`个完整物理核心 |
-| `distribute-cpus-across-numa` | **跨NUMA均匀分配CPU**：当容器请求多个`CPU`核心时，`CPU Manager`会尽可能将这些核心均匀分配到多个`NUMA`节点上，而不是集中在单个`NUMA`节点。这种策略适合能够感知`NUMA`拓扑并进行并行计算的应用程序，可以充分利用多`NUMA`节点的内存带宽。但需要注意，此选项可能会增加跨`NUMA`内存访问的开销，不适合需要严格`NUMA`局部性的场景。通常与`Topology Manager`的`best-effort`策略配合使用 |
-| `align-by-socket` | **按Socket对齐**：在多`Socket`服务器上，优先在`Socket`边界对齐`CPU`分配，而非`NUMA`边界。在某些服务器架构中，一个`Socket`可能包含多个`NUMA`节点，此选项会尝试将容器的所有`CPU`分配在同一个物理`Socket`上，以减少跨`Socket`通信延迟。这对于需要频繁`CPU`间通信的应用（如共享`L3 Cache`）有性能优势。注意：此选项为`Alpha`特性，默认不启用 |
-| `distribute-cpus-across-cores` | **跨物理核心分配虚拟核心**：当容器请求的`CPU`数量少于节点物理核心数时，此选项会优先将虚拟核心（硬件线程）分配到不同的物理核心上，而不是集中在少数物理核心的多个硬件线程上。这样可以减少同一物理核心内多个线程之间的资源竞争（如执行单元、缓存冲突），提升整体吞吐量。例如，请求`4`个`CPU`时，会分配`4`个不同物理核心的单个线程，而不是`2`个物理核心的`4`个线程。注意：此选项为`Alpha`特性 |
-| `strict-cpu-reservation` | **严格CPU预留**：启用后，会严格隔离通过`reservedSystemCPUs`预留的`CPU`核心，确保任何`Pod`（包括`BestEffort`、`Burstable`和`Guaranteed QoS`）都无法使用这些预留的`CPU`。未启用时，预留的`CPU`仅对`Guaranteed QoS`的独占分配有效，`BestEffort`和`Burstable Pod`仍可能调度到这些核心上。对于需要为系统关键进程（如`kubelet`、容器运行时、系统守护进程）保证稳定`CPU`资源的生产环境，强烈建议启用此选项，避免节点过载导致的稳定性问题 |
-| `prefer-align-cpus-by-uncorecache` | **优先按Uncore Cache对齐**：`Uncore Cache`通常指`Last Level Cache（LLC，最后级缓存）`，它在多个`CPU`核心之间共享。启用此选项后，`CPU Manager`会尽可能将容器的所有`CPU`核心分配到共享同一`LLC`的核心组中。这可以显著提高缓存命中率，减少内存访问延迟，对于数据局部性要求高的应用（如`AI`推理服务、数据库）有明显性能提升。在现代服务器架构中，通常一个`NUMA`节点内的核心共享一个`LLC`，因此此选项与`NUMA`亲和性策略配合效果更佳 |
+| 选项名称  | 版本要求 | 说明 |
+|---------|---------|------|
+| `full-pcpus-only` | `v1.22+ (GA: v1.33+)` | **仅分配完整物理核心**：启用后，`CPU Manager`只会为容器分配完整的物理核心，而不会分配单个硬件线程（超线程）。这可以有效避免`SMT`（`Simultaneous Multithreading`，超线程）带来的"吵闹邻居"问题，即多个进程共享同一物理核心的执行单元导致的性能干扰。对于`CPU`密集型和延迟敏感的`AI`训练任务，建议启用此选项以获得更稳定的性能表现。例如，在开启超线程的`64`核服务器上（`128`个逻辑核心），启用此选项后容器最多只能获得`64`个完整物理核心 |
+| `distribute-cpus-across-numa` | `v1.23+` | **跨NUMA均匀分配CPU**：当容器请求多个`CPU`核心时，`CPU Manager`会尽可能将这些核心均匀分配到多个`NUMA`节点上，而不是集中在单个`NUMA`节点。这种策略适合能够感知`NUMA`拓扑并进行并行计算的应用程序，可以充分利用多`NUMA`节点的内存带宽。但需要注意，此选项可能会增加跨`NUMA`内存访问的开销，不适合需要严格`NUMA`局部性的场景。通常与`Topology Manager`的`best-effort`策略配合使用 |
+| `align-by-socket` | `v1.25+` | **按Socket对齐**：在多`Socket`服务器上，优先在物理`Socket`边界对齐`CPU`分配，而非逻辑`NUMA`边界。在某些服务器架构中，一个`Socket`可能包含多个`NUMA`节点，此选项会尝试将容器的所有`CPU`分配在同一个物理`Socket`上，以减少跨`Socket`通信延迟。这对于需要频繁`CPU`间通信的应用（如共享`L3 Cache`）有性能优势。**注意**：此选项为`Alpha`特性，默认隐藏，需要启用`CPUManagerPolicyAlphaOptions` Feature Gate |
+| `distribute-cpus-across-cores` | `v1.31+` | **跨物理核心分配虚拟核心**：将虚拟核心（有时称为硬件线程）分配到不同的物理核心上，而不是集中在少数物理核心的多个硬件线程上。这样可以减少同一物理核心内多个线程之间的资源竞争（如执行单元、缓存冲突），提升整体吞吐量。例如，请求`4`个`CPU`时，会分配`4`个不同物理核心的单个线程，而不是`2`个物理核心的`4`个线程。**注意**：此选项为`Alpha`特性，默认隐藏，需要启用`CPUManagerPolicyAlphaOptions` Feature Gate |
+| `strict-cpu-reservation` | `v1.32+ (GA: v1.35+)` | **严格CPU预留**：启用后，会严格隔离通过`reservedSystemCPUs`预留的`CPU`核心，确保任何`Pod`（包括`BestEffort`、`Burstable`和`Guaranteed QoS`）都无法使用这些预留的`CPU`。未启用时，预留的`CPU`仅对`Guaranteed QoS`的独占分配有效，`BestEffort`和`Burstable Pod`仍可能调度到这些核心上。对于需要为系统关键进程（如`kubelet`、容器运行时、系统守护进程）保证稳定`CPU`资源的生产环境，强烈建议启用此选项，避免节点过载导致的稳定性问题 |
+| `prefer-align-cpus-by-uncorecache` | `v1.32+` | **优先按Uncore Cache对齐**：`Uncore Cache`通常指`Last Level Cache（LLC，最后级缓存）`，它在多个`CPU`核心之间共享。启用此选项后，`CPU Manager`会尽最大努力将容器的所有`CPU`核心分配到共享同一`LLC`的核心组中。这可以显著提高缓存命中率，减少内存访问延迟，对于数据局部性要求高的应用（如`AI`推理服务、数据库）有明显性能提升。在现代服务器架构中，通常一个`NUMA`节点内的核心共享一个`LLC`，因此此选项与`NUMA`亲和性策略配合效果更佳 |
+
 
 ### Topology Manager
 
@@ -384,7 +385,7 @@ cpuManagerPolicyOptions:
   full-pcpus-only: "true"                   # 仅分配完整物理核心
 
 # ============= Topology Manager 配置 =============
-topologyManagerPolicy: best-effort          # 希望NUMA对齐但允许降级
+topologyManagerPolicy: restricted           # 严格要求NUMA对齐
 topologyManagerScope: pod                   # Pod级别对齐
 topologyManagerPolicyOptions:
   prefer-closest-numa-nodes: "true"         # 优先选择距离最近的NUMA节点
@@ -417,6 +418,7 @@ evictionHard:
 # ============= Feature Gates（可选）=============
 featureGates:
   CPUManagerPolicyOptions: true
+  # 低版本K8S需要此项启用策略选项，如笔者当前的1.27.3版本
   CPUManagerPolicyBetaOptions: true
   TopologyManagerPolicyOptions: true
   # 低版本K8S需要此项启用策略选项，如笔者当前的1.27.3版本
