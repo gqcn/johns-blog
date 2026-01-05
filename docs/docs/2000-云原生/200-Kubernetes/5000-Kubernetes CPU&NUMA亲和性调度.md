@@ -45,6 +45,16 @@ GPU4    SYS     SYS     SYS     SYS      X      PIX     NODE    NODE    32-63,96
 GPU5    SYS     SYS     SYS     SYS     PIX      X      NODE    NODE    32-63,96-127    1
 GPU6    SYS     SYS     SYS     SYS     NODE    NODE     X      PIX     32-63,96-127    1
 GPU7    SYS     SYS     SYS     SYS     NODE    NODE    PIX      X      32-63,96-127    1
+
+Legend:
+
+  X    = Self
+  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)
+  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node
+  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)
+  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)
+  PIX  = Connection traversing at most a single PCIe bridge
+  NV#  = Connection traversing a bonded set of # NVLinks
 ```
 
 可以看到：
