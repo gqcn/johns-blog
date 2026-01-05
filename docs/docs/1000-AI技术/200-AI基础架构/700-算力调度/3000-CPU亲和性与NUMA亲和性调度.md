@@ -272,4 +272,4 @@ numactl --hardware
 
 ## Kubernetes中CPU&NUMA亲和性配置
 
-参考章节：[Kubernetes CPU&NUMA亲和性调度调度](../../../2000-云原生/200-Kubernetes/5000-Kubernetes%20CPU&NUMA%E4%BA%B2%E5%92%8C%E6%80%A7%E8%B0%83%E5%BA%A6.md)
+参考章节：[Kubernetes CPU&NUMA亲和性调度调度](../../../2000-云原生/200-Kubernetes/5000-Kubernetes%20CPU&NUMA亲和性调度.md)

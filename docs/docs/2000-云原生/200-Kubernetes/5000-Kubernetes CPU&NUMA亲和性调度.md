@@ -27,6 +27,8 @@ description: "深入解析Kubernetes中CPU和NUMA亲和性调度的完整实现�
 ---
 
 
+
+
 ## 背景与价值
 
 在`AI`模型开发、训练和推理业务场景下，`CPU`亲和性与`NUMA`亲和性调度至关重要。现代服务器通常采用多`Socket`、多`NUMA`节点的架构，`GPU`等加速设备通过`PCIe`连接到特定的`NUMA`节点。如果`CPU`、`内存`和`GPU`分配在不同的`NUMA`节点上，数据访问将产生跨`NUMA`的内存延迟，显著降低训练和推理性能。通过合理配置`CPU`亲和性和`NUMA`亲和性，可以确保计算资源（`CPU`）、内存和加速设备（`GPU`）在同一`NUMA`节点内协同工作，最大化数据局部性，减少跨节点通信开销，从而提升`AI`工作负载的整体性能。
@@ -460,7 +462,9 @@ start cpu manager error: could not restore state from checkpoint: configured pol
 
 ## 测试示例
 
-
+:::danger 注意
+本文档中的示例代码还未进行过严格测试，仅供参考。后续经过完整测试后再更新这里的代码和介绍内容。
+:::
 
 ### 验证NUMA亲和性
 
@@ -556,12 +560,32 @@ spec:
 
 ## 故障排查
 
+### SMTAlignmentError
+
+当`Pod`请求的`CPU`核心无法满足`full-pcpus-only`选项时，会出现此错误：
+
+```bash
+NAME                READY   STATUS              RESTARTS   AGE
+numa-affinity-test  0/1     SMTAlignmentError   0          10s
+```
+
+查看`Pod`信息时会有类似如下的错误日志：
+
+```text
+Events:
+  Type     Reason               Age     From        Message
+  ----     ------               ----    ----        -------
+  Warning  SMTAlignmentError    57s     kubelet     requested 1 cpus not multiple cpus per core=2
+``` 
+
+需要保证申请的`CPU`核心数为`2`的整数倍。
+
+
 ### TopologyAffinityError
 
 当`Pod`无法满足`Topology Manager`的策略要求时，会出现此错误：
 
 ```bash
-$ kubectl get pods
 NAME                READY   STATUS                  RESTARTS   AGE
 numa-affinity-test  0/1     TopologyAffinityError   0          10s
 ```
