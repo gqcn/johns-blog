@@ -103,6 +103,8 @@ description: "深入探讨AI模型开发训练推理场景下的CPU亲和性与N
 
 ### CPU缓存架构
 
+![CPU缓存架构](assets/3000-CPU亲和性与NUMA亲和性调度/image.png)
+
 `CPU`缓存是影响`CPU`亲和性效果的关键因素，采用分层设计：
 
 #### L1 缓存（一级缓存）
