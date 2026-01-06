@@ -491,12 +491,11 @@ spec:
                         - torchrun
                       # 默认参数
                       args:
-                        - --nnodes=$(TRAINER_NNODES)
-                        - --nproc_per_node=$(TRAINER_NPROC_PER_NODE)
-                        - --node_rank=$(JOB_COMPLETION_INDEX)
+                        - --nnodes=$(PET_NNODES)
+                        - --nproc_per_node=$(PET_NPROC_PER_NODE)
+                        - --node_rank=$(PET_NODE_RANK)
                         - --rdzv_backend=c10d
-                        - --rdzv_endpoint=$(TRAINER_NODE_0_HOSTNAME):29400
-                        - --rdzv_id=$(TRAINER_JOB_ID)
+                        - --rdzv_endpoint=$(PET_MASTER_ADDR):$(PET_MASTER_PORT)
                         - /workspace/train.py
                       # 环境变量
                       env:
@@ -1036,107 +1035,6 @@ spec:
 | 权限要求 | 命名空间级别的权限 | 集群级别的权限 |
 | 配置格式 | 完全相同 | 完全相同 |
 
-## 环境变量注入
-
-`Kubeflow Trainer`会根据使用的训练框架，为训练容器自动注入相应的环境变量。不同框架使用的环境变量不同。
-
-### PyTorch框架环境变量
-
-使用`PyTorch`（通过`torchrun`启动）时，`Torch Plugin`会自动注入以下环境变量：
-
-#### PET_*系列（PyTorch Elastic Training）
-
-这些是`torchrun`使用的标准环境变量，由`Kubeflow Trainer`自动注入：
-
-| 环境变量 | 说明 | 示例值 | 注入来源 |
-|----------|------|--------|----------|
-| `PET_NNODES` | 训练节点总数 | `2` | `spec.trainer.numNodes` |
-| `PET_NPROC_PER_NODE` | 每节点进程数 | `4` | `spec.mlPolicy.torch.numProcPerNode` |
-| `PET_NODE_RANK` | 当前节点编号 | `0-1` | `JOB_COMPLETION_INDEX` |
-| `PET_MASTER_ADDR` | 主节点地址 | `myjob-node-0-0.myjob` | `{trainjob-name}-node-0-0.{trainjob-name}` |
-| `PET_MASTER_PORT` | 主节点端口 | `29400` | 固定值 |
-
-**说明**：
-- `PET`代表`PyTorch Elastic Training`，是`torchrun`的标准环境变量前缀
-- 这些变量在`TrainingRuntime`的`command`中使用，如：`torchrun --nproc_per_node=$(PET_NPROC_PER_NODE) ...`
-- `PET_NODE_RANK`通过`Kubernetes`的`fieldRef`机制自动从`JOB_COMPLETION_INDEX`获取
-
-#### 标准分布式训练环境变量
-
-`torchrun`会根据`PET_*`变量，为每个进程设置以下标准环境变量：
-
-| 环境变量 | 说明 | 计算方式 | 示例值 |
-|----------|------|----------|--------|
-| `WORLD_SIZE` | 总进程数 | `PET_NNODES × PET_NPROC_PER_NODE` | `8` |
-| `RANK` | 全局进程编号 | 自动计算 | `0-7` |
-| `LOCAL_RANK` | 本地进程编号 | 节点内进程索引 | `0-3` |
-| `MASTER_ADDR` | 主节点地址 | 继承`PET_MASTER_ADDR` | `myjob-node-0-0.myjob` |
-| `MASTER_PORT` | 主节点端口 | 继承`PET_MASTER_PORT` | `29400` |
-
-**说明**：
-- 这些变量由`torchrun`自动设置，无需在`TrainingRuntime`中配置
-- 训练代码中可直接使用`torch.distributed.get_rank()`等`API`，或通过`os.environ`访问
-
-### OpenMPI框架环境变量
-
-使用`OpenMPI`（如`DeepSpeed`）时，会注入以下环境变量：
-
-| 环境变量 | 说明 | 示例值 |
-|----------|------|--------|
-| `OMPI_MCA_orte_default_hostfile` | 主机列表文件路径 | `/etc/mpi/hostfile` |
-| `OMPI_MCA_plm_rsh_agent` | SSH代理（禁用） | `/usr/bin/false` |
-| `OMPI_MCA_orte_keep_fqdn_hostnames` | 保持完整主机名 | `true` |
-
-**说明**：
-- 这些变量用于配置`OpenMPI`运行时行为
-- 通常由`ClusterTrainingRuntime`的容器模板配置
-
-### 通用环境变量
-
-所有框架都可以使用以下`Kubernetes`原生环境变量：
-
-| 环境变量 | 说明 | 示例值 |
-|----------|------|--------|
-| `JOB_COMPLETION_INDEX` | 节点索引（`0`开始） | `0-1` |
-
-**说明**：
-- 此变量来自`Kubernetes Job`的索引机制，表示当前`Pod`在`Job`中的序号
-- 可用于获取节点编号或配置节点特定行为
-
-### 使用示例
-
-#### PyTorch训练脚本示例
-
-```python
-import os
-import torch.distributed as dist
-
-# 初始化分布式进程组（torchrun会自动设置所需环境变量）
-dist.init_process_group(backend="nccl")
-
-# 获取分布式信息
-rank = dist.get_rank()           # 等价于 int(os.environ['RANK'])
-world_size = dist.get_world_size()  # 等价于 int(os.environ['WORLD_SIZE'])
-local_rank = int(os.environ['LOCAL_RANK'])
-node_rank = int(os.environ.get('JOB_COMPLETION_INDEX', 0))
-
-print(f"Node Rank: {node_rank}")
-print(f"Global Rank: {rank}, World Size: {world_size}")
-print(f"Local Rank: {local_rank}")
-```
-
-#### TrainingRuntime command配置示例
-
-```yaml
-command:
-  - torchrun
-  - --nproc_per_node=$(PET_NPROC_PER_NODE) 
-  - --nnodes=$(PET_NNODES)
-  - --node_rank=$(PET_NODE_RANK)
-  - --master_addr=$(PET_MASTER_ADDR)
-  - --master_port=$(PET_MASTER_PORT)
-  - /workspace/train.py
-```
 
 ## 最佳实践
 

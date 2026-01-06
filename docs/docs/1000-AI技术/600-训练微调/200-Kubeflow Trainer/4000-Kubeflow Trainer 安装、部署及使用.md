@@ -212,7 +212,7 @@ kubectl apply -f training-runtime-demo.yaml
 
 ## PyTorch 分布式训练案例
 
-### 训练脚本说明
+### 脚本示例
 
 我们使用一个简单的`PyTorch`分布式训练脚本来演示三种部署方式。该脚本实现了一个简单的线性回归模型训练：
 
