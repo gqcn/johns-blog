@@ -389,7 +389,7 @@ spec:
 
 ### MPI
 
-`MPI`（`Message Passing Interface`）是HPC领域的标准通信协议，`Kubeflow Trainer`提供完整的`MPI v2`支持：
+`MPI`（`Message Passing Interface`）是`HPC`领域的标准通信协议，`Kubeflow Trainer`提供完整的`MPI v2`支持：
 
 **支持的MPI实现：**
 - `OpenMPI`
