@@ -1,6 +1,6 @@
 ---
 slug: "/ai/rdma-infiniband-vs-roce"
-title: "InfiniBand vs RoCE"
+title: "RDMA: InfiniBand vs RoCE"
 hide_title: true
 keywords:
   [
