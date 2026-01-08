@@ -371,7 +371,7 @@ const (
 
 ### 与其他属性的配合
 
-- **与minSuccess的区别**：`minAvailable`关注的是**调度启动**时的最小要求，而`minSuccess`关注的是**任务成功**所需的最小成功`Pod`数量。这里的成功是指Pod处于`Succeeded`状态（即`Pod`内所有容器都成功终止，退出码为`0`）
+- **与minSuccess的区别**：`minAvailable`关注的是**调度启动**时的最小要求，而`minSuccess`关注的是**任务成功**所需的最小成功`Pod`数量。这里的成功是指`Pod`处于`Succeeded`状态（即`Pod`内所有容器都成功终止，退出码为`0`）
 
 - **与policies的结合**：可以配合`PodFailed`策略，当`Pod`失败导致可用`Pod`数量小于`minAvailable`时触发重启或终止操作
 
@@ -502,6 +502,60 @@ const (
 
 - **与插件的结合**：重试时会重新应用插件配置，确保环境变量、SSH密钥等正确重新配置
 
+## Job Plugin
+
+`Volcano Job`支持通过`Plugin`机制扩展功能，为分布式应用提供自动化配置和资源管理能力。插件在`Job`的不同生命周期阶段自动注入额外的功能和配置，简化了分布式应用的部署和管理。
+
+### Plugin概述
+
+`Volcano`提供了多种内置插件：
+
+- **基础插件**：`SSH`、`SVC`、`Env`等，提供节点间通信、服务发现和索引功能
+- **框架插件**：`TensorFlow`、`PyTorch`、`MPI`、`Ray`等，为特定分布式框架提供自动化配置
+
+### Plugin配置示例
+
+在`Job`的`spec.plugins`字段中配置需要启用的插件：
+
+```yaml
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: example-job
+spec:
+  minAvailable: 3
+  schedulerName: volcano
+  plugins:
+    ssh: []                                # SSH插件：提供无密码登录
+    svc: ["--publish-not-ready-addresses=true"]  # SVC插件：提供服务发现
+    env: []                                # Env插件：注入索引环境变量
+    pytorch: ["--master=master", "--worker=worker"]  # PyTorch插件：配置分布式训练
+  tasks:
+    - replicas: 1
+      name: master
+      template:
+        # ...
+    - replicas: 2
+      name: worker
+      template:
+        # ...
+```
+
+### 常用插件介绍
+
+| 插件名 | 功能 | 适用场景 |
+|-------|------|---------|
+| `ssh` | 自动生成`SSH`密钥，实现`Pod`间无密码登录 | `MPI`、需要`SSH`通信的应用 |
+| `svc` | 创建`Service`和`ConfigMap`，提供服务发现 | 所有分布式应用 |
+| `env` | 注入`VC_TASK_INDEX`环境变量 | 需要感知`Pod`索引的应用 |
+| `tensorflow` | 自动生成`TF_CONFIG`环境变量 | `TensorFlow`分布式训练 |
+| `pytorch` | 自动配置`MASTER_ADDR`、`RANK`等环境变量 | `PyTorch`分布式训练 |
+| `mpi` | 配置`MPI`主机列表和`SSH` | `MPI`并行计算 |
+| `ray` | 自动配置`Ray`集群 | `Ray`分布式计算 |
+
+关于`Plugin`的详细介绍和使用方法，请参考 [Volcano Job Plugin详解]( ./3650-Volcano%20Job%20Plugin详解.md )。
+
+
 ## 任务依赖关系
 
 `Volcano Job`支持在不同任务之间定义依赖关系，这一功能在复杂的工作流程中非常有用，如数据处理管道、模型训练和评估流程等。
@@ -548,86 +602,69 @@ tasks:
 
 1. **数据处理管道**：
 
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: data-pipeline
-spec:
-  minAvailable: 1
-  tasks:
-    - name: data-collection
-      replicas: 1
-      template:
-        # ...
-    - name: data-preprocessing
-      replicas: 3
-      dependsOn:
-        name: ["data-collection"]
-      template:
-        # ...
-    - name: model-training
-      replicas: 2
-      dependsOn:
-        name: ["data-preprocessing"]
-      template:
-        # ...
-```
+    ```yaml
+    apiVersion: batch.volcano.sh/v1alpha1
+    kind: Job
+    metadata:
+      name: data-pipeline
+    spec:
+      minAvailable: 1
+      tasks:
+        - name: data-collection
+          replicas: 1
+          template:
+            # ...
+        - name: data-preprocessing
+          replicas: 3
+          dependsOn:
+            name: ["data-collection"]
+          template:
+            # ...
+        - name: model-training
+          replicas: 2
+          dependsOn:
+            name: ["data-preprocessing"]
+          template:
+            # ...
+    ```
 
 2. **复杂的模型训练流程**：
 
-```yaml
-apiVersion: batch.volcano.sh/v1alpha1
-kind: Job
-metadata:
-  name: ml-workflow
-spec:
-  minAvailable: 1
-  tasks:
-    - name: data-preparation
-      replicas: 1
-      template:
-        # ...
-    - name: feature-extraction
-      replicas: 2
-      dependsOn:
-        name: ["data-preparation"]
-      template:
-        # ...
-    - name: model-training
-      replicas: 1
-      dependsOn:
-        name: ["feature-extraction"]
-      template:
-        # ...
-    - name: model-evaluation
-      replicas: 1
-      dependsOn:
-        name: ["model-training"]
-      template:
-        # ...
-    - name: model-deployment
-      replicas: 1
-      dependsOn:
-        name: ["model-evaluation"]
-      template:
-        # ...
-```
+    ```yaml
+    apiVersion: batch.volcano.sh/v1alpha1
+    kind: Job
+    metadata:
+      name: ml-workflow
+    spec:
+      minAvailable: 1
+      tasks:
+        - name: data-preparation
+          replicas: 1
+          template:
+            # ...
+        - name: feature-extraction
+          replicas: 2
+          dependsOn:
+            name: ["data-preparation"]
+          template:
+            # ...
+        - name: model-training
+          replicas: 1
+          dependsOn:
+            name: ["feature-extraction"]
+          template:
+            # ...
+        - name: model-evaluation
+          replicas: 1
+          dependsOn:
+            name: ["model-training"]
+          template:
+            # ...
+        - name: model-deployment
+          replicas: 1
+          dependsOn:
+            name: ["model-evaluation"]
+          template:
+            # ...
+    ```
 
-### 注意事项与最佳实践
-
-1. **避免循环依赖**：
-   - 不能创建循环依赖，如A依赖B，B依赖C，C依赖A
-   - 这将导致作业创建失败
-
-2. **考虑资源需求**：
-   - 当使用依赖关系时，要考虑`minAvailable`的设置
-   - 如果同时运行的任务很少，可以将`minAvailable`设置得较小
-
-3. **与重试策略的结合**：
-   - 当使用依赖关系时，要为关键任务配置适当的重试策略
-   - 关键任务的失败可能会导致整个工作流程卡住
-
-4. **使用有意义的任务名称**：
-   - 任务名称应清晰地反映其功能和在工作流程中的位置
-   - 这有助于理解和维护复杂的依赖关系
