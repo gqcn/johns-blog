@@ -120,6 +120,7 @@ kind: Job
 metadata:
   name: mpi-job
 spec:
+  queue: default
   minAvailable: 3
   schedulerName: volcano
   plugins:
@@ -248,6 +249,7 @@ kind: Job
 metadata:
   name: tensorflow-dist-mnist
 spec:
+  queue: default
   minAvailable: 3
   schedulerName: volcano
   plugins:
@@ -373,6 +375,7 @@ kind: Job
 metadata:
   name: tensorflow-dist-mnist
 spec:
+  queue: default
   minAvailable: 3
   schedulerName: volcano
   plugins:
@@ -495,6 +498,7 @@ kind: Job
 metadata:
   name: pytorch-job
 spec:
+  queue: default
   minAvailable: 3
   schedulerName: volcano
   plugins:
@@ -510,7 +514,8 @@ spec:
         spec:
           containers:
             - name: pytorch
-              image: pytorch/pytorch:1.9.0-cuda11.1-cudnn8-runtime
+              image: pytorch/pytorch:2.4.1-cuda11.8-cudnn9-runtime
+              imagePullPolicy: IfNotPresent
               command:
                 - python
                 - -c
@@ -528,9 +533,6 @@ spec:
                   dist.init_process_group(backend="gloo")
                   print(f"Initialized process group, rank: {dist.get_rank()}")
                   # PyTorch训练代码...
-              resources:
-                limits:
-                  nvidia.com/gpu: 1
           restartPolicy: OnFailure
     - replicas: 2
       name: worker
@@ -538,7 +540,8 @@ spec:
         spec:
           containers:
             - name: pytorch
-              image: pytorch/pytorch:1.9.0-cuda11.1-cudnn8-runtime
+              image: pytorch/pytorch:2.4.1-cuda11.8-cudnn9-runtime
+              imagePullPolicy: IfNotPresent
               command:
                 - python
                 - -c
@@ -556,9 +559,6 @@ spec:
                   dist.init_process_group(backend="gloo")
                   print(f"Initialized process group, rank: {dist.get_rank()}")
                   # PyTorch训练代码...
-              resources:
-                limits:
-                  nvidia.com/gpu: 1
           restartPolicy: OnFailure
 ```
 
@@ -649,6 +649,7 @@ kind: Job
 metadata:
   name: tensorflow-training
 spec:
+  queue: default
   minAvailable: 4
   schedulerName: volcano
   plugins:
@@ -767,6 +768,7 @@ kind: Job
 metadata:
   name: lm-mpi-job
 spec:
+  queue: default
   minAvailable: 1
   schedulerName: volcano
   plugins:
@@ -878,6 +880,7 @@ kind: Job
 metadata:
   name: ray-cluster-job
 spec:
+  queue: default
   minAvailable: 3
   schedulerName: volcano
   plugins:
