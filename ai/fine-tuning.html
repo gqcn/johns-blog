@@ -1,0 +1,506 @@
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-docs/AI技术/训练微调/AI模型微调技术详解" data-has-hydrated=false><meta charset=UTF-8><meta name=generator content="Docusaurus v3.6.3"><title data-rh=true>AI模型微调技术详解 | John's Blog</title><meta data-rh=true name=viewport content="width=device-width,initial-scale=1.0"><meta data-rh=true name=twitter:card content=summary_large_image><meta data-rh=true property=og:url content=https://johng.cn/ai/fine-tuning><meta data-rh=true property=og:locale content=en><meta data-rh=true name=docusaurus_locale content=en><meta data-rh=true name=docsearch:language content=en><meta data-rh=true name=author content="John Guo"><meta data-rh=true property=og:image content=https://johng.cn/img/favicon.png><meta data-rh=true name=docusaurus_version content=current><meta data-rh=true name=docusaurus_tag content=docs-default-current><meta data-rh=true name=docsearch:version content=current><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current><meta data-rh=true property=og:title content="AI模型微调技术详解 | John's Blog"><meta data-rh=true name=description content=深入讲解AI模型微调技术的核心方法与实践应用。从传统训练的痛点出发，详细介绍微调技术的诞生背景和优势。全面解析全量微调、有监督微调、强化微调、人类偏好对齐等四种主流微调方法的原理、流程、适用场景及成本对比。包含智能客服、代码助手等实际业务案例，提供完整的微调流程、框架选择和成本估算，帮助开发者根据实际需求选择合适的微调方案。><meta data-rh=true property=og:description content=深入讲解AI模型微调技术的核心方法与实践应用。从传统训练的痛点出发，详细介绍微调技术的诞生背景和优势。全面解析全量微调、有监督微调、强化微调、人类偏好对齐等四种主流微调方法的原理、流程、适用场景及成本对比。包含智能客服、代码助手等实际业务案例，提供完整的微调流程、框架选择和成本估算，帮助开发者根据实际需求选择合适的微调方案。><meta data-rh=true name=keywords content=AI微调,模型微调,迁移学习,Fine-Tuning,全量微调,有监督微调,强化微调,人类偏好对齐,RLHF,SFT,RFT,PPO算法,奖励模型,指令微调,参数高效微调,LoRA,ChatGPT,微调框架,微调成本,模型部署><link data-rh=true rel=icon href=/img/favicon.ico><link data-rh=true rel=canonical href=https://johng.cn/ai/fine-tuning><link data-rh=true rel=alternate href=https://johng.cn/ai/fine-tuning hreflang=en><link data-rh=true rel=alternate href=https://johng.cn/ai/fine-tuning hreflang=x-default><link data-rh=true rel=preconnect href=https://XGS1CPQERK-dsn.algolia.net crossorigin><link rel=alternate type=application/rss+xml href=/blog/rss.xml title="John's Blog RSS Feed"><link rel=alternate type=application/atom+xml href=/blog/atom.xml title="John's Blog Atom Feed"><link rel=search type=application/opensearchdescription+xml title="John's Blog" href=/opensearch.xml><script src=https://hm.baidu.com/hm.js?6b4ae23dc83ee5efe875b7172af6c7c1 async></script><link rel=stylesheet href=/assets/css/styles.2f56d3c4.css><script src=/assets/js/runtime~main.c68b3aea.js defer></script><script src=/assets/js/main.d4848e10.js defer></script><body class=navigation-with-keyboard><script>!function(){var t,e=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();t=null!==e?e:"light",document.documentElement.setAttribute("data-theme",t)}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="navbar navbar--fixed-top"><div class=navbar__inner><div class=navbar__items><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><b class="navbar__title text--truncate">John's Blog</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/ai>AI技术</a><a class="navbar__item navbar__link" href=/cloud-native>云原生</a><a class="navbar__item navbar__link" href=/notes>日常笔记</a><a class="navbar__item navbar__link" href=/programming>开发语言</a><a class="navbar__item navbar__link" href=/architecture>技术架构</a><a class="navbar__item navbar__link" href=/observability>可观测性</a><a class="navbar__item navbar__link" href=/life>生活笔记</a></div><div class="navbar__items navbar__items--right"><a class="navbar__item navbar__link" href=/aboutme>关于我</a><a class="navbar__item navbar__link" href=/blog>博客</a><a href=https://goframe.org/ target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-goframe-link"></a><a href=https://github.com/gqcn target=_blank rel="noopener noreferrer" class="navbar__item navbar__link header-github-link"></a><div class=navbarSearchContainer_Bca1><button type=button class="DocSearch DocSearch-Button" aria-label="Search (Command+K)"><span class=DocSearch-Button-Container><svg width=20 height=20 class=DocSearch-Search-Icon viewBox="0 0 20 20" aria-hidden=true><path d="M14.386 14.386l4.0877 4.0877-4.0877-4.0877c-2.9418 2.9419-7.7115 2.9419-10.6533 0-2.9419-2.9418-2.9419-7.7115 0-10.6533 2.9418-2.9419 7.7115-2.9419 10.6533 0 2.9419 2.9418 2.9419 7.7115 0 10.6533z" stroke=currentColor fill=none fill-rule=evenodd stroke-linecap=round stroke-linejoin=round /></svg><span class=DocSearch-Button-Placeholder>Search</span></span><span class=DocSearch-Button-Keys></span></button></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class=sidebarViewport_aRkj><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--active" href=/ai>AI技术</a><button aria-label="Collapse sidebar category 'AI技术'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul style=display:block;overflow:visible;height:auto class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/ai/agents>智能体</a><button aria-label="Expand sidebar category '智能体'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/ai/app>应用开发</a><button aria-label="Expand sidebar category '应用开发'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/ai/inference>推理服务</a><button aria-label="Expand sidebar category '推理服务'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--active" tabindex=0 href=/ai/training-fine-tuning>训练微调</a><button aria-label="Collapse sidebar category '训练微调'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul style=display:block;overflow:visible;height:auto class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-3 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/ai/training-platform>开发训练平台</a><button aria-label="Expand sidebar category '开发训练平台'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-3 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/ai/kubeflow-trainer>Kubeflow Trainer</a><button aria-label="Expand sidebar category 'Kubeflow Trainer'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/ai/machine-learning-fundamentals>AI模型与机器学习</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/ai/training>AI模型训练技术详解</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/ai/fine-tuning>AI模型微调技术详解</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/ai/training-parallel-strategies>AI模型训练并行策略介绍</a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/ai/model-development>模型开发</a><button aria-label="Expand sidebar category '模型开发'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/ai/infra>基础架构</a><button aria-label="Expand sidebar category '基础架构'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" tabindex=0 href=/ai/basic>入门知识</a><button aria-label="Expand sidebar category '入门知识'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/cloud-native>云原生</a><button aria-label="Expand sidebar category '云原生'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/notes>日常笔记</a><button aria-label="Expand sidebar category '日常笔记'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/programming>开发语言</a><button aria-label="Expand sidebar category '开发语言'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/architecture>技术架构</a><button aria-label="Expand sidebar category '技术架构'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/management>技术管理</a><button aria-label="Expand sidebar category '技术管理'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/observability>可观测性</a><button aria-label="Expand sidebar category '可观测性'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/database-and-middleware>数据库与中间件</a><button aria-label="Expand sidebar category '数据库与中间件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/operating-systems-and-networks>操作系统和网络</a><button aria-label="Expand sidebar category '操作系统和网络'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/life>生活笔记</a><button aria-label="Expand sidebar category '生活笔记'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_VOVn"><div class=docItemContainer_Djhp><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label=Breadcrumbs><ul class=breadcrumbs itemscope itemtype=https://schema.org/BreadcrumbList><li class=breadcrumbs__item><a aria-label="Home page" class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_YNFT><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class=breadcrumbs__item><a class=breadcrumbs__link itemprop=item href=/ai><span itemprop=name>AI技术</span></a><meta itemprop=position content=1><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class=breadcrumbs__item><a class=breadcrumbs__link itemprop=item href=/ai/training-fine-tuning><span itemprop=name>训练微调</span></a><meta itemprop=position content=2><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link itemprop=name>AI模型微调技术详解</span><meta itemprop=position content=3></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><p>本文将深入介绍<code>AI</code>模型微调的核心技术，包括全量微调、有监督微调、强化微调和人类偏好对齐等方法，以及它们在实际业务中的应用。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=微调技术概述>微调技术概述<a href=#微调技术概述 class=hash-link aria-label="Direct link to 微调技术概述" title="Direct link to 微调技术概述">​</a></h2>
+<p>在了解具体的微调方法之前，让我们先理解为什么需要微调技术，以及微调相比从零训练有哪些优势。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=模型训练的痛点>模型训练的痛点<a href=#模型训练的痛点 class=hash-link aria-label="Direct link to 模型训练的痛点" title="Direct link to 模型训练的痛点">​</a></h3>
+<p>虽然深度学习取得了巨大成功，但从零开始训练一个<code>AI</code>模型面临着诸多挑战：</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=1-数据需求巨大>1. 数据需求巨大<a href=#1-数据需求巨大 class=hash-link aria-label="Direct link to 1. 数据需求巨大" title="Direct link to 1. 数据需求巨大">​</a></h4>
+<p><strong>问题</strong>：深度学习模型通常需要<strong>数百万到数十亿</strong>的标注数据才能训练出好的效果。</p>
+<p><strong>通俗理解</strong>：就像培养一个世界级的棋手，需要让他下成千上万盘棋才能积累经验。</p>
+<p><strong>实际困难</strong>：</p>
+<ul>
+<li>获取大量数据成本高昂</li>
+<li>数据标注耗费大量人力和时间</li>
+<li>某些领域（如医学）数据稀缺且难以获取</li>
+</ul>
+<p><strong>举例</strong>：</p>
+<ul>
+<li><code>GPT-3</code>训练使用了<code>45TB</code>的文本数据</li>
+<li><code>ImageNet</code>数据集包含<code>1400万张</code>标注图片，耗费数年才完成</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=2-计算资源消耗巨大>2. 计算资源消耗巨大<a href=#2-计算资源消耗巨大 class=hash-link aria-label="Direct link to 2. 计算资源消耗巨大" title="Direct link to 2. 计算资源消耗巨大">​</a></h4>
+<p><strong>问题</strong>：训练大型模型需要强大的计算能力，通常需要<strong>数百到数千块<code>GPU</code></strong>，训练时间从数天到数月不等。</p>
+<p><strong>成本示例</strong>：</p>
+<ul>
+<li><code>GPT-3</code>的训练成本估计超过<code>460万美元</code></li>
+<li><code>BERT-Large</code>在<code>64</code>块<code>TPU</code>上训练需要<code>4</code>天</li>
+<li>普通企业或个人根本承担不起这样的成本</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=3-训练时间漫长>3. 训练时间漫长<a href=#3-训练时间漫长 class=hash-link aria-label="Direct link to 3. 训练时间漫��长" title="Direct link to 3. 训练时间漫长">​</a></h4>
+<p><strong>问题</strong>：即使有充足的计算资源，训练一个大模型仍需要<strong>数周甚至数月</strong>。</p>
+<p><strong>影响</strong>：</p>
+<ul>
+<li>项目周期长，影响产品迭代速度</li>
+<li>试错成本高，难以快速调整</li>
+<li>紧急需求无法及时响应</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=4-专业知识门槛高>4. 专业知识门槛高<a href=#4-专业知识门槛高 class=hash-link aria-label="Direct link to 4. 专业知识门槛高" title="Direct link to 4. 专业知识门槛高">​</a></h4>
+<p><strong>问题</strong>：从零训练模型需要深厚的机器学习理论知识、工程经验和调参技巧。</p>
+<p><strong>需要掌握的技能</strong>：</p>
+<ul>
+<li>网络架构设计</li>
+<li>损失函数选择</li>
+<li>优化器配置</li>
+<li>学习率调度</li>
+<li>正则化技术</li>
+<li>分布式训练等</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=5-泛化能力不足>5. 泛化能力不足<a href=#5-泛化能力不足 class=hash-link aria-label="Direct link to 5. 泛化能力不足" title="Direct link to 5. 泛化能力不足">​</a></h4>
+<p><strong>问题</strong>：针对特定任务从零训练的模型，往往只能解决该任务，难以迁移到其他相关任务。</p>
+<p><strong>举例</strong>：训练一个识别猫狗的模型，无法直接用来识别鸟类，需要重新训练。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=微调技术的诞生>微调技术的诞生<a href=#微调技术的诞生 class=hash-link aria-label="Direct link to 微调技术的诞生" title="Direct link to 微调技术的诞生">​</a></h3>
+<p>面对上述挑战，研究人员提出了<strong>迁移学习</strong>（<code>Transfer Learning</code>）的思想，而<strong>微调</strong>（<code>Fine-tuning</code>）正是迁移学习的核心实践方式。</p>
+<p><strong>核心思想</strong>：既然从零训练太贵，那我们可以基于已经训练好的大模型（通常称为<strong>预训练模型</strong>或<strong>基座模型</strong>），针对特定任务进行少量调整和训练，让模型适应新任务。</p>
+<p><strong>通俗比喻</strong>：</p>
+<ul>
+<li><strong>从零训练</strong>：培养一个婴儿成为医生，需要从识字、上学、大学、医学院一路学习<code>20</code>多年</li>
+<li><strong>模型微调</strong>：招聘一个已经毕业的医学生，只需要在你的医院进行几个月的专业培训，就能上岗</li>
+</ul>
+<p><strong>微调的优势</strong>：</p>
+<table><thead><tr><th>优势<th>说明<th>对比从零训练<tbody><tr><td><strong>数据需求少</strong><td>通常只需要几千到几万条数据<td>从零训练需要百万级数据<tr><td><strong>训练时间短</strong><td>几小时到几天<td>从零训练需要数周到数月<tr><td><strong>计算成本低</strong><td>几块<code>GPU</code>即可<td>从零训练需要数百上千块<code>GPU</code><tr><td><strong>效果更好</strong><td>继承预训练模型的通用知识<td>从零训练可能因数据不足而效果差<tr><td><strong>门槛更低</strong><td>不需要深厚的模型设计知识<td>需要专家级的架构设计能力</table>
+<p><strong>微调的基本原理</strong>：</p>
+<!-- -->
+<p><strong>微调让<code>AI</code>技术真正普及</strong>：有了微调技术，不再只有谷歌、<code>Meta</code>这样的巨头能训练<code>AI</code>模型，普通企业和开发者也能基于开源的预训练模型，快速打造自己的<code>AI</code>应用。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=ai模型微调的常见方法>AI模型微调的常见方法<a href=#ai模型微调的常见方法 class=hash-link aria-label="Direct link to AI模型微调的常见方法" title="Direct link to AI模型微调的常见方法">​</a></h2>
+<p>通过预训练和增量预训练，我们得到了一个具备通用或领域知识的基座模型。但这还不够——这个模型就像一个博学的学者，虽然知识渊博，但不一定知道如何完成你的具体任务。比如你需要它做客服，它可能会像写论文一样回答；你需要它分析财报，它可能给你讲故事。这时候就需要<strong>微调（<code>Fine-tuning</code>）</strong>——教会模型如何把知识用在刀刃上。</p>
+<p>微调是<code>AI</code>模型训练中最常用、最实用的技术。根据微调的方式和目标，衍生出了多种微调方法。我们将介绍四种主要的微调方法：<strong>全量微调</strong>、<strong>有监督微调</strong>、<strong>强化微调</strong>和<strong>人类偏好对齐</strong>。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=全量微调-fine-tuning-ft>全量微调 (Fine-Tuning, FT)<a href=#全量微调-fine-tuning-ft class=hash-link aria-label="Direct link to 全量微调 (Fine-Tuning, FT)" title="Direct link to 全量微调 (Fine-Tuning, FT)">​</a></h3>
+<p><strong>全量微调</strong>是最直接、最传统的微调方式，指的是在特定任务的数据集上，对预训练模型的<strong>所有参数</strong>进行训练和更新。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=核心特点>核心特点<a href=#核心特点 class=hash-link aria-label="Direct link to 核心特点" title="Direct link to 核心特点">​</a></h4>
+<p><strong>通俗理解</strong>：就像招了一个大学毕业生，让他在公司里全面学习和适应，从工作流程到专业技能，所有方面都进行培训和调整。</p>
+<p><strong>关键要素</strong>：</p>
+<ul>
+<li><strong>更新所有参数</strong>：模型的每一层、每一个权重都会被更新</li>
+<li><strong>需要足够数据</strong>：通常需要几千到几万条标注数据</li>
+<li><strong>计算成本较高</strong>：需要较多的<code>GPU</code>资源和训练时间</li>
+<li><strong>效果通常最好</strong>：因为模型可以充分适应新任务</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=适用场景>适用场景<a href=#适用场景 class=hash-link aria-label="Direct link to 适用场景" title="Direct link to 适用场景">​</a></h4>
+<table><thead><tr><th>场景<th>说明<th>示例<tbody><tr><td><strong>数据充足</strong><td>有足够的标注数据（通常>10K）<td>大公司的客服对话数据<tr><td><strong>任务差异大</strong><td>新任务与预训练任务差异较大<td>用语言模型做医疗诊断<tr><td><strong>追求最佳效果</strong><td>对模型性能要求极高<td>高精度的金融风控模型<tr><td><strong>资源充足</strong><td>有足够的计算资源和时间<td>研究机构、大公司</table>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=训练流程>训练流程<a href=#训练流程 class=hash-link aria-label="Direct link to 训练流程" title="Direct link to 训练流程">​</a></h4>
+<!-- -->
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=优缺点分析>优缺点分析<a href=#优缺点分析 class=hash-link aria-label="Direct link to 优缺点分析" title="Direct link to 优缺点分析">​</a></h4>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>✅ <strong>效果好</strong>：模型可以充分适应新任务，通常能达到最佳性能</li>
+<li>✅ <strong>灵活性高</strong>：可以处理各种类型的任务</li>
+<li>✅ <strong>实现简单</strong>：技术上最直接，不需要特殊技巧</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>❌ <strong>资源消耗大</strong>：需要较多的<code>GPU</code>显存和计算时间</li>
+<li>❌ <strong>数据需求多</strong>：需要较大规模的标注数据</li>
+<li>❌ <strong>训练时间长</strong>：特别是对大模型（如<code>GPT-3</code>级别）微调可能需要数天</li>
+<li>❌ <strong>容易过拟合</strong>：如果数据量不够，容易在训练集上过拟合</li>
+<li>❌ <strong>灾难性遗忘</strong>：可能忘记预训练学到的通用知识，特别是任务数据与预训练数据差异大时</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=全量微调-vs-增量预训练>全量微调 vs 增量预训练<a href=#全量微调-vs-增量预训练 class=hash-link aria-label="Direct link to 全量微调 vs 增量预训练" title="Direct link to 全量微调 vs 增量预训练">​</a></h4>
+<p>很多初学者容易混淆<strong>全量微调</strong>和<strong>增量预训练</strong>这两个概念，这里做一个详细对比：</p>
+<p><strong>核心区别总结</strong>：</p>
+<table><thead><tr><th>维度<th>增量预训练（CPT）<th>全量微调（FT）<tbody><tr><td><strong>训练阶段</strong><td>预训练阶段的延续<td>微调阶段<tr><td><strong>训练目标</strong><td>学习领域通用知识<td>优化特定任务性能<tr><td><strong>数据类型</strong><td>无标注的领域文本<td>有标注的任务数据<tr><td><strong>训练任务</strong><td>自监督（如下一词预测）<td>监督学习（有明确标签）<tr><td><strong>学习内容</strong><td>领域词汇、概念、知识<td>任务格式、输入输出映射<tr><td><strong>保持能力</strong><td>保持通用能力+增强领域能力<td>可能牺牲通用能力换取任务性能<tr><td><strong>灾难性遗忘</strong><td>风险较低（混合数据训练）<td>风险较高（需特别防范）<tr><td><strong>数据规模</strong><td>较大（GB-TB级）<td>较小（数千到数万条）<tr><td><strong>训练时间</strong><td>数天到数周<td>数小时到数天<tr><td><strong>成本</strong><td>$5万-$20万<td>$数百-$数千</table>
+<p><strong>直观理解</strong>：</p>
+<!-- -->
+<ul>
+<li>路径1：先领域适配，再任务优化，效果更好，成本更高</li>
+<li>路径2：直接任务优化，快速简单，可能效果稍差</li>
+</ul>
+<p><strong>具体例子对比</strong>：</p>
+<p>假设要打造一个医疗问答AI：</p>
+<p><strong>增量预训练的做法</strong>：</p>
+<div class="language-go codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-go codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">输入数据：大量医学文献（无标注）</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">训练任务：预测下一个词</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">学习内容：</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token operator" style=color:#66d9ef>-</span><span class="token plain"> 医学术语：</span><span class="token string" style=color:#a6e22e>"心肌梗死"</span><span class="token plain">、</span><span class="token string" style=color:#a6e22e>"冠状动脉"</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token operator" style=color:#66d9ef>-</span><span class="token plain"> 医学概念：疾病的病因、症状、治疗</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token operator" style=color:#66d9ef>-</span><span class="token plain"> 医学表达：专业文献的写作风格</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">结果：模型变成</span><span class="token string" style=color:#a6e22e>"懂医学的通用模型"</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p><strong>全量微调的做法</strong>：</p>
+<div class="language-go codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-go codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">输入数据：医疗问答对（有标注）</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">训练任务：给定问题，生成答案</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">学习内容：</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token operator" style=color:#66d9ef>-</span><span class="token plain"> 如何理解患者的提问方式</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token operator" style=color:#66d9ef>-</span><span class="token plain"> 如何组织医学知识回答问题</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token operator" style=color:#66d9ef>-</span><span class="token plain"> 输出什么样的回答格式</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">结果：模型变成</span><span class="token string" style=color:#a6e22e>"会回答医疗问题的专家"</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p><strong>最佳实践</strong>：</p>
+<p>实际项目中，通常<strong>组合使用</strong>这两种方法：</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-text codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">预训练模型 → 增量预训练（领域适配） → 全量微调（任务优化）</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    ↓              ↓                    ↓</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain"> 通用知识    通用知识 + 领域知识    领域知识 + 任务能力</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p><strong>何时跳过增量预训练？</strong></p>
+<p>✅ 直接微调即可的场景：</p>
+<ul>
+<li>任务与预训练数据分布接近（如通用对话）</li>
+<li>预算和时间有限</li>
+<li>数据量较小，不足以支撑增量预训练</li>
+</ul>
+<p>❌ 建议增量预训练的场景：</p>
+<ul>
+<li>领域专业性强（医疗、法律、金融）</li>
+<li>有大量领域无标注数据</li>
+<li>对领域知识准确性要求高</li>
+<li>预算充足，追求最佳效果</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=实践建议>实践建议<a href=#实践建议 class=hash-link aria-label="Direct link to 实践建议" title="Direct link to 实践建议">​</a></h4>
+<p><strong>1. 学习率设置</strong></p>
+<p>全量微调的学习率通常需要<strong>比预训练小</strong>，典型值在<code>1e-5</code>到<code>5e-5</code>之间。</p>
+<p><strong>原因</strong>：预训练模型已经学到了很好的特征，大的学习率可能破坏这些特征。</p>
+<p><strong>2. 渐进式解冻（Gradual Unfreezing）</strong></p>
+<p>一种改进策略是<strong>先冻结大部分层，只训练顶层，然后逐步解冻更多层</strong>。</p>
+<p><strong>流程</strong>：</p>
+<ol>
+<li>先只训练最后一层（分类头）</li>
+<li>解冻最后几层，继续训练</li>
+<li>解冻所有层，进行最终微调</li>
+</ol>
+<p><strong>好处</strong>：防止底层已经学好的通用特征被破坏。</p>
+<p><strong>3. 早停（Early Stopping）</strong></p>
+<p>监控验证集性能，当性能不再提升时提前停止训练，防止过拟合。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=有监督微调-supervised-fine-tuning-sft>有监督微调 (Supervised Fine-Tuning, SFT)<a href=#有监督微调-supervised-fine-tuning-sft class=hash-link aria-label="Direct link to 有监督微调 (Supervised Fine-Tuning, SFT)" title="Direct link to 有监督微调 (Supervised Fine-Tuning, SFT)">​</a></h3>
+<p><strong>有监督微调</strong>特指在大语言模型（<code>LLM</code>）训练中，使用<strong>高质量的指令-回答对</strong>数据进行微调，让模型学会遵循人类指令的过程。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=核心特点-1>核心特点<a href=#核心特点-1 class=hash-link aria-label="Direct link to 核心特点" title="Direct link to 核心特点">​</a></h4>
+<p><strong>通俗理解</strong>：就像给一个博学的教授（预训练模型）配一个助教培训，教他如何回答学生的各种问题，让他学会"怎么说话"和"说什么内容"。</p>
+<p><strong>与传统全量微调的区别</strong>：</p>
+<ul>
+<li><strong>传统微调</strong>：通常是针对单一任务（如分类、翻译）</li>
+<li><strong>有监督微调</strong>：训练模型遵循各种各样的指令，完成多样化任务</li>
+</ul>
+<p><strong>数据格式示例</strong>：</p>
+<div class="language-json codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-json codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token punctuation" style=color:#f8f8f2>{</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token property" style=color:#f92672>"instruction"</span><span class="token operator" style=color:#66d9ef>:</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>"将下面的英文翻译成中文"</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token property" style=color:#f92672>"input"</span><span class="token operator" style=color:#66d9ef>:</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>"Machine learning is a subset of artificial intelligence."</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token property" style=color:#f92672>"output"</span><span class="token operator" style=color:#66d9ef>:</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>"机器学习是人工智能的一个子集。"</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain"></span><span class="token punctuation" style=color:#f8f8f2>}</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain" style=display:inline-block></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain"></span><span class="token punctuation" style=color:#f8f8f2>{</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token property" style=color:#f92672>"instruction"</span><span class="token operator" style=color:#66d9ef>:</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>"回答以下问题"</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token property" style=color:#f92672>"input"</span><span class="token operator" style=color:#66d9ef>:</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>"什么是深度学习？"</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token property" style=color:#f92672>"output"</span><span class="token operator" style=color:#66d9ef>:</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>"深度学习是机器学习的一个分支，它使用多层神经网络来学习数据的复杂特征..."</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain"></span><span class="token punctuation" style=color:#f8f8f2>}</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain" style=display:inline-block></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain"></span><span class="token punctuation" style=color:#f8f8f2>{</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token property" style=color:#f92672>"instruction"</span><span class="token operator" style=color:#66d9ef>:</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>"写一首关于春天的诗"</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token property" style=color:#f92672>"input"</span><span class="token operator" style=color:#66d9ef>:</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>""</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">  </span><span class="token property" style=color:#f92672>"output"</span><span class="token operator" style=color:#66d9ef>:</span><span class="token plain"> </span><span class="token string" style=color:#a6e22e>"春风拂面花争艳，\n绿柳垂丝燕归来..."</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain"></span><span class="token punctuation" style=color:#f8f8f2>}</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=为什么需要sft>为什么需要SFT？<a href=#为什么需要sft class=hash-link aria-label="Direct link to 为什么需要SFT？" title="Direct link to 为什么需要SFT？">​</a></h4>
+<p>预训练模型（如<code>GPT-3</code>）虽然知识丰富，但存在几个问题：</p>
+<table><thead><tr><th>问题<th>表现<th><code>SFT</code>的解决方式<tbody><tr><td><strong>不会遵循指令</strong><td>你说"翻译这句话"，它可能继续生成文本而不是翻译<td>学习指令-回答模式<tr><td><strong>输出格式混乱</strong><td>回答没有结构，夹杂无关内容<td>学习规范的输出格式<tr><td><strong>安全性问题</strong><td>可能生成有害、偏见的内容<td>学习安全、友好的回答方式<tr><td><strong>多任务能力弱</strong><td>只擅长某些任务<td>在多样化指令上训练</table>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=sft的训练流程>SFT的训练流程<a href=#sft的训练流程 class=hash-link aria-label="Direct link to SFT的训练流程" title="Direct link to SFT的训练流程">​</a></h4>
+<!-- -->
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=数据来源>数据来源<a href=#数据来源 class=hash-link aria-label="Direct link to 数据来源" title="Direct link to 数据来源">​</a></h4>
+<p>高质量的<code>SFT</code>数据是关键，主要来源有：</p>
+<p><strong>1. 人工标注</strong></p>
+<ul>
+<li>雇佣标注员编写指令和答案</li>
+<li>成本高但质量最好</li>
+<li>例如：<code>InstructGPT</code>使用了约<code>13,000</code>条人工标注数据</li>
+</ul>
+<p><strong>2. 模型生成</strong></p>
+<ul>
+<li>使用强大的模型（如<code>GPT-4</code>）生成指令和答案</li>
+<li>成本低但需要质量筛选</li>
+<li>例如：<code>Alpaca</code>使用<code>GPT-3.5</code>生成了<code>52,000</code>条数据</li>
+</ul>
+<p><strong>3. 现有数据改造</strong></p>
+<ul>
+<li>将已有的问答、对话数据改造成指令格式</li>
+<li>数据丰富但可能需要大量处理</li>
+<li>例如：从<code>Stack Overflow</code>、<code>Reddit</code>等收集数据</li>
+</ul>
+<p><strong>4. 混合来源</strong></p>
+<ul>
+<li>结合多种来源，确保数据多样性</li>
+<li>覆盖不同领域和任务类型</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=典型的sft项目>典型的SFT项目<a href=#典型的sft项目 class=hash-link aria-label="Direct link to 典型的SFT项目" title="Direct link to 典型的SFT项目">​</a></h4>
+<table><thead><tr><th>模型名称<th>基座模型<th>数据量<th>数据来源<th>特点<tbody><tr><td><strong><code>InstructGPT</code></strong><td><code>GPT-3</code><td><code>13K</code><td>人工标注<td>高质量，官方产品<tr><td><strong><code>Alpaca</code></strong><td><code>LLaMA-7B</code><td><code>52K</code><td><code>GPT-3.5</code>生成<td>低成本，开源先驱<tr><td><strong><code>Vicuna</code></strong><td><code>LLaMA-13B</code><td><code>70K</code><td>真实用户对话<td>对话能力强<tr><td><strong><code>ChatGLM</code></strong><td><code>GLM-130B</code><td>未公开<td>中文指令数据<td>中文能力强</table>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=训练技巧>训练技巧<a href=#训练技巧 class=hash-link aria-label="Direct link to 训练技巧" title="Direct link to 训练技巧">​</a></h4>
+<p><strong>1. 数据多样性</strong></p>
+<p>确保指令数据覆盖多种任务类型：</p>
+<ul>
+<li>问答</li>
+<li>翻译</li>
+<li>总结</li>
+<li>写作</li>
+<li>推理</li>
+<li>代码生成等</li>
+</ul>
+<p><strong>2. 质量控制</strong></p>
+<p>对生成的数据进行筛选：</p>
+<ul>
+<li>过滤有害、偏见内容</li>
+<li>去除格式错误的样本</li>
+<li>保证答案的准确性</li>
+</ul>
+<p><strong>3. 长度平衡</strong></p>
+<p>指令和回答的长度要合理分布：</p>
+<ul>
+<li>既有简短的一问一答</li>
+<li>也有复杂的长篇推理</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=强化微调-reinforcement-fine-tuning-rft>强化微调 (Reinforcement Fine-Tuning, RFT)<a href=#强化微调-reinforcement-fine-tuning-rft class=hash-link aria-label="Direct link to 强化微调 (Reinforcement Fine-Tuning, RFT)" title="Direct link to 强化微调 (Reinforcement Fine-Tuning, RFT)">​</a></h3>
+<p><strong>强化微调</strong>是使用强化学习（<code>Reinforcement Learning</code>）的方法对模型进行微调，通过定义奖励函数，让模型学习最大化奖励的行为。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=核心特点-2>核心特点<a href=#核心特点-2 class=hash-link aria-label="Direct link to 核心特点" title="Direct link to 核心特点">​</a></h4>
+<p><strong>通俗理解</strong>：就像训练一只宠物狗，做对了给零食（正向奖励），做错了不给（负向惩罚），通过反复训练让它学会正确的行为。</p>
+<p><strong>与有监督微调的区别</strong>：</p>
+<table><thead><tr><th>维度<th>有监督微调（<code>SFT</code>）<th>强化微调（<code>RFT</code>）<tbody><tr><td><strong>训练方式</strong><td>直接学习"标准答案"<td>通过奖励信号学习"好的行为"<tr><td><strong>数据需求</strong><td>需要大量标注数据<td>可以用较少数据+奖励函数<tr><td><strong>优化目标</strong><td>最小化预测与标签的差异<td>最大化累积奖励<tr><td><strong>适用场景</strong><td>有明确标准答案的任务<td>标准答案难以定义的任务<tr><td><strong>典型应用</strong><td>文本分类、翻译<td>对话生成、游戏<code>AI</code>、机器人控制</table>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=为什么需要强化微调>为什么需要强化微调？<a href=#为什么需要强化微调 class=hash-link aria-label="Direct link to 为什么需要强化微调？" title="Direct link to 为什么需要强化微调？">​</a></h4>
+<p>在某些任务中，很难给出"标准答案"，但容易判断"好坏"：</p>
+<p><strong>场景示例</strong>：</p>
+<table><thead><tr><th>场景<th>为什么<code>SFT</code>不够<th><code>RFT</code>的优势<tbody><tr><td><strong>开放式对话</strong><td>没有唯一正确答案<td>可以定义"有趣、相关"等奖励<tr><td><strong>创意写作</strong><td>好作品有多种形式<td>可以奖励"创意、流畅"等特质<tr><td><strong>游戏<code>AI</code></strong><td>策略多样，难以穷举<td>直接奖励"获胜"这个结果<tr><td><strong>代码优化</strong><td>可以实现但效率不同<td>奖励"运行快、占用少"的代码</table>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=强化微调的流程>强化微调的流程<a href=#强化微调的流程 class=hash-link aria-label="Direct link to 强化微调的流程" title="Direct link to 强化微调的流程">​</a></h4>
+<!-- -->
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=奖励函数设计>奖励函数设计<a href=#奖励函数设计 class=hash-link aria-label="Direct link to 奖励函数设计" title="Direct link to 奖励函数设计">​</a></h4>
+<p>奖励函数是强化微调的核心，它定义了"什么是好的输出"。</p>
+<p><strong>常见的奖励设计方式</strong>：</p>
+<p><strong>1. 规则奖励</strong></p>
+<p>基于人工定义的规则：</p>
+<ul>
+<li>长度奖励：适当长度的回答得分高</li>
+<li>多样性奖励：避免重复生成</li>
+<li>格式奖励：符合特定格式（如代码块、列表）</li>
+</ul>
+<p><strong>2. 模型奖励</strong></p>
+<p>训练一个奖励模型来评分：</p>
+<ul>
+<li>使用人类标注的偏好数据</li>
+<li>训练一个分类器判断"好"或"坏"</li>
+<li>用这个模型给生成结果打分</li>
+</ul>
+<p><strong>3. 任务指标奖励</strong></p>
+<p>直接使用任务的评估指标：</p>
+<ul>
+<li>翻译任务：<code>BLEU</code>分数</li>
+<li>游戏任务：获胜/失败</li>
+<li>代码生成：能否通过测试用例</li>
+</ul>
+<p><strong>4. 混合奖励</strong></p>
+<p>结合多种奖励：</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-text codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">总奖励 = 0.5 × 内容质量 + 0.3 × 相关性 + 0.2 × 安全性</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=常用强化学习算法>常用强化学习算法<a href=#常用强化学习算法 class=hash-link aria-label="Direct link to 常用强化学习算法" title="Direct link to 常用强化学习算法">​</a></h4>
+<table><thead><tr><th>算法名称<th>简称<th>核心思想<th>在<code>LLM</code>中的应用<tbody><tr><td><strong>策略梯度</strong><td><code>Policy Gradient</code><td>直接优化策略，增加高奖励动作的概率<td>基础的强化微调方法<tr><td><strong>近端策略优化</strong><td><code>PPO</code><td>限制策略更新幅度，保证训练稳定<td><code>ChatGPT</code>使用的算法<tr><td><strong>深度Q网络</strong><td><code>DQN</code><td>学习动作的价值函数<td>较少用于文本生成</table>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=实际应用示例>实际应用示例<a href=#实际应用示例 class=hash-link aria-label="Direct link to 实际应用示例" title="Direct link to 实际应用示例">​</a></h4>
+<p><strong>场景：训练一个能写出高质量代码的模型</strong></p>
+<p><strong>1. 基础模型</strong>：先用<code>SFT</code>训练一个基本能生成代码的模型</p>
+<p><strong>2. 奖励设计</strong>：</p>
+<div class="language-python codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-python codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token keyword" style=color:#66d9ef>def</span><span class="token plain"> </span><span class="token function" style=color:#e6db74>reward_function</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">generated_code</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"> test_cases</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token punctuation" style=color:#f8f8f2>:</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    score </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> </span><span class="token number" style=color:#ae81ff>0</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 能否编译</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token keyword" style=color:#66d9ef>if</span><span class="token plain"> can_compile</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">generated_code</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token punctuation" style=color:#f8f8f2>:</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">        score </span><span class="token operator" style=color:#66d9ef>+=</span><span class="token plain"> </span><span class="token number" style=color:#ae81ff>1</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token keyword" style=color:#66d9ef>else</span><span class="token punctuation" style=color:#f8f8f2>:</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">        </span><span class="token keyword" style=color:#66d9ef>return</span><span class="token plain"> score  </span><span class="token comment" style=color:#8292a2;font-style:italic># 编译失败直接返回</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 通过测试用例</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    passed </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> run_test_cases</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">generated_code</span><span class="token punctuation" style=color:#f8f8f2>,</span><span class="token plain"> test_cases</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    score </span><span class="token operator" style=color:#66d9ef>+=</span><span class="token plain"> passed </span><span class="token operator" style=color:#66d9ef>/</span><span class="token plain"> </span><span class="token builtin" style=color:#e6db74>len</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">test_cases</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"> </span><span class="token operator" style=color:#66d9ef>*</span><span class="token plain"> </span><span class="token number" style=color:#ae81ff>5</span><span class="token plain">  </span><span class="token comment" style=color:#8292a2;font-style:italic># 最多5分</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 代码效率</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    runtime </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> measure_runtime</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">generated_code</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token keyword" style=color:#66d9ef>if</span><span class="token plain"> runtime </span><span class="token operator" style=color:#66d9ef>&lt;</span><span class="token plain"> baseline</span><span class="token punctuation" style=color:#f8f8f2>:</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">        score </span><span class="token operator" style=color:#66d9ef>+=</span><span class="token plain"> </span><span class="token number" style=color:#ae81ff>2</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token comment" style=color:#8292a2;font-style:italic># 代码可读性（用启发式规则）</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    readability </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> check_readability</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">generated_code</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    score </span><span class="token operator" style=color:#66d9ef>+=</span><span class="token plain"> readability</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    </span><span class="token keyword" style=color:#66d9ef>return</span><span class="token plain"> score</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p><strong>3. 训练过程</strong>：</p>
+<ul>
+<li>给定编程问题</li>
+<li>模型生成代码</li>
+<li>运行测试并计算奖励</li>
+<li>根据奖励更新模型</li>
+<li>重复迭代</li>
+</ul>
+<p><strong>4. 效果</strong>：模型逐渐学会生成能通过测试、运行高效、可读性好的代码</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=挑战与注意事项>挑战与注意事项<a href=#挑战与注意事项 class=hash-link aria-label="Direct link to 挑战与注意事项" title="Direct link to 挑战与注意事项">​</a></h4>
+<p><strong>1. 奖励设计困难</strong></p>
+<p>不当的奖励函数可能导致意外行为：</p>
+<ul>
+<li><strong>奖励黑客</strong>（<code>Reward Hacking</code>）：模型找到"作弊"方式获得高奖励，但不是真正的好输出</li>
+<li><strong>示例</strong>：如果只奖励长度，模型可能生成冗长但无意义的文本</li>
+</ul>
+<p><strong>2. 训练不稳定</strong></p>
+<p>强化学习训练过程比监督学习更不稳定：</p>
+<ul>
+<li>奖励信号稀疏或噪声大</li>
+<li>策略更新可能导致性能崩溃</li>
+<li>需要精心调整超参数</li>
+</ul>
+<p><strong>3. 计算成本高</strong></p>
+<p>需要大量的采样和评估：</p>
+<ul>
+<li>每次更新需要生成多个候选输出</li>
+<li>需要多次迭代才能收敛</li>
+<li>总体计算量远大于监督学习</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=人类偏好对齐-reinforcement-learning-from-human-feedback-rlhf>人类偏好对齐 (Reinforcement Learning from Human Feedback, RLHF)<a href=#人类偏好对齐-reinforcement-learning-from-human-feedback-rlhf class=hash-link aria-label="Direct link to 人类偏好对齐 (Reinforcement Learning from Human Feedback, RLHF)" title="Direct link to 人类偏好对齐 (Reinforcement Learning from Human Feedback, RLHF)">​</a></h3>
+<p><strong>人类偏好对齐</strong>是强化微调的一种特殊形式，通过收集人类对模型输出的偏好反馈，训练一个奖励模型，然后用这个奖励模型指导<code>AI</code>模型的优化，使其输出更符合人类期望。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=核心特点-3>核心特点<a href=#核心特点-3 class=hash-link aria-label="Direct link to 核心特点" title="Direct link to 核心特点">​</a></h4>
+<p><strong>通俗理解</strong>：就像选秀节目，让评委（人类）对选手（模型输出）进行打分或投票，然后根据这些评分训练选手，让他们的表演越来越符合评委的喜好。</p>
+<p><strong><code>RLHF</code>的独特之处</strong>：奖励函数不是人工定义的规则，而是<strong>从人类反馈数据中学习</strong>出来的。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=为什么需要rlhf>为什么需要RLHF？<a href=#为什么需要rlhf class=hash-link aria-label="Direct link to 为什么需要RLHF？" title="Direct link to 为什么需要RLHF？">​</a></h4>
+<table><thead><tr><th>问题<th>传统方法的局限<th><code>RLHF</code>的解决<tbody><tr><td><strong>难以定义"好"</strong><td>很难用规则描述什么是好的对话<td>让人类直接打分，学习"好"的标准<tr><td><strong>主观偏好</strong><td>创意、风格等很主观<td>学习人类的集体偏好<tr><td><strong>安全性</strong><td>很难穷举所有有害内容<td>人类可以识别各种有害输出<tr><td><strong>多目标平衡</strong><td>同时优化准确、友好、简洁等多个目标很复杂<td>人类自然地进行综合判断</table>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=rlhf的完整流程>RLHF的完整流程<a href=#rlhf的完整流程 class=hash-link aria-label="Direct link to RLHF的完整流��程" title="Direct link to RLHF的完整流程">​</a></h4>
+<p><code>RLHF</code>通常分为三个阶段：</p>
+<!-- -->
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=阶段1有监督微调sft>阶段1：有监督微调（SFT）<a href=#阶段1有监督微调sft class=hash-link aria-label="Direct link to 阶段1：有监督微调（SFT）" title="Direct link to 阶段1：有监督微调（SFT）">​</a></h4>
+<p><strong>目标</strong>：让模型具备基本的指令遵循能力</p>
+<p><strong>方法</strong>：使用高质量的指令-回答对进行监督训练（前面介绍的<code>SFT</code>）</p>
+<p><strong>产出</strong>：一个能理解并回答问题的基础模型，但回答质量可能参差不齐</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=阶段2奖励模型训练>阶段2：奖励模型训练<a href=#阶段2奖励模型训练 class=hash-link aria-label="Direct link to 阶段2：奖励模型训练" title="Direct link to 阶段2：奖励模型训练">​</a></h4>
+<p>这是<code>RLHF</code>的关键创新步骤。</p>
+<p><strong>2.1 数据收集</strong></p>
+<p>对于同一个输入（<code>prompt</code>），让<code>SFT</code>模型生成多个不同的输出（通常<code>4-9</code>个）：</p>
+<p><strong>示例</strong>：</p>
+<div class="language-go codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-go codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">输入：如何学习编程？</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain" style=display:inline-block></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">输出A：学习编程需要先学习一门编程语言，比如Python</span><span class="token operator" style=color:#66d9ef>...</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">输出B：编程很难，需要大量练习，建议先从简单的开始</span><span class="token operator" style=color:#66d9ef>...</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">输出C：首先，选择一门适合初学者的语言，如Python。其次</span><span class="token operator" style=color:#66d9ef>...</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">输出D：你可以通过在线课程、书籍、实践项目等方式学习编程</span><span class="token operator" style=color:#66d9ef>...</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p><strong>2.2 人工标注</strong></p>
+<p>雇佣标注员对这些输出进行<strong>排序或打分</strong>：</p>
+<p><strong>排序方式</strong>：</p>
+<div class="language-go codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-go codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">最好：输出C</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">第二：输出D</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">第三：输出A</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">最差：输出B</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p>或者直接打分：</p>
+<div class="language-go codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-go codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">输出A：</span><span class="token number" style=color:#ae81ff>7</span><span class="token plain">分</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">输出B：</span><span class="token number" style=color:#ae81ff>4</span><span class="token plain">分</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">输出C：</span><span class="token number" style=color:#ae81ff>9</span><span class="token plain">分</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">输出D：</span><span class="token number" style=color:#ae81ff>8</span><span class="token plain">分</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p><strong>2.3 训练奖励模型</strong></p>
+<p>使用这些偏好数据训练一个<strong>奖励模型</strong>（<code>Reward Model, RM</code>）：</p>
+<p><strong>训练目标</strong>：给定输入和输出，预测人类会给这个输出打多少分</p>
+<p><strong>模型架构</strong>：通常基于<code>SFT</code>模型，把输出层改为一个标量输出（分数）</p>
+<p><strong>损失函数</strong>：让排名高的输出得分高于排名低的输出</p>
+<div class="language-python codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-python codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token comment" style=color:#8292a2;font-style:italic># 伪代码示意</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">loss </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> </span><span class="token operator" style=color:#66d9ef>-</span><span class="token plain">log</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">sigmoid</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">score</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">输出C</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"> </span><span class="token operator" style=color:#66d9ef>-</span><span class="token plain"> score</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">输出B</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token punctuation" style=color:#f8f8f2>)</span><span class="token plain"></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain"></span><span class="token comment" style=color:#8292a2;font-style:italic># 让得分满足：score(C) > score(B)</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=阶段3强化学习优化>阶段3：强化学习优化<a href=#阶段3强化学习优化 class=hash-link aria-label="Direct link to 阶段3：强化学习优化" title="Direct link to 阶段3：强化学习优化">​</a></h4>
+<p><strong>3.1 使用PPO算法</strong></p>
+<p><strong>近端策略优化</strong>（<code>Proximal Policy Optimization, PPO</code>）是<code>RLHF</code>最常用的强化学习算法。</p>
+<p><strong>核心思想</strong>：</p>
+<ul>
+<li>让模型生成的输出获得更高的奖励模型分数</li>
+<li>但不能偏离<code>SFT</code>模型太远（防止模型崩溃）</li>
+</ul>
+<p><strong>目标函数</strong>：</p>
+<div class="language-go codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-go codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">总目标 </span><span class="token operator" style=color:#66d9ef>=</span><span class="token plain"> 奖励模型分数 </span><span class="token operator" style=color:#66d9ef>-</span><span class="token plain"> β × KL散度</span><span class="token punctuation" style=color:#f8f8f2>(</span><span class="token plain">当前模型 </span><span class="token operator" style=color:#66d9ef>||</span><span class="token plain"> SFT模型</span><span class="token punctuation" style=color:#f8f8f2>)</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p><strong>解释</strong>：</p>
+<ul>
+<li>第一项：鼓励高奖励输出</li>
+<li>第二项：惩罚与<code>SFT</code>模型差异过大（β是权重系数）</li>
+</ul>
+<p><strong>3.2 迭代优化</strong></p>
+<!-- -->
+<p><strong>训练过程</strong>：</p>
+<ol>
+<li>给定输入，用当前策略模型生成输出</li>
+<li>奖励模型对输出打分</li>
+<li>计算<code>PPO</code>损失</li>
+<li>更新策略模型参数</li>
+<li>重复数千次迭代</li>
+</ol>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=rlhf的实际应用>RLHF的实际应用<a href=#rlhf的实际应用 class=hash-link aria-label="Direct link to RLHF的实际应用" title="Direct link to RLHF的实际应用">​</a></h4>
+<p><strong>最著名的案例：<code>ChatGPT</code></strong></p>
+<p><code>OpenAI</code>使用<code>RLHF</code>训练<code>ChatGPT</code>的过程：</p>
+<p><strong>1. 预训练</strong>：<code>GPT-3.5</code>在海量文本上预训练</p>
+<p><strong>2. <code>SFT</code></strong>：用约<code>13,000</code>条人工编写的高质量对话数据进行监督微调</p>
+<p><strong>3. 奖励模型</strong>：</p>
+<ul>
+<li>收集约<code>33,000</code>组对比数据（每组包含一个问题和多个回答）</li>
+<li>人类标注员对回答进行排序</li>
+<li>训练奖励模型学习人类偏好</li>
+</ul>
+<p><strong>4. <code>PPO</code>优化</strong>：</p>
+<ul>
+<li>用奖励模型指导<code>PPO</code>训练</li>
+<li>迭代优化数周</li>
+<li>定期人工评估，调整训练参数</li>
+</ul>
+<p><strong>结果</strong>：<code>ChatGPT</code>表现出了惊人的对话能力和安全性，成为现象级产品</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=rlhf的优势>RLHF的优势<a href=#rlhf的优势 class=hash-link aria-label="Direct link to RLHF的优势" title="Direct link to RLHF的优势">​</a></h4>
+<table><thead><tr><th>优势<th>说明<th>示例<tbody><tr><td><strong>符合人类偏好</strong><td>输出更贴近人类期望<td>回答更友好、更有帮助<tr><td><strong>主观质量提升</strong><td>对创意、风格等主观维度有效<td>写作更有趣、更自然<tr><td><strong>安全性增强</strong><td>减少有害、偏见内容<td>拒绝生成危险信息<tr><td><strong>难以规则化</strong><td>可以优化难以定义的目标<td>让对话"更像人"</table>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=rlhf的挑战>RLHF的挑战<a href=#rlhf的挑战 class=hash-link aria-label="Direct link to RLHF的挑战" title="Direct link to RLHF的挑战">​</a></h4>
+<p><strong>1. 人工标注成本高</strong></p>
+<ul>
+<li>需要大量标注员进行偏好标注</li>
+<li>标注质量影响最终效果</li>
+<li>成本可能达到数十万到数百万美元</li>
+</ul>
+<p><strong>2. 标注者偏差</strong></p>
+<ul>
+<li>不同标注员的偏好可能不一致</li>
+<li>标注员的文化背景影响判断</li>
+<li>可能引入系统性偏见</li>
+</ul>
+<p><strong>3. 奖励模型的局限</strong></p>
+<ul>
+<li>奖励模型本身也可能犯错</li>
+<li>模型可能学会欺骗奖励模型（Reward Hacking）</li>
+<li>需要持续更新和改进</li>
+</ul>
+<p><strong>4. 训练复杂度高</strong></p>
+<ul>
+<li>需要同时维护策略模型、奖励模型、参考模型</li>
+<li>训练不稳定，需要精细调参</li>
+<li>计算资源消耗巨大</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=rlhf的改进方向>RLHF的改进方向<a href=#rlhf的改进方向 class=hash-link aria-label="Direct link to RLHF的改进方向" title="Direct link to RLHF的改进方向">​</a></h4>
+<p><strong>1. 直接偏好优化（Direct Preference Optimization, DPO）</strong></p>
+<p>省略奖励模型训练，直接从偏好数据优化策略：</p>
+<ul>
+<li>简化流程，降低复杂度</li>
+<li>训练更稳定</li>
+<li>是当前的研究热点</li>
+</ul>
+<p><strong>2. 宪法AI（Constitutional AI, CAI）</strong></p>
+<p>用<code>AI</code>帮助标注，减少人工成本：</p>
+<ul>
+<li>定义一套"宪法"原则（如：友好、诚实、安全）</li>
+<li>让强大的<code>AI</code>（如<code>GPT-4</code>）按原则评估输出</li>
+<li>减少对人工标注的依赖</li>
+</ul>
+<p><strong>3. 迭代式RLHF</strong></p>
+<p>不断收集新的人类反馈，持续改进模型：</p>
+<ul>
+<li>部署模型后收集用户反馈</li>
+<li>定期更新奖励模型</li>
+<li>进行新一轮<code>RLHF</code>训练</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=微调方法总结对比>微调方法总结对比<a href=#微调方法总结对比 class=hash-link aria-label="Direct link to 微调方法总结对比" title="Direct link to 微调方法总结对比">​</a></h3>
+<table><thead><tr><th>方法<th>简称<th>核心特点<th>数据需求<th>计算成本<th>适用场景<th>典型应用<tbody><tr><td><strong>全量微调</strong><td><code>FT</code><td>更新所有参数<td>中等（数千至数万）<td>较高<td>任务差异大、追求最佳效果<td>领域特定分类、翻译<tr><td><strong>有监督微调</strong><td><code>SFT</code><td>学习指令遵循<td>中等（数万）<td>中等<td>让模型遵循指令<td><code>Alpaca</code>、指令模型<tr><td><strong>强化微调</strong><td><code>RFT</code><td>通过奖励优化<td>较少（可用奖励函数）<td>高<td>难以定义标准答案<td>游戏<code>AI</code>、代码优化<tr><td><strong>人类偏好对齐</strong><td><code>RLHF</code><td>学习人类偏好<td>较多（数万组对比）<td>非常高<td>对齐人类价值观<td><code>ChatGPT</code>、安全模型</table>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=微调方法的选择建议>微调方法的选择建议<a href=#微调方法的选择建议 class=hash-link aria-label="Direct link to 微调方法的选择建议" title="Direct link to 微调方法的选择建议">​</a></h3>
+<!-- -->
+<p><strong>实践建议</strong>：</p>
+<ol>
+<li><strong>优先尝试<code>SFT</code></strong>：如果是让模型学会遵循指令，<code>SFT</code>是最直接有效的方法</li>
+<li><strong>追求极致效果用<code>RLHF</code></strong>：如果对模型输出质量要求极高，且有资源，使用<code>RLHF</code></li>
+<li><strong>特定目标用<code>RFT</code></strong>：如果有明确的优化目标（如游戏获胜、代码效率），使用<code>RFT</code></li>
+<li><strong>传统任务用<code>FT</code></strong>：如果是传统的分类、回归等任务，全量微调最简单有效</li>
+</ol>
+<p><strong>总结</strong>：微调方法的选择没有绝对的优劣，关键是根据具体的任务需求、数据情况和资源条件来决定。在实践中，常常会组合使用多种方法，例如先<code>SFT</code>再<code>RLHF</code>，以达到最佳效果。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=ai模型微调的基本流程>AI模型微调的基本流程<a href=#ai模型微调的基本流程 class=hash-link aria-label="Direct link to AI模型微调的基本流程" title="Direct link to AI模型微调的基本流程">​</a></h2>
+<!-- -->
+<p><strong>与从零训练的对比</strong>：</p>
+<table><thead><tr><th>维度<th>从零训练<th>微调<tbody><tr><td><strong>起点</strong><td>随机初始化<td>预训练模型<tr><td><strong>数据量</strong><td>百万级以上<td>数千到数万<tr><td><strong>训练时间</strong><td>数周到数月<td>数小时到数天<tr><td><strong>算力需求</strong><td>数百到数千<code>GPU</code><td>单卡到数卡<code>GPU</code><tr><td><strong>成本</strong><td>数十万到数百万美元<td>数百到数千美元<tr><td><strong>适用场景</strong><td>构建基座模型<td>特定任务适配</table>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=ai模型微调的常见场景>AI模型微调的常见场景<a href=#ai模型微调的常见场景 class=hash-link aria-label="Direct link to AI模型微调的常见场景" title="Direct link to AI模型微调的常见场景">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=智能客服>智能客服<a href=#智能客服 class=hash-link aria-label="Direct link to 智能客服" title="Direct link to 智能客服">​</a></h3>
+<p><strong>业务需求</strong>：自动回答用户咨询，减少人工客服压力</p>
+<p><strong>技术路径</strong>：</p>
+<!-- -->
+<p><strong>数据准备</strong>：</p>
+<ul>
+<li>历史客服对话记录（脱敏处理）</li>
+<li>常见问题及标准答案（<code>FAQ</code>）</li>
+<li>产品文档和知识库</li>
+</ul>
+<p><strong>效果指标</strong>：</p>
+<ul>
+<li>问题解决率：<code>> 80%</code></li>
+<li>用户满意度：<code>> 4.0/5.0</code></li>
+<li>人工介入率：<code>&lt; 20%</code></li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=文档智能处理>文档智能处理<a href=#文档智能处理 class=hash-link aria-label="Direct link to 文档智能处理" title="Direct link to 文档智能处理">​</a></h3>
+<p><strong>业务需求</strong>：自动提取合同、报告中的关键信息</p>
+<p><strong>技术路径</strong>：</p>
+<ul>
+<li><strong>预训练模型</strong>：使用<code>BERT</code>或<code>RoBERTa</code></li>
+<li><strong>微调任务</strong>：命名实体识别（<code>NER</code>）、关系抽取</li>
+<li><strong>训练数据</strong>：标注的文档样本（数千份）</li>
+</ul>
+<p><strong>应用场景</strong>：</p>
+<ul>
+<li>合同条款提取</li>
+<li>简历信息解析</li>
+<li>医疗报告分析</li>
+<li>财务报表解读</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=代码助手>代码助手<a href=#代码助手 class=hash-link aria-label="Direct link to 代码助手" title="Direct link to 代码助手">​</a></h3>
+<p><strong>业务需求</strong>：帮助开发者编写、优化代码</p>
+<p><strong>技术路径</strong>：</p>
+<!-- -->
+<p><strong>训练数据</strong>：</p>
+<ul>
+<li><code>GitHub</code>开源代码</li>
+<li>编程问答（<code>Stack Overflow</code>）</li>
+<li>代码注释对</li>
+<li>测试用例</li>
+</ul>
+<p><strong>评估方式</strong>：</p>
+<ul>
+<li>代码能否编译</li>
+<li>是否通过测试用例</li>
+<li>代码效率和可读性</li>
+<li>开发者满意度</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=内容创作>内容创作<a href=#内容创作 class=hash-link aria-label="Direct link to 内容创作" title="Direct link to 内容创作">​</a></h3>
+<p><strong>业务需求</strong>：自动生成营销文案、新闻摘要、产品描述等</p>
+<p><strong>技术路径</strong>：</p>
+<ul>
+<li><strong>基座模型</strong>：<code>GPT</code>系列或<code>LLaMA</code></li>
+<li><strong>微调方式</strong>：<code>SFT</code> + <code>RLHF</code></li>
+<li><strong>风格对齐</strong>：学习品牌语调和风格</li>
+</ul>
+<p><strong>应用场景</strong>：</p>
+<ul>
+<li>电商产品描述生成</li>
+<li>新闻自动摘要</li>
+<li>广告文案创作</li>
+<li>社交媒体内容生成</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=智能推荐>智能推荐<a href=#智能推荐 class=hash-link aria-label="Direct link to 智能推荐" title="Direct link to 智能推荐">​</a></h3>
+<p><strong>业务需求</strong>：个性化推荐商品、内容、服务</p>
+<p><strong>技术路径</strong>：</p>
+<ul>
+<li><strong>预训练</strong>：在用户行为数据上预训练</li>
+<li><strong>微调</strong>：针对特定推荐场景微调</li>
+<li><strong>强化学习</strong>：根据用户反馈优化</li>
+</ul>
+<p><strong>数据特点</strong>：</p>
+<ul>
+<li>用户画像数据</li>
+<li>行为序列数据</li>
+<li>物品特征数据</li>
+<li>点击/购买反馈</li>
+</ul></div></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/ai/training><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>AI模型训练技术详解</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/ai/training-parallel-strategies><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>AI模型训练并行策略介绍</div></a></nav><div class=docusaurus-mt-lg></div></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#微调技术概述 class="table-of-contents__link toc-highlight">微调技术概述</a><ul><li><a href=#模型训练的痛点 class="table-of-contents__link toc-highlight">模型训练的痛点</a><li><a href=#微调技术的诞生 class="table-of-contents__link toc-highlight">微调技术的诞生</a></ul><li><a href=#ai模型微调的常见方法 class="table-of-contents__link toc-highlight">AI模型微调的常见方法</a><ul><li><a href=#全量微调-fine-tuning-ft class="table-of-contents__link toc-highlight">全量微调 (Fine-Tuning, FT)</a><li><a href=#有监督微调-supervised-fine-tuning-sft class="table-of-contents__link toc-highlight">有监督微调 (Supervised Fine-Tuning, SFT)</a><li><a href=#强化微调-reinforcement-fine-tuning-rft class="table-of-contents__link toc-highlight">强化微调 (Reinforcement Fine-Tuning, RFT)</a><li><a href=#人类偏好对齐-reinforcement-learning-from-human-feedback-rlhf class="table-of-contents__link toc-highlight">人类偏好对齐 (Reinforcement Learning from Human Feedback, RLHF)</a><li><a href=#微调方法总结对比 class="table-of-contents__link toc-highlight">微调方法总结对比</a><li><a href=#微调方法的选择建议 class="table-of-contents__link toc-highlight">微调方法的选择建议</a></ul><li><a href=#ai模型微调的基本流程 class="table-of-contents__link toc-highlight">AI模型微调的基本流程</a><li><a href=#ai模型微调的常见场景 class="table-of-contents__link toc-highlight">AI模型微调的常见场景</a><ul><li><a href=#智能客服 class="table-of-contents__link toc-highlight">智能客服</a><li><a href=#文档智能处理 class="table-of-contents__link toc-highlight">文档智能处理</a><li><a href=#代码助手 class="table-of-contents__link toc-highlight">代码助手</a><li><a href=#内容创作 class="table-of-contents__link toc-highlight">内容创作</a><li><a href=#智能推荐 class="table-of-contents__link toc-highlight">智能推荐</a></ul></ul></div></div></div></div></main></div></div></div><footer class=footer><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright 2026 johng.cn</div></div></div></footer></div>
