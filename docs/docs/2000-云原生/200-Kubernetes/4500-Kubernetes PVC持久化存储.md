@@ -137,7 +137,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: local-storage
+  storageClassName: local-storage # 可选
   hostPath:
     path: /data/k8s-storage
     type: DirectoryOrCreate
@@ -145,7 +145,7 @@ spec:
 
 #### 2. 创建PersistentVolumeClaim
 
-用户创建`PVC`申请存储：
+在被`Pod/Deployment`使用前，用户需要创建对应的`PVC`申请存储：
 
 ```yaml
 apiVersion: v1

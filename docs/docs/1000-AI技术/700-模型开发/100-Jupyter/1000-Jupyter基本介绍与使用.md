@@ -248,9 +248,30 @@ metadata:
   name: jupyter-system
 ```
 
-### 创建 PersistentVolumeClaim
+### 创建 PV（可选）
 
-通过`PVC`持久化存储用户数据，多个用户可以共享一个`PVC`，通过不同的目录区分不同用户的数据：
+通过`PV`持久化存储用户数据，多个用户可以共享一个`PV`，通过不同的目录区分不同用户的数据：
+
+```yaml title="pv.yaml"
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jupyterlab-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /data/jupyterlab
+    type: DirectoryOrCreate
+```
+
+### 创建 PVC（可选）
+
+通过`PVC`声明当前`Jupyter`开发机依赖的存储（通常是一块云盘）：
 
 ```yaml title="pvc.yaml"
 apiVersion: v1
@@ -267,9 +288,15 @@ spec:
   # storageClassName: <your-storage-class>
 ```
 
-### 创建 Deployment
+### 创建 Deployment/Statefulset
 
-我们使用`Deployment`而不是`Pod`来部署`JupyterLab`的`Pod`，因为直接用`Pod`来部署的话，如果`Pod`挂掉了是不会自动重启的，而`Deployment`会帮我们管理`Pod`的生命周期，确保`Pod`始终运行。
+我们使用`Deployment/Statefulset`而不是`Pod`来部署`JupyterLab`的`Pod`，因为直接用`Pod`来部署的话，如果`Pod`挂掉了是不会自动重启的，而`Deployment/Statefulset`会帮我们管理`Pod`的生命周期，确保`Pod`始终运行。
+
+
+
+#### Deployment
+
+如果`Jupyter`开发机是一个无状态的（不需要挂载外部存储），推荐使用`Deployment`部署。
 
 ```yaml title="deployment.yaml"
 apiVersion: apps/v1
@@ -329,6 +356,87 @@ spec:
       #   persistentVolumeClaim:
       #     claimName: jupyterlab-pvc
 ```
+
+#### Statefulset
+
+如果`Jupyter`需要挂载外部的存储内容，比如`NFS`网盘，那么推荐使用`Statefulset`来部署`Jupyter`开发机，因为`Statefulset`可以自动创建和删除`PVC`，而`Deployment`需要手动维护，较繁琐。
+
+```yaml title="statefulset.yaml"
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jupyterlab
+  namespace: jupyter-system
+  labels:
+    app: jupyterlab
+spec:
+  # StatefulSet 必须指定 serviceName（即使暂时不用 Service，也需定义）
+  serviceName: jupyterlab
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyterlab
+  # 核心：PVC 模板，自动创建并绑定 HPC NFS PV
+  volumeClaimTemplates:
+  - metadata:
+      name: jupyterlab-pvc  # 卷名称，与 Pod 内 volumeMounts 对应
+    spec:
+      resources:
+        requests:
+          storage: 10Gi  # 需与你的 HPC NFS PV 容量匹配
+      accessModes:
+        - ReadWriteMany  # 必须与 PV 的 accessModes 一致（NFS 支持多 Pod 共享）
+      storageClassName: ""  # 空存储类，匹配无 SC 的 HPC PV
+      volumeName: jupyterlab-pv  # 强制绑定你创建的 HPC NFS PV 名称
+  # PVC 回收策略：删除 StatefulSet 时自动删除 PVC，缩容时保留
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Delete
+    whenScaled: Retain
+  template:
+    metadata:
+      labels:
+        app: jupyterlab
+    spec:
+      containers:
+      - name: jupyterlab
+        image: quay.io/jupyter/base-notebook:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8888
+          name: http
+          protocol: TCP
+        env:
+        - name: JUPYTER_ENABLE_LAB
+          value: "yes"
+        - name: GRANT_SUDO
+          value: "yes"
+        # 挂载自动创建的 PVC 到 Jupyter 工作目录（替换注释掉的原挂载配置）
+        volumeMounts:
+        - name: jupyterlab-pvc  # 对应 volumeClaimTemplates 的 name
+          mountPath: /data/hpc  # 挂载 HPC 网盘到该路径，可访问 /data/hpc/home
+          # 可选：如果想让用户默认访问 home 目录，可添加 subPath
+          # subPath: home
+        resources:
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        livenessProbe:
+          httpGet:
+            path: /lab
+            port: 8888
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /lab
+            port: 8888
+          initialDelaySeconds: 10
+          periodSeconds: 5
+```
+
 
 ### 创建 Service
 
