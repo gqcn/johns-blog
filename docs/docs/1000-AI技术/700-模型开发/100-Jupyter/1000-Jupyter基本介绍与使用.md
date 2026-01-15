@@ -170,6 +170,7 @@ docker run -p 8888:8888 \
 |---------|------|--------|------|
 | `GEN_CERT` | 生成自签名`SSL`证书并启用`HTTPS` | - | `-e GEN_CERT=yes` |
 
+
 #### 常用配置组合示例
 
 **基础开发环境**：
@@ -238,6 +239,247 @@ docker run -p 8888:8888 \
 # 访问地址: http://localhost:8888/lab
 ```
 
+## Jupyter Server配置
+
+`Jupyter Server`是`Jupyter`生态系统的核心后端服务，提供`RESTful API`和`WebSocket`接口。可以通过配置文件、命令行参数或环境变量进行配置。
+
+### 配置方式
+
+#### 1. 生成配置文件
+
+生成默认配置文件（包含所有可配置项的注释说明）：
+
+```bash
+jupyter server --generate-config
+```
+
+这会在 `~/.jupyter/` 目录下创建 `jupyter_server_config.py` 文件。
+
+#### 2. 配置文件格式
+
+**Python格式**（推荐）：
+
+```python
+# ~/.jupyter/jupyter_server_config.py
+
+# 设置服务器端口
+c.ServerApp.port = 9999
+
+# 设置IP地址（0.0.0.0允许远程访问）
+c.ServerApp.ip = '0.0.0.0'
+
+# 设置根目录
+c.ServerApp.root_dir = '/home/user/notebooks'
+```
+
+**JSON格式**：
+
+```json
+{
+  "ServerApp": {
+    "port": 9999,
+    "ip": "0.0.0.0",
+    "root_dir": "/home/user/notebooks"
+  }
+}
+```
+
+#### 3. 命令行参数
+
+使用命令行参数覆盖配置文件设置（优先级高于配置文件）：
+
+```bash
+jupyter server \
+  --ServerApp.port=9999 \
+  --ServerApp.ip='0.0.0.0' \
+  --ServerApp.root_dir='/home/user/notebooks'
+```
+
+### 核心配置选项
+
+#### 网络配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `ServerApp.ip` | 服务监听的IP地址 | `localhost` | `c.ServerApp.ip = '0.0.0.0'` |
+| `ServerApp.port` | 服务监听的端口 | `8888` | `c.ServerApp.port = 9999` |
+| `ServerApp.port_retries` | 端口被占用时的重试次数 | `50` | `c.ServerApp.port_retries = 10` |
+| `ServerApp.allow_remote_access` | 是否允许远程访问 | `False` | `c.ServerApp.allow_remote_access = True` |
+| `ServerApp.local_hostnames` | 本地主机名列表（用于安全检查） | `['localhost']` | `c.ServerApp.local_hostnames = ['localhost', '127.0.0.1']` |
+| `ServerApp.base_url` | 应用的基础`URL`路径 | `/` | `c.ServerApp.base_url = '/jupyter/'` |
+
+#### 认证与安全配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `IdentityProvider.token` | 访问`token` | 自动生成 | `c.IdentityProvider.token = 'your-secret-token'` |
+| `ServerApp.password` | 密码哈希值 |  | `c.ServerApp.password = 'sha1:...'` |
+| `ServerApp.allow_unauthenticated_access` | 是否允许未认证访问 | `False` | `c.ServerApp.allow_unauthenticated_access = False` |
+| `ServerApp.disable_check_xsrf` | 是否禁用`XSRF`检查 | `False` | `c.ServerApp.disable_check_xsrf = False` |
+| `ServerApp.allow_password_change` | 是否允许首次登录时更改密码 | `True` | `c.ServerApp.allow_password_change = True` |
+| `ServerApp.cookie_secret` | `Cookie`加密密钥 | 自动生成 | 不建议手动设置 |
+| `ServerApp.cookie_secret_file` | `Cookie`密钥文件路径 | 自动创建 | `c.ServerApp.cookie_secret_file = '/path/to/secret'` |
+
+
+#### SSL/TLS配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `ServerApp.certfile` | `SSL`证书文件路径 | | `c.ServerApp.certfile = '/path/to/cert.pem'` |
+| `ServerApp.keyfile` | `SSL`密钥文件路径 |  | `c.ServerApp.keyfile = '/path/to/key.pem'` |
+| `ServerApp.client_ca` | 客户端`CA`证书文件路径 |  | `c.ServerApp.client_ca = '/path/to/ca.pem'` |
+
+#### 目录与文件配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `ServerApp.root_dir` | 笔记本根目录 | 启动目录 | `c.ServerApp.root_dir = '/home/user/notebooks'` |
+| `ServerApp.preferred_dir` | 首选工作目录 |  | `c.ServerApp.preferred_dir = '/home/user/work'` |
+| `ContentsManager.allow_hidden` | 是否允许访问隐藏文件 | `False` | `c.ContentsManager.allow_hidden = True` |
+| `ServerApp.max_body_size` | 最大请求体大小（字节） | `536870912` `(512MB)` | `c.ServerApp.max_body_size = 1073741824` |
+| `ContentsManager.max_file_size` | 最大文件保存大小（字节） | `None`（无限制） | `c.ContentsManager.max_file_size = 10485760` |
+
+#### 内核管理配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `ServerApp.kernel_manager_class` | 内核管理器类 | `MappingKernelManager` | 通常不需要修改 |
+| `MappingKernelManager.cull_idle_timeout` | 空闲内核超时时间（秒，`0`表示禁用） | `0` | `c.MappingKernelManager.cull_idle_timeout = 3600` |
+| `MappingKernelManager.cull_interval` | 内核检查间隔（秒） | `300` | `c.MappingKernelManager.cull_interval = 60` |
+| `MappingKernelManager.cull_connected` | 是否剔除有连接的空闲内核 | `False` | `c.MappingKernelManager.cull_connected = False` |
+| `MappingKernelManager.cull_busy` | 是否剔除繁忙的内核 | `False` | `c.MappingKernelManager.cull_busy = False` |
+| `MappingKernelManager.kernel_info_timeout` | 获取内核信息的超时时间（秒） | `60` | `c.MappingKernelManager.kernel_info_timeout = 30` |
+
+#### 会话管理配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `ServerApp.session_manager_class` | 会话管理器类 | `SessionManager` | 通常不需要修改 |
+| `SessionManager.database_filepath` | 会话数据库文件路径 | 自动创建 | `c.SessionManager.database_filepath = '/path/to/sessions.db'` |
+
+#### 日志配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `ServerApp.log_level` | 日志级别 | `INFO` | `c.ServerApp.log_level = 'DEBUG'` |
+| `ServerApp.log_format` | 日志格式 | 默认格式 | 使用默认值即可 |
+
+**日志级别**：`DEBUG`、`INFO`、`WARNING`、`ERROR`、`CRITICAL`
+
+#### WebSocket配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `ServerApp.websocket_ping_interval` | `WebSocket ping`间隔（秒） | `30` | `c.ServerApp.websocket_ping_interval = 20` |
+| `ServerApp.websocket_ping_timeout` | `WebSocket ping`超时（秒） | `10` | `c.ServerApp.websocket_ping_timeout = 5` |
+| `ServerApp.websocket_max_message_size` | 最大消息大小（字节） | `10485760 (10MB)` | `c.ServerApp.websocket_max_message_size = 20971520` |
+
+#### 性能与限流配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `ServerApp.iopub_msg_rate_limit` | `IOPub`消息速率限制（消息/秒） | `1000` | `c.ServerApp.iopub_msg_rate_limit = 10000` |
+| `ServerApp.iopub_data_rate_limit` | `IOPub`数据速率限制（字节/秒） | `1000000` `(1MB/s)` | `c.ServerApp.iopub_data_rate_limit = 10000000` |
+| `ServerApp.rate_limit_window` | 速率限制窗口（秒） | `3` | `c.ServerApp.rate_limit_window = 1` |
+| `ServerApp.limit_rate` | 是否启用速率限制 | `True` | `c.ServerApp.limit_rate = True` |
+
+#### 界面与行为配置
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `ServerApp.open_browser` | 启动时是否自动打开浏览器 | `True` | `c.ServerApp.open_browser = False` |
+| `ServerApp.browser` | 指定使用的浏览器 | 系统默认 | `c.ServerApp.browser = 'firefox'` |
+| `ServerApp.terminado_settings` | `Terminal`设置 | `{}` | `c.ServerApp.terminado_settings = {'shell_command': ['/bin/bash']}` |
+| `ServerApp.shutdown_no_activity_timeout` | 无活动自动关闭超时（秒，0禁用） | `0` | `c.ServerApp.shutdown_no_activity_timeout = 3600` |
+
+#### Gateway配置（远程内核）
+
+| 配置项 | 说明 | 默认值 | 配置示例 |
+|-------|------|--------|---------|
+| `GatewayClient.url` | `Gateway`服务器`URL` | `None` | `c.GatewayClient.url = 'http://gateway:8888'` |
+| `GatewayClient.http_user` | `Gateway HTTP`认证用户名 | `None` | `c.GatewayClient.http_user = 'admin'` |
+| `GatewayClient.http_pwd` | `Gateway HTTP`认证密码 | `None` | `c.GatewayClient.http_pwd = 'password'` |
+| `GatewayClient.allowed_envs` | 允许传递的环境变量列表 |  | `c.GatewayClient.allowed_envs = 'PATH,HOME'` |
+| `GatewayClient.request_timeout` | 请求超时时间（秒） | `40` | `c.GatewayClient.request_timeout = 60` |
+
+
+### 配置示例
+
+#### 开发环境配置
+
+```python
+# ~/.jupyter/jupyter_server_config.py
+
+# 网络配置
+c.ServerApp.ip = 'localhost'
+c.ServerApp.port = 8888
+c.ServerApp.open_browser = True
+
+# 认证（开发环境可禁用token）
+c.IdentityProvider.token = ''
+
+# 日志
+c.ServerApp.log_level = 'DEBUG'
+```
+
+#### 生产环境配置
+
+```python
+# ~/.jupyter/jupyter_server_config.py
+
+# 网络配置
+c.ServerApp.ip = '0.0.0.0'
+c.ServerApp.port = 8888
+c.ServerApp.allow_remote_access = True
+c.ServerApp.open_browser = False
+
+# 安全配置
+c.IdentityProvider.token = 'your-secure-token-here'
+c.ServerApp.disable_check_xsrf = False
+c.ServerApp.allow_unauthenticated_access = False
+
+# SSL配置
+c.ServerApp.certfile = '/path/to/cert.pem'
+c.ServerApp.keyfile = '/path/to/key.pem'
+
+# 目录配置
+c.ServerApp.root_dir = '/data/notebooks'
+
+# 内核管理（自动清理空闲内核）
+c.MappingKernelManager.cull_idle_timeout = 3600  # 1小时
+c.MappingKernelManager.cull_interval = 300      # 5分钟
+c.MappingKernelManager.cull_connected = False
+
+# 日志
+c.ServerApp.log_level = 'INFO'
+
+# 性能配置
+c.ServerApp.iopub_msg_rate_limit = 10000
+c.ServerApp.iopub_data_rate_limit = 10000000
+```
+
+#### 容器化部署配置
+
+```dockerfile
+FROM quay.io/jupyter/base-notebook:latest
+
+# 创建配置目录
+RUN mkdir -p /etc/jupyter
+
+# 复制配置文件
+COPY jupyter_server_config.py /etc/jupyter/
+
+# 设置环境变量
+ENV JUPYTER_CONFIG_DIR=/etc/jupyter
+ENV JUPYTER_ENABLE_LAB=yes
+ENV JUPYTER_TOKEN=''
+
+EXPOSE 8888
+
+CMD ["start-notebook.py"]
+```
+
+
 
 ## 在Kubernetes上部署JupyterLab
 
@@ -292,15 +534,10 @@ spec:
   # storageClassName: <your-storage-class>
 ```
 
-### 创建 Deployment/Statefulset
+### 创建 Deployment
 
-我们使用`Deployment/Statefulset`而不是`Pod`来部署`JupyterLab`的`Pod`，因为直接用`Pod`来部署的话，如果`Pod`挂掉了是不会自动重启的，而`Deployment/Statefulset`会帮我们管理`Pod`的生命周期，确保`Pod`始终运行。
+我们使用`Deployment`而不是`Pod`来部署`JupyterLab`的`Pod`，因为直接用`Pod`来部署的话，如果`Pod`挂掉了是不会自动重启的，而`Deployment`会帮我们管理`Pod`的生命周期，确保`Pod`始终运行。
 
-
-
-#### Deployment
-
-如果`Jupyter`开发机是一个无状态的（不需要挂载外部存储），推荐使用`Deployment`部署。
 
 ```yaml title="deployment.yaml"
 apiVersion: apps/v1
@@ -359,86 +596,6 @@ spec:
       # - name: jupyterlab-data
       #   persistentVolumeClaim:
       #     claimName: jupyterlab-pvc
-```
-
-#### Statefulset
-
-如果`Jupyter`需要挂载外部的存储内容，比如`NFS`网盘，那么推荐使用`Statefulset`来部署`Jupyter`开发机，因为`Statefulset`可以自动创建和删除`PVC`，而`Deployment`需要手动维护，较繁琐。
-
-```yaml title="statefulset.yaml"
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: jupyterlab
-  namespace: jupyter-system
-  labels:
-    app: jupyterlab
-spec:
-  # StatefulSet 必须指定 serviceName（即使暂时不用 Service，也需定义）
-  serviceName: jupyterlab
-  replicas: 1
-  selector:
-    matchLabels:
-      app: jupyterlab
-  # 核心：PVC 模板，自动创建并绑定 HPC NFS PV
-  volumeClaimTemplates:
-  - metadata:
-      name: jupyterlab-pvc  # 卷名称，与 Pod 内 volumeMounts 对应
-    spec:
-      resources:
-        requests:
-          storage: 10Gi  # 需与你的 HPC NFS PV 容量匹配
-      accessModes:
-        - ReadWriteMany  # 必须与 PV 的 accessModes 一致（NFS 支持多 Pod 共享）
-      storageClassName: ""  # 空存储类，匹配无 SC 的 HPC PV
-      volumeName: jupyterlab-pv  # 强制绑定你创建的 HPC NFS PV 名称
-  # PVC 回收策略：删除 StatefulSet 时自动删除 PVC，缩容时保留
-  persistentVolumeClaimRetentionPolicy:
-    whenDeleted: Delete
-    whenScaled: Retain
-  template:
-    metadata:
-      labels:
-        app: jupyterlab
-    spec:
-      containers:
-      - name: jupyterlab
-        image: quay.io/jupyter/base-notebook:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8888
-          name: http
-          protocol: TCP
-        env:
-        - name: JUPYTER_ENABLE_LAB
-          value: "yes"
-        - name: GRANT_SUDO
-          value: "yes"
-        # 挂载自动创建的 PVC 到 Jupyter 工作目录（替换注释掉的原挂载配置）
-        volumeMounts:
-        - name: jupyterlab-pvc  # 对应 volumeClaimTemplates 的 name
-          mountPath: /data/hpc  # 挂载 HPC 网盘到该路径，可访问 /data/hpc/home
-          # 可选：如果想让用户默认访问 home 目录，可添加 subPath
-          # subPath: home
-        resources:
-          requests:
-            cpu: "1"
-            memory: "2Gi"
-          limits:
-            cpu: "2"
-            memory: "4Gi"
-        livenessProbe:
-          httpGet:
-            path: /lab
-            port: 8888
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /lab
-            port: 8888
-          initialDelaySeconds: 10
-          periodSeconds: 5
 ```
 
 
@@ -531,3 +688,4 @@ kubectl port-forward -n jupyter-system svc/jupyterlab 8888:8888
 ## 参考资料
 
 - [Jupyter Docker Stacks](https://jupyter-docker-stacks.readthedocs.io/)
+- [Jupyter Server Configuration](https://jupyter-server.readthedocs.io/en/latest/other/full-config.html)
