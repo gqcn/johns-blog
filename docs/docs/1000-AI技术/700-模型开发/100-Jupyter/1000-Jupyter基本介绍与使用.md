@@ -73,14 +73,18 @@ description: "深入介绍Jupyter交互式计算平台，包括核心概念、�
 
 ### 基础镜像选择
 
+
 `Jupyter`官方维护了多个`Docker`镜像，适用于不同场景：
-- `jupyter/base-notebook` - 最小化的 `Jupyter` 环境
-- `jupyter/minimal-notebook` - 包含`TeX Live`用于导出`PDF`
-- `jupyter/scipy-notebook` - 包含科学计算库（`pandas`, `matplotlib`, `scipy` 等）
-- `jupyter/tensorflow-notebook` - 包含 `TensorFlow` 机器学习库
-- `jupyter/pytorch-notebook` - 包含 `PyTorch` 机器学习库
-- `jupyter/datascience-notebook` - 包含 `Julia`、`Python`、`R` 三种语言支持
-- `jupyter/all-spark-notebook` - 包含 `Apache Spark` 支持
+
+| 镜像名称 | 主要内容/用途 |
+|---|---|
+| `jupyter/base-notebook` | 最小化的`Jupyter`环境 |
+| `jupyter/minimal-notebook` | 包含`TeX Live`，用于导出`PDF` |
+| `jupyter/scipy-notebook` | 包含科学计算库（`pandas`, `matplotlib`, `scipy` 等） |
+| `jupyter/tensorflow-notebook` | 包含`TensorFlow`机器学习库 |
+| `jupyter/pytorch-notebook` | 包含`PyTorch`机器学习库 |
+| `jupyter/datascience-notebook` | 包含`Julia`、`Python`、`R` 三种语言支持 |
+| `jupyter/all-spark-notebook` | 包含`Apache Spark`支持 |
 
 ### 快速启动
 
@@ -520,6 +524,8 @@ kubectl port-forward -n jupyter-system svc/jupyterlab 8888:8888
 ```
 
 然后访问 http://localhost:8888
+
+
 
 
 ## 参考资料
