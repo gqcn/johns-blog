@@ -76,6 +76,9 @@ description: "深入介绍Jupyter交互式计算平台，包括核心概念、�
 
 `Jupyter`官方维护了多个`Docker`镜像，适用于不同场景：
 
+![Jupyter基础镜像选择](assets/1000-Jupyter基本介绍与使用/image.png)
+
+
 | 镜像名称 | 主要内容/用途 |
 |---|---|
 | `jupyter/base-notebook` | 最小化的`Jupyter`环境 |
@@ -85,6 +88,7 @@ description: "深入介绍Jupyter交互式计算平台，包括核心概念、�
 | `jupyter/pytorch-notebook` | 包含`PyTorch`机器学习库 |
 | `jupyter/datascience-notebook` | 包含`Julia`、`Python`、`R` 三种语言支持 |
 | `jupyter/all-spark-notebook` | 包含`Apache Spark`支持 |
+
 
 ### 快速启动
 

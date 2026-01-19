@@ -91,40 +91,9 @@ metadata:
   labels:
     app: jupyterlab-qiangguo03
 spec:
- # 核心：initContainer 自动读取 HPC 目录的 UID/GID
-  initContainers:
-  - name: init
-    image: aiharbor.msxf.local/base/ubuntu:22.04
-    command:
-      - /bin/bash
-      - -c
-      - |
-        # 出错立即退出
-        set -e
-
-        USER_DIR="/data/hpc/home"
-        USER_NAME="qiang.guo03"
-
-        # 读取目录的 UID 和 GID（ls -n 输出的第3、4列）
-        USER_UID=$(ls -n ${USER_DIR} | grep ${USER_NAME} | awk '{print $3}' | head -n1)
-        USER_GID=$(ls -n ${USER_DIR} | grep ${USER_NAME} | awk '{print $4}' | head -n1)
-
-        # 将 UID/GID 写入共享卷的配置文件
-        echo "USER_UID=${USER_UID}" > /config/uid-gid.env
-        echo "USER_GID=${USER_GID}" >> /config/uid-gid.env
-        echo "USER_NAME=${USER_NAME}" >> /config/uid-gid.env
-
-        # 打印日志（方便调试）
-        echo "Read ${USER_NAME}, UID: ${USER_UID}, GID: ${USER_GID}"
-    volumeMounts:
-    - name: hpc-shared-volume
-      mountPath: /data/hpc  
-    - name: uid-gid-config
-      mountPath: /config
-      
   containers:
   - name: jupyterlab
-    image: aiharbor.msxf.local/jupyterhub/minimal-notebook:3.3.8
+    image: aiharbor.msxf.local/mirror-stuff/jupyter/base-notebook:2026-01-12
     imagePullPolicy: IfNotPresent
     command:
       - /bin/bash
@@ -133,18 +102,24 @@ spec:
         # 出错立即退出
         set -e  
 
-        # 加载 initContainer 写入的 UID/GID 配置
-        source /config/uid-gid.env
+        HOME_DIR="/data/hpc/home"
+        USER_NAME="qiang.guo03"
 
+        # 读取目录的 UID 和 GID（ls -n 输出的第3、4列）
+        USER_UID=$(ls -n ${HOME_DIR} | grep ${USER_NAME} | awk '{print $3}' | head -n1)
+        USER_GID=$(ls -n ${HOME_DIR} | grep ${USER_NAME} | awk '{print $4}' | head -n1)
+
+        # 设置Jupyter关键环境变量
         export NB_UID=${USER_UID}
         export NB_GID=${USER_GID}
         export NB_USER=${USER_NAME}
 
         # 将网盘中的个人目录软链到home目录下
-        ln -s /data/hpc/home/${USER_NAME} /home/${USER_NAME}
+        ln -s ${HOME_DIR}/${USER_NAME} /home/${USER_NAME}
 
-        # 启动Jupyter Server，默认使用/home/jovyan/.jupyter/jupyter_server_config.py配置文件
-        start-notebook.sh
+        # 启动Jupyter Server，
+        # 默认使用/home/jovyan/.jupyter/jupyter_server_config.py配置文件
+        exec /usr/local/bin/start.sh start-notebook.sh
     securityContext:
       runAsUser: 0  
       runAsGroup: 0
@@ -160,8 +135,9 @@ spec:
     volumeMounts:
     - name: hpc-shared-volume
       mountPath: /data/hpc
-    - name: uid-gid-config
-      mountPath: /config
+    - name: hpc-shared-volume
+      mountPath: /share
+      subPath: share
     resources:
       requests:
         cpu: "1"
@@ -173,13 +149,13 @@ spec:
       httpGet:
         path: /lab
         port: 8888
-      initialDelaySeconds: 30
-      periodSeconds: 10
+      initialDelaySeconds: 5
+      periodSeconds: 5
     readinessProbe:
       httpGet:
         path: /lab
         port: 8888
-      initialDelaySeconds: 10
+      initialDelaySeconds: 5
       periodSeconds: 5
       
   volumes:
@@ -187,9 +163,6 @@ spec:
   - name: hpc-shared-volume
     persistentVolumeClaim:
       claimName: hpc-shared-pvc
-  # 共享卷：用于 initContainer 和主容器传递 UID/GID
-  - name: uid-gid-config         
-    emptyDir: {}
 ```
 
 ### 访问Pod
