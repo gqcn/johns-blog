@@ -48,17 +48,19 @@ toc_max_heading_level: 3
 
 ### 关键概念
 
-- **Instructions文件**：包含自定义指令的`Markdown`文件
-- **自动应用（Auto-apply）**：根据`applyTo`模式自动将指令添加到上下文
-- **手动附加（Manual attach）**：通过聊天界面的"`Add Context`"手动选择指令
-- **作用域（Scope）**：指令可以作用于工作区级别或用户级别
-- **优先级**：多个指令文件可以同时生效，`VS Code`会合并它们
+| 概念 | 说明 |
+|------|------|
+| `Instructions`文件 | 包含自定义指令的`Markdown`文件 |
+| 自动应用（`Auto-apply`） | 根据`applyTo`模式自动将指令添加到上下文 |
+| 手动附加（`Manual attach`） | 通过聊天界面的"`Add Context`"手动选择指令 |
+| 作用域（`Scope`） | 指令可以作用于工作区级别或用户级别 |
+| 优先级 | 多个指令文件可以同时生效，`VS Code`会合并它们 |
 
 ## 解决什么问题
 
 `Copilot Instructions`主要解决以下几类问题：
 
-### 1. 代码风格不一致
+### 代码风格不一致
 
 不同团队成员或`AI`生成的代码风格可能不一致。通过定义统一的编码规范指令，可以确保所有`AI`生成的代码都遵循相同的风格。
 
@@ -68,7 +70,7 @@ toc_max_heading_level: 3
 - 统一注释风格
 - 统一导入顺序
 
-### 2. 项目规范遵循困难
+### 项目规范遵循困难
 
 每个项目都有自己的技术栈、架构模式和最佳实践。手动向`AI`说明这些规范既繁琐又容易遗漏。
 
@@ -78,7 +80,7 @@ toc_max_heading_level: 3
 - 安全规范（如禁止使用某些危险函数）
 - 性能优化准则
 
-### 3. 重复性说明浪费时间
+### 重复性说明浪费时间
 
 如果每次都要向`AI`重复说明相同的要求，会严重影响开发效率。
 
@@ -88,7 +90,7 @@ toc_max_heading_level: 3
 - 每次都要求添加类型注解
 - 每次都要求使用特定的日志格式
 
-### 4. 团队协作缺乏一致性
+### 团队协作缺乏一致性
 
 团队成员使用`AI`时如果没有统一的指导，生成的代码质量和风格会有较大差异。
 
@@ -98,7 +100,7 @@ toc_max_heading_level: 3
 - 代码审查时发现大量不符合规范的代码
 - 难以维护代码的一致性
 
-### 5. 上下文信息传递不便
+### 上下文信息传递不便
 
 某些项目特定的背景信息需要反复向`AI`说明。
 
@@ -112,7 +114,7 @@ toc_max_heading_level: 3
 
 `Copilot Instructions`提供了以下核心功能：
 
-### 1. 多种指令文件类型
+### 多种指令文件类型
 
 `VS Code`支持三种主要的指令文件类型，每种都有其特定用途：
 
@@ -126,12 +128,12 @@ toc_max_heading_level: 3
 
 **示例结构**：
 ```markdown
-# Project Coding Standards
+# 项目编码规范
 
-- Use TypeScript for all new files
-- Follow ESLint rules defined in .eslintrc
-- Add JSDoc comments for all public functions
-- Use async/await instead of promises
+- 遵循Go官方编码风格指南
+- 遵循项目中定义的gofmt和golint规则
+- 为所有导出函数添加文档注释
+- 使用context进行超时和取消控制
 ```
 
 #### *.instructions.md
@@ -144,17 +146,17 @@ toc_max_heading_level: 3
 **示例结构**：
 ```markdown
 ---
-name: "Python Coding Standards"
-description: "Coding standards for Python files"
-applyTo: "**/*.py"
+name: "Go编码规范"
+description: "Go文件的编码规范"
+applyTo: "**/*.go"
 ---
 
-# Python Coding Standards
+# Go编码规范
 
-- Follow PEP 8 style guide
-- Use type hints for all function parameters
-- Include docstrings for all functions and classes
-- Use pytest for unit testing
+- 遵循Go官方编码风格指南
+- 使用gofmt格式化代码
+- 为所有导出的函数和类型添加文档注释
+- 使用testing包编写单元测试
 ```
 
 #### AGENTS.md
@@ -165,7 +167,7 @@ applyTo: "**/*.py"
 - **实验性功能**：支持嵌套的`AGENTS.md`文件（需启用`chat.useNestedAgentsMdFiles`）
 - **启用方式**：需要启用`chat.useAgentsMdFile`设置
 
-### 2. 灵活的应用方式
+### 灵活的应用方式
 
 #### 自动应用
 
@@ -173,10 +175,10 @@ applyTo: "**/*.py"
 
 ```markdown
 ---
-applyTo: "**/*.ts"
+applyTo: "**/*.go"
 ---
 
-# TypeScript Coding Standards
+# Go编码规范
 ...
 ```
 
@@ -193,7 +195,7 @@ applyTo: "**/*.ts"
 - 指令没有定义`applyTo`属性
 - 需要明确控制指令的应用
 
-### 3. 作用域管理
+### 作用域管理
 
 #### 工作区级别（Workspace Level）
 
@@ -209,57 +211,57 @@ applyTo: "**/*.ts"
 - **适用场景**：个人偏好的编码风格
 - **跨设备同步**：可以通过`Settings Sync`在多台设备间同步
 
-### 4. 指令文件格式
+### 指令文件格式
 
 指令文件使用`Markdown`格式，包含可选的`YAML`头部和指令正文：
 
 ```markdown
 ---
-name: "Backend Review Guidelines"
-description: "Code review guidelines for backend code"
+name: "后端代码审查指南"
+description: "后端代码审查指导原则"
 applyTo: "backend/**"
 ---
 
-# Backend Code Review Checklist
+# 后端代码审查清单
 
-## Security
-- Check for SQL injection vulnerabilities
-- Validate all user inputs
-- Use parameterized queries
+## 安全性
+- 检查SQL注入漏洞
+- 验证所有用户输入
+- 使用参数化查询
 
-## Performance
-- Add database indexes where needed
-- Optimize N+1 queries
-- Cache frequently accessed data
+## 性能
+- 为需要的字段添加数据库索引
+- 优化N+1查询
+- 缓存频繁访问的数据
 
-## Testing
-- Unit test coverage > 80%
-- Include integration tests for API endpoints
+## 测试
+- 单元测试覆盖率 > 80%
+- 为API接口添加集成测试
 ```
 
-### 5. 引用上下文
+### 引用上下文
 
 在指令中可以使用`Markdown`链接来引用特定的文件、文档或`URL`：
 
 ```markdown
-# Project Guidelines
+# 项目指南
 
-- Follow the style guide in [style-guide.md](docs/style-guide.md)
-- API documentation: [API Docs](https://api.example.com/docs)
-- Use utility functions from [utils.ts](src/utils.ts)
+- 遵循 [style-guide.md](docs/style-guide.md) 中的代码风格指南
+- API文档：[API文档](https://api.example.com/docs)
+- 使用 [utils.go](src/utils.go) 中的工具函数
 ```
 
-### 6. 工具引用
+### 工具引用
 
 可以在指令中引用特定的`Agent`工具：
 
 ```markdown
-# Instructions
+# 指令说明
 
-When searching for code examples, use #tool:githubRepo to search GitHub repositories.
+搜索代码示例时，使用 #tool:githubRepo 工具搜索GitHub仓库。
 ```
 
-### 7. 设置集成
+### 设置集成
 
 除了文件形式，还可以通过`VS Code`设置定义特定场景的指令：
 
@@ -271,6 +273,7 @@ When searching for code examples, use #tool:githubRepo to search GitHub reposito
 
 ## 使用配置
 
+### frontmatter配置
 指令文件（`*.instructions.md`）顶部的`YAML`前置配置（`frontmatter`）支持以下字段：
 
 | 配置项 | 必填 | 说明 | 
@@ -283,16 +286,20 @@ When searching for code examples, use #tool:githubRepo to search GitHub reposito
 
 ```yaml
 ---
-name: "React Component Standards"
-description: "Best practices for React components"
-applyTo: "src/components/**/*.{tsx,jsx}"
+name: "Go服务层规范"
+description: "Go服务层代码最佳实践"
+applyTo: "service/**/*.go"
 ---
 ```
 
-**注意事项**：
+**配置提示**：
 - `applyTo`支持标准的`glob`模式，如`**/*.ts`（所有`TypeScript`文件）、`src/**`（`src`目录下所有文件）
 - 如果不设置`applyTo`，指令不会自动应用，只能通过聊天界面手动附加
 - 多个指令文件可以匹配同一个文件，`VS Code`会合并所有匹配的指令
+
+### 注意事项
+
+作用范围是工作区（`workspace`）级别的指令文件，必须放置于工作区的`.github/instructions/`目录下，否则无法被编辑器自动识别和应用。如果工作区下包含多个项目，且项目下有独立的`.github/instructions/`指令配置，这些指令无法被编辑器自动识别和应用，需要手动`Add Context...`才行。
 
 ## 如何使用
 
@@ -334,32 +341,32 @@ chat.useNestedAgentsMdFiles
 **示例**：
 
 ```markdown
-# Project Development Guidelines
+# 项目开发指南
 
-## Code Style
-- Use 2 spaces for indentation
-- Use semicolons at the end of statements
-- Maximum line length: 100 characters
+## 代码风格
+- 使用gofmt进行代码格式化
+- 使用tab进行缩进
+- 每行最大长度：120字符
 
-## TypeScript
-- Enable strict mode
-- Use interfaces for object types
-- Avoid using `any` type
+## Go语言规范
+- 遵循Effective Go指南
+- 使用接口定义抽象
+- 避免使用interface{}类型，优先使用具体类型
 
-## React
-- Use functional components with hooks
-- Extract custom hooks for reusable logic
-- Use TypeScript for prop types
+## 错误处理
+- 明确处理所有错误
+- 使用自定义错误类型提供更多上下文
+- 不要忽略或panic错误
 
-## Testing
-- Write unit tests for all business logic
-- Use Jest and React Testing Library
-- Aim for >80% code coverage
+## 测试
+- 为所有业务逻辑编写单元测试
+- 使用testing包和testify断言库
+- 目标测试覆盖率 >80%
 
-## Comments
-- Add JSDoc comments for public APIs
-- Explain complex algorithms with inline comments
-- Keep comments concise and up-to-date
+## 注释
+- 为导出的函数和类型添加文档注释
+- 用行内注释解释复杂算法
+- 保持注释简洁并及时更新
 ```
 
 ### 创建 *.instructions.md 文件
@@ -387,89 +394,89 @@ chat.useNestedAgentsMdFiles
 
 在`.github/instructions/`目录下直接创建`.instructions.md`文件。
 
-**示例：Python特定指令**
+**示例：Go特定指令**
 
-文件：`.github/instructions/python-standards.instructions.md`
+文件：`.github/instructions/go-standards.instructions.md`
 
 ```markdown
 ---
-name: "Python Coding Standards"
-description: "Python specific coding guidelines"
-applyTo: "**/*.py"
+name: "Go编码规范"
+description: "Go语言特定的编码指南"
+applyTo: "**/*.go"
 ---
 
-# Python Coding Standards
+# Go编码规范
 
-## Style Guide
-- Follow PEP 8 style guide strictly
-- Use Black for code formatting
-- Use isort for import sorting
-- Maximum line length: 88 characters
+## 代码风格
+- 严格遵循Effective Go指南
+- 使用gofmt格式化代码
+- 使用goimports管理导入
+- 每行最大长度：120字符
 
-## Type Hints
-- Use type hints for all function parameters and return values
-- Use `typing` module for complex types
-- Use `Optional` for nullable parameters
+## 类型定义
+- 为复杂的数据结构定义类型
+- 使用结构体组合而非继承
+- 为接口使用最小化定义
 
-## Documentation
-- Add docstrings to all modules, classes, and functions
-- Use Google style docstring format
-- Include parameter types and return types in docstrings
+## 文档注释
+- 为所有导出的包、类型、函数添加文档注释
+- 注释以声明的名称开头
+- 在注释中包含使用示例
 
-## Error Handling
-- Use specific exception types
-- Always include error messages
-- Use context managers for resource management
+## 错误处理
+- 明确处理每个错误，不要使用_忽略
+- 使用errors包包装错误以添加上下文
+- 使用defer进行资源清理
 
-## Testing
-- Use pytest for unit testing
-- Use parametrize for data-driven tests
-- Mock external dependencies
-- Aim for >90% code coverage
+## 测试
+- 使用testing包编写单元测试
+- 使用表驱动测试处理多个测试用例
+- 使用testify/mock模拟外部依赖
+- 目标测试覆盖率 >90%
 ```
 
-**示例：前端特定指令**
+**示例：API服务特定指令**
 
-文件：`.github/instructions/frontend-standards.instructions.md`
+文件：`.github/instructions/api-service-standards.instructions.md`
 
 ```markdown
 ---
-name: "Frontend Coding Standards"
-description: "Standards for frontend React/TypeScript code"
-applyTo: "src/components/**"
+name: "API服务编码规范"
+description: "API服务Go代码规范"
+applyTo: "api/**/*.go"
 ---
 
-# Frontend Development Standards
+# API服务开发规范
 
-## Component Structure
-- One component per file
-- Use named exports
-- Co-locate styles with components
-- Keep components under 300 lines
+## 目录结构
+- 每个服务一个包
+- 使用内部包隔离实现细节
+- handler、service、repository分层
+- 保持文件在500行以内
 
-## React Best Practices
-- Use functional components with hooks
-- Extract custom hooks for shared logic
-- Use React.memo for expensive components
-- Avoid inline function definitions in JSX
+## API最佳实践
+- 使用RESTful API设计原则
+- 统一使用JSON格式
+- 实现标准的HTTP状态码
+- 使用中间件处理通用逻辑
 
-## State Management
-- Use useState for local state
-- Use useReducer for complex state logic
-- Use context for shared state
-- Minimize prop drilling
+## 请求处理
+- 验证所有输入参数
+- 使用context传递请求上下文
+- 实现请求超时控制
+- 记录请求和响应日志
 
-## Performance
-- Use React.lazy for code splitting
-- Implement virtualization for long lists
-- Optimize re-renders with useMemo and useCallback
-- Use Web Workers for heavy computations
+## 性能
+- 使用连接池管理数据库连接
+- 实现合理的缓存策略
+- 对慢查询添加索引
+- 使用goroutine处理异步任务
 
-## Accessibility
-- Include ARIA labels
-- Support keyboard navigation
-- Maintain proper heading hierarchy
-- Test with screen readers
+## 安全性
+- 验证用户身份和权限
+- 防止SQL注入攻击
+- 实现请求限流
+- 敏感信息不记录日志
 ```
 
 ### 创建 AGENTS.md 文件
@@ -485,31 +492,31 @@ applyTo: "src/components/**"
 **示例**：
 
 ```markdown
-# Development Agent Guidelines
+# 开发代理指南
 
-## Code Generation
-- Always include error handling
-- Add logging for important operations
-- Use environment variables for configuration
-- Never commit secrets or credentials
+## 代码生成
+- 始终包含错误处理
+- 为重要操作添加日志记录
+- 使用环境变量进行配置
+- 永远不要提交密钥或凭证
 
-## Code Review
-- Check for security vulnerabilities
-- Verify test coverage
-- Review performance implications
-- Ensure documentation is updated
+## 代码审查
+- 检查安全漏洞
+- 验证测试覆盖率
+- 评审性能影响
+- 确保文档已更新
 
-## Debugging
-- Add descriptive log messages
-- Use breakpoints effectively
-- Check for edge cases
-- Verify error handling paths
+## 调试
+- 添加描述性日志消息
+- 有效使用断点
+- 检查边界情况
+- 验证错误处理路径
 
-## Documentation
-- Update README when adding features
-- Document API changes
-- Include examples for complex features
-- Keep architecture diagrams current
+## 文档
+- 添加功能时更新README
+- 记录API变更
+- 为复杂功能添加示例
+- 保持架构图更新
 ```
 
 ### 在设置中定义指令
@@ -525,20 +532,20 @@ applyTo: "src/components/**"
 ```json
 {
   "github.copilot.chat.reviewSelection.instructions": [
-    { "text": "Check for security vulnerabilities and data validation" },
-    { "text": "Verify error handling and edge cases" },
+    { "text": "检查安全漏洞和数据验证" },
+    { "text": "验证错误处理和边界情况" },
     { "file": "guidelines/code-review-checklist.md" }
   ],
   "github.copilot.chat.commitMessageGeneration.instructions": [
-    { "text": "Follow Conventional Commits format" },
-    { "text": "Include ticket number in format: [PROJ-123]" },
-    { "text": "Keep subject line under 50 characters" }
+    { "text": "遵循Conventional Commits格式" },
+    { "text": "包含工单号，格式：[PROJ-123]" },
+    { "text": "保持主题行在50字符以内" }
   ],
   "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
-    { "text": "Include: What, Why, How" },
-    { "text": "List all breaking changes" },
-    { "text": "Add testing instructions" },
-    { "text": "Reference related issues" }
+    { "text": "包含：做什么、为什么、怎么做" },
+    { "text": "列出所有破坏性变更" },
+    { "text": "添加测试说明" },
+    { "text": "引用相关问题" }
   ]
 }
 ```
@@ -633,9 +640,9 @@ applyTo: "src/components/**"
 
 ## 应用场景
 
-`Copilot Instructions`在各种开发场景中都非常有用，以下是一些典型的应用场景。
+`Copilot Instructions`在各种开发场景中都非常有用，以下是一些典型的应用场景。为简化示例，指令内容没有写太多，仅供参考。
 
-### 1. 统一团队编码规范
+### 统一团队编码规范
 
 **场景描述**：
 团队有多名开发者，每个人的编码风格不同，导致代码库风格混乱，难以维护。
@@ -644,35 +651,35 @@ applyTo: "src/components/**"
 创建`.github/copilot-instructions.md`定义团队统一的编码规范：
 
 ```markdown
-# Team Coding Standards
+# 团队编码规范
 
-## Naming Conventions
-- Variables: camelCase
-- Constants: UPPER_SNAKE_CASE
-- Classes: PascalCase
-- Files: kebab-case
+## 命名规范
+- 变量：驼峰命名法（camelCase）
+- 常量：全大写下划线命名法（UPPER_SNAKE_CASE）
+- 类型：大驼峰命名法（PascalCase）
+- 文件：小写下划线命名法（snake_case）
 
-## Code Structure
-- Maximum function length: 50 lines
-- Maximum file length: 500 lines
-- Extract complex logic into separate functions
-- One responsibility per function
+## 代码结构
+- 函数最大长度：50行
+- 文件最大长度：500行
+- 将复杂逻辑提取到独立函数
+- 每个函数只负责一个功能
 
-## Documentation
-- JSDoc for all public functions
-- Inline comments for complex logic
-- README for each module
+## 文档
+- 为所有导出函数添加文档注释
+- 为复杂逻辑添加行内注释
+- 每个模块包含README说明
 
-## Git Workflow
-- Feature branch naming: feature/TICKET-123-description
-- Commit message format: type(scope): message
-- Squash commits before merging
+## Git工作流
+- 功能分支命名：feature/TICKET-123-description
+- 提交信息格式：type(scope): message
+- 合并前压缩提交
 ```
 
 **效果**：
 所有团队成员使用`Copilot`生成代码时都会遵循相同的规范，确保代码一致性。
 
-### 2. 语言和框架特定规范
+### 语言和框架特定规范
 
 **场景描述**：
 项目使用多种编程语言和框架，每种都有其最佳实践。
@@ -680,58 +687,56 @@ applyTo: "src/components/**"
 **解决方案**：
 为不同语言创建专门的指令文件：
 
-**Python项目**（`.github/instructions/python.instructions.md`）：
+**Go API服务**（`.github/instructions/go-api.instructions.md`）：
 ```markdown
 ---
-applyTo: "**/*.py"
+applyTo: "api/**/*.go"
 ---
 
-# Python Standards
+# Go API服务规范
 
-- Use Python 3.10+ features
-- Follow PEP 8 style guide
-- Use type hints everywhere
-- Use dataclasses for data structures
-- Prefer pathlib over os.path
-- Use f-strings for formatting
-- Handle exceptions explicitly
+- 遵循RESTful API设计原则
+- 使用GoFrame开发框架
+- 实现统一的错误响应格式
+- 使用中间件处理认证和日志
+- 对所有接口添加限流保护
+- 实现优雅关闭
 ```
 
-**React项目**（`.github/instructions/react.instructions.md`）：
+**Go数据层**（`.github/instructions/go-data.instructions.md`）：
 ```markdown
 ---
-applyTo: "src/**/*.{tsx,jsx}"
+applyTo: "dao/**/*.go"
 ---
 
-# React Standards
+# Go数据层规范
 
-- Use functional components only
-- Implement proper error boundaries
-- Use React Query for data fetching
-- Memoize expensive computations
-- Follow React Hooks rules
-- Use TypeScript for props
-- Implement accessibility features
+- 使用GoFrame ORM进行数据库操作
+- 禁止使用原始SQL语句进行数据库操作，避免SQL注入
+- 实现数据库事务管理
+- 为频繁查询的字段添加索引
+- 使用连接池管理连接
+- 实现软删除而非物理删除
 ```
 
-**Go项目**（`.github/instructions/go.instructions.md`）：
+**Go业务层**（`.github/instructions/go-service.instructions.md`）：
 ```markdown
 ---
-applyTo: "**/*.go"
+applyTo: "service/**/*.go"
 ---
 
-# Go Standards
+# Go业务层规范
 
-- Follow effective Go guidelines
-- Use golangci-lint rules
-- Handle all errors explicitly
-- Use context for cancellation
-- Prefer table-driven tests
-- Document exported functions
-- Use meaningful variable names
+- 遵循领域驱动设计原则
+- 使用接口定义服务契约
+- 明确处理所有错误
+- 使用context进行超时控制
+- 使用表驱动测试
+- 为导出函数添加文档注释
+- 使用有意义的变量名
 ```
 
-### 3. 安全和合规要求
+### 安全和合规要求
 
 **场景描述**：
 项目有严格的安全和合规要求，需要确保`AI`生成的代码符合这些要求。
@@ -740,40 +745,40 @@ applyTo: "**/*.go"
 创建安全相关的指令：
 
 ```markdown
-# Security Guidelines
+# 安全指南
 
-## Authentication & Authorization
-- Never hardcode credentials
-- Use environment variables for secrets
-- Implement proper session management
-- Validate user permissions on every request
+## 认证与授权
+- 永远不要硬编码凭证
+- 使用环境变量存储密钥
+- 实现合适的会话管理
+- 每次请求都验证用户权限
 
-## Input Validation
-- Validate all user inputs
-- Sanitize data before database operations
-- Use parameterized queries
-- Escape output for XSS prevention
+## 输入验证
+- 验证所有用户输入
+- 数据库操作前清理数据
+- 使用参数化查询
+- 转义输出以防止XSS攻击
 
-## Data Protection
-- Encrypt sensitive data at rest
-- Use HTTPS for all communications
-- Implement rate limiting
-- Log security events
+## 数据保护
+- 加密静态敏感数据
+- 所有通信使用HTTPS
+- 实现请求限流
+- 记录安全事件日志
 
-## Code Security
-- No eval() or exec() usage
-- Validate file paths to prevent traversal
-- Use secure random number generators
-- Keep dependencies updated
+## 代码安全
+- 不使用eval()或exec()等危险函数
+- 验证文件路径防止目录遍历
+- 使用安全的随机数生成器
+- 保持依赖库更新
 
-## Compliance
-- Follow GDPR requirements
-- Implement data retention policies
-- Add audit logging for sensitive operations
-- Document data processing activities
+## 合规性
+- 遵循GDPR要求
+- 实现数据保留策略
+- 为敏感操作添加审计日志
+- 记录数据处理活动
 ```
 
-### 4. 测试驱动开发（TDD）
+### 测试驱动开发（TDD）
 
 **场景描述**：
 团队实施`TDD`，需要确保每个功能都有对应的测试。
@@ -782,40 +787,40 @@ applyTo: "**/*.go"
 创建测试相关的指令：
 
 ```markdown
-# Testing Standards
+# 测试规范
 
-## Unit Tests
-- Write tests before implementation
-- Use Arrange-Act-Assert pattern
-- One assertion per test when possible
-- Test edge cases and error scenarios
-- Mock external dependencies
+## 单元测试
+- 在实现前编写测试
+- 使用AAA模式（Arrange-Act-Assert）
+- 尽可能每个测试一个断言
+- 测试边界情况和错误场景
+- 模拟外部依赖
 
-## Test Coverage
-- Minimum 80% code coverage
-- 100% coverage for critical paths
-- Test both happy path and error cases
+## 测试覆盖率
+- 最低80%代码覆盖率
+- 关键路径100%覆盖
+- 测试正常流程和错误情况
 
-## Test Organization
-- Mirror source code structure
-- Use descriptive test names
-- Group related tests in describe blocks
-- Use beforeEach for common setup
+## 测试组织
+- 镜像源代码结构
+- 使用描述性的测试名称
+- 使用表驱动测试组织相关测试
+- 使用setup和teardown进行测试准备和清理
 
-## Integration Tests
-- Test API endpoints end-to-end
-- Use test database
-- Clean up after each test
-- Test authentication and authorization
+## 集成测试
+- 端到端测试API接口
+- 使用测试数据库
+- 每个测试后清理数据
+- 测试认证和授权
 
-## Best Practices
-- Keep tests fast and isolated
-- Use fixtures for test data
-- Avoid testing implementation details
-- Run tests in CI/CD pipeline
+## 最佳实践
+- 保持测试快速和隔离
+- 使用固定数据进行测试
+- 避免测试实现细节
+- 在CI/CD流水线中运行测试
 ```
 
-### 5. 文档自动生成
+### 文档自动生成
 
 **场景描述**：
 项目需要详细的文档，但手动维护文档很费时。
@@ -824,40 +829,40 @@ applyTo: "**/*.go"
 创建文档生成指令：
 
 ```markdown
-# Documentation Guidelines
+# 文档编写指南
 
-## Code Documentation
-- Add JSDoc/docstring for all public APIs
-- Include parameter types and descriptions
-- Document return values and exceptions
-- Provide usage examples
+## 代码文档
+- 为所有公开API添加文档注释
+- 包含参数类型和描述
+- 记录返回值和可能的错误
+- 提供使用示例
 
-## API Documentation
-- Document all endpoints
-- Include request/response examples
-- List all possible status codes
-- Document authentication requirements
+## API文档
+- 记录所有接口端点
+- 包含请求/响应示例
+- 列出所有可能的状态码
+- 记录认证要求
 
-## README Updates
-- Update README when adding features
-- Include installation instructions
-- Provide quick start guide
-- List configuration options
+## README更新
+- 添加功能时更新README
+- 包含安装说明
+- 提供快速开始指南
+- 列出配置选项
 
-## Architecture Documentation
-- Document design decisions
-- Create architecture diagrams
-- Explain data flow
-- Document integration points
+## 架构文档
+- 记录设计决策
+- 创建架构图
+- 解释数据流
+- 记录集成点
 
-## Format
-- Use Markdown format
-- Include code examples
-- Link to related documentation
-- Keep documentation up-to-date
+## 格式要求
+- 使用Markdown格式
+- 包含代码示例
+- 链接到相关文档
+- 保持文档更新
 ```
 
-### 6. 性能优化指导
+### 性能优化指导
 
 **场景描述**：
 应用有性能要求，需要确保生成的代码性能良好。
@@ -866,42 +871,42 @@ applyTo: "**/*.go"
 创建性能优化指令：
 
 ```markdown
-# Performance Guidelines
+# 性能优化指南
 
-## Database Operations
-- Use indexes on frequently queried columns
-- Avoid N+1 queries
-- Use batch operations
-- Implement pagination for large datasets
-- Use connection pooling
+## 数据库操作
+- 为频繁查询的列添加索引
+- 避免N+1查询问题
+- 使用批量操作
+- 为大数据集实现分页
+- 使用连接池
 
-## Frontend Performance
-- Implement code splitting
-- Lazy load components
-- Optimize images
-- Use CDN for static assets
-- Minimize bundle size
+## Go性能优化
+- 使用sync.Pool复用对象
+- 合理使用goroutine
+- 避免不必要的内存分配
+- 使用buffer池处理I/O
+- 使用pprof进行性能分析
 
-## Caching
-- Cache frequently accessed data
-- Use Redis for session storage
-- Implement HTTP caching headers
-- Cache database query results
+## 缓存策略
+- 缓存频繁访问的数据
+- 使用Redis存储会话
+- 实现HTTP缓存头
+- 缓存数据库查询结果
 
-## Algorithms
-- Use appropriate data structures
-- Avoid nested loops when possible
-- Implement efficient algorithms
-- Profile before optimizing
+## 算法优化
+- 使用合适的数据结构
+- 尽可能避免嵌套循环
+- 实现高效算法
+- 优化前先进行性能分析
 
-## Monitoring
-- Add performance metrics
-- Log slow operations
-- Set up alerts for performance issues
-- Use APM tools
+## 监控
+- 添加性能指标
+- 记录慢操作日志
+- 为性能问题设置告警
+- 使用APM监控工具
 ```
 
-### 7. 微服务架构规范
+### 微服务架构规范
 
 **场景描述**：
 项目采用微服务架构，需要统一服务间的交互规范。
@@ -910,40 +915,40 @@ applyTo: "**/*.go"
 创建微服务相关指令：
 
 ```markdown
-# Microservices Guidelines
+# 微服务架构指南
 
-## Service Design
-- Single responsibility per service
-- Stateless services
-- Use API gateway for routing
-- Implement circuit breakers
+## 服务设计
+- 每个服务单一职责
+- 服务无状态化
+- 使用API网关进行路由
+- 实现熔断器模式
 
-## Communication
-- Use REST for synchronous communication
-- Use message queues for async communication
-- Implement retry logic with exponential backoff
-- Use correlation IDs for tracing
+## 服务通信
+- 同步通信使用REST或gRPC
+- 异步通信使用消息队列
+- 实现指数退避的重试逻辑
+- 使用关联ID进行链路追踪
 
-## Data Management
-- Database per service pattern
-- Use event sourcing for complex workflows
-- Implement eventual consistency
-- Handle distributed transactions carefully
+## 数据管理
+- 每个服务独立数据库
+- 复杂工作流使用事件溯源
+- 实现最终一致性
+- 谨慎处理分布式事务
 
-## Observability
-- Structured logging
-- Distributed tracing
-- Health check endpoints
-- Metrics for each service
+## 可观测性
+- 结构化日志
+- 分布式链路追踪
+- 健康检查接口
+- 每个服务的指标监控
 
-## Deployment
-- Use containers (Docker)
-- Implement blue-green deployment
-- Use service mesh for networking
-- Automate deployment with CI/CD
+## 部署
+- 使用容器（Docker）
+- 实现蓝绿部署
+- 使用服务网格管理网络
+- 使用CI/CD自动化部署
 ```
 
-### 8. 代码审查自动化
+### 代码审查自动化
 
 **场景描述**：
 代码审查耗时，需要`AI`帮助进行初步审查。
@@ -954,19 +959,19 @@ applyTo: "**/*.go"
 ```json
 {
   "github.copilot.chat.reviewSelection.instructions": [
-    { "text": "Check for potential bugs and logic errors" },
-    { "text": "Verify error handling is comprehensive" },
-    { "text": "Ensure code follows team standards" },
-    { "text": "Check for security vulnerabilities" },
-    { "text": "Verify test coverage for changes" },
-    { "text": "Look for performance issues" },
-    { "text": "Ensure documentation is updated" },
+    { "text": "检查潜在的bug和逻辑错误" },
+    { "text": "验证错误处理是否全面" },
+    { "text": "确保代码遵循团队规范" },
+    { "text": "检查安全漏洞" },
+    { "text": "验证变更的测试覆盖率" },
+    { "text": "查找性能问题" },
+    { "text": "确保文档已更新" },
     { "file": ".github/instructions/review-checklist.md" }
   ]
 }
 ```
 
-### 9. 多语言项目管理
+### 多语言项目管理
 
 **场景描述**：
 项目包含前端、后端、移动端等多个技术栈。
@@ -976,22 +981,22 @@ applyTo: "**/*.go"
 
 ```
 .github/instructions/
-├── frontend-react.instructions.md  (applyTo: "frontend/**")
-├── backend-nodejs.instructions.md  (applyTo: "backend/**")
-├── mobile-flutter.instructions.md  (applyTo: "mobile/**")
-├── shared-testing.instructions.md  (applyTo: "**/*test*")
+├── api-service.instructions.md     (applyTo: "api/**")
+├── data-layer.instructions.md      (applyTo: "dao/**")
+├── business-logic.instructions.md  (applyTo: "service/**")
+├── shared-testing.instructions.md  (applyTo: "**/*_test.go")
 └── shared-docs.instructions.md     (applyTo: "docs/**")
 ```
 
 或使用嵌套的`AGENTS.md`：
 
 ```
-frontend/AGENTS.md   # 前端特定指令
-backend/AGENTS.md    # 后端特定指令
-mobile/AGENTS.md     # 移动端特定指令
+api/AGENTS.md        # API服务特定指令
+service/AGENTS.md    # 业务层特定指令
+dao/AGENTS.md        # 数据层特定指令
 ```
 
-### 10. 遗留代码重构
+### 遗留代码重构
 
 **场景描述**：
 项目有大量遗留代码需要重构，但要保持兼容性。
@@ -1000,40 +1005,40 @@ mobile/AGENTS.md     # 移动端特定指令
 创建重构指导指令：
 
 ```markdown
-# Legacy Code Refactoring Guidelines
+# 遗留代码重构指南
 
-## Compatibility
-- Maintain backward compatibility
-- Add deprecation warnings before removing APIs
-- Provide migration guides
-- Keep old tests passing
+## 兼容性
+- 保持向后兼容
+- 移除API前添加废弃警告
+- 提供迁移指南
+- 保持旧测试通过
 
-## Incremental Refactoring
-- Refactor in small, testable increments
-- Add tests before refactoring
-- Use strangler fig pattern
-- Keep the system working at all times
+## 渐进式重构
+- 以小的、可测试的增量进行重构
+- 重构前先添加测试
+- 使用绞杀者模式
+- 始终保持系统可运行
 
-## Code Modernization
-- Update to modern language features
-- Replace deprecated libraries
-- Improve error handling
-- Add type annotations
+## 代码现代化
+- 更新到现代语言特性
+- 替换废弃的库
+- 改进错误处理
+- 添加类型注解
 
-## Documentation
-- Document refactoring decisions
-- Explain breaking changes
-- Update architecture diagrams
-- Create before/after comparisons
+## 文档记录
+- 记录重构决策
+- 解释破坏性变更
+- 更新架构图
+- 创建重构前后对比
 
-## Quality Assurance
-- Run full test suite
-- Perform manual testing
-- Check performance impact
-- Review with team before merging
+## 质量保证
+- 运行完整测试套件
+- 执行手动测试
+- 检查性能影响
+- 合并前团队评审
 ```
 
-### 11. 开源项目贡献
+### 开源项目贡献
 
 **场景描述**：
 参与开源项目，需要遵循项目的贡献指南。
@@ -1042,40 +1047,40 @@ mobile/AGENTS.md     # 移动端特定指令
 为开源项目创建专门的指令：
 
 ```markdown
-# Open Source Contribution Guidelines
+# 开源贡献指南
 
-## Code Standards
-- Follow the project's existing style
-- Read CONTRIBUTING.md before starting
-- Check existing issues and PRs
-- Discuss major changes in issues first
+## 代码规范
+- 遵循项目现有风格
+- 开始前阅读CONTRIBUTING.md
+- 检查现有的issues和PR
+- 重大变更先在issue中讨论
 
-## Commit Guidelines
-- Write clear, descriptive commit messages
-- Reference issue numbers in commits
-- Keep commits atomic and focused
-- Sign commits if required
+## 提交规范
+- 编写清晰、描述性的提交信息
+- 在提交中引用issue编号
+- 保持提交原子化和聚焦
+- 如需要则签名提交
 
-## Pull Requests
-- Fill out PR template completely
-- Include tests for new features
-- Update documentation
-- Respond to review comments promptly
+## Pull Request
+- 完整填写PR模板
+- 为新功能添加测试
+- 更新文档
+- 及时回应评审意见
 
-## Communication
-- Be respectful and professional
-- Follow code of conduct
-- Ask questions when unclear
-- Thank reviewers for their time
+## 沟通交流
+- 保持尊重和专业
+- 遵循行为准则
+- 不清楚时提问
+- 感谢评审者的时间
 
-## Licensing
-- Ensure code is compatible with project license
-- Add copyright headers if required
-- Don't include proprietary code
-- Document third-party dependencies
+## 许可证
+- 确保代码与项目许可证兼容
+- 如需要添加版权头
+- 不包含专有代码
+- 记录第三方依赖
 ```
 
-### 12. AI辅助学习
+### AI辅助学习
 
 **场景描述**：
 学习新技术或框架，希望`AI`在学习过程中提供指导。
@@ -1084,38 +1089,38 @@ mobile/AGENTS.md     # 移动端特定指令
 创建学习辅助指令：
 
 ```markdown
-# Learning Mode Instructions
+# 学习模式指南
 
-## Teaching Style
-- Explain concepts before showing code
-- Provide step-by-step explanations
-- Include comments explaining each part
-- Reference official documentation
-- Suggest additional learning resources
+## 教学风格
+- 展示代码前先解释概念
+- 提供循序渐进的解释
+- 包含解释每个部分的注释
+- 引用官方文档
+- 建议额外的学习资源
 
-## Code Examples
-- Start with simple examples
-- Gradually increase complexity
-- Show multiple approaches
-- Explain pros and cons of each approach
-- Include common pitfalls to avoid
+## 代码示例
+- 从简单示例开始
+- 逐步增加复杂度
+- 展示多种方法
+- 解释每种方法的优缺点
+- 包含需要避免的常见陷阱
 
-## Best Practices
-- Explain why certain patterns are used
-- Show both good and bad examples
-- Discuss design trade-offs
-- Suggest improvements to my code
-- Point out learning opportunities
+## 最佳实践
+- 解释为什么使用某些模式
+- 展示好的和坏的示例
+- 讨论设计权衡
+- 建议改进我的代码
+- 指出学习机会
 
-## Resources
-- Link to official docs
-- Suggest relevant tutorials
-- Recommend books and courses
-- Point to GitHub examples
-- Share community best practices
+## 资源推荐
+- 链接到官方文档
+- 建议相关教程
+- 推荐书籍和课程
+- 指向GitHub示例
+- 分享社区最佳实践
 ```
 
-## 参考资源
+## 参考资料
 
 - [VS Code官方文档：Custom Instructions](https://code.visualstudio.com/docs/copilot/customization/custom-instructions)
 - [GitHub Copilot文档](https://docs.github.com/en/copilot)
