@@ -66,22 +66,26 @@ volcano.sh/vgpu.enabled: "true"
 
 **步骤1：创建NodeFeatureRule**
 
-创建一个`NodeFeatureRule`资源，当节点包含`volcano.sh/vgpu.enabled=true`标签时，自动设置`nvidia.com/gpu.deploy.device-plugin=false`标签：
+创建一个`NodeFeatureRule`资源，当指定节点满足条件时，自动设置标签`"nvidia.com/gpu.deploy.device-plugin": "false"`：
 
 ```yaml title="vgpu-node-feature-rule.yaml"
 apiVersion: nfd.k8s-sigs.io/v1alpha1
 kind: NodeFeatureRule
 metadata:
-  name: vgpu-nvidia-device-plugin-control
+  name: gpu-device-plugin-control
 spec:
   rules:
-    - name: "disable-nvidia-device-plugin-on-vgpu-nodes"
-      # 匹配条件：节点上存在 volcano.sh/vgpu.enabled=true 标签
+    # 规则1：对于特定主机名的节点，禁用 device-plugin
+    - name: "disable-device-plugin-on-specific-nodes"
       labels:
-        "volcano.sh/vgpu.enabled": "true"
-      # 设置标签：nvidia.com/gpu.deploy.device-plugin=false
-      labelsTemplate: |
-        nvidia.com/gpu.deploy.device-plugin=false
+        "nvidia.com/gpu.deploy.device-plugin": "false"
+      matchFeatures:
+        - feature: system.name
+          matchExpressions:
+            nodename:
+              op: In
+              value:
+                - "dev-app-2-150-master-1"
 ```
 
 **步骤2：应用NodeFeatureRule**
