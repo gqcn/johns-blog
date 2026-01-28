@@ -21,23 +21,92 @@ docker.io/projecthami/volcano-vgpu-device-plugin:v1.11.0
 ```text
 aiharbor.msxf.local/test/projecthami/volcano-vgpu-device-plugin:v1.11.0
 ```
+
+
 ### 节点准备
-#### vGPU节点标签污点
-需要给需要安装`vGPU`组件的节点打上特定的标签和污点，以方便管理启用`vGPU`的节点，并且避免原有的`nvidia device plugin`对该`vGPU`节点的资源管理造成影响和资源分配冲突。
+#### vGPU节点标签
+需要给需要安装`vGPU`组件的节点打上特定的标签，以方便指定集群中部分节点启用`vGPU`特性。
 标签如下：
 ```yaml
 volcano.sh/vgpu.enabled: "true"
 ```
-污点如下：
-```yaml
-volcano.sh/vgpu=hami:NoSchedule
-```
+
 
 #### 卸载vGPU节点的nvidia-device-plugin
-在已经给`vGPU`节点标记标签和污点后，需要通过`kubectl delete`指令删除对应`vGPU`节点的`nvidia device plugin pod`，例如：
-```bash
-kubectl delete pod nvidia-device-plugin-daemonset-vx6fk
+
+##### 背景说明
+
+由于`volcano-vgpu-device-plugin`和`nvidia-device-plugin`会产生资源管理冲突，因此需要确保启用了`vGPU`功能的节点上没有运行`nvidia-device-plugin`。
+
+
+`GPU Operator`在部署`nvidia-device-plugin`时，会根据节点上的`nvidia.com/gpu.deploy.device-plugin=true`标签来决定是否在该节点上部署`device plugin`。该标签是由`GPU Operator`在安装过程中自动添加到节点上的，默认值为`true`。
+
+
+如果该标签值为`false`时，`GPU Operator`会自动跳过该节点，不在其上部署`nvidia-device-plugin`，并且如果该节点上已经运行了`nvidia-device-plugin`，也会自动卸载。
+但是手动修改节点上的该标签值不可行，因为`GPU Operator`会定期同步节点标签（或者组件重启后），手动修改的标签值会被覆盖回`true`。
+
+##### 解决方案：使用NFD的NodeFeatureRule
+
+通过`NFD（Node Feature Discovery）`组件的`NodeFeatureRule`自动为启用`vGPU`的节点设置`nvidia.com/gpu.deploy.device-plugin=false`标签，实现自动化的设备插件管理。
+
+**什么是NodeFeatureRule？**
+
+`NodeFeatureRule（NFR）`是`NFD`组件提供的自定义资源（`CRD`），它允许用户定义规则来自动发现和标记节点特征。`NFD`作为`Kubernetes`集群中的守护进程，会持续监控节点的硬件特性、内核配置和其他系统属性，并根据`NodeFeatureRule`定义的规则自动为节点添加、更新或删除标签。
+
+**为什么能避免GPU Operator覆盖标签？**
+
+`GPU Operator`和`NFD`都会管理节点标签，但它们的优先级和作用域不同：
+
+1. **NFD的优先级更高**：`NFD`作为专门的特征发现组件，其设置的标签会被`Kubernetes`认为是"系统级别"的标签，具有更高的权威性
+2. **持续监控和同步**：`NFD`会持续监控节点状态和标签变化，当`GPU Operator`尝试覆盖标签时，`NFD`会根据`NodeFeatureRule`规则立即将标签重新设置回正确的值
+3. **基于条件的标签管理**：通过`NodeFeatureRule`定义的标签是基于节点条件（如`volcano.sh/vgpu.enabled=true`）动态生成的，只要条件满足，`NFD`就会确保标签始终保持正确的值
+4. **避免冲突的设计**：`GPU Operator`在检测到由`NFD`管理的标签时，通常会尊重这些标签的值，而不是强制覆盖，这是`Kubernetes`生态中组件协作的最佳实践
+
+通过这种机制，即使`GPU Operator`重启或执行同步操作，`NFD`也会确保`nvidia.com/gpu.deploy.device-plugin`标签保持为`false`，从而实现稳定可靠的设备插件管理。
+
+**步骤1：创建NodeFeatureRule**
+
+创建一个`NodeFeatureRule`资源，当节点包含`volcano.sh/vgpu.enabled=true`标签时，自动设置`nvidia.com/gpu.deploy.device-plugin=false`标签：
+
+```yaml title="vgpu-node-feature-rule.yaml"
+apiVersion: nfd.k8s-sigs.io/v1alpha1
+kind: NodeFeatureRule
+metadata:
+  name: vgpu-nvidia-device-plugin-control
+spec:
+  rules:
+    - name: "disable-nvidia-device-plugin-on-vgpu-nodes"
+      # 匹配条件：节点上存在 volcano.sh/vgpu.enabled=true 标签
+      labels:
+        "volcano.sh/vgpu.enabled": "true"
+      # 设置标签：nvidia.com/gpu.deploy.device-plugin=false
+      labelsTemplate: |
+        nvidia.com/gpu.deploy.device-plugin=false
 ```
+
+**步骤2：应用NodeFeatureRule**
+
+```bash
+kubectl apply -f vgpu-node-feature-rule.yaml
+```
+
+**步骤3：验证标签设置**
+
+检查`vGPU`节点上的标签，确认`nvidia.com/gpu.deploy.device-plugin`标签已经被正确设置：
+
+```bash
+kubectl get node <vgpu-node-name> -o jsonpath='{.metadata.labels}' | grep nvidia.com/gpu.deploy.device-plugin
+```
+
+预期输出应包含：
+```yaml
+"nvidia.com/gpu.deploy.device-plugin":"false"
+```
+
+**步骤4：观察nvidia-device-plugin自动卸载**
+
+`GPU Operator`会监控节点标签的变化，当检测到`nvidia.com/gpu.deploy.device-plugin=false`时，会自动删除该节点上的`nvidia-device-plugin Pod`。
+
 
 ## 执行部署
 ### 部署volcano-vgpu-device-plugin
