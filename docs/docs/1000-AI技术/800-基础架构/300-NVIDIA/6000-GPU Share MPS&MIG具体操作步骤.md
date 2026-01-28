@@ -355,16 +355,9 @@ Allocatable:
 
 ### 如何识别GPU卡是否支持MIG
 
-#### 通过GPU Operator的配置文件识别
-可以参考`GPU Operator`的源码：https://github.com/NVIDIA/gpu-operator/blob/main/assets/state-mig-manager/0400_configmap.yaml
+#### 通过NVIDA官网查询
 
-![GPU Operator支持MIG的GPU型号配置文件](<assets/7000-GPU Share MPS&MIG具体操作步骤/image-1.png>)
-
-里面有大概型号名称的注释以及十六进制型号编码，但是需要和`nvidia.com/gpu.product`配置对应的话，名称会存在一定差异不太好做自动化识别。前期可以做配置文件，将企业用到的卡型号配置进去进行识别；后续可以通过脚本识别底层`GPU`卡十六进制编号，并自动打标到节点上。
-使用`nvidia-smi`工具识别`GPU`设备十六进制型号的命令：
-```bash
-nvidia-smi -q -x | grep '<pci_device_id>' | sed 's/.*<pci_device_id>\(.*\)<\/pci_device_id>.*/\1/'| uniq
-```
+https://docs.nvidia.com/datacenter/tesla/mig-user-guide/supported-gpus.html
 
 #### 通过nvidia-smi命令识别
 
