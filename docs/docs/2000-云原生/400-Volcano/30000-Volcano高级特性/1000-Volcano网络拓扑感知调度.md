@@ -738,6 +738,12 @@ resources:
 
 如果任务中指定了网络拓扑调度的配置，但是集群中不存在任何`HyperNode`资源，那么该任务的调度不会受到网络拓扑感知调度插件的影响，调度器会按照默认的调度逻辑进行调度。
 
+## 扩展阅读
+
+- [RDMA硬件管理及网络拓扑信息查看](../../../1000-AI技术/800-基础架构/200-RDMA/3000-RDMA硬件管理及网络拓扑信息查看.md)
+
+
+
 ## 参考资料
 
 - [Volcano官方文档 - 网络拓扑感知调度](https://volcano.sh/zh/docs/network_topology_aware_scheduling/)
