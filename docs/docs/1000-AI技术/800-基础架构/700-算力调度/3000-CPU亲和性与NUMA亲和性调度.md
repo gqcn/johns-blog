@@ -338,7 +338,7 @@ taskset -c 0-7 <command>
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                        NUMA 系统                              │
+│                      NUMA System                            │
 ├──────────────────────────┬──────────────────────────────────┤
 │     NUMA Node 0          │        NUMA Node 1               │
 ├──────────────────────────┼──────────────────────────────────┤
@@ -428,13 +428,6 @@ GPU4    SYS     SYS     SYS     SYS      X      PIX     NODE    NODE    32-63,96
 GPU5    SYS     SYS     SYS     SYS     PIX      X      NODE    NODE    32-63,96-127    1               N/A
 GPU6    SYS     SYS     SYS     SYS     NODE    NODE     X      PIX     32-63,96-127    1               N/A
 GPU7    SYS     SYS     SYS     SYS     NODE    NODE    PIX      X      32-63,96-127    1               N/A
-
-$ k logs pod/numa-affinity-test
-        GPU0    GPU1    GPU2    GPU3    CPU Affinity    NUMA Affinity   GPU NUMA ID
-GPU0     X      PIX     NODE    NODE    4-7,68-71       0               N/A
-GPU1    PIX      X      NODE    NODE    4-7,68-71       0               N/A
-GPU2    NODE    NODE     X      PIX     4-7,68-71       0               N/A
-GPU3    NODE    NODE    PIX      X      4-7,68-71       0               N/A
 
 Legend:
 

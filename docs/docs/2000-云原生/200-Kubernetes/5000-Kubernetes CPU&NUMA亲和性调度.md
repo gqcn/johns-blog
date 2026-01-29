@@ -65,7 +65,7 @@ Legend:
 
 ## Kubernetes NUMA 亲和性关键组件
 
-`Kubernetes`通过`kubelet`中的多个`Manager`组件协同工作来实现`NUMA`亲和性调度：
+`Kubernetes`通过`kubelet`中内置的多个`Manager`组件协同工作来实现`NUMA`亲和性调度：
 
 ```text
   ┌─────────────────────────────────────────────────────────────┐
@@ -89,16 +89,81 @@ Legend:
 
 ### 工作流程
 
-1. `Pod`被调度到节点后，`kubelet`的`Topology Manager`开始协调资源分配
-2. 各`Manager`作为`Hint Provider`，向`Topology Manager`提供拓扑亲和性提示（`Hints`）
-3. `Topology Manager`根据配置的策略合并这些`Hints`，计算最优的`NUMA`节点分配
-4. 根据策略决定`Pod`的准入或拒绝
-5. 准入后，各`Manager`根据拓扑提示分配对应`NUMA`节点上的资源
+当`Pod`被调度到节点后，`Topology Manager`会协调各个资源管理器完成`NUMA`亲和性资源分配。整体流程如下：
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Kubelet
+    participant TM as Topology Manager
+    participant CPU as CPU Manager
+    participant MEM as Memory Manager
+    participant DEV as Device Manager
+    
+    Note over Kubelet,DEV: Pod 准入阶段
+    Kubelet->>TM: Admit(Pod)
+    
+    rect rgb(240, 248, 255)
+        Note over TM,DEV: 遍历 Pod 中的每个容器
+        
+        rect rgb(255, 250, 240)
+            Note over TM,DEV: Hints 收集阶段
+            TM->>CPU: GetTopologyHints(Pod, Container)
+            CPU-->>TM: []TopologyHint (CPU NUMA节点选项)
+            
+            TM->>MEM: GetTopologyHints(Pod, Container)
+            MEM-->>TM: []TopologyHint (Memory NUMA节点选项)
+            
+            TM->>DEV: GetTopologyHints(Pod, Container)
+            DEV-->>TM: []TopologyHint (Device NUMA节点选项)
+        end
+        
+        rect rgb(240, 255, 240)
+            Note over TM: Hints 合并阶段
+            TM->>TM: Policy.Merge(AllHints)
+            Note over TM: 根据策略(best-effort/restricted/single-numa-node)<br/>选择最优的 NUMA 节点组合
+        end
+        
+        alt 合并成功且符合策略
+            rect rgb(255, 255, 240)
+                Note over TM,DEV: 资源分配阶段
+                TM->>CPU: Allocate(Pod, Container, BestHint)
+                CPU-->>TM: Success
+                
+                TM->>MEM: Allocate(Pod, Container, BestHint)
+                MEM-->>TM: Success
+                
+                TM->>DEV: Allocate(Pod, Container, BestHint)
+                DEV-->>TM: Success
+            end
+            TM-->>Kubelet: Admit Success
+        else 合并失败或不符合策略
+            rect rgb(255, 240, 240)
+                Note over TM: 准入失败
+                TM->>TM: 清理已分配的资源
+                TM-->>Kubelet: TopologyAffinityError
+            end
+        end
+    end
+    
+    Note over Kubelet: Pod 创建成功或失败
+```
+
+**详细步骤说明**：
+
+1. **Pod准入触发**：`kubelet`接收到调度器分配的`Pod`后，调用`Topology Manager`的`Admit()`方法
+2. **容器遍历**：`Topology Manager`遍历`Pod`中的所有容器（包括`InitContainers`和普通`Containers`）
+3. **Hints收集**：对每个容器，`Topology Manager`依次调用各`Hint Provider`（`CPU Manager`、`Memory Manager`、`Device Manager`）的`GetTopologyHints()`方法
+4. **Hints返回**：每个`Manager`根据当前可用资源，返回一组可能的`NUMA`节点分配方案（`TopologyHint`列表）
+5. **Hints合并**：`Topology Manager`根据配置的策略（`best-effort`、`restricted`或`single-numa-node`）合并所有`Hints`，选择最优的`NUMA`节点组合
+6. **准入决策**：根据策略判断是否存在满足条件的`NUMA`节点组合
+7. **资源分配**：如果准入成功，`Topology Manager`依次调用各`Manager`的`Allocate()`方法，按照选定的`NUMA`节点分配资源
+8. **准入响应**：返回准入结果给`kubelet`，成功则继续创建容器，失败则拒绝`Pod`并清理已分配的资源
 
 
 ## 关键组件配置详解
 
-以下是启用`CPU`亲和性和`NUMA`亲和性调度的完整`kubelet`配置示例，该配置通常位于宿主机上的`/var/lib/kubelet/config.yaml`。随后我们会详细介绍每个组件的配置项：
+以下是启用`CPU`亲和性和`NUMA`亲和性调度的完整`kubelet`配置示例，该配置通常位于宿主机上的`/var/lib/kubelet/config.yaml`，文章随后会详细介绍每个组件的配置项：
 
 ```yaml
 apiVersion: kubelet.config.k8s.io/v1beta1
@@ -321,8 +386,8 @@ evictionHard:
   nodefs.inodesFree: "5%"        # 节点文件系统可用inode低于5%时驱逐
 ```
 
-当`kubelet`配置不满足`sum(reserved-memory) = kube-reserved + system-reserved + eviction-hard`规则时，会报类似如下的错误：
-```
+当`kubelet`配置不满足`sum(reserved-memory) = kube-reserved + system-reserved + eviction-hard`规则时，`kubelet`启动会报类似如下的错误，需要解决：
+```text
 Failed to initialize memory manager" err="the total amount "xxx" of type "memory" is not equal to the value "xxx" determined by Node Allocatable feature"
 ```
 
