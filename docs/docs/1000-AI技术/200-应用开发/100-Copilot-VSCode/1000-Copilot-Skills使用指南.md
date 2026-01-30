@@ -359,6 +359,8 @@ description: 处理PDF文件。
 
 `Copilot Skills`功能目前处于预览阶段，需要手动启用。
 
+![Copilot Skills功能目前处于预览阶段，需要手动启用](assets/1000-Copilot-Skills使用指南/image.png)
+
 **在VS Code中启用**：
 
 1. 打开设置（`Ctrl+,`或`Cmd+,`）
