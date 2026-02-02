@@ -842,6 +842,8 @@ kubectl logs lm-mpi-job-mpimaster-0
 
 **Ray Plugin**为`Ray`分布式计算框架提供自动化配置，包括`Head`节点和`Worker`节点的命令配置、端口开放和服务创建。
 
+> 关于使用`Volcano Job`中运行`Ray`节点的详细调研测试请参考：[通过Volcano Job插件部署使用Ray](../../../1000-AI技术/600-训练微调/300-Ray分布式计算引擎/3000-通过Volcano%20Job插件部署使用Ray.md)
+
 #### 工作原理
 
 1. **节点角色配置**：

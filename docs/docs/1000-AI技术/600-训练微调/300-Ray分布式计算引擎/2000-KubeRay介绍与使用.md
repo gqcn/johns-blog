@@ -1,6 +1,6 @@
 ---
 slug: "/ai/training/kuberay-guide"
-title: "KubeRay介绍与使用"
+title: "Ray On K8S: KubeRay介绍与使用"
 hide_title: true
 keywords:
   [
