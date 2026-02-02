@@ -14,6 +14,7 @@ keywords:
 description: "本文介绍如何使用Kind（Kubernetes in Docker）快速创建一个包含1个控制平面节点和4个工作节点的本地K8S测试集群，包括集群配置、创建、验证和删除的完整步骤。"
 ---
 
+> 该文章的内容，其实主要是笔者自用做的笔记。
 
 ## Kind配置
 
@@ -113,4 +114,29 @@ node3                        Ready    <none>          20s   v1.27.3
 kind delete clusters kind-cluster
 ```
 
+## 其他常见操作
 
+### 加载本地Docker镜像到Kind集群
+
+由于`Kind`集群运行在`Docker`容器内，它不会自动访问你本地`Docker`守护进程中的镜像。你需要使用以下命令将本地镜像加载到`Kind`集群中：
+```bash
+kind load docker-image --name kind-cluster my-custom-image:tag
+```
+
+### 安装Volcano调度器
+
+由于笔者主要使用`Volcano`作为集群的任务调度器，因此需要安装`Volcano`调度器：
+
+```bash
+# 添加Volcano Helm仓库
+helm repo add volcano-sh https://volcano-sh.github.io/helm-charts
+helm repo update
+
+# 安装Volcano（版本可自行指定）
+helm install volcano volcano-sh/volcano \
+  -n volcano-system \
+  --create-namespace \
+  --version 1.13.0
+
+# 等待Volcano组件就绪，预计需要几分钟时间
+```

@@ -135,9 +135,9 @@ type PluginInterface interface {
 
 以下是使用`Ray`插件的最简单配置：
 
-> `Ray`的官方镜像仓库为：https://hub.docker.com/r/rayproject/ray ，为简化示例，这里使用精简版的`rayproject/ray:latest-py311-cpu-aarch64`镜像。作者本机是`arm64`系统，请读者根据实际环境选择合适的镜像。
+> `Ray`的官方镜像仓库为：https://hub.docker.com/r/rayproject/ray ，为简化示例，这里使用精简版的`rayproject/ray:latest-py311-cpu`镜像。作者本机是`arm64`系统，请读者根据实际环境选择合适的镜像。
 
-```yaml
+```yaml title="ray-cluster-job.yaml"
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
@@ -155,7 +155,7 @@ spec:
         spec:
           containers:
             - name: head  # 容器名称必须为head
-              image: rayproject/ray:latest-py311-cpu-aarch64
+              image: rayproject/ray:latest-py311-cpu
               resources:
                 requests:
                   cpu: "1"
@@ -167,7 +167,7 @@ spec:
         spec:
           containers:
             - name: worker  # 容器名称必须为worker
-              image: rayproject/ray:latest-py311-cpu-aarch64
+              image: rayproject/ray:latest-py311-cpu
               resources:
                 requests:
                   cpu: "1"
@@ -179,7 +179,7 @@ spec:
 
 如果需要自定义任务名称、容器名称或端口，可以通过插件参数配置：
 
-```yaml
+```yaml title="ray-cluster-custom.yaml"
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
@@ -204,7 +204,7 @@ spec:
         spec:
           containers:
             - name: ray-head-container
-              image: rayproject/ray:latest-py311-cpu-aarch64
+              image: rayproject/ray:latest-py311-cpu
               resources:
                 requests:
                   cpu: "2"
@@ -216,7 +216,7 @@ spec:
         spec:
           containers:
             - name: ray-worker-container
-              image: rayproject/ray:latest-py311-cpu-aarch64
+              image: rayproject/ray:latest-py311-cpu
               resources:
                 requests:
                   cpu: "1"
@@ -249,7 +249,7 @@ kubectl get pods -n volcano-system
 
 创建一个简单的`Python`脚本，执行分布式计算：
 
-```yaml
+```yaml title="ray-job-code.yaml"
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -285,7 +285,7 @@ data:
 
 创建`Volcano Job`来运行`Ray`集群：
 
-```yaml
+```yaml title="ray-compute-job.yaml"
 apiVersion: batch.volcano.sh/v1alpha1
 kind: Job
 metadata:
@@ -310,7 +310,7 @@ spec:
         spec:
           containers:
             - name: head
-              image: rayproject/ray:latest-py311-cpu-aarch64
+              image: rayproject/ray:latest-py311-cpu
               command:
                 - /bin/bash
                 - -c
@@ -342,7 +342,7 @@ spec:
         spec:
           containers:
             - name: worker
-              image: rayproject/ray:latest-py311-cpu-aarch64
+              image: rayproject/ray:latest-py311-cpu
               resources:
                 requests:
                   cpu: "1"

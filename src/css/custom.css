@@ -4,6 +4,11 @@
  * work well for content-centric websites.
  */
 
+/* 避免在edge浏览器下，文章主页面出现横向滚动条 */
+#__docusaurus {
+  overflow-x: clip;
+}
+
 .navbar__logo img {
   border-radius: 5px;
 }
