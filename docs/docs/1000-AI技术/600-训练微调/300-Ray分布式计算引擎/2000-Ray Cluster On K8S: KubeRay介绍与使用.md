@@ -65,18 +65,9 @@ toc_max_heading_level: 4
 - **容错保障**：自动检测和恢复故障节点，确保集群稳定运行
 - **资源隔离**：支持多租户场景，不同用户可以拥有独立的`Ray`集群
 
-**核心节点**：
-
-一个`RayCluster`由两类节点组成，它们各司其职、协同工作：
-
-| 节点类型 | 数量 | 核心职责 | 主要功能 |
-|---------|------|---------|---------|
-| **Head Node** | 固定`1`个 | 集群控制中心 | - 运行`GCS`（全局控制存储）管理集群元数据<br/> - 提供`Dashboard`监控界面<br/> - 执行任务调度和资源分配<br/>- 作为集群入口接收任务提交 |
-| **Worker Nodes** | 可伸缩（`N`个） | 任务执行节点 | - 执行具体的计算任务<br/> - 存储任务数据和中间结果<br/>- 响应`Head`节点的调度指令<br/>- 支持动态扩缩容 |
-
-- `Head Node`是集群的单点，但`KubeRay`会自动监控并在故障时重启
-- `Worker Nodes`可以根据工作负载自动扩缩容，提高资源利用率
-- 所有节点之间通过高效的通信协议保持数据同步
+:::tip Ray集群架构
+关于`Ray`集群中`Head Node`和`Worker Node`的详细职责和架构说明，请参考：[Ray分布式计算引擎介绍 - Ray集群](./1000-Ray分布式计算引擎介绍.md#ray集群ray-cluster)
+:::
 
 **适用场景**：
 - 需要长期运行的交互式开发环境
@@ -261,8 +252,6 @@ graph TB
 
 `Helm`是安装`KubeRay`的推荐方式，步骤如下：
 
-#### 安装稳定版本
-
 ```bash
 # 添加 KubeRay Helm 仓库
 helm repo add kuberay https://ray-project.github.io/kuberay-helm/
@@ -271,48 +260,17 @@ helm repo add kuberay https://ray-project.github.io/kuberay-helm/
 helm repo update
 
 # 安装 KubeRay Operator（包含 CRD 和 Operator）
-helm install kuberay-operator kuberay/kuberay-operator --version 1.1.0
+helm install kuberay-operator kuberay/kuberay-operator \
+  -n kuberay-operator \
+  --create-namespace \
+  --version 1.5.1
 
 # 验证安装，检查 Operator Pod 状态
-kubectl get pods
+kubectl get pods -n kuberay-operator
 # 期望输出类似：
 # NAME                                READY   STATUS    RESTARTS   AGE
 # kuberay-operator-6fcbb94f64-mbfnr   1/1     Running   0          30s
 ```
-
-#### 安装最新开发版本
-
-如果需要体验最新特性，可以从源码安装：
-
-```bash
-# 克隆 KubeRay 仓库
-git clone https://github.com/ray-project/kuberay.git
-cd kuberay
-
-# 从本地 Helm Chart 安装
-helm install kuberay-operator ./helm-chart/kuberay-operator
-```
-
-#### 自定义安装选项
-
-`KubeRay Operator`支持多种自定义配置：
-
-```bash
-# 安装到指定命名空间
-helm install kuberay-operator kuberay/kuberay-operator \
-  --namespace kuberay-system \
-  --create-namespace
-
-# 自定义 Operator 资源配置
-helm install kuberay-operator kuberay/kuberay-operator \
-  --set operatorResources.limits.cpu=500m \
-  --set operatorResources.limits.memory=512Mi
-
-# 启用 Webhook（用于资源验证）
-helm install kuberay-operator kuberay/kuberay-operator \
-  --set webhooks.enabled=true
-```
-
 
 
 ### 验证安装
@@ -321,7 +279,7 @@ helm install kuberay-operator kuberay/kuberay-operator \
 
 ```bash
 # 检查 Operator Pod 状态
-kubectl get pods -n default
+kubectl get pods -n kuberay-operator
 # 应该看到 kuberay-operator Pod 处于 Running 状态
 
 # 检查 CRD 是否已安装
@@ -332,7 +290,7 @@ kubectl get crd | grep ray
 # rayservices.ray.io
 
 # 查看 Operator 日志
-kubectl logs -l app.kubernetes.io/name=kuberay-operator
+kubectl logs -n kuberay-operator -l app.kubernetes.io/name=kuberay-operator
 # 应该看到类似 "Starting controller" 的日志
 ```
 
@@ -342,161 +300,36 @@ kubectl logs -l app.kubernetes.io/name=kuberay-operator
 
 ```bash
 # 卸载 Operator
-helm uninstall kuberay-operator
+helm uninstall kuberay-operator -n kuberay-operator
 
-# 删除 CRD（注意：这会删除所有相关资源）
+# 卸载Helm安装包默认不会删除CRD，需要手动删除CRD（注意：这会删除所有相关资源）
 kubectl delete crd rayclusters.ray.io
 kubectl delete crd rayjobs.ray.io
 kubectl delete crd rayservices.ray.io
-
-# 或者使用 kustomize 删除
-kubectl delete -k "github.com/ray-project/kuberay/ray-operator/config/crd?ref=v1.1.0"
 ```
 
 :::warning 注意
 删除`CRD`会同时删除所有基于该`CRD`创建的资源实例（如`RayCluster`、`RayJob`等），请谨慎操作。
 :::
 
-## KubeRay快速上手示例
+## KubeRay使用示例
 
-本节通过一个完整的示例，演示如何使用`KubeRay`创建集群并运行一个简单的`Ray`任务。
-
-### 创建RayCluster并交互式使用
-
-这个示例展示如何创建一个基本的`RayCluster`，然后连接到集群执行简单的分布式计算。
-
-#### 创建RayCluster
-
-首先创建一个`RayCluster`资源定义文件：
-
-```yaml title="ray-cluster-simple.yaml"
-apiVersion: ray.io/v1
-kind: RayCluster
-metadata:
-  name: ray-cluster-simple
-spec:
-  # Ray 版本
-  rayVersion: '2.52.0'
-  
-  # Head 节点配置
-  headGroupSpec:
-    # Ray 启动参数
-    rayStartParams:
-      dashboard-host: '0.0.0.0'
-    # Pod 模板
-    template:
-      spec:
-        containers:
-        - name: ray-head
-          image: rayproject/ray:2.52.0
-          ports:
-          - containerPort: 6379
-            name: gcs
-          - containerPort: 8265
-            name: dashboard
-          - containerPort: 10001
-            name: client
-          resources:
-            limits:
-              cpu: "1"
-              memory: "2Gi"
-            requests:
-              cpu: "500m"
-              memory: "1Gi"
-  
-  # Worker 节点配置
-  workerGroupSpecs:
-  - replicas: 2
-    minReplicas: 1
-    maxReplicas: 5
-    groupName: small-group
-    rayStartParams: {}
-    template:
-      spec:
-        containers:
-        - name: ray-worker
-          image: rayproject/ray:2.52.0
-          resources:
-            limits:
-              cpu: "1"
-              memory: "1Gi"
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
-```
-
-应用这个配置文件：
-
-```bash
-# 创建 RayCluster
-kubectl apply -f ray-cluster-simple.yaml
-
-# 查看集群状态
-kubectl get raycluster
-# 期望输出：
-# NAME                 DESIRED WORKERS   AVAILABLE WORKERS   STATUS   AGE
-# ray-cluster-simple   2                 2                   ready    1m
-
-# 查看所有 Ray Pods
-kubectl get pods -l ray.io/cluster=ray-cluster-simple
-# 期望输出：
-# NAME                                          READY   STATUS    RESTARTS   AGE
-# ray-cluster-simple-head-xxxxx                 1/1     Running   0          1m
-# ray-cluster-simple-worker-small-group-xxxxx   1/1     Running   0          1m
-# ray-cluster-simple-worker-small-group-yyyyy   1/1     Running   0          1m
-```
-
-#### 连接并使用集群
-
-连接到`Ray`集群执行分布式任务：
-
-```bash
-# 方法1：直接在 Head Pod 中执行
-kubectl exec -it $(kubectl get pod -l ray.io/node-type=head,ray.io/cluster=ray-cluster-simple -o jsonpath='{.items[0].metadata.name}') -- python3 -c "
-import ray
-ray.init()
-
-# 定义一个简单的远程函数
-@ray.remote
-def hello_world(name):
-    return f'Hello {name} from Ray!'
-
-# 并行执行
-futures = [hello_world.remote(f'Worker-{i}') for i in range(10)]
-results = ray.get(futures)
-print(results)
-
-# 查看集群信息
-print(f'Available resources: {ray.available_resources()}')
-"
-```
-
-#### 访问Ray Dashboard
-
-`Ray Dashboard`提供了集群监控和任务管理界面：
-
-```bash
-# 端口转发到本地
-kubectl port-forward service/ray-cluster-simple-head-svc 8265:8265
-
-# 在浏览器中打开
-# http://localhost:8265
-```
-
-在`Dashboard`中可以查看：
-- 集群资源使用情况
-- 运行中的任务
-- 日志和性能指标
-
-### 使用RayJob运行批处理任务
+> `Ray`的官方镜像仓库为：https://hub.docker.com/r/rayproject/ray ，为简化示例，这里使用精简版的`rayproject/ray:latest-py311-cpu`镜像。作者本机是`arm64`系统，请读者根据实际环境选择合适的镜像。
 
 这个示例展示如何使用`RayJob`自动创建集群、执行任务并清理资源。
 
-#### 准备Python代码
+> 本示例来源于官网：https://docs.ray.io/en/latest/cluster/kubernetes/getting-started/rayjob-quick-start.html
+
+### 准备Python代码
 
 首先创建一个`ConfigMap`来存储要执行的`Python`代码：
 
-```yaml title="ray-job-code.yaml"
+> 来源官网示例：https://raw.githubusercontent.com/ray-project/kuberay/v1.5.1/ray-operator/config/samples/ray-job.sample.yaml
+
+```yaml title="ray-job-code-sample.yaml"
+######################Ray code sample#################################
+# this sample is from https://docs.ray.io/en/latest/cluster/job-submission.html#quick-start-example
+# it is mounted into the container and executed to show the Ray job at work
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -504,52 +337,46 @@ metadata:
 data:
   sample_code.py: |
     import ray
-    import time
-    
-    # 初始化 Ray
+    import os
+    import requests
+
     ray.init()
-    
-    # 定义计算密集型任务
+
     @ray.remote
-    def compute_pi(num_samples):
-        import random
-        count = 0
-        for _ in range(num_samples):
-            x, y = random.random(), random.random()
-            if x*x + y*y <= 1:
-                count += 1
-        return count
-    
-    # 分布式计算 π 值
-    print("Starting distributed computation of Pi...")
-    num_tasks = 100
-    num_samples_per_task = 1_000_000
-    
-    start_time = time.time()
-    futures = [compute_pi.remote(num_samples_per_task) for _ in range(num_tasks)]
-    results = ray.get(futures)
-    
-    total_count = sum(results)
-    total_samples = num_tasks * num_samples_per_task
-    pi_estimate = 4 * total_count / total_samples
-    
-    elapsed_time = time.time() - start_time
-    
-    print(f"Estimated Pi: {pi_estimate}")
-    print(f"Computation time: {elapsed_time:.2f} seconds")
-    print(f"Tasks completed: {num_tasks}")
-    print("Job completed successfully!")
+    class Counter:
+        def __init__(self):
+            # Used to verify runtimeEnv
+            self.name = os.getenv("counter_name")
+            assert self.name == "test_counter"
+            self.counter = 0
+
+        def inc(self):
+            self.counter += 1
+
+        def get_counter(self):
+            return "{} got {}".format(self.name, self.counter)
+
+    counter = Counter.remote()
+
+    for _ in range(5):
+        ray.get(counter.inc.remote())
+        print(ray.get(counter.get_counter.remote()))
+
+    # Verify that the correct runtime env was used for the job.
+    assert requests.__version__ == "2.26.0"
 ```
 
 应用这个配置：
 
 ```bash
-kubectl apply -f ray-job-code.yaml
+kubectl apply -f ray-job-code-sample.yaml
 ```
 
-#### 创建RayJob
+### 创建RayJob
 
 创建`RayJob`资源定义：
+
+> 来源官网示例：https://raw.githubusercontent.com/ray-project/kuberay/v1.5.1/ray-operator/config/samples/ray-job.sample.yaml
 
 ```yaml title="ray-job-sample.yaml"
 apiVersion: ray.io/v1
@@ -557,79 +384,110 @@ kind: RayJob
 metadata:
   name: rayjob-sample
 spec:
-  # 指定要执行的 Python 脚本
+  # submissionMode specifies how RayJob submits the Ray job to the RayCluster.
+  # The default value is "K8sJobMode", meaning RayJob will submit the Ray job via a submitter Kubernetes Job.
+  # The alternative value is "HTTPMode", indicating that KubeRay will submit the Ray job by sending an HTTP request to the RayCluster.
+  # submissionMode: "K8sJobMode"
   entrypoint: python /home/ray/samples/sample_code.py
-  
-  # 任务完成后自动删除集群
-  shutdownAfterJobFinishes: true
-  
-  # 任务完成后等待10秒再删除集群（便于查看日志）
-  ttlSecondsAfterFinished: 10
-  
-  # 运行时环境配置
+  # shutdownAfterJobFinishes specifies whether the RayCluster should be deleted after the RayJob finishes. Default is false.
+  # shutdownAfterJobFinishes: false
+
+  # ttlSecondsAfterFinished specifies the number of seconds after which the RayCluster will be deleted after the RayJob finishes.
+  # ttlSecondsAfterFinished: 10
+
+  # activeDeadlineSeconds is the duration in seconds that the RayJob may be active before
+  # KubeRay actively tries to terminate the RayJob; value must be positive integer.
+  # activeDeadlineSeconds: 120
+
+  # RuntimeEnvYAML represents the runtime environment configuration provided as a multi-line YAML string.
+  # See https://docs.ray.io/en/latest/ray-core/handling-dependencies.html for details.
+  # (New in KubeRay version 1.0.)
   runtimeEnvYAML: |
     pip:
       - requests==2.26.0
+      - pendulum==2.1.2
     env_vars:
-      LOG_LEVEL: "INFO"
-  
-  # RayCluster 配置
+      counter_name: "test_counter"
+
+  # Suspend specifies whether the RayJob controller should create a RayCluster instance.
+  # If a job is applied with the suspend field set to true, the RayCluster will not be created and we will wait for the transition to false.
+  # If the RayCluster is already created, it will be deleted. In the case of transition to false, a new RayCluster will be created.
+  # suspend: false
+
+  # rayClusterSpec specifies the RayCluster instance to be created by the RayJob controller.
   rayClusterSpec:
-    rayVersion: '2.52.0'
-    
-    # Head 节点配置
+    rayVersion: '2.46.0' # should match the Ray version in the image of the containers
+    # Ray head pod template
     headGroupSpec:
+      # The `rayStartParams` are used to configure the `ray start` command.
+      # See https://github.com/ray-project/kuberay/blob/master/docs/guidance/rayStartParams.md for the default settings of `rayStartParams` in KubeRay.
+      # See https://docs.ray.io/en/latest/cluster/cli.html#ray-start for all available options in `rayStartParams`.
       rayStartParams: {}
+      #pod template
       template:
         spec:
           containers:
           - name: ray-head
-            image: rayproject/ray:2.52.0
+            image: rayproject/ray:latest-py311-cpu
             ports:
             - containerPort: 6379
               name: gcs-server
-            - containerPort: 8265
+            - containerPort: 8265 # Ray dashboard
               name: dashboard
             - containerPort: 10001
               name: client
             resources:
               limits:
                 cpu: "1"
-                memory: "2Gi"
               requests:
-                cpu: "500m"
-                memory: "1Gi"
-            # 挂载代码
+                cpu: "200m"
             volumeMounts:
             - mountPath: /home/ray/samples
               name: code-sample
           volumes:
+          # You set volumes at the Pod level, then mount them into containers inside that Pod
           - name: code-sample
             configMap:
+              # Provide the name of the ConfigMap you want to mount.
               name: ray-job-code-sample
+              # An array of keys from the ConfigMap to create as files
               items:
               - key: sample_code.py
                 path: sample_code.py
-    
-    # Worker 节点配置
     workerGroupSpecs:
-    - replicas: 2
+    # the pod replicas in this group typed worker
+    - replicas: 1
       minReplicas: 1
       maxReplicas: 5
-      groupName: worker-group
+      # logical group name, for this called small-group, also can be functional
+      groupName: small-group
+      # The `rayStartParams` are used to configure the `ray start` command.
+      # See https://github.com/ray-project/kuberay/blob/master/docs/guidance/rayStartParams.md for the default settings of `rayStartParams` in KubeRay.
+      # See https://docs.ray.io/en/latest/cluster/cli.html#ray-start for all available options in `rayStartParams`.
       rayStartParams: {}
+      #pod template
       template:
         spec:
           containers:
-          - name: ray-worker
-            image: rayproject/ray:2.52.0
+          - name: ray-worker # must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc'
+            image: rayproject/ray:latest-py311-cpu
             resources:
               limits:
                 cpu: "1"
-                memory: "1Gi"
               requests:
-                cpu: "500m"
-                memory: "512Mi"
+                cpu: "200m"
+
+  # SubmitterPodTemplate is the template for the pod that will run the `ray job submit` command against the RayCluster.
+  # If SubmitterPodTemplate is specified, the first container is assumed to be the submitter container.
+  # submitterPodTemplate:
+  #   spec:
+  #     restartPolicy: Never
+  #     containers:
+  #     - name: my-custom-rayjob-submitter-pod
+  #       image: rayproject/ray:latest-py311-cpu
+  #       # If Command is not specified, the correct command will be supplied at runtime using the RayJob spec `entrypoint` field.
+  #       # Specifying Command is not recommended.
+  #       # command: ["sh", "-c", "ray job submit --address=http://$RAY_DASHBOARD_ADDRESS --submission-id=$RAY_JOB_SUBMISSION_ID -- echo hello world"]
 ```
 
 提交并监控任务：
@@ -645,10 +503,7 @@ kubectl get rayjob rayjob-sample
 # rayjob-sample   RUNNING      Running             1m                      1m
 
 # 查看任务日志
-kubectl logs -l ray.io/cluster=rayjob-sample-raycluster -c ray-head
-
-# 监控任务进度（持续查看）
-kubectl get rayjob rayjob-sample -w
+kubectl logs -l=job-name=rayjob-sample
 
 # 任务完成后查看最终状态
 kubectl get rayjob rayjob-sample
@@ -657,128 +512,42 @@ kubectl get rayjob rayjob-sample
 # rayjob-sample   SUCCEEDED    Complete            5m           4m         5m
 ```
 
-#### 查看任务结果
+### 执行过程
 
-```bash
-# 查看任务执行日志
-kubectl logs -l ray.io/cluster=rayjob-sample-raycluster -c ray-head --tail=50
+在提交`RayJob`后，`KubeRay`会自动执行以下步骤：
+1. **创建RayCluster**：根据`rayClusterSpec`定义，自动创建一个临时的`RayCluster`，包括`Head Node`和指定数量的`Worker Nodes`。
+2. **加载代码**：将`ConfigMap`中的`Python`代码挂载到`Head Node`的指定路径。
+3. **执行任务**：在`Head Node`上运行指定的`Python`代码，利用`Ray`的分布式计算能力执行任务。
+4. **监控状态**：实时跟踪任务的执行状态，并输出日志。
+5. **清理资源**：任务完成后，根据配置自动删除临时的`RayCluster`，释放资源。
 
-# 期望看到类似输出：
-# Starting distributed computation of Pi...
-# Estimated Pi: 3.14159...
-# Computation time: 12.34 seconds
-# Tasks completed: 100
-# Job completed successfully!
-```
-
-### 部署RayService在线推理服务
-
-这个示例展示如何使用`RayService`部署一个简单的模型推理服务。
-
-创建一个提供简单文本处理的`RayService`：
-
-```yaml title="ray-service-sample.yaml"
-apiVersion: ray.io/v1
-kind: RayService
-metadata:
-  name: rayservice-sample
-spec:
-  # Service 配置
-  serviceUnhealthySecondThreshold: 300
-  deploymentUnhealthySecondThreshold: 300
-  
-  # Serve 应用配置
-  serveConfigV2: |
-    applications:
-    - name: text_processor
-      import_path: text_app:deployment
-      runtime_env:
-        working_dir: "https://github.com/ray-project/test_deploy_group/archive/refs/heads/serve_config_deployment_test.zip"
-  
-  # RayCluster 配置
-  rayClusterSpec:
-    rayVersion: '2.52.0'
-    
-    # Head 节点
-    headGroupSpec:
-      rayStartParams:
-        dashboard-host: '0.0.0.0'
-        num-cpus: '0'
-      template:
-        spec:
-          containers:
-          - name: ray-head
-            image: rayproject/ray:2.52.0
-            ports:
-            - containerPort: 6379
-              name: gcs
-            - containerPort: 8265
-              name: dashboard
-            - containerPort: 10001
-              name: client
-            - containerPort: 8000
-              name: serve
-            resources:
-              limits:
-                cpu: "2"
-                memory: "4Gi"
-              requests:
-                cpu: "1"
-                memory: "2Gi"
-    
-    # Worker 节点
-    workerGroupSpecs:
-    - replicas: 1
-      minReplicas: 1
-      maxReplicas: 5
-      groupName: serve-group
-      rayStartParams: {}
-      template:
-        spec:
-          containers:
-          - name: ray-worker
-            image: rayproject/ray:2.52.0
-            resources:
-              limits:
-                cpu: "2"
-                memory: "2Gi"
-              requests:
-                cpu: "1"
-                memory: "1Gi"
-```
-
-部署和测试服务：
-
-```bash
-# 部署 RayService
-kubectl apply -f ray-service-sample.yaml
-
-# 查看服务状态
-kubectl get rayservice rayservice-sample
-# 期望输出：
-# NAME                SERVICE STATUS   NUM SERVE ENDPOINTS
-# rayservice-sample   Running          1
-
-# 端口转发到本地
-kubectl port-forward service/rayservice-sample-serve-svc 8000:8000
-
-# 测试服务（在另一个终端）
-curl -X POST http://localhost:8000/ -H "Content-Type: application/json" -d '{"text": "Hello Ray"}'
+完整的`Pod`状态变化日志如下：
+```text
+rayjob-sample-b5rs7-head-b6mxp                 0/1     Pending             0          0s
+rayjob-sample-b5rs7-small-group-worker-lhsmj   0/1     Pending             0          0s
+rayjob-sample-b5rs7-head-b6mxp                 0/1     ContainerCreating   0          0s
+rayjob-sample-b5rs7-small-group-worker-lhsmj   0/1     Init:0/1            0          0s
+rayjob-sample-b5rs7-head-b6mxp                 0/1     Running             0          1s
+rayjob-sample-b5rs7-small-group-worker-lhsmj   0/1     Init:0/1            0          1s
+rayjob-sample-b5rs7-small-group-worker-lhsmj   0/1     PodInitializing     0          8s
+rayjob-sample-b5rs7-small-group-worker-lhsmj   0/1     Running             0          9s
+rayjob-sample-c9flz                            0/1     Pending             0          0s
+rayjob-sample-c9flz                            0/1     ContainerCreating   0          0s
+rayjob-sample-c9flz                            1/1     Running             0          1s
+rayjob-sample-c9flz                            0/1     Completed           0          21s
+rayjob-sample-8j6rw-head-wjkhr                 0/1     Terminating         0          6m11s
+rayjob-sample-8j6rw-small-group-worker-wwwdg   0/1     Terminating         0          7m51s
+rayjob-sample-ls588-head-48xsc                 0/1     Terminating         0          7m16s
+rayjob-sample-ls588-small-group-worker-nqz9b   0/1     Terminating         0          12m
 ```
 
 ### 清理资源
 
-完成实验后，清理创建的资源：
+完成实验后，有一部分资源需要手动清理：
 
 ```bash
-# 删除 RayCluster
-kubectl delete raycluster ray-cluster-simple
-
 # RayJob 通常会自动清理，但如果需要手动删除：
 kubectl delete rayjob rayjob-sample
-
-# 删除 RayService
-kubectl delete rayservice rayservice-sample
 
 # 删除 ConfigMap
 kubectl delete configmap ray-job-code-sample
