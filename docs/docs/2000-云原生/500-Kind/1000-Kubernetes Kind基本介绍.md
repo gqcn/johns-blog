@@ -195,6 +195,7 @@ kubectl cluster-info --context kind-my-cluster
 kind load docker-image my-custom-image:tag --name my-cluster
 ```
 
+
 ### 删除集群
 
 当你不再需要集群时，可以使用以下命令删除它：
@@ -352,6 +353,17 @@ kind export kubeconfig --name my-cluster
 # 验证连接
 kubectl cluster-info
 ```
+
+### 加载本地镜像失败: 部分镜像层未找到
+
+如果该镜像同时存在`arm64`和`amd64`架构的镜像层，可能会导致`kind load`加载本地镜像失败，报错信息类似于：
+
+```text
+ERROR: failed to load image: command "docker exec --privileged -i kind-cluster-worker3 ctr --namespace=k8s.io images import --all-platforms --digests --snapshotter=overlayfs -" failed with error: exit status 1
+Command Output: ctr: content digest sha256:e5c299e60c804c80b5ddca5ffaad6690d839f07ca4bc4ee121e28316ecfca4a5: not found
+```
+
+可以尝试将两个架构的镜像都拉取到本地，再执行`kind load`加载命令。
 
 ## 实用技巧
 
