@@ -1,6 +1,6 @@
 ---
 slug: "/ai/kuberay-guide"
-title: "Ray Cluster On K8S: KubeRay介绍与使用"
+title: "KubeRay基本介绍与使用"
 hide_title: true
 keywords:
   [
@@ -25,7 +25,7 @@ keywords:
     "集群管理",
     "高可用性"
   ]
-description: "全面介绍 KubeRay 的核心概念、架构设计和使用方法。KubeRay 是运行在 Kubernetes 上的开源 Ray Operator，用于简化 Ray 应用的部署和管理。本文详细讲解 KubeRay 的三大核心组件 RayCluster、RayJob 和 RayService 的特点和应用场景，介绍如何通过 Helm 快速安装和配置 KubeRay，并提供完整的运行示例，帮助读者快速上手并掌握 KubeRay 在机器学习训练、推理和服务部署等场景中的实际应用，实现云原生环境下的分布式计算。"
+description: "全面介绍KubeRay的核心概念、架构设计和使用方法。KubeRay是运行在Kubernetes上的开源Ray Operator，用于简化Ray应用的部署和管理。本文详细讲解KubeRay的三大核心组件RayCluster、RayJob和RayService的特点和应用场景，介绍如何通过Helm快速安装和配置KubeRay，并提供完整的运行示例，帮助读者快速上手并掌握KubeRay在机器学习训练、推理和服务部署等场景中的实际应用，实现云原生环境下的分布式计算。"
 toc_max_heading_level: 4
 ---
 
