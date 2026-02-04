@@ -26,6 +26,11 @@ keywords:
 description: "深入介绍Volcano Job PyTorch Plugin的核心功能和使用方法。Volcano是面向高性能计算场景的Kubernetes批量调度系统，其PyTorch Plugin专为简化PyTorch分布式训练任务而设计。本文详细讲解PyTorch Plugin的工作原理，包括自动配置分布式训练环境变量、端口管理和服务发现等核心机制。介绍如何在Kubernetes集群中安装和配置Volcano系统，包括使用Helm或YAML文件部署Volcano组件。提供完整的PyTorch分布式训练任务示例，展示如何使用Volcano Job定义Master-Worker架构的训练任务，帮助读者快速掌握在Kubernetes上运行大规模PyTorch训练作业的最佳实践。"
 ---
 
+
+:::danger 注意
+目前`Volcano`最新版本`1.13.0`的`PyTorch Job Plugin`经调研发现存在严重`BUG`，需要等修复之后再进一步完善文档。
+:::
+
 ## Volcano PyTorch Plugin是什么
 
 `Volcano PyTorch Plugin`是`Volcano`批量调度系统中的一个插件，专门用于简化在`Kubernetes`集群上运行`PyTorch`分布式训练任务的配置和管理。
@@ -69,17 +74,15 @@ description: "深入介绍Volcano Job PyTorch Plugin的核心功能和使用方�
 
 `PyTorch Plugin`在`Pod`创建时自动执行以下操作：
 
-```mermaid
-graph LR
-    A[创建Volcano Job] --> B[PyTorch Plugin启动]
-    B --> C[识别Master和Worker任务]
-    C --> D[生成Master地址]
-    D --> E[计算WORLD_SIZE]
-    E --> F[分配RANK给每个Pod]
-    F --> G[开放通信端口]
-    G --> H[注入环境变量]
-    H --> I[Pod启动训练]
-```
+1. 创建`Volcano Job`
+2. `PyTorch Plugin`启动
+3. 识别`Master`和`Worker`任务
+4. 生成`Master`地址
+5. 计算`WORLD_SIZE`
+6. 分配`RANK`给每个`Pod`
+7. 开放通信端口
+8. 注入环境变量
+9. `Pod`启动训练
 
 #### 核心功能详解
 
@@ -154,6 +157,8 @@ volcano-scheduler-65d4d4645b-p9llx     1/1     Running   0             10s
 | `--port` | `int` | `23456` | 否 | 通信端口号 | `--port=23456` |
 
 ## PyTorch分布式训练示例
+
+> 以下示例中使用的镜像为`pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime`，可根据需要替换为其他版本。
 
 ### 脚本示例
 
@@ -299,12 +304,12 @@ if __name__ == "__main__":
     train()
 ```
 
-:::tip 代码关键点
+代码关键点：
 1. **分布式初始化**：使用`dist.init_process_group(backend="gloo")`初始化分布式环境，`CPU`训练使用`gloo`后端
 2. **数据并行**：使用`DistributedSampler`确保不同进程读取不同的数据分片
 3. **模型并行**：使用`DistributedDataParallel`包装模型，自动处理梯度聚合
 4. **环境变量**：`Volcano PyTorch Plugin`会自动设置所有必要的环境变量（`RANK`、`WORLD_SIZE`、`MASTER_ADDR`等）
-:::
+
 
 
 ### 部署步骤
@@ -357,6 +362,9 @@ spec:
   plugins:
     # 启用PyTorch Plugin
     pytorch: ["--master=master", "--worker=worker", "--port=23456"]
+
+  # 指定队列
+  queue: default
   
   # 定义任务
   tasks:
@@ -497,3 +505,4 @@ kubectl delete -f pytorch-job-with-configmap.yaml
 # 删除ConfigMap
 kubectl delete configmap pytorch-demo-script
 ```
+
