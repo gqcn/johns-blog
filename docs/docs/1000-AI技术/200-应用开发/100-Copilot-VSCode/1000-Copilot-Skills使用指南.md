@@ -1,6 +1,6 @@
 ---
 slug: "/ai/copilot-skills-guide"
-title: "Copilot Skills使用指南"
+title: "Copilot/Agent Skills使用指南"
 hide_title: true
 keywords:
   [
@@ -37,7 +37,7 @@ toc_max_heading_level: 3
 
 与`Copilot Instructions`注重编码规范不同，`Skills`专注于赋予`AI`新的专业能力，让它能够胜任`Web`应用测试、数据分析、文档生成、`CI/CD`调试等各种领域特定任务。本文将深入介绍`Copilot Skills`的功能特性、使用方法、应用场景和最佳实践。
 
-## Copilot Skills是什么
+## Copilot/Agent Skills是什么
 
 `Copilot Skills`（也称为`Agent Skills`）是一种开放标准的技能定义格式，它允许开发者通过包含指令、脚本和资源的文件夹来扩展`AI`代理的专业能力。每个技能就是一个独立的目录，其中必须包含一个`SKILL.md`文件来定义技能的元数据和使用指南。
 
@@ -467,20 +467,21 @@ AI：
 
 2. 复制技能目录到项目：
 
-```bash
-# 复制单个技能
-cp -r /path/to/shared-skill .github/skills/
+    ```bash
+    # 复制单个技能
+    cp -r /path/to/shared-skill .github/skills/
 
-# 或克隆整个仓库后选择需要的技能
-git clone https://github.com/anthropics/skills
-cp -r skills/web-testing .github/skills/
-```
+    # 或克隆整个仓库后选择需要的技能
+    git clone https://github.com/anthropics/skills
+    cp -r skills/web-testing .github/skills/
+    ```
 
 3. 审查和定制`SKILL.md`文件
 4. 根据需要调整或添加资源文件
 
-**重要提醒**：
+:::info 重要提醒
 始终审查共享技能的内容，确保它们符合你的安全标准和项目需求。特别注意脚本执行权限和外部资源访问。
+:::
 
 ### 技能的组合使用
 
@@ -991,7 +992,7 @@ metadata:
 
 #### 审查共享技能
 
-使用第三方技能前要仔细审查：
+使用**第三方技能**前要仔细审查：
 
 ```bash
 # 1. 查看SKILL.md内容
@@ -1018,18 +1019,18 @@ grep -r "curl.*bash" .github/skills/新技能/
 - 使用环境变量或配置文件
 - 在文档中说明如何安全地配置凭据
 
-```markdown
-## 环境配置
+    ```markdown
+    ## 环境配置
 
-需要设置以下环境变量：
+    需要设置以下环境变量：
 
-``bash
-export API_KEY="你的API密钥"
-export DATABASE_URL="数据库连接字符串"
-``
+    ``bash
+    export API_KEY="你的API密钥"
+    export DATABASE_URL="数据库连接字符串"
+    ``
 
-⚠️ 注意：不要将密钥提交到代码仓库！
-```
+    注意：不要将密钥提交到代码仓库！
+    ```
 
 ### 团队协作
 
@@ -1082,6 +1083,8 @@ export DATABASE_URL="数据库连接字符串"
 3. 验证`SKILL.md`的`YAML`前置元数据格式正确
 4. 在设置中启用`chat.useAgentSkills`
 
+
+
 ### 如何调试技能内容？
 
 **调试方法**：
@@ -1097,6 +1100,12 @@ export DATABASE_URL="数据库连接字符串"
     ```
     使用"web-app-testing"技能帮我运行测试
     ```
+
+### 技能效果不如预期？
+
+1. 通过调试方式调试技能，观测大模型使用技能的流程，并不断调整技能提示内容
+2. 通过对比不同大模型使用同一技能的效果，例如使用`Claude Opus 4.6`的效果远比使用`Claude Sonnet 4.5`的效果好。
+
 
 ### 技能文件太大怎么办？
 
