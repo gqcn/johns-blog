@@ -103,9 +103,11 @@ toc_max_heading_level: 4
 │       ├── data-model.md      # [AI生成→开发者审核] 数据模型定义（可选）
 │       ├── quickstart.md      # [AI生成] 关键验证场景（可选）
 │       ├── tasks.md           # [AI生成→开发者可调整] 可执行任务列表（必选）
-│       └── contracts/         # [AI生成] 接口契约，文件名由项目类型决定（可选）
-│           ├── api-spec.json      # 示例：REST API项目
-│           └── websocket-spec.md  # 示例：实时通信项目
+│       ├── contracts/         # [AI生成] 接口契约，文件名由项目类型决定（可选）
+│       │   ├── api-spec.json      # 示例：REST API项目
+│       │   └── websocket-spec.md  # 示例：实时通信项目
+│       └── checklists/        # [AI生成] 规范质量检查清单（可选）
+│           └── requirements.md    # 规范完整性与可测试性验证
 └── templates/                 # [specify init生成→开发者可自定义] 规范模板
     ├── spec-template.md
     ├── plan-template.md
@@ -180,13 +182,15 @@ toc_max_heading_level: 4
 
 由`/speckit.specify`命令生成，是描述"做什么"和"为什么"的核心需求文档。
 
+:::info 为什么使用`spec.md`不是传统的`PRD`/`FRD`？
 `spec.md`与传统需求文档（`PRD`/`FRD`）在目标上相似，但有本质区别：
 - 传统（`PRD`/`FRD`）需求文档是写给人看的参考材料，格式相对自由，代码写完后文档往往束之高阁；
 - 而`spec.md`是**写给`AI`执行的可执行规范**，要求每个用户故事必须附带可量化的验收标准、明确的优先级，以及可独立测试和交付的范围约束。
 
 这些约束使规范足够精确，能够直接驱动`AI`生成代码，而非仅作参考。简言之，传统`PRD`是"指导实现"的文件，`spec.md`是"生成实现"的源头。
+:::
 
-其结构包括：
+功能规范中包含以下内容：
 
 - **用户故事（User Stories）：** 按优先级排列，每个故事必须可独立测试和交付
 - **验收场景（Acceptance Scenarios）：** 描述清楚"在什么情况下，做了什么，系统应该产生什么可量化的结果"，普通语言表达即可，但必须包含明确的输入、操作和输出，且输出必须是可验证的。通常以`Given/When/Then`格式定义可测量的成功标准
@@ -279,6 +283,20 @@ Redis管理用户在线状态。
 | 实时通信服务 | `websocket-spec.md`等协议定义 |
 
 如果项目是纯内部构建脚本或一次性工具，`contracts/`目录可能会被跳过。
+
+#### 质量清单 - checklists/
+
+由`/speckit.checklist`命令生成，是`spec.md`的**质量验收报告**。作者将其比喻为"用英语写的单元测试"——如果说`spec.md`是用自然语言写成的"代码"，那么`checklists/requirements.md`就是验证这段"代码"是否写对了的测试套件。
+
+它验证的不是实现是否正确，而是**规范本身是否合格**，包括：
+
+- 所有`[NEEDS CLARIFICATION]`标记是否已消除
+- 验收标准是否可量化、可测试（而非"用户体验良好"这类模糊描述）
+- 是否覆盖了边界条件和异常流程
+- 功能范围是否清晰界定，没有歧义
+- 非功能需求（性能、安全等）是否明确
+
+建议在`/speckit.specify`之后、`/speckit.plan`之前运行，确保规范质量过关后再进入技术设计阶段，避免把模糊的需求带入实现环节放大问题。
 
 #### 任务列表 - tasks.md
 
@@ -375,7 +393,7 @@ specify init my-project --ai gemini --no-git
 
 下面演示使用`Spec-kit`和`Claude Code`从零构建一个相册管理应用的完整流程。
 
-#### 第一步：创建宪法（必选）
+#### 第一步：建立宪法（必选）
 
 ```bash
 /speckit.constitution 建立专注于代码质量、测试标准和性能要求的项目原则。
@@ -385,7 +403,7 @@ specify init my-project --ai gemini --no-git
 
 执行后生成`.specify/memory/constitution.md`，定义了项目的核心约束。
 
-#### 第二步：创建规范（必选）
+#### 第二步：功能规范（必选）
 
 ```bash
 /speckit.specify 构建一个照片管理应用，支持将照片整理到相册中。
@@ -409,7 +427,7 @@ specify init my-project --ai gemini --no-git
 
 `AI`助手会针对规范中的`[NEEDS CLARIFICATION]`标记逐一提问，并将答案记录在规范的`Clarifications`节中。
 
-#### 第四步：创建计划（必选）
+#### 第四步：技术方案（必选）
 
 ```bash
 /speckit.plan 使用Vite，技术栈为原生HTML、CSS和JavaScript，
@@ -424,13 +442,13 @@ specify init my-project --ai gemini --no-git
 - `contracts/` — 接口契约（文件名由项目类型决定，如`api-spec.json`、`modules.md`等）
 - `quickstart.md` — 关键验证场景
 
-#### 第五步：创建任务（必选）
+#### 第五步：分解任务（必选）
 
 ```bash
 /speckit.tasks
 ```
 
-生成`specs/001-photo-albums/tasks.md`，包含按用户故事组织的、带有并行标记的详细任务清单。
+`AI`会根据功能规范和技术方案自动生成`specs/001-photo-albums/tasks.md`，包含按用户故事组织的、带有并行标记的详细任务清单。
 
 #### 第六步：执行实现（必选）
 
