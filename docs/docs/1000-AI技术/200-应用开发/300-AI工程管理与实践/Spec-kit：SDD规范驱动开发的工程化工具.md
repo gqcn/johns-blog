@@ -459,66 +459,6 @@ specify init my-project --ai gemini --no-git
 `AI`助手按任务列表顺序执行代码生成，每完成一个阶段后自动校验是否满足对应用户故事的验收标准。
 
 
-## 扩展机制
-
-`Spec-kit`通过其`AI`助手集成架构提供完善的扩展能力，支持添加新的`AI`助手和自定义命令。
-
-### 添加新AI助手支持
-
-每个`AI`助手的集成信息集中管理在`src/specify_cli/__init__.py`的`AGENT_CONFIG`字典中：
-
-```python
-AGENT_CONFIG = {
-    "claude": {
-        "name": "Claude Code",
-        "dir": ".claude/commands",
-        "format": "md",
-        "cli": "claude",
-        "arg_syntax": "$ARGUMENTS",
-    },
-    "copilot": {
-        "name": "GitHub Copilot",
-        "dir": ".github/agents",
-        "format": "md",
-        "cli": None,        # 基于IDE集成，无独立CLI工具
-        "arg_syntax": "$ARGUMENTS",
-    },
-    # 新助手在此处添加
-}
-```
-
-添加一个新`AI`助手的步骤：
-
-1. **在`AGENT_CONFIG`中注册：** 添加助手的目录、格式、`CLI`工具名称和参数语法
-2. **创建命令模板：** 在`src/specify_cli/templates/<agent>/commands/`目录下添加针对该助手格式的命令文件
-3. **添加前置检查：** 在`check`命令逻辑中加入对该`CLI`工具的检测
-4. **编写单元测试：** 在测试套件中覆盖新助手的安装路径
-
-### 自定义命令模板
-
-`Spec-kit`的命令本质上是放置在特定目录下的`Markdown`文件（或`TOML`文件），`AI`助手将其作为`slash commands`的实现逻辑执行。因此，可以在已有命令基础上扩展自定义命令：
-
-```markdown
----
-description: 基于接口契约自动生成API文档的自定义命令
----
-
-## 自定义API文档生成
-
-读取当前特性规范中的`contracts/`目录，生成以下内容：
-1. OpenAPI HTML文档
-2. Postman集合导出文件
-3. 开发者快速上手README
-```
-
-将上述文件放入对应助手的命令目录（如`.claude/commands/speckit.apidoc.md`），即可通过`/speckit.apidoc`调用。
-
-### 环境变量
-
-| 变量 | 说明 |
-|---|---|
-| `SPECIFY_FEATURE` | 在非`Git`仓库环境下指定特性目录名称（如`001-photo-albums`），用于覆盖特性检测逻辑 |
-| `GH_TOKEN` / `GITHUB_TOKEN` | 用于`API`请求的`GitHub`令牌，在企业网络环境下尤为有用 |
 
 ## 应用场景
 
@@ -570,7 +510,7 @@ description: 基于接口契约自动生成API文档的自定义命令
 以下情况下，`Spec-kit`的收益有限：
 
 - **一次性脚本或临时任务：** 工具的初始化和规范编写成本高于直接编码
-- **纯探索性原型：** 需求极其模糊、以探索为目的的「Vibe Coding」阶段
+- **纯探索性原型：** 需求极其模糊、以探索为目的的「`Vibe Coding`」阶段
 - **极简单的功能修复：** 3行代码的`bug fix`不需要`spec.md`
 
 ## 总结
