@@ -391,7 +391,7 @@ specify init my-project --ai gemini --no-git
 
 ### 完整使用示例：构建相册管理应用
 
-下面演示使用`Spec-kit`和`Claude Code`从零构建一个相册管理应用的完整流程。
+下面演示使用`Spec-kit`和`Claude Code`从零构建一个相册管理应用的完整流程，该示例也是`Spec-kit`官方仓库示例。
 
 #### 第一步：建立宪法（必选）
 
