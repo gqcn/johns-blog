@@ -26,7 +26,7 @@ keywords:
     "任务驱动开发"
   ]
 description: "本文介绍Spec-kit这一开源SDD规范驱动开发工具的基本概念、核心功能与设计思想，详细讲解其每个规范文档的主要作用及编写示例，并演示从安装初始化到完整工作流的使用方法，同时介绍其多AI助手扩展机制与典型应用场景，帮助开发者快速将SDD方法论落地到实际项目中，显著提升AI时代的开发效率与软件质量。"
-toc_max_heading_level: 3
+toc_max_heading_level: 4
 ---
 
 ## 前言
@@ -89,28 +89,28 @@ toc_max_heading_level: 3
 ```text
 .specify/
 ├── memory/
-│   └── constitution.md        # 项目宪法（架构原则与治理规则）（必选）
-├── scripts/
+│   └── constitution.md        # [AI生成→开发者维护] 项目宪法（必选）
+├── scripts/                   # [specify init生成] 辅助脚本，通常无需修改
 │   ├── check-prerequisites.sh
 │   ├── create-new-feature.sh
 │   ├── setup-plan.sh
 │   └── update-agent-file.sh
 ├── specs/
 │   └── 001-create-taskify/    # 特性分支目录
-│       ├── spec.md            # 功能规范文档（必选）
-│       ├── plan.md            # 技术实现计划（必选）
-│       ├── research.md        # 技术调研记录（可选）
-│       ├── data-model.md      # 数据模型定义（可选）
-│       ├── quickstart.md      # 关键验证场景（可选）
-│       ├── tasks.md           # 可执行任务列表（必选）
-│       └── contracts/         # API 接口契约（可选）
-│           ├── api-spec.json
-│           └── websocket-spec.md
-└── templates/
+│       ├── spec.md            # [AI生成→开发者审核] 功能规范文档（必选）
+│       ├── plan.md            # [AI生成→开发者审核] 技术实现计划（必选）
+│       ├── research.md        # [AI生成] 技术调研记录（可选）
+│       ├── data-model.md      # [AI生成→开发者审核] 数据模型定义（可选）
+│       ├── quickstart.md      # [AI生成] 关键验证场景（可选）
+│       ├── tasks.md           # [AI生成→开发者可调整] 可执行任务列表（必选）
+│       └── contracts/         # [AI生成] 接口契约，文件名由项目类型决定（可选）
+│           ├── api-spec.json      # 示例：REST API项目
+│           └── websocket-spec.md  # 示例：实时通信项目
+└── templates/                 # [specify init生成→开发者可自定义] 规范模板
     ├── spec-template.md
     ├── plan-template.md
     ├── tasks-template.md
-    └── commands/
+    └── commands/              # [specify init生成→开发者可扩展] 命令逻辑
         ├── constitution.md
         ├── specify.md
         ├── plan.md
@@ -121,9 +121,17 @@ toc_max_heading_level: 3
         └── checklist.md
 ```
 
+:::info 提示
+
+上图中标注`[AI生成→开发者审核]`的文件均为**草稿**，生成后应直接用编辑器打开对应的`Markdown`文件进行审查和修改。后续命令会读取修改后的文件作为输入，因此每个阶段的人工审核都会完整传递给下一步。建议的审核节奏为：
+
+`/speckit.specify` → **审核`spec.md`** → `/speckit.plan` → **审核`plan.md`等** → `/speckit.tasks` → **调整`tasks.md`** → `/speckit.implement`
+
+:::
+
 ### 规范文档详解
 
-#### constitution.md — 项目宪法（必选）
+#### 项目宪法 - constitution.md
 
 由`/speckit.constitution`命令生成，这是整个项目的架构原则和治理文件。它定义了：
 
@@ -134,7 +142,16 @@ toc_max_heading_level: 3
 
 宪法是`Spec-kit`中层级最高的文档，所有技术决策必须与宪法保持一致。
 
-一个典型的宪法文件结构如下：
+:::info 为什么需要"宪法"？
+
+在`AI`编程中，每次对话都是无状态的——`AI`不会记得你上次说过"必须用`TDD`"或"禁止引入`ORM`框架"。如果没有一个固定的约束文件，同一个项目中不同阶段、不同会话里`AI`做出的技术决策可能互相矛盾：第一次让它写代码用了`pytest`，第二次它可能选`unittest`；今天它把逻辑写在了服务层，明天它又直接写在了路由层。
+
+`constitution.md`就是解决这个问题的机制。它是一份**明确写给`AI`读的约束清单**，每次调用`/speckit.plan`或`/speckit.implement`时，`AI`都会先读取这份文件，确保所有决策符合其中的原则。你可以把它理解为项目的"团队规范手册"，区别在于这份手册是机器可执行的，而不是挂在`Wiki`上没人看的静态文档。
+
+宪法越早建立越好，并且应该由团队中最了解架构约束的人来撰写和维护。一旦写好，后续所有`AI`生成的内容都会自动遵守其中的规则，无需在每次提示词中重复说明。
+:::
+
+一个典型的宪法文件结构示例如下：
 
 ```markdown
 # 项目宪法
@@ -152,12 +169,14 @@ toc_max_heading_level: 3
 1. 单元测试已编写并通过审核
 2. 测试已确认处于失败状态（Red阶段）
 
+...
+
 ## 第七条：简洁性门控
 - 初始实现最多包含3个顶层模块
 - 禁止未来扩展性假设或投机性功能
 ```
 
-#### spec.md — 功能规范（必选）
+#### 功能规范 - spec.md
 
 由`/speckit.specify`命令生成，是描述"做什么"和"为什么"的核心需求文档。
 
@@ -203,7 +222,7 @@ toc_max_heading_level: 3
 - 消息发送过程中网络断开时系统如何应对？
 ```
 
-#### plan.md — 实现计划（必选）
+#### 实现计划 - plan.md
 
 由`/speckit.plan`命令生成，是将业务需求转化为技术决策的文档。其结构包括：
 
@@ -235,7 +254,7 @@ Redis管理用户在线状态。
 - [x] 测试优先：contracts/目录已定义契约测试
 ```
 
-#### research.md — 技术研究（可选）
+#### 技术研究 - research.md
 
 在`/speckit.plan`执行过程中自动生成，记录技术选型调研结果，包括：
 
@@ -244,15 +263,24 @@ Redis管理用户在线状态。
 - 安全注意事项
 - 组织内约束条件（如公司规定的技术栈）
 
-#### data-model.md — 数据模型（可选）
+#### 数据模型 - data-model.md
 
 定义领域实体、数据库`schema`和实体关系，是`contracts/`中`API`规范的上游文档。
 
-#### contracts/ — 接口契约（可选）
+#### 接口契约 - contracts/
 
-存放`API`端点规范（通常为`OpenAPI/JSON`格式）和实时通信协议规范（如`WebSocket`事件定义），是代码生成的直接输入。
+存放项目对外暴露的接口定义。注意：**该目录下的文件名称和格式由`/speckit.plan`根据项目类型动态决定**，不是固定的。常见示例：
 
-#### tasks.md — 任务列表（必选）
+| 项目类型 | 契约文件类型 |
+|---|---|
+| `Web`服务/`REST API` | `api-spec.json`（`OpenAPI`格式） |
+| 库/模块项目 | `modules.md`（模块接口定义） |
+| `CLI`工具 | 命令`schema`文档 |
+| 实时通信服务 | `websocket-spec.md`等协议定义 |
+
+如果项目是纯内部构建脚本或一次性工具，`contracts/`目录可能会被跳过。
+
+#### 任务列表 - tasks.md
 
 由`/speckit.tasks`命令生成，将计划文档转化为可执行的、有序的任务清单：
 
@@ -281,7 +309,7 @@ Redis管理用户在线状态。
 |---|---|---|---|
 | `/speckit.constitution` | 初始化 | 是 | 创建或更新项目宪法文件 |
 | `/speckit.specify` | 规范 | 是 | 将自然语言需求转化为结构化功能规范 |
-| `/speckit.clarify` | 澄清 | - | 交互式澄清规范中的模糊点，建议在`/speckit.plan`前执行 |
+| `/speckit.clarify` | 澄清 | - | 交互式澄清功能规范中的模糊点，建议在`/speckit.plan`前执行 |
 | `/speckit.plan` | 计划 | 是 | 生成技术实现计划及配套设计文档 |
 | `/speckit.analyze` | 分析 | - | 检查规范文档间的一致性和覆盖度 |
 | `/speckit.checklist` | 质量 | - | 生成质量检查清单，相当于规范的“单元测试” |
@@ -341,11 +369,13 @@ specify init my-project --ai gemini --no-git
 
 初始化完成后，在项目目录中启动`AI`助手，即可看到`/speckit.*`系列命令可用。
 
+![spec-kit初始化项目](assets/Spec-kit：SDD规范驱动开发的工程化工具/image-1.png)
+
 ### 完整使用示例：构建相册管理应用
 
 下面演示使用`Spec-kit`和`Claude Code`从零构建一个相册管理应用的完整流程。
 
-**第一步：建立项目宪法（必选）**
+#### 第一步：创建宪法（必选）
 
 ```bash
 /speckit.constitution 建立专注于代码质量、测试标准和性能要求的项目原则。
@@ -355,7 +385,7 @@ specify init my-project --ai gemini --no-git
 
 执行后生成`.specify/memory/constitution.md`，定义了项目的核心约束。
 
-**第二步：创建功能规范（必选）**
+#### 第二步：创建规范（必选）
 
 ```bash
 /speckit.specify 构建一个照片管理应用，支持将照片整理到相册中。
@@ -368,8 +398,9 @@ specify init my-project --ai gemini --no-git
 - 创建`Git`分支`001-photo-albums`
 - 在`.specify/specs/001-photo-albums/spec.md`中生成结构化规范
 
-**第三步：规范澄清（可选）**
+#### 第三步：规范澄清（可选）
 
+功能规范中可能存在模糊点，`AI`助手会提示用户进行澄清。
 建议在生成计划前运行澄清命令，减少返工。如果规范内容已足够清晰，可跳过此步直接进入第四步。
 
 ```bash
@@ -378,7 +409,7 @@ specify init my-project --ai gemini --no-git
 
 `AI`助手会针对规范中的`[NEEDS CLARIFICATION]`标记逐一提问，并将答案记录在规范的`Clarifications`节中。
 
-**第四步：生成实现计划（必选）**
+#### 第四步：创建计划（必选）
 
 ```bash
 /speckit.plan 使用Vite，技术栈为原生HTML、CSS和JavaScript，
@@ -386,22 +417,22 @@ specify init my-project --ai gemini --no-git
 元数据存储在本地SQLite数据库中。
 ```
 
-执行后在特性目录中生成：
+执行后，`AI`助手会创建多个`SubAgent`并行地从互联网查询资料，进行技术调研，随后在特性目录（`specs/001-photo-albums/`）下生成：
 - `plan.md` — 实现计划
 - `research.md` — 技术选型调研（`Vite`版本、`SQLite`适配方案等）
 - `data-model.md` — 相册和照片实体定义
-- `contracts/api-spec.json` — 本地存储接口规范
+- `contracts/` — 接口契约（文件名由项目类型决定，如`api-spec.json`、`modules.md`等）
 - `quickstart.md` — 关键验证场景
 
-**第五步：生成任务列表（必选）**
+#### 第五步：创建任务（必选）
 
 ```bash
 /speckit.tasks
 ```
 
-生成`.specify/specs/001-photo-albums/tasks.md`，包含按用户故事组织的、带有并行标记的详细任务清单。
+生成`specs/001-photo-albums/tasks.md`，包含按用户故事组织的、带有并行标记的详细任务清单。
 
-**第六步：执行实现（必选）**
+#### 第六步：执行实现（必选）
 
 ```bash
 /speckit.implement
