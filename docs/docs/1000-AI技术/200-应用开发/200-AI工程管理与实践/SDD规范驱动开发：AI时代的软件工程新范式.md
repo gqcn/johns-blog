@@ -107,13 +107,13 @@ toc_max_heading_level: 3
 
 ```mermaid
 flowchart TD
-    A([Idea / vague requirement]) --> B
-    B["/specify<br/>PRD: user stories & acceptance criteria"] --> C
-    C["/plan<br/>Implementation Plan: tech stack, architecture, API contracts"] --> D
-    D["/tasks<br/>Task List: parallelizable & traceable"] --> E
-    E["/implement<br/>Code Generation: tests-first, spec-driven"] --> F
-    F([Production Feedback]) -->|next iteration| G
-    G([Spec Refinement]) --> B
+     A([想法/模糊需求]) --> B
+     B["/specify<br/>PRD：用户故事与验收标准"] --> C
+     C["/plan<br/>实施计划：技术栈、架构、API契约"] --> D
+     D["/tasks<br/>任务列表：可并行且可追踪"] --> E
+     E["/implement<br/>代码生成：测试优先、规范驱动"] --> F
+     F([生产反馈]) -->|下一轮迭代| G
+     G([规范精化]) --> B
 ```
 
 在这个流程中，维护软件意味着**演进规范**，调试则意味着**修复生成了错误代码的规范或计划**。整个开发工作流围绕规范作为核心事实来源重新组织，技术计划和代码只是持续再生的输出物。
