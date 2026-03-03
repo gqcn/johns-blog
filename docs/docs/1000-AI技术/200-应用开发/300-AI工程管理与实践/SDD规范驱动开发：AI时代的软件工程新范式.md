@@ -456,3 +456,4 @@ specify init . --ai copilot
 
 - [OpenSpec GitHub 仓库](https://github.com/Fission-AI/OpenSpec)
 - [Spec-kit GitHub 仓库](https://github.com/github/spec-kit)
+- [有赞AI研发全流程落地实践](https://juejin.cn/post/7592094358658138146)
