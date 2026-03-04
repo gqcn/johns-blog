@@ -265,37 +265,7 @@ ln -s ~/.config/opencode/superpowers/skills \
 
 ![阶段一：头脑风暴与设计（brainstorming）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image.png)
 
-### 阶段二：初始化项目（gf init）
-
-设计获用户确认后，`AI`使用`GoFrame CLI`初始化项目脚手架并建立`git`版本管理：
-
-```bash
-# AI 自动执行
-gf init user-service -g "user-service"   # 使用 GoFrame CLI 初始化标准工程脚手架
-cd user-service
-git init
-git add .
-git commit -m "feat: init GoFrame project scaffold"
-```
-
-脚手架生成的标准目录结构如下：
-
-```text
-user-service/
-├── main.go
-├── go.mod
-├── api/                         # API 协议层（Request/Response 定义）
-├── internal/
-│   ├── cmd/cmd.go               # HTTP 服务器启动入口
-│   ├── controller/              # HTTP 处理层（参数绑定与分发）
-│   ├── service/                 # 业务逻辑层
-│   ├── dao/                     # 数据访问层
-│   └── model/                   # 数据模型（entity/do）
-└── manifest/
-    └── config/config.yaml       # 服务配置（端口、数据库路径）
-```
-
-### 阶段三：编写实现计划（writing-plans）
+### 阶段二：编写实现计划（writing-plans）
 
 `AI`自动触发`writing-plans`技能，将设计文档拆解为粒度为`2-5`分钟的细粒度任务，每个任务包含：文件路径、完整代码、验证步骤和`git`提交命令。
 
@@ -317,7 +287,7 @@ user-service/
 | `Task 12` | 实现控制器处理函数 |
 | `Task 13` | 注册路由、初始化`SQLite`建表、启动验证 |
 
-### 阶段四：执行实现计划（executing-plans）
+### 阶段三：执行实现计划（executing-plans）
 
 `AI`自动触发`executing-plans`技能，按批次顺序执行计划，每批次完成`2-3`个任务后进行`git`提交并等待用户确认，再继续下一批次。
 
@@ -363,7 +333,7 @@ e380b30 feat: configure SQLite database
 
 ![Superpowers任务执行，在任务批次完成后使用git提交，然后等待用户确认继续下一批次](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-3.png)
 
-### 阶段五：验证（verification-before-completion）
+### 阶段四：验证（verification-before-completion）
 
 所有任务完成后，`AI`自动触发`verification-before-completion`技能，启动服务进行集成验证，用实际输出为"已完成"提供证据：
 
@@ -398,9 +368,9 @@ curl -s -X DELETE http://127.0.0.1:8080/api/v1/users/1
 
 响应体中`password`字段因`entity`层配置了`json:"-"`标签而始终不出现在任何接口响应中，符合设计规范。
 
-### 阶段六：收尾（finishing-a-development-branch）
+### 阶段五：收尾（finishing-a-development-branch）
 
-![Superpowers阶段六：收尾（finishing-a-development-branch）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-1.png)
+![Superpowers阶段五：收尾（finishing-a-development-branch）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-1.png)
 
 
 ## 总结
