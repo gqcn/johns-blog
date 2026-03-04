@@ -64,9 +64,12 @@ keywords:
     "Figma MCP",
     "Knowledge Graph Memory",
     "Sequential Thinking MCP",
-    "mcp-doc-forge"
+    "mcp-doc-forge",
+    "GoFrame Skills",
+    "goframe-v2",
+    "GoFrame框架"
   ]
-description: "系统梳理AI代码开发中常用的Agent Skills与MCP（Model Context Protocol）工具，涵盖everything-claude-code项目收录的编码开发、测试评估、安全审查、内容创作等多类Skills，以及GitHub、Firecrawl、Exa Search、Context7、Supabase、ClickHouse、Memory、Sequential Thinking、Markitdown、Playwright、Chrome DevTools等主流MCP服务器配置与使用方式，帮助开发者快速了解、安装并使用这些工具，提升AI辅助开发效率。"
+description: "系统梳理AI代码开发中常用的Agent Skills与MCP（Model Context Protocol）工具，涵盖everything-claude-code项目收录的编码开发、测试评估、安全审查、内容创作等多类Skills，专为GoFrame框架打造的goframe-v2技能，以及GitHub、Firecrawl、Exa Search、Context7、Supabase、ClickHouse、Memory、Sequential Thinking、Markitdown、Playwright、Chrome DevTools等主流MCP服务器配置与使用方式，帮助开发者快速了解、安装并使用这些工具，提升AI辅助开发效率。"
 toc_max_heading_level: 4
 ---
 
@@ -137,6 +140,22 @@ npx skills add affaan-m/everything-claude-code@frontend-slides
 ```bash
 npx skills add anthropics/skills@frontend-design
 ```
+
+#### goframe-v2🌟
+
+**功能说明**：`GoFrame`框架专属`AI`技能，为`AI`深度理解`GoFrame`框架规范与最佳实践提供完整支持，涵盖命令行管理、配置管理、日志组件、错误处理、数据校验、数据库`ORM`等核心组件的设计概览、使用指南与注意事项，并内置`HTTP`服务、`gRPC`微服务等多种项目类型的实战代码示例，帮助`AI`生成高质量、可投产的`GoFrame`代码。
+
+**使用场景**：使用`GoFrame`框架、构建`HTTP/gRPC`微服务、遵循`GoFrame`最佳实践进行代码生成。
+
+**官网/参考**：https://github.com/gogf/skills、https://goframe.org/ai/goframe-skills
+
+**安装命令：**
+
+```bash
+npx skills add github.com/gogf/skills
+```
+
+
 
 #### mcp-builder
 
@@ -468,5 +487,6 @@ npx skills add anthropics/skills@theme-factory
 - https://github.com/microsoft/playwright-mcp
 - https://github.com/AgentDeskai/browser-tools-mcp
 - https://ghuntley.com/ralph/
+- https://github.com/gogf/skills
 
 
