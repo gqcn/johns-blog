@@ -73,6 +73,12 @@ toc_max_heading_level: 4
 
 就像给工程师提供了一本详细的"工程手册"，`Superpowers`通过技能文件（`SKILL.md`）将最佳实践结构化，然后通过一套触发机制确保`AI`在合适的时机自动应用这些实践——不是建议，而是**强制执行**。
 
+这一思路的本质是：**`Process over Prompt`（流程大于提示）**。
+
+大多数人面对`AI`质量问题的本能反应是：换一个更好的模型，或者写一段更精妙的提示词。`Superpowers`的选择恰恰相反——它不依赖`AI`能力的提升，而是用**可重复的工程流程**约束`AI`的行为模式。
+
+**`Superpowers`不会让`AI`变得更聪明，但会让`AI`的聪明变得可控。** 同一个模型，在没有工程流程约束之前可能产出杂乱的代码、跳过测试、声称完成却没有验证；加上`Superpowers`之后，同一个模型会先做设计、再做计划、再按批次执行、完成后用证据验收——产出质量的差异不来自模型本身，而来自**流程是否在场**。
+
 ## 什么是Superpowers
 
 ![什么是Superpowers](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-4.png)
@@ -86,6 +92,8 @@ toc_max_heading_level: 4
 `Superpowers`的设计体现了以下几个核心原则：
 
 **技能强制触发（Mandatory Skill Invocation）：** 技能不是可选建议，而是强制执行的工作流。只要有1%的可能某个技能适用，智能体就必须调用它。这种强硬的设计避免了`AI`"理性化跳过"最佳实践的情况。
+
+> `Superpowers`技能的强制触发原理是通过[Skill提示词](https://github.com/obra/superpowers/blob/main/skills/using-superpowers/SKILL.md)+[上下文注入](https://github.com/obra/superpowers/blob/main/hooks/session-start)实现。
 
 **可组合性（Composability）：** 每个技能是独立的`Markdown`文件（`SKILL.md`），描述了特定场景下的最佳实践流程。技能之间通过触发关系串联，形成完整的工作流链路。
 
@@ -272,7 +280,7 @@ git commit -m "feat: init GoFrame project scaffold"
 
 脚手架生成的标准目录结构如下：
 
-```
+```text
 user-service/
 ├── main.go
 ├── go.mod
@@ -479,6 +487,8 @@ Run: `go vet ./... && golangci-lint run`
 - **从"测试是可选的"到"测试优先"**——`TDD`技能将红绿重构循环变为不可绕过的强制流程
 - **从"声称完成"到"验证完成"**——`verification-before-completion`技能要求用证据而非断言说话
 - **从"单一上下文污染"到"子智能体隔离执行"**——`subagent-driven-development`技能通过并行子智能体保持上下文纯净
+
+`Superpowers`的核心理念可以用一句话概括：**`Process over Prompt`——流程大于提示**。当所有人都在追问"哪个模型更聪明"时，`Superpowers`给出了一个不同的答案：**`AI`不需要更聪明，它需要更可控**。一套结构化的工程流程，比任何精心调校的提示词都更能保证输出的稳定性与可预测性——因为流程约束的是行为本身，而不是某一次对话的结果。
 
 在`AI`编程工具快速演进的今天，工程纪律与技术能力同等重要。`Superpowers`提供的不只是一套技能库，更是一种在`AI`时代践行严谨软件工程的方法论。
 
