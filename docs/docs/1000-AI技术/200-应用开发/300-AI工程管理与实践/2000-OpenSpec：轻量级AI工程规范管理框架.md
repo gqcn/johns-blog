@@ -176,6 +176,11 @@ proposal ──► specs ──► design ──► tasks ──► implement
 
 `OpenSpec`通过 **`Profile`（配置模式）** 控制安装哪些斜杠命令，共有两种`Profile`。
 
+:::warning 注意
+由于不同`AI`工具对斜杠命令的命名规范有所差异，在`VSCode Github Copilot`中的斜杠命令名称与`Claude Code`下的略有不同。
+
+:::
+
 ### 默认快捷路径（core profile）
 
 `openspec init`默认安装`core profile`，只生成以下`4`个命令，适合大多数日常开发场景：
@@ -306,6 +311,19 @@ your-project/
 ```text
 /opsx:propose user-http-service
 ```
+
+:::info 提示
+其中的变更名称必须遵循`kebab-case`命名规范：只能包含**小写字母、数字和连字符**，以小写字母开头，不能以连字符开头或结尾，不能包含连续连字符。以下是一些合法的命名示例：
+
+| 示例名称 | 说明 |
+|---|---|
+| `user-http-service` | 功能描述，推荐格式 |
+| `add-user-auth` | 动宾结构 |
+| `fix-login-timeout` | 问题修复 |
+| `v001-user-crud` | 带版本前缀（点号`.`不合法，用数字代替） |
+| `20260304-user-crud` | 带日期前缀（推荐） |
+| `refactor-db-layer` | 重构类变更 |
+:::
 
 也可以通过自然语言告诉`AI`继续执行，它会自动调用该指令完成该步骤操作。
 
