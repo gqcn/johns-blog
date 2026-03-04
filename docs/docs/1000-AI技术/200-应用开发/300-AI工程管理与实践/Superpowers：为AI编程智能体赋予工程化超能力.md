@@ -134,29 +134,30 @@ toc_max_heading_level: 4
 `Superpowers`的核心工作流按照以下步骤依次触发：
 
 
-1. **brainstorming**
+1. **阶段一：头脑风暴与设计（brainstorming）**
     - 用户表达需求想法
     - `AI`通过提问澄清需求（每次一个问题）
     - 提出`2-3`种实现方案及权衡分析
     - 分段展示设计方案，用户逐段确认
     - 保存设计文档到`docs/plans/YYYY-MM-DD-<topic>-design.md`
         
-2. **using-git-worktrees**
+2. **阶段二：使用Git工作树（using-git-worktrees）**
    - 在独立`Git`工作树中开展开发
 
-3. **writing-plans**
+3. **阶段三：编写实现计划（writing-plans）**
    - 将设计拆解为`2-5`分钟的细粒度任务，每个任务包含：文件路径、完整代码、验证步骤
 
-4. **subagent-driven-development/executing-plans**
+4. **阶段四：子智能体驱动开发（subagent-driven-development/executing-plans）**
    - 每个任务由独立子智能体执行，执行后经历两阶段评审：规格符合性 → 代码质量
 
-5. **test-driven-development**
+5. **阶段五：测试驱动开发（test-driven-development）**
    - 每个实现任务遵循`RED-GREEN-REFACTOR`循环
+   - 任务会按照批次执行，每批次完成`2-3`个任务，并在完成后使用`git`提交，然后等待用户确认继续下一批次
 
-6. **requesting-code-review**
+6. **阶段六：请求代码评审（requesting-code-review）**
    - 任务间进行代码评审，按严重程度分类问题
 
-7. **finishing-a-development-branch**
+7. **阶段七：完成开发分支（finishing-a-development-branch）**
    - 验证测试，选择合并策略，清理工作树
 
 
@@ -222,366 +223,174 @@ ln -s ~/.config/opencode/superpowers/skills \
 
 ### VSCode GitHub Copilot
 
-暂不支持`VSCode GitHub Copilot`。
+暂不支持`VSCode GitHub Copilot`😨。
 
 ## 实践示例
 
-以下通过一个完整的绿地项目（`Greenfield Project`）示例，展示如何使用`Superpowers`从零到一构建一个生产级服务：**使用`GoFrame`框架，创建一个`HTTP RESTful`风格的用户服务，实现基本的增删改查（`CRUD`）功能**。
+以下通过一个完整的绿地项目（`Greenfield Project`）示例，展示如何使用`Superpowers`在`Claude Code`中从零到一构建一个用户服务：**使用`GoFrame`框架，创建一个`HTTP RESTful`风格的用户服务，实现基本的增删改查（`CRUD`）功能**。
+
+> 本示例采用`Claude Code`作为`AI`编程工具，同时配合安装了[goframe-v2 Agent Skill](https://github.com/gogf/skills) - 一个专为`GoFrame`框架开发提供完整参考文档与最佳实践的技能包。
+
+项目目标：使用`SQLite`作为数据库（学习/演示用途），实现以下接口：
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/v1/users` | 创建用户 |
+| `GET` | `/api/v1/users` | 分页查询用户列表 |
+| `GET` | `/api/v1/users/{id}` | 按`ID`查询用户 |
+| `PUT` | `/api/v1/users/{id}` | 更新用户（支持部分更新） |
+| `DELETE` | `/api/v1/users/{id}` | 删除用户 |
 
 ### 阶段一：头脑风暴与设计（brainstorming）
 
-**开发者：** 我想从零开始，用`GoFrame`框架实现一个用户服务，提供`RESTful CRUD`接口，请帮我开始。
+向`Claude Code`发出如下提示词：
 
-**AI（应用`brainstorming`技能）：** 这是一个全新项目，我需要先了解一些背景信息。
+```text
+我想从零开始，用 GoFrame 框架实现一个用户服务，提供 RESTful CRUD 接口，请帮我开始。
+```
 
-第一个问题：用户数据需要持久化存储吗？如果需要，使用哪种数据库（如`MySQL`、`PostgreSQL`、`SQLite`）？
+`AI`触发`brainstorming`技能，采用苏格拉底式提问逐步澄清需求：数据库选型、字段设计、接口规范、错误处理策略、验收标准……双方确认每个设计决策后，`AI`将设计方案分段呈现，用户逐段确认。
 
-**开发者：** 使用`MySQL`，本地开发用`SQLite`做测试。
-
-**AI：** 第二个问题：用户实体包含哪些核心字段？例如`id`、`username`、`email`、`password`、`created_at`等，还是有其他特殊需求？
-
-**开发者：** 基础的就好：`id`、`username`、`email`、`password`（哈希存储）、`created_at`、`updated_at`。
-
-**AI：** 第三个问题：`API`是否需要认证（如`JWT`），还是这次只关注基础`CRUD`功能本身？
-
-**开发者：** 这次只关注`CRUD`，认证后续再加。
-
-**AI：** 好的，我来提出三种项目结构方案：
-
-方案一：**`GoFrame`标准分层架构**（推荐）——使用`gf`脚手架工具生成标准目录，按`api/controller/service/model/dao`分层。优点：遵循`GoFrame`最佳实践，代码生成工具支持完善，层次清晰易维护。
-
-方案二：**精简单包结构**——所有代码放在少数几个文件中，不分层。优点：前期快速，代码少。缺点：规模稍大后难以维护，不符合`GoFrame`设计理念。
-
-方案三：**`Clean Architecture`**——领域层、基础设施层、接口层严格分离。优点：极度解耦。缺点：对简单`CRUD`服务过度设计，且与`GoFrame`惯例不完全吻合。
-
-推荐方案一，使用`GoFrame`标准分层架构，符合框架设计哲学，且后续扩展认证、权限等功能时有良好基础。
-
-*（对话继续确认数据库配置方式、错误响应格式、分页策略等细节，最终生成`docs/plans/2026-03-03-user-service-design.md`）*
+最终生成设计文档：`docs/plans/2026-03-03-user-service-design.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-design.md)），内容包含目录结构、`API`规范、数据流图、错误处理策略等。
 
 ![阶段一：头脑风暴与设计（brainstorming）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image.png)
 
-设计文档核心内容：
+### 阶段二：初始化项目（gf init）
 
-```text
-# User Service Design
-
-## Goal
-RESTful CRUD API for User resource using GoFrame
-
-## API Endpoints
-GET    /api/v1/users        - List users (with pagination)
-POST   /api/v1/users        - Create user
-GET    /api/v1/users/{id}   - Get user by ID
-PUT    /api/v1/users/{id}   - Update user
-DELETE /api/v1/users/{id}   - Delete user
-
-## Tech Stack
-- GoFrame v2 (gf CLI scaffold)
-- MySQL (production) / SQLite (testing)
-- GoFrame ORM (gdb) for data access
-- GoFrame validator for input validation
-
-## Directory Structure (GoFrame standard)
-api/v1/user.go          - Request/Response structs
-controller/user/        - HTTP handler layer
-service/user/           - Business logic layer
-model/entity/user.go    - DB entity struct
-model/do/user.go        - Data object for DB ops
-dao/user.go             - Data access object
-```
-
-### 阶段二：创建工作树（using-git-worktrees）
-
-设计获批后，`AI`自动创建隔离开发环境：
+设计获批后，`AI`使用`GoFrame CLI`初始化项目脚手架并建立`git`版本管理：
 
 ```bash
 # AI 自动执行
-mkdir user-service && cd user-service
+gf init user-service -g "user-service"   # 使用 GoFrame CLI 初始化标准工程脚手架
+cd user-service
 git init
-gf init . -n user-service          # 使用 GoFrame CLI 初始化项目
-git add . && git commit -m "chore: init project with gf scaffold"
-git worktree add .worktrees/feature-crud -b feature/user-crud
-cd .worktrees/feature-crud
-go test ./...    # 验证基线：脚手架默认测试通过
+git add .
+git commit -m "feat: init GoFrame project scaffold"
+```
+
+脚手架生成的标准目录结构如下：
+
+```
+user-service/
+├── main.go
+├── go.mod
+├── api/                         # API 协议层（Request/Response 定义）
+├── internal/
+│   ├── cmd/cmd.go               # HTTP 服务器启动入口
+│   ├── controller/              # HTTP 处理层（参数绑定与分发）
+│   ├── service/                 # 业务逻辑层
+│   ├── dao/                     # 数据访问层
+│   └── model/                   # 数据模型（entity/do）
+└── manifest/
+    └── config/config.yaml       # 服务配置（端口、数据库路径）
 ```
 
 ### 阶段三：编写实现计划（writing-plans）
 
-`AI`生成详细的实现计划`docs/plans/2026-03-03-user-service.md`：
+`AI`触发`writing-plans`技能，将设计文档拆解为粒度为`2-5`分钟的细粒度任务，每个任务包含：文件路径、完整代码、验证步骤和`git`提交命令。
 
-```markdown
-# User Service CRUD Implementation Plan
+最终生成实现计划：`docs/plans/2026-03-03-user-service-impl.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-impl.md)），共`13`个任务：
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+| 任务 | 说明 |
+|------|------|
+| `Task 1` | 安装`gf CLI`并验证环境（`CGO`、`Go`版本） |
+| `Task 2` | 使用`gf init`初始化项目脚手架 |
+| `Task 3` | 添加`SQLite`驱动依赖（`go get`） |
+| `Task 4` | 配置数据库（`manifest/config/config.yaml`，`SQLite DSN`） |
+| `Task 5` | 编写`entity`模型（`internal/model/entity/user.go`） |
+| `Task 6` | 编写`DO`模型（`internal/model/do/user.go`） |
+| `Task 7` | 编写`DAO Internal`层（`internal/dao/internal/user.go`） |
+| `Task 8` | 编写`DAO Index`文件（`internal/dao/user.go`） |
+| `Task 9` | 编写`API` `Request/Response`结构体 |
+| `Task 10` | 执行`gf gen ctrl`生成控制器脚手架 |
+| `Task 11` | 实现业务逻辑层（`internal/service/user/user.go`） |
+| `Task 12` | 实现控制器处理函数 |
+| `Task 13` | 注册路由、初始化`SQLite`建表、启动验证 |
 
-**Goal:** Implement RESTful CRUD API for User resource using GoFrame v2
+### 阶段四：执行实现计划（executing-plans）
 
-**Architecture:** GoFrame standard layered architecture (api/controller/service/model/dao)
+`AI`触发`executing-plans`技能，按批次顺序执行计划，每批次完成`2-3`个任务后进行`git`提交并等待用户确认，再继续下一批次。
 
-**Tech Stack:** Go 1.22, GoFrame v2, MySQL, SQLite (test)
+以`Task 11`（业务逻辑层）为例，展示执行过程：
 
----
-
-### Task 1: Define API request/response structs
-
-**Files:**
-- Create: `api/v1/user.go`
-
-**Step 1: Write failing test**
-(Verify struct fields and validation tags compile correctly)
-
-**Step 2: Write implementation**
-
-### Task 2: Define entity and data objects
-
-**Files:**
-- Create: `model/entity/user.go`
-- Create: `model/do/user.go`
-
-**Step 3: Generate DAO via gf CLI**
-Run: `gf gen dao`
-
-### Task 3: Implement service layer
-
-**Files:**
-- Create: `service/user/user.go`
-- Create: `service/user/user_test.go`
-
-**Step 1: Write failing test**
-
-### Task 4: Implement controller layer
-
-**Files:**
-- Create: `controller/user/user.go`
-- Create: `controller/user/user_test.go`
-
-...（后续任务：路由注册、数据库配置、集成测试）
-```
-
-### 阶段四：子智能体驱动执行（subagent-driven-development）
-
-![阶段四：子智能体驱动执行（subagent-driven-development）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-1.png)
-
-以`Task 3`（业务逻辑层）为例，展示子智能体的执行过程：
-
-```
-[主智能体] 开始执行 Task 3: Implement service layer
-  ↓
-[子智能体 1-实现]
+```text
+[AI] 开始执行 Task 11: Write Service Layer
   读取任务描述与设计文档
-  → 写失败测试 service/user/user_test.go
-  → 运行 go test ./service/... → 确认 FAIL（函数未定义）
-  → 实现 service/user/user.go（Create/List/Get/Update/Delete）
-  → 运行 go test ./service/... → 确认全部 PASS
+  → 创建 internal/service/user/user.go
+  → 实现 Create/GetList/GetOne/Update/Delete 共 5 个方法
+  → 密码使用 SHA256 哈希处理（生产环境建议使用 bcrypt）
+  → 通过 gerror 传递带业务语义的错误
+  → 所有方法正确透传 ctx 至 DAO 层
+  → go build ./... → 编译通过
   → git commit -m "feat: implement user service layer"
-  ↓
-[子智能体 2-规格评审]
-  对照设计文档检查：
-  ✓ 5 个接口全部实现
-  ✓ password 字段使用 bcrypt 哈希
-  ✓ List 接口支持分页参数
-  → 规格符合，通过
-  ↓
-[子智能体 3-质量评审]
-  检查代码质量：
-  ✓ 错误使用 gerror 包装，包含业务语义
-  ✓ ctx 正确传递至 DAO 层
-  ✓ 无裸 panic，边界条件有处理
-  → 质量通过
-  ↓
-[主智能体] Task 3 完成，继续 Task 4 ...
 ```
 
-各主要任务的核心代码如下：
+实际的`git`提交历史完整记录了每个任务的开发过程：
 
-**`service/user/user.go`（服务层）**
-
-```go
-package user
-
-import (
-    "context"
-
-    "github.com/gogf/gf/v2/errors/gerror"
-    "github.com/gogf/gf/v2/frame/g"
-
-    "user-service/internal/dao"
-    "user-service/internal/model/do"
-    "user-service/internal/model/entity"
-)
-
-// Create 创建用户，password 使用 bcrypt 哈希存储
-func Create(ctx context.Context, username, email, password string) (id uint, err error) {
-    hashed, err := g.Func().BcryptEncode(password)
-    if err != nil {
-        return 0, gerror.Wrap(err, "password hash failed")
-    }
-    result, err := dao.User.Ctx(ctx).Insert(do.User{
-        Username: username,
-        Email:    email,
-        Password: hashed,
-    })
-    if err != nil {
-        return 0, gerror.Wrap(err, "create user failed")
-    }
-    lastID, err := result.LastInsertId()
-    return uint(lastID), err
-}
-
-// List 分页查询用户列表
-func List(ctx context.Context, page, size int) (users []*entity.User, total int, err error) {
-    m := dao.User.Ctx(ctx)
-    total, err = m.Count()
-    if err != nil {
-        return nil, 0, gerror.Wrap(err, "count users failed")
-    }
-    err = m.Page(page, size).Scan(&users)
-    return
-}
-
-// Get 按 ID 查询单个用户
-func Get(ctx context.Context, id uint) (user *entity.User, err error) {
-    err = dao.User.Ctx(ctx).Where(dao.User.Columns().Id, id).Scan(&user)
-    if err != nil {
-        return nil, gerror.Wrap(err, "get user failed")
-    }
-    if user == nil {
-        return nil, gerror.Newf("user %d not found", id)
-    }
-    return
-}
-
-// Update 更新用户信息
-func Update(ctx context.Context, id uint, username, email string) error {
-    _, err := dao.User.Ctx(ctx).Where(dao.User.Columns().Id, id).Update(do.User{
-        Username: username,
-        Email:    email,
-    })
-    return gerror.Wrap(err, "update user failed")
-}
-
-// Delete 删除用户
-func Delete(ctx context.Context, id uint) error {
-    _, err := dao.User.Ctx(ctx).Where(dao.User.Columns().Id, id).Delete()
-    return gerror.Wrap(err, "delete user failed")
-}
+```bash
+$ git log --oneline
+ee26913 fix: correct SQLite DSN format and GetList count query
+c13744b feat: wire routes and SQLite init in cmd
+1739219 feat: implement controller handlers
+14efeb1 feat: inject service into controller
+8bec4fd feat: implement user service layer
+c56ed39 feat: generate controller scaffold via gf gen ctrl
+2fcf1bf feat: add user API request/response structs
+ae42a15 feat: add DAO index file
+ace2409 feat: add DAO internal layer
+385a3c8 feat: add User DO model
+f754e96 feat: add User entity model
+e380b30 feat: configure SQLite database
+4091b82 feat: add SQLite driver dependency
+3963031 feat: init GoFrame project scaffold
 ```
 
-**`controller/user/user.go`（控制器层）**
+任务会按照批次执行，每批次完成`2-3`个任务：
 
-```go
-package user
+![Superpowers任务执行，每批次完成2-3个任务](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-2.png)
 
-import (
-    "github.com/gogf/gf/v2/frame/g"
-    "github.com/gogf/gf/v2/net/ghttp"
+在任务批次完成后使用`git`提交，然后等待用户确认继续下一批次：
 
-    v1 "user-service/api/v1"
-    "user-service/internal/service/user"
-)
-
-type Controller struct{}
-
-// Create POST /api/v1/users
-func (c *Controller) Create(r *ghttp.Request) {
-    var req v1.UserCreateReq
-    if err := r.Parse(&req); err != nil {
-        r.Response.WriteJsonExit(g.Map{"code": 400, "message": err.Error()})
-    }
-    id, err := user.Create(r.Context(), req.Username, req.Email, req.Password)
-    if err != nil {
-        r.Response.WriteJsonExit(g.Map{"code": 500, "message": err.Error()})
-    }
-    r.Response.WriteJsonExit(g.Map{"code": 0, "data": g.Map{"id": id}})
-}
-
-// List GET /api/v1/users
-func (c *Controller) List(r *ghttp.Request) {
-    page := r.GetQueryInt("page", 1)
-    size := r.GetQueryInt("size", 20)
-    users, total, err := user.List(r.Context(), page, size)
-    if err != nil {
-        r.Response.WriteJsonExit(g.Map{"code": 500, "message": err.Error()})
-    }
-    r.Response.WriteJsonExit(g.Map{
-        "code": 0,
-        "data": g.Map{"list": users, "total": total, "page": page, "size": size},
-    })
-}
-```
-
-**路由注册（`main.go`）**
-
-```go
-s := g.Server()
-s.Group("/api/v1", func(group *ghttp.RouterGroup) {
-    group.Middleware(ghttp.MiddlewareHandlerResponse)
-    group.Bind(
-        new(controller.User),
-    )
-})
-s.Run()
-```
+![Superpowers任务执行，在任务批次完成后使用git提交，然后等待用户确认继续下一批次](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-3.png)
 
 ### 阶段五：验证（verification-before-completion）
 
-所有任务完成后，`AI`运行完整验证后才声称完成：
+所有任务完成后，`AI`触发`verification-before-completion`技能，启动服务进行集成验证，用实际输出为"已完成"提供证据：
 
 ```bash
-# 单元测试与覆盖率
-go test ./... -v -cover
-# --- PASS: TestUserCreate (0.03s)
-# --- PASS: TestUserList (0.02s)
-# --- PASS: TestUserGet (0.01s)
-# --- PASS: TestUserUpdate (0.02s)
-# --- PASS: TestUserDelete (0.01s)
-# coverage: 83.4% of statements
-
-# 启动服务进行集成验证
-go run main.go &
+# 启动服务（端口 :8080，SQLite 文件自动创建于 data/user.db）
+cd user-service && gf run main.go
 
 # 创建用户
 curl -s -X POST http://127.0.0.1:8080/api/v1/users \
   -H "Content-Type: application/json" \
   -d '{"username":"alice","email":"alice@example.com","password":"secret123"}'
-# {"code":0,"data":{"id":1}}
+# {"code":0,"message":"","data":{"id":1}}
 
-# 查询用户列表
-curl -s "http://127.0.0.1:8080/api/v1/users?page=1&size=10"
-# {"code":0,"data":{"list":[...],"total":1,"page":1,"size":10}}
+# 查询用户列表（分页参数为 pageSize）
+curl -s "http://127.0.0.1:8080/api/v1/users?page=1&pageSize=10"
+# {"code":0,"message":"","data":{"list":[{"id":1,"username":"alice","email":"alice@example.com",...}],"total":1,"page":1}}
 
-# 按 ID 获取
+# 按 ID 查询
 curl -s http://127.0.0.1:8080/api/v1/users/1
-# {"code":0,"data":{"id":1,"username":"alice","email":"alice@example.com",...}}
+# {"code":0,"message":"","data":{"id":1,"username":"alice","email":"alice@example.com","createdAt":"...","updatedAt":"..."}}
 
-# 更新用户
+# 部分更新用户（只传需要修改的字段）
 curl -s -X PUT http://127.0.0.1:8080/api/v1/users/1 \
   -H "Content-Type: application/json" \
-  -d '{"username":"alice2","email":"alice2@example.com"}'
-# {"code":0,"data":null}
+  -d '{"username":"alice2"}'
+# {"code":0,"message":"","data":{}}
 
 # 删除用户
 curl -s -X DELETE http://127.0.0.1:8080/api/v1/users/1
-# {"code":0,"data":null}
+# {"code":0,"message":"","data":{}}
 ```
+
+响应体中`password`字段因`entity`层配置了`json:"-"`标签而始终不出现在任何接口响应中，符合设计规范。
 
 ### 阶段六：收尾（finishing-a-development-branch）
 
-```
-AI: 所有任务已完成：
-  ✓ 5 个 CRUD 接口全部实现并通过测试
-  ✓ 单元测试覆盖率 83.4%
-  ✓ 集成验证全部通过
-
-以下是本次开发的选项：
-
-1. 合并到 main 分支（squash commit）
-2. 创建 Pull Request（建议：便于 Code Review）
-3. 保留分支，稍后处理
-4. 丢弃所有更改
-
-您的选择？
-```
+![Superpowers阶段六：收尾（finishing-a-development-branch）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-1.png)
 
 ## 自定义技能
 
