@@ -440,6 +440,15 @@ openspec config profile custom
 openspec init
 ```
 
+
+
+### 跳过 `/opsx:archive` 归档会有什么影响？
+
+归档是一个**纯文档操作**，不涉及任何代码文件，跳过它不会影响程序运行。但长期不归档会带来两个问题：
+
+1. `openspec/specs/`（系统行为的事实来源）不会更新，与代码实际行为的偏差会随着未归档变更的堆积而越来越大，最终失去参考价值
+2. `openspec list`会一直把已完成的变更列为"活跃状态"，难以区分真正进行中的变更
+
 ### 项目中同时存在多个需求时，AI 如何知道执行哪一个？
 
 这由`/opsx:apply`等命令的定义文件来约束，`AI`的行为分三种情况：
@@ -456,12 +465,26 @@ openspec init
 /opsx:apply user-http-service
 ```
 
-### 跳过 `/opsx:archive` 归档会有什么影响？
+### 项目积累了大量变更后，specs 会不会撑爆 AI 的上下文？
 
-归档是一个**纯文档操作**，不涉及任何代码文件，跳过它不会影响程序运行。但长期不归档会带来两个问题：
+这是一个合理的担忧，但`OpenSpec`的设计从架构层面规避了这个问题——**`AI`每次工作时读取的是当前变更文件夹，而不是整个`openspec/specs/`目录**。
 
-1. `openspec/specs/`（系统行为的事实来源）不会更新，与代码实际行为的偏差会随着未归档变更的堆积而越来越大，最终失去参考价值
-2. `openspec list`会一直把已完成的变更列为"活跃状态"，难以区分真正进行中的变更
+以`/opsx:apply`为例，命令定义文件明确规定`AI`只读取以下`contextFiles`：
+
+```text
+openspec/changes/<name>/proposal.md    # 本次变更动机
+openspec/changes/<name>/specs/         # 本次增量规范（通常只有几百行）
+openspec/changes/<name>/design.md      # 本次技术方案
+openspec/changes/<name>/tasks.md       # 本次任务清单
+```
+
+无论`openspec/specs/`**主规范**积累了多少历史内容，`/opsx:apply`执行时一行也不会自动载入。`AI`始终工作在一个范围明确的"变更沙盒"里，上下文大小只与本次变更的复杂度正相关，与项目历史规模无关。
+
+`/opsx:propose`命令在规划生成增量规范时，若需要了解已有行为，会自动通过`openspec instructions`命令按需读取对应领域的主规范文件（如`openspec/specs/user-crud/spec.md`），而不是把所有领域的规范一次性全部载入。
+
+所以`openspec/specs/`即便长到几万行也不会影响日常使用——它主要是给人查阅的档案，不是每次都注入给`AI`的上下文。
+
+本质上，`OpenSpec`的"增量规范"设计本身就是对上下文的一种天然分片——每次`AI`只需要理解"这次变更了什么"，而不需要理解"系统的一切"。
 
 ## 总结
 
