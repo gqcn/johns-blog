@@ -259,7 +259,7 @@ ln -s ~/.config/opencode/superpowers/skills \
 我想从零开始，用 GoFrame 框架实现一个用户服务，提供 RESTful CRUD 接口，请帮我开始。
 ```
 
-`AI`触发`brainstorming`技能，采用苏格拉底式提问逐步澄清需求：数据库选型、字段设计、接口规范、错误处理策略、验收标准……双方确认每个设计决策后，`AI`将设计方案分段呈现，用户逐段确认。
+`AI`自动触发`brainstorming`技能，采用苏格拉底式提问逐步澄清需求：数据库选型、字段设计、接口规范、错误处理策略、验收标准……双方确认每个设计决策后，`AI`将设计方案分段呈现，用户逐段确认。
 
 最终生成设计文档：`docs/plans/2026-03-03-user-service-design.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-design.md.txt)），内容包含目录结构、`API`规范、数据流图、错误处理策略等。
 
@@ -267,7 +267,7 @@ ln -s ~/.config/opencode/superpowers/skills \
 
 ### 阶段二：初始化项目（gf init）
 
-设计获批后，`AI`使用`GoFrame CLI`初始化项目脚手架并建立`git`版本管理：
+设计获用户确认后，`AI`使用`GoFrame CLI`初始化项目脚手架并建立`git`版本管理：
 
 ```bash
 # AI 自动执行
@@ -297,7 +297,7 @@ user-service/
 
 ### 阶段三：编写实现计划（writing-plans）
 
-`AI`触发`writing-plans`技能，将设计文档拆解为粒度为`2-5`分钟的细粒度任务，每个任务包含：文件路径、完整代码、验证步骤和`git`提交命令。
+`AI`自动触发`writing-plans`技能，将设计文档拆解为粒度为`2-5`分钟的细粒度任务，每个任务包含：文件路径、完整代码、验证步骤和`git`提交命令。
 
 最终生成实现计划：`docs/plans/2026-03-03-user-service-impl.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-impl.md.txt)），共`13`个任务：
 
@@ -319,7 +319,7 @@ user-service/
 
 ### 阶段四：执行实现计划（executing-plans）
 
-`AI`触发`executing-plans`技能，按批次顺序执行计划，每批次完成`2-3`个任务后进行`git`提交并等待用户确认，再继续下一批次。
+`AI`自动触发`executing-plans`技能，按批次顺序执行计划，每批次完成`2-3`个任务后进行`git`提交并等待用户确认，再继续下一批次。
 
 以`Task 11`（业务逻辑层）为例，展示执行过程：
 
@@ -365,7 +365,7 @@ e380b30 feat: configure SQLite database
 
 ### 阶段五：验证（verification-before-completion）
 
-所有任务完成后，`AI`触发`verification-before-completion`技能，启动服务进行集成验证，用实际输出为"已完成"提供证据：
+所有任务完成后，`AI`自动触发`verification-before-completion`技能，启动服务进行集成验证，用实际输出为"已完成"提供证据：
 
 ```bash
 # 启动服务（端口 :8080，SQLite 文件自动创建于 data/user.db）
@@ -402,82 +402,6 @@ curl -s -X DELETE http://127.0.0.1:8080/api/v1/users/1
 
 ![Superpowers阶段六：收尾（finishing-a-development-branch）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-1.png)
 
-## 自定义技能
-
-`Superpowers`支持创建完全自定义的技能，通过`writing-skills`技能来指导技能的创作。
-
-### 技能文件结构
-
-每个技能是一个`SKILL.md`文件，包含`YAML`前置元数据和`Markdown`内容：
-
-```markdown
----
-name: your-skill-name
-description: "触发时机和功能描述，AI 通过此描述判断是否调用该技能"
----
-
-# 技能名称
-
-## 概述
-
-简要描述技能的功能和核心原则。
-
-## 何时使用
-
-描述触发条件。
-
-## 流程
-
-1. 步骤一
-2. 步骤二
-...
-
-## 检查清单
-
-- [ ] 检查项一
-- [ ] 检查项二
-```
-
-### 个人技能目录
-
-除项目级技能外，还可以在用户级别创建个人技能：
-
-```bash
-# Codex / OpenCode 个人技能目录
-~/.agents/skills/your-name/
-```
-
-这些个人技能在所有项目中均可使用，适合团队内部规范的沉淀与共享。
-
-### 示例：创建代码评审清单技能
-
-以下是一个针对`Go`语言项目的自定义代码评审清单技能示例：
-
-```markdown
----
-name: go-code-review
-description: "Use before submitting any Go code for review - checks Go-specific best practices"
----
-
-# Go Code Review Checklist
-
-## Error Handling
-- [ ] All errors are handled (no `_` discards without comment)
-- [ ] Error messages are lowercase and descriptive
-- [ ] Custom error types used for sentinel errors
-
-## Goroutines & Concurrency
-- [ ] All goroutines have clear ownership and termination conditions
-- [ ] Channels are properly closed
-- [ ] Race conditions checked with `go test -race`
-
-## Performance
-- [ ] No unnecessary allocations in hot paths
-- [ ] Context propagation used correctly for cancellation
-
-## Verification
-Run: `go vet ./... && golangci-lint run`
-```
 
 ## 总结
 
