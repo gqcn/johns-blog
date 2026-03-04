@@ -126,13 +126,14 @@ toc_max_heading_level: 4
 |---|---|---|
 | `test-driven-development` | 实现任何功能或修复`Bug`前 | 强制执行红绿重构（`RED-GREEN-REFACTOR`）循环 |
 
-红绿重构（`RED-GREEN-REFACTOR`）是`TDD`（测试驱动开发）的核心执行循环，分为三个阶段：
 
-- **红（`RED`）**：先编写一个会失败的测试，明确定义"完成"的标准，此时测试必须处于失败状态
-- **绿（`GREEN`）**：编写最少量的实现代码，使测试刚好通过，不追求代码质量，只追求让测试变绿
-- **重构（`REFACTOR`）**：在测试全部通过的保护下，对代码进行整理和优化，消除重复、改善命名、提升可读性，同时确保测试仍然通过
-
-这个循环的核心价值在于：测试先于实现，确保每一行代码都有明确的目的和可验证的行为约束。`Superpowers`的`test-driven-development`技能强制要求智能体遵循此循环，不允许跳过任何阶段。
+> 红绿重构（`RED-GREEN-REFACTOR`）是`TDD`（测试驱动开发）的核心执行循环，分为三个阶段：
+> 
+> - **红（`RED`）**：先编写一个会失败的测试，明确定义"完成"的标准，此时测试必须处于失败状态
+> - **绿（`GREEN`）**：编写最少量的实现代码，使测试刚好通过，不追求代码质量，只追求让测试变绿
+> - **重构（`REFACTOR`）**：在测试全部通过的保护下，对代码进行整理和优化，消除重复、改善命名、提升可读性，同时确保测试仍然通过
+>
+> 这个循环的核心价值在于：测试先于实现，确保每一行代码都有明确的目的和可验证的行为约束。`Superpowers`的`test-driven-development`技能强制要求智能体遵循此循环，不允许跳过任何阶段。
 
 #### 调试与验证
 
@@ -156,8 +157,8 @@ toc_max_heading_level: 4
 
 1. **阶段一：头脑风暴与设计（brainstorming）**
     - 用户表达需求想法
-    - `AI`通过提问澄清需求（每次一个问题）
-    - 提出`2-3`种实现方案及权衡分析
+    - `AI`通过交互式提问澄清需求（每次一个问题）
+    - `AI`提出`2-3`种实现方案及权衡分析
     - 分段展示设计方案，用户逐段确认
     - 保存设计文档到`docs/plans/YYYY-MM-DD-<topic>-design.md`
         
@@ -181,7 +182,7 @@ toc_max_heading_level: 4
    - 验证测试，选择合并策略，清理工作树
 
 
-这个流程的关键特性在于：**智能体会在合适时机自动调用对应技能**，开发者无需手动指挥每一步。
+这个流程的关键特性在于：**智能体会在合适时机自动调用对应技能**，开发者无需手动指挥每一步。😲
 
 ## 安装与配置
 
@@ -281,6 +282,10 @@ ln -s ~/.config/opencode/superpowers/skills \
 
 最终生成实现计划：`docs/plans/2026-03-03-user-service-impl.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-impl.md.txt)），共`13`个任务：
 
+:::info 注意
+`Superpowers`会生成任务列表，但不会为每个任务生成勾选确认框，因为任务的完成状态需要通过实际验证来确定，而不是`AI`的主观判断。
+:::
+
 | 任务 | 说明 |
 |------|------|
 | `Task 1` | 安装`gf CLI`并验证环境（`CGO`、`Go`版本） |
@@ -296,6 +301,8 @@ ln -s ~/.config/opencode/superpowers/skills \
 | `Task 11` | 实现业务逻辑层（`internal/service/user/user.go`） |
 | `Task 12` | 实现控制器处理函数 |
 | `Task 13` | 注册路由、初始化`SQLite`建表、启动验证 |
+
+
 
 ### 阶段三：执行实现计划（executing-plans）
 
@@ -314,6 +321,16 @@ ln -s ~/.config/opencode/superpowers/skills \
   → go build ./... → 编译通过
   → git commit -m "feat: implement user service layer"
 ```
+
+
+任务会按照批次执行，每批次完成`2-3`个任务：
+
+![Superpowers任务执行，每批次完成2-3个任务](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-2.png)
+
+在任务批次完成后使用`git`提交，然后等待用户确认继续下一批次：
+
+![Superpowers任务执行，在任务批次完成后使用git提交，然后等待用户确认继续下一批次](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-3.png)
+
 
 实际的`git`提交历史完整记录了每个任务的开发过程：
 
@@ -334,14 +351,6 @@ e380b30 feat: configure SQLite database
 4091b82 feat: add SQLite driver dependency
 3963031 feat: init GoFrame project scaffold
 ```
-
-任务会按照批次执行，每批次完成`2-3`个任务：
-
-![Superpowers任务执行，每批次完成2-3个任务](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-2.png)
-
-在任务批次完成后使用`git`提交，然后等待用户确认继续下一批次：
-
-![Superpowers任务执行，在任务批次完成后使用git提交，然后等待用户确认继续下一批次](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-3.png)
 
 ### 阶段四：验证（verification-before-completion）
 

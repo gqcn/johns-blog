@@ -272,7 +272,7 @@ your-project/
 
 如果是选择了其他工具（如`GitHub Copilot`、`Cursor`等），相应的命令定义和技能文件会被生成到对应的集成目录中，使用方式与上述类似。
 
-## 实战演示：使用GoFrame构建用户服务
+## 实战演示
 
 下面通过一个完整的实例，演示如何使用`OpenSpec`进行`AI`工程管理实践：用`GoFrame`框架从头构建一个用户服务，提供以下`RESTful`接口：
 
@@ -426,6 +426,42 @@ openspec update
 | `openspec archive <name>` | 从终端归档已完成的变更 |
 | `openspec status` | 查看当前变更的工件进度 |
 | `openspec config profile` | 切换工作流配置（`core`/`custom`） |
+
+## 常见问题
+
+### 为什么安装后只有 4 个命令？
+
+`openspec init`默认使用`core profile`，只生成`/opsx:explore`、`/opsx:propose`、`/opsx:apply`、`/opsx:archive`这`4`个命令。这是有意为之的设计——对大多数日常开发场景，这`4`个命令已经足够完成完整的变更周期。
+
+如果需要`/opsx:verify`、`/opsx:new`、`/opsx:ff`等更细粒度的控制命令，切换到`custom profile`后重新初始化即可：
+
+```bash
+openspec config profile custom
+openspec init
+```
+
+### 项目中同时存在多个需求时，AI 如何知道执行哪一个？
+
+这由`/opsx:apply`等命令的定义文件来约束，`AI`的行为分三种情况：
+
+**只有一个活跃变更**：自动选择并告知用户，例如：`Using change: user-http-service`。
+
+**多个活跃变更，对话上下文中已提到变更名**：从上下文推断，直接使用。
+
+**多个活跃变更，上下文不明确**：`AI`被强制要求先执行`openspec list --json`获取变更列表，然后通过交互提问让用户手动选择，而不是自行猜测。
+
+也可以在命令中直接指定变更名，跳过上述判断：
+
+```text
+/opsx:apply user-http-service
+```
+
+### 跳过 `/opsx:archive` 归档会有什么影响？
+
+归档是一个**纯文档操作**，不涉及任何代码文件，跳过它不会影响程序运行。但长期不归档会带来两个问题：
+
+1. `openspec/specs/`（系统行为的事实来源）不会更新，与代码实际行为的偏差会随着未归档变更的堆积而越来越大，最终失去参考价值
+2. `openspec list`会一直把已完成的变更列为"活跃状态"，难以区分真正进行中的变更
 
 ## 总结
 
