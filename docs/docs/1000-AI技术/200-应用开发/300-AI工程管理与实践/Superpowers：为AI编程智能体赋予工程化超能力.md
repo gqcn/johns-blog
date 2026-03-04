@@ -75,6 +75,8 @@ toc_max_heading_level: 4
 
 ## 什么是Superpowers
 
+![什么是Superpowers](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-4.png)
+
 `Superpowers`是一个完整的软件开发工作流框架，构建于一套可组合的"技能"（`Skills`）之上。其官方定义是：
 
 > A complete software development workflow for your coding agents, built on top of a set of composable "skills" and some initial instructions that make sure your agent uses them.
