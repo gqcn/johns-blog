@@ -10,6 +10,7 @@ keywords:
     "AI编程",
     "OpenSpec",
     "Spec-kit",
+    "Superpowers",
     "软件开发范式",
     "AI代码生成",
     "规范优先",
@@ -23,9 +24,11 @@ keywords:
     "任务分解",
     "slash commands",
     "PRD",
-    "specification"
+    "specification",
+    "工具选型",
+    "Process over Prompt"
   ]
-description: "本文介绍AI时代传统软件开发范式的核心痛点，引出规范驱动开发（SDD）的设计思想与核心理念，详细讲解SDD如何以规范为核心驱动代码生成，并重点介绍两款主流的SDD工具：OpenSpec与Spec-kit，帮助开发者快速将SDD方法论落地到实际项目中，提升AI时代的开发效率与可预测性。"
+description: "本文介绍AI时代传统软件开发范式的核心痛点，引出规范驱动开发（SDD）的设计思想与核心理念，详细讲解SDD如何以规范为核心驱动代码生成，并重点介绍三款主流的SDD实践工具：OpenSpec、Spec-kit与Superpowers，分析三款工具的核心差异与适用场景，并提供工具选型建议，帮助开发者根据自身需求快速将SDD方法论落地到实际项目中，提升AI时代的开发效率与可预测性。"
 toc_max_heading_level: 3
 ---
 
@@ -156,299 +159,100 @@ flowchart TD
 
 ## SDD相关工具
 
-在目前开源实践中，有多个团队推出了支持`SDD`方法论的工具，其中最具代表性的两款是`OpenSpec`和`Spec-kit`。它们都以规范为核心驱动代码生成，但在设计哲学、功能覆盖和用户体验上各有侧重。
+在目前开源实践中，有多个团队推出了支持`SDD`方法论的工具，其中最具代表性的三款是`OpenSpec`、`Spec-kit`和`Superpowers`。它们都以结构化规范和工程化流程为核心，解决`AI`编程中的上下文漂移与质量失控问题，但在设计哲学、触发机制和适用场景上各有侧重。
 
 ### OpenSpec
 
-#### 项目简介
+`OpenSpec`（[GitHub](https://github.com/Fission-AI/OpenSpec)）是由`Fission AI`开发的轻量级`SDD`工具，核心理念是"流动而非刚性（`fluid not rigid`）"。它通过`/opsx:*`系列斜杠命令驱动规范→实现流程，以`openspec/specs/`与`openspec/changes/`双区域设计管理系统规范和变更，支持`20+`种主流`AI`编程工具。其工作流程为：`/opsx:explore`（探索）→`/opsx:propose`（提案）→`/opsx:apply`（实现）→`/opsx:archive`（归档），所有阶段均需手动触发。
 
-`OpenSpec`（[GitHub](https://github.com/Fission-AI/OpenSpec)）是由`Fission AI`开发的一款轻量级`SDD`工具，其核心理念是"流动而非刚性（`fluid not rigid`）"。它在`AI`编程助手的聊天界面中通过`slash commands`（斜杠命令）驱动整个规范→实现流程，支持`20+`种主流`AI`编程工具，包括`Claude Code`、`Cursor`、`Windsurf`、`GitHub Copilot`等。
-
-`OpenSpec`的哲学：
-
-```text
-→ fluid not rigid         (流动而非刚性)
-→ iterative not waterfall (迭代而非瀑布)
-→ easy not complex        (简单而非复杂)
-→ built for brownfield    (为存量项目而生，不只是绿地项目)
-→ scalable from personal to enterprise (从个人项目到企业级皆可适用)
-```
-
-#### 安装与初始化
-
-`OpenSpec`通过`npm`全局安装，要求`Node.js 20.19.0`或更高版本：
-
-```bash
-npm install -g @fission-ai/openspec@latest
-```
-
-在项目目录中初始化：
-
-```bash
-cd your-project
-openspec init
-```
-
-初始化完成后，在`AI`助手中即可使用`/opsx:*`系列命令。
-
-#### 目录结构
-
-`OpenSpec`在项目中创建一个`openspec/`目录，包含两个核心区域：
-
-```text
-openspec/
-├── specs/          # 事实来源（当前系统行为）
-│   ├── auth/
-│   │   └── spec.md
-│   ├── payments/
-│   │   └── spec.md
-│   └── ui/
-│       └── spec.md
-└── changes/        # 变更提案（每个变更一个独立文件夹）
-    ├── add-dark-mode/
-    │   ├── proposal.md
-    │   ├── specs/
-    │   ├── design.md
-    │   └── tasks.md
-    └── archive/
-        └── 2025-01-23-add-dark-mode/
-```
-
-- **`specs/`**：系统当前行为的"事实来源"，按领域组织
-- **`changes/`**：每个变更一个独立文件夹，包含提案、规范增量、设计和任务列表，直到归档前不影响`specs/`
-
-这种分离机制使多个变更可以并行推进而不产生冲突，也便于在合并前对单个变更进行审查。
-
-#### 核心命令
-
-##### 默认快速路径（core profile）
-
-| 命令 | 作用 |
-|------|------|
-| `/opsx:propose` | 一步创建变更并生成所有规划制品 |
-| `/opsx:explore` | 在提交变更前自由探索想法和方案 |
-| `/opsx:apply` | 执行任务列表，完成代码实现 |
-| `/opsx:archive` | 归档已完成的变更，将增量规范合并回`specs/` |
-
-##### 扩展工作流命令
-
-| 命令 | 作用 |
-|------|------|
-| `/opsx:new` | 创建新变更脚手架 |
-| `/opsx:continue` | 按依赖顺序逐步创建下一个规划制品 |
-| `/opsx:ff` | 快进：一次性创建所有规划制品 |
-| `/opsx:verify` | 验证实现是否与制品匹配 |
-| `/opsx:sync` | 将增量规范合并回主规范 |
-| `/opsx:onboard` | 引导新成员完整走一遍工作流 |
-
-#### 典型使用示例
-
-```text
-提示: /opsx:propose add-dark-mode
-
-AI:  已创建 openspec/changes/add-dark-mode/
-     ✓ proposal.md   (原因与目标)
-     ✓ specs/        (需求与场景)
-     ✓ design.md     (技术方案)
-     ✓ tasks.md      (实现任务清单)
-     已就绪，可以开始实现！
-
-提示: /opsx:apply
-
-AI:  正在执行任务...
-     ✓ 1.1 添加主题上下文提供者
-     ✓ 1.2 创建切换组件
-     ✓ 2.1 添加 CSS 变量
-     ✓ 2.2 连接 localStorage
-     所有任务已完成！
-
-提示: /opsx:archive
-
-AI:  已归档至 openspec/changes/archive/2025-01-23-add-dark-mode/
-     规范已更新，可以开始下一个功能。
-```
-
-#### 规范文件格式
-
-`OpenSpec`使用基于`RFC 2119`关键字的结构化`Markdown`规范：
-
-```markdown
-## Requirements
-
-### Requirement: 用户认证
-系统 SHALL 在登录成功后签发 JWT Token。
-
-#### Scenario: 凭证有效
-用户持有有效凭证并提交登录表单后，系统应返回 JWT Token，并将用户重定向至仪表盘。
-```
-
-| 元素 | 说明 |
-|------|------|
-| `## Purpose` | 该规范领域的高层描述 |
-| `### Requirement:` | 系统必须具备的具体行为（"什么"） |
-| `#### Scenario:` | 需求的具体示例，可被验证（"何时"） |
-| `SHALL`/`MUST`/`SHOULD` | `RFC 2119`关键字，表示需求强度 |
-
-#### 支持的`AI`工具
-
-`OpenSpec`支持`20+`种主流`AI`编程助手，包括`Claude Code`、`Cursor`、`Windsurf`、`GitHub Copilot`（`VS Code`中）、`Gemini CLI`、`Codex CLI`等，通过各工具的自定义斜杠命令机制集成。
+详细介绍与实战演示请参阅：[OpenSpec：轻量级AI工程规范管理框架](./2000-OpenSpec：轻量级AI工程规范管理框架.md)。
 
 ### Spec-kit
 
-#### 项目简介
+`Spec-kit`（[GitHub](https://github.com/github/spec-kit)）是由`GitHub`官方开发的`SDD`工具套件，更注重**结构化**与**完备性**。其最具特色的机制是**项目宪法（`constitution.md`）**——一组不可变的架构原则，约束所有后续规划和实现的技术决策。工作流程为：`/speckit.constitution`→`/speckit.specify`→`/speckit.plan`→`/speckit.tasks`→`/speckit.implement`，每个阶段均需手动触发，并在代码生成前设有预实现门禁（`Phase -1 Gates`）确保质量。支持`Claude Code`、`GitHub Copilot`、`Cursor`等`8+`种`AI`助手。
 
-`Spec-kit`（[GitHub](https://github.com/github/spec-kit)）是由`GitHub`官方开发并开源的`SDD`工具套件，同样旨在帮助开发者"构建更高质量的软件"。相比`OpenSpec`的轻量灵活，`Spec-kit`更加注重**结构化**与**完备性**，提供了从原则（`Constitution`）到规范（`Spec`）、从计划（`Plan`）到任务（`Tasks`）的完整方法论框架，并通过`specify-cli`命令行工具和`/speckit.*`系列命令实现。
+详细介绍与实战演示请参阅：[Spec-kit：SDD规范驱动开发的工程化工具](./3000-Spec-kit：SDD规范驱动开发的工程化工具.md)。
 
-`Spec-kit`的核心哲学：
+### Superpowers
 
-> An open source toolkit that allows you to focus on product scenarios and predictable outcomes instead of vibe coding every piece from scratch.
+`Superpowers`（[GitHub](https://github.com/obra/superpowers)）是一个开源的`AI`工程化技能框架，从**工程行为约束**出发，核心理念是**`Process over Prompt`（流程大于提示）**。与前两款工具的最大区别在于触发机制：`Superpowers`无需手动调用任何命令——只要有1%的可能某个技能适用，智能体就会**自动触发**对应技能。其工作流涵盖：头脑风暴设计（`brainstorming`）→`Git`工作树隔离→编写实现计划（`writing-plans`）→子智能体执行（`subagent-driven-development`）→测试驱动开发（`test-driven-development`）→验证收尾（`verification-before-completion`）。目前暂不支持`VSCode GitHub Copilot`。
 
-#### 安装
+详细介绍与实战演示请参阅：[Superpowers：为AI编程智能体赋予工程化超能力](./4000-Superpowers：为AI编程智能体赋予工程化超能力.md)。
 
-`Spec-kit`通过`uv`工具安装`specify-cli`：
+### 三款工具综合对比
 
-```bash
-# 持久化安装（推荐）
-uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
+三款工具都以结构化规范和工程化流程为核心，执行流程上也高度一致——都经历需求澄清、规划设计、实现驱动、验证反馈这四个阶段，也都通过工件驱动`AI`从需求到实现的过程。差异主要体现在设计理念、触发机制和适用场景：
 
-# 在新项目中初始化（以 Claude Code 为例）
-specify init my-project --ai claude
+| 维度 | `OpenSpec` | `Spec-kit` | `Superpowers` |
+|------|-----------|-----------|--------------|
+| **定位** | 轻量规范层，低仪式感 | 结构化工具包，强约束 | 工程技能框架，行为约束 |
+| **核心理念** | `fluid not rigid` | 宪法治理 + 门禁约束 | `Process over Prompt` |
+| **触发方式** | 手动斜杠命令 | 手动斜杠命令 | **自动触发技能** |
+| **安装方式** | `npm`全局安装 | `uv`安装`Python`包 | 插件 / `git`克隆 |
+| **支持工具** | `20+`种 | `8+`种 | `Claude Code`/`Cursor`等 |
+| **核心制品** | `proposal`/`delta specs`/`tasks` | `constitution`/`spec`/`plan`/`tasks` | 技能文件（`SKILL.md`） |
+| **阶段门禁** | 无刚性门禁，随时迭代 | 有明确门禁阶段 | 技能触发机制约束 |
+| **`TDD`内置** | ❌ | ⚠️（约束检查） | ✅（完整`TDD`循环） |
+| **并行任务** | 无内置并行 | `[P]`标记支持 | 子智能体并行执行 |
+| **存量项目** | ✅ 原生支持 | ✅ 支持 | ✅ 支持 |
+| **社区背景** | `Fission AI` | `GitHub`官方 | 开源社区 |
+| **命令风格** | `/opsx:*` | `/speckit.*` | 无命令，自动触发 |
 
-# 在已有项目中初始化
-specify init . --ai copilot
-```
+## 工具选型建议
 
-`specify init`支持`--ai`参数指定使用的`AI`助手，支持`claude`、`gemini`、`copilot`、`cursor-agent`、`windsurf`等多种选项。
+三款工具各有侧重，适合不同需求的团队和项目。以下决策框架帮助开发者根据实际情况做出选择。
 
-#### 支持的`AI`工具
+### 选择OpenSpec
 
-| 工具 | 支持情况 |
-|------|---------|
-| `Claude Code` | ✅ 完全支持 |
-| `GitHub Copilot` | ✅ 完全支持 |
-| `Cursor` | ✅ 完全支持 |
-| `Windsurf` | ✅ 完全支持 |
-| `Gemini CLI` | ✅ 完全支持 |
-| `Codex CLI` | ✅ 完全支持 |
-| `Roo Code` | ✅ 完全支持 |
-| `Amazon Q Developer CLI` | ⚠️ 部分支持（自定义参数受限） |
+如果你的项目符合以下特征，`OpenSpec`是优先推荐的选择：
 
-#### 核心命令
+- **灵活性优先**：不希望引入复杂的规范流程，工作流需要足够流动，随时可以迭代
+- **多`AI`工具混用**：团队成员使用不同的`AI`助手，需要一个统一的、工具无关的规范层
+- **存量项目优先**：在已有代码库上增量引入`SDD`，`OpenSpec`的双区域设计（`specs/` + `changes/`）对存量项目尤为友好
+- **低上手成本**：希望快速试用`SDD`方法论，`/opsx:propose`一条命令即可启动规范化流程，门槛最低
 
-初始化完成后，`AI`助手中将可用以下`/speckit.*`系列命令：
+### 选择Spec-kit
 
-##### 核心工作流命令
+如果你的项目符合以下特征，`Spec-kit`是优先推荐的选择：
 
-| 命令 | 作用 |
-|------|------|
-| `/speckit.constitution` | 创建或更新项目的宪法（治理原则与开发规范） |
-| `/speckit.specify` | 定义要构建的功能（需求与用户故事） |
-| `/speckit.plan` | 基于指定技术栈创建技术实现计划 |
-| `/speckit.tasks` | 从实现计划生成可执行的任务列表 |
-| `/speckit.implement` | 按计划执行所有任务，完成功能实现 |
+- **架构一致性要求高**：需要通过"宪法"文件约束所有技术决策，防止多轮迭代后架构腐化
+- **质量门控需求强**：希望在代码生成前有明确的质量检查（宪法门禁、规范完整性验证等）
+- **完整制品体系**：希望每个特性都有正式的`spec`、`plan`、`data-model`、`contracts`等完整文档
+- **团队协作**：`spec.md`和`plan.md`可天然作为需求评审和`Code Review`的基准文档，适合跨职能团队
 
-##### 可选质量增强命令
+### 选择Superpowers
 
-| 命令 | 作用 |
-|------|------|
-| `/speckit.clarify` | 对规范中未明确的部分进行澄清（建议在`/plan`前运行） |
-| `/speckit.analyze` | 跨制品一致性与覆盖度分析（建议在`/tasks`后、`/implement`前运行） |
-| `/speckit.checklist` | 生成自定义质量检查清单，验证需求完整性、清晰性与一致性 |
+如果你的项目符合以下特征，`Superpowers`是优先推荐的选择：
 
-#### 项目宪法（Constitution）
+- **不想手动管理工作流**：希望`AI`自动判断并应用工程实践，而不是每次都手动调用阶段命令
+- **`TDD`是团队规范**：`Superpowers`是三款工具中对`TDD`支持最完善的，强制执行红绿重构循环
+- **复杂任务并行化**：需要多个子智能体并行执行独立任务，且每个任务有独立的质量评审
+- **关注工程行为而非文档**：更关注`AI`的开发行为是否符合工程规范，而非维护一套规范文档体系
+- **主要使用`Claude Code`或`Cursor`**：`Superpowers`在这两个平台上支持最为完善
 
-`Spec-kit`最具特色的机制是**项目宪法（`constitution`）**——一组不可变的架构原则，存储于`memory/constitution.md`，作为所有规范生成的基础约束。
+> 注意：`Superpowers`目前暂不支持`VSCode GitHub Copilot`，这是选择时需要考虑的约束。
 
-宪法定义了九条治理条款，涵盖：
-
-- **库优先原则**（Article I）：每个功能必须先作为独立库实现，禁止直接在应用代码中实现
-- **`CLI`接口规范**（Article II）：所有库必须通过命令行界面暴露功能，确保可观测性和可测试性
-- **测试优先命令**（Article III）：绝对无法通融——必须先编写并通过验收的测试，代码才能开始实现
-- **简洁性原则**（Article VII）：初始实现最多3个项目，额外项目需要书面论证
-- **反抽象原则**（Article VIII）：直接使用框架特性，禁止无必要的封装层
-- **集成优先测试**（Article IX）：优先使用真实数据库和服务实例，而非`mock`
-
-宪法通过实现计划模板的"预实现门禁（`Phase -1 Gates`）"在代码生成前强制执行这些原则：
+### 决策参考
 
 ```text
-预实现门禁阶段
-
-[简洁性门禁 - 第七条]
-- [ ] 项目数量是否不超过3个？
-- [ ] 是否避免了过度超前设计？
-
-[反抽象门禁 - 第八条]
-- [ ] 是否直接使用框架特性？
-- [ ] 是否使用单一模型表示？
-
-[集成优先门禁 - 第九条]
-- [ ] 是否已定义契约（Contracts）？
-- [ ] 是否已编写契约测试？
+是否希望AI自动触发工作流（无需手动调用命令）？
+├── 是 → Superpowers
+└── 否
+    ├── 是否需要严格架构约束（宪法机制）和质量门禁？
+    │   ├── 是 → Spec-kit
+    │   └── 否 → OpenSpec（轻量灵活，20+种AI工具支持）
+    └── TDD是否是不可妥协的团队规范？
+        ├── 是 → Superpowers 或 Spec-kit
+        └── 否 → OpenSpec
 ```
 
-#### 完整工作流示例
-
-以构建实时聊天系统为例：
-
-```bash
-# Step 1: 建立项目宪法（首次初始化时）
-/speckit.constitution 制定聚焦代码质量、测试规范、用户体验一致性与性能要求的项目原则
-
-# Step 2: 创建功能规范（5分钟）
-/speckit.specify 实时聊天系统，支持消息历史记录与用户在线状态
-
-# 自动创建：
-# - Branch "003-chat-system"
-# - specs/003-chat-system/spec.md （含用户故事和验收标准）
-
-# Step 3: 生成实现计划（5分钟）
-/speckit.plan 使用WebSocket实现实时消息推送，PostgreSQL存储历史消息，Redis管理用户在线状态
-
-# 自动创建：
-# - specs/003-chat-system/plan.md
-# - specs/003-chat-system/research.md
-# - specs/003-chat-system/data-model.md
-# - specs/003-chat-system/contracts/
-
-# Step 4: 生成任务列表（5分钟）
-/speckit.tasks
-
-# 自动创建：
-# - specs/003-chat-system/tasks.md （含并行任务标记 [P]）
-
-# Step 5: 执行实现
-/speckit.implement
-```
-
-#### 开发阶段支持
-
-`Spec-kit`明确支持三种典型开发场景：
-
-| 阶段 | 场景 | 核心活动 |
-|------|------|---------|
-| **0到1开发**（绿地项目） | 从零生成 | 高层需求→规范→实现计划→生产就绪应用 |
-| **创意探索** | 并行实现 | 探索多种技术栈与架构，实验`UX`模式 |
-| **迭代增强**（存量项目） | 棕地现代化 | 迭代新增功能、遗留系统现代化 |
-
-### OpenSpec与Spec-kit的对比
-
-两个工具都落地了`SDD`方法论，但设计取向不同：
-
-| 维度 | `OpenSpec` | `Spec-kit` |
-|------|-----------|-----------|
-| **定位** | 轻量、流动、低仪式感 | 结构化、完备、强约束 |
-| **安装方式** | `npm`全局安装 | `uv`工具安装`Python`包 |
-| **核心亮点** | 双区域（`specs/` + `changes/`）增量管理 | 项目宪法与预实现门禁 |
-| **阶段门禁** | 无刚性门禁，随时迭代 | 有明确门禁阶段，确保质量 |
-| **适合项目** | 个人项目到企业，存量项目友好 | 需要严格架构约束的项目 |
-| **社区生态** | `Fission AI`驱动，`Discord`社区 | `GitHub`官方背书 |
-| **命令风格** | `/opsx:*` | `/speckit.*` |
+三款工具并非互斥。部分团队会将`Spec-kit`（或`OpenSpec`）的规范文档与`Superpowers`的工程技能结合使用——前者负责"说清楚要做什么"，后者负责"保证做的过程符合工程规范"。
 
 ## 总结
 
 进入`AI`时代，软件开发的核心矛盾已经从"如何快速生成代码"转变为"如何在快速生成代码的同时保证质量与可维护性"。`SDD`（规范驱动开发）通过将规范提升为软件系统唯一的"事实来源"，让代码成为规范的自动化表达，从根本上解决了传统开发中规范与实现长期脱节的顽疾。
 
-`OpenSpec`和`Spec-kit`作为`SDD`方法论的两款主流落地工具，分别代表了轻量灵活与严格结构两种风格，为不同规模和不同约束的团队提供了可操作的选择。
+`OpenSpec`、`Spec-kit`与`Superpowers`作为`SDD`方法论的三款主流落地工具，分别代表了轻量灵活、严格结构、行为约束三种不同的工程化风格，为不同需求的团队和项目提供了可操作的选择。三款工具的核心执行流程高度一致：需求澄清 → 规划设计 → 实现驱动 → 验证反馈，区别在于工件粒度、门禁严格程度，以及触发机制是手动命令还是自动感知。
 
 无论选择哪款工具，`SDD`的核心理念是一致的：**先对齐，再构建（agree before you build）**。在`AI`能够将高质量规范直接转化为可工作代码的今天，一份清晰、精确的规范，正是从"随兴编码"迈向"可预测工程"的关键一步。
 
@@ -456,4 +260,5 @@ specify init . --ai copilot
 
 - [OpenSpec GitHub 仓库](https://github.com/Fission-AI/OpenSpec)
 - [Spec-kit GitHub 仓库](https://github.com/github/spec-kit)
+- [Superpowers GitHub 仓库](https://github.com/obra/superpowers)
 - [有赞AI研发全流程落地实践](https://juejin.cn/post/7592094358658138146)
