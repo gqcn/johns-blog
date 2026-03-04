@@ -262,3 +262,4 @@ flowchart TD
 - [Spec-kit GitHub 仓库](https://github.com/github/spec-kit)
 - [Superpowers GitHub 仓库](https://github.com/obra/superpowers)
 - [有赞AI研发全流程落地实践](https://juejin.cn/post/7592094358658138146)
+
