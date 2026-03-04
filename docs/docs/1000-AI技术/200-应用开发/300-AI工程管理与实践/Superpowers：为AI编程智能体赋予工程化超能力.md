@@ -251,7 +251,7 @@ ln -s ~/.config/opencode/superpowers/skills \
 
 `AI`触发`brainstorming`技能，采用苏格拉底式提问逐步澄清需求：数据库选型、字段设计、接口规范、错误处理策略、验收标准……双方确认每个设计决策后，`AI`将设计方案分段呈现，用户逐段确认。
 
-最终生成设计文档：`docs/plans/2026-03-03-user-service-design.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-design.md)），内容包含目录结构、`API`规范、数据流图、错误处理策略等。
+最终生成设计文档：`docs/plans/2026-03-03-user-service-design.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-design.md.txt)），内容包含目录结构、`API`规范、数据流图、错误处理策略等。
 
 ![阶段一：头脑风暴与设计（brainstorming）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image.png)
 
@@ -289,7 +289,7 @@ user-service/
 
 `AI`触发`writing-plans`技能，将设计文档拆解为粒度为`2-5`分钟的细粒度任务，每个任务包含：文件路径、完整代码、验证步骤和`git`提交命令。
 
-最终生成实现计划：`docs/plans/2026-03-03-user-service-impl.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-impl.md)），共`13`个任务：
+最终生成实现计划：`docs/plans/2026-03-03-user-service-impl.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-impl.md.txt)），共`13`个任务：
 
 | 任务 | 说明 |
 |------|------|
