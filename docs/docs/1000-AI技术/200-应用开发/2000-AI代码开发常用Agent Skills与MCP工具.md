@@ -186,7 +186,7 @@ npx skills add anthropics/skills@mcp-builder
 
 这类技能专注于测试策略、评估框架和持续验证，是保障`AI`生成代码质量的重要手段。
 
-#### e2e-testing
+#### e2e-testing🌟🔥
 
 **功能说明**：端到端测试模式技能，内置`Playwright`测试框架最佳实践，涵盖`Page Object Model`设计模式、测试文件组织结构、`CI/CD`集成配置、`Artifact`管理，以及处理不稳定测试（`flaky tests`）的策略，帮助`AI`生成稳定可靠的`E2E`测试代码。
 
@@ -218,7 +218,7 @@ npx skills add anthropics/skills@webapp-testing
 
 这类技能专注于浏览器自动化操作，让`AI`能够高效地控制浏览器完成测试、数据抓取等任务。
 
-#### playwright-cli
+#### playwright-cli🌟🔥
 
 **功能说明**：微软官方`Playwright CLI`工具，专为`AI`编码代理（`Coding Agent`）设计的浏览器自动化命令行接口。相比`Playwright MCP`，`CLI`方式更加`Token`高效——无需将大型工具`Schema`和可访问性树（`Accessibility Tree`）加载到模型上下文中，通过简洁的专用命令即可完成网页导航、点击、输入、截图、网络请求拦截等操作，非常适合需要在有限上下文窗口内兼顾大型代码库与浏览器自动化任务的高吞吐量编码代理。
 
