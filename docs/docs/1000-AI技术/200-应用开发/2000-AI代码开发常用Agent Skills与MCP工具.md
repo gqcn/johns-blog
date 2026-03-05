@@ -218,13 +218,15 @@ npx skills add anthropics/skills@webapp-testing
 
 这类技能专注于浏览器自动化操作，让`AI`能够高效地控制浏览器完成测试、数据抓取等任务。
 
-#### playwright-cli🌟🔥
+#### playwright-cli🌟
 
 **功能说明**：微软官方`Playwright CLI`工具，专为`AI`编码代理（`Coding Agent`）设计的浏览器自动化命令行接口。相比`Playwright MCP`，`CLI`方式更加`Token`高效——无需将大型工具`Schema`和可访问性树（`Accessibility Tree`）加载到模型上下文中，通过简洁的专用命令即可完成网页导航、点击、输入、截图、网络请求拦截等操作，非常适合需要在有限上下文窗口内兼顾大型代码库与浏览器自动化任务的高吞吐量编码代理。
 
 **使用场景**：自动化网页操作与测试、网页内容抓取、表单填写与按钮点击、页面截图与`PDF`导出、网络请求拦截与`Mock`、多会话并行浏览器管理、生成`Playwright`测试代码。
 
-**注意事项**：`playwright-cli`默认使用无头模式，因此在测试时你无法看到打开的UI界面，但是进程仍然存在，如果需要则提醒`AI`使用有头模式。
+**注意事项**：
+- `playwright-cli`默认使用无头模式，因此在测试时你无法看到打开的UI界面，但是进程仍然存在，如果需要则提醒`AI`使用有头模式。
+- 该`Skill`会不断开启新的浏览器实例并且难以清除掉，而`playwright MCP`会复用一个实例，因此我注意使用`playwright MCP`。
 
 **官网/参考**：[https://github.com/microsoft/playwright-cli](https://github.com/microsoft/playwright-cli)
 
@@ -511,7 +513,7 @@ npx skills add google-labs-code/stitch-skills@shadcn-ui
 
 ### 浏览器自动化类
 
-#### Playwright🌟
+#### Playwright🌟🔥
 
 **功能说明**：微软官方`Playwright`浏览器自动化`MCP`服务器，允许`AI`通过可访问性树（`Accessibility Tree`）和截图的方式操控真实浏览器，实现网页导航、表单填写、按钮点击、内容抓取、截图等操作，是`AI`自主完成浏览器任务的核心工具。
 
