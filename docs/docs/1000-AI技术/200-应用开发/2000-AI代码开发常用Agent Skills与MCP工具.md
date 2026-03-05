@@ -91,6 +91,7 @@ toc_max_heading_level: 4
 
 :::info 提示
 - 以下带有🌟标记的工具是作者已经使用过觉得不错的工具。
+- 以下带有🔥标记的工具是作者在初始化项目就会选择安装。
 - `Skills`别装太多，否则`AI`会选择困难，不知道该用哪个，通常安装`3-5`个常用的`Skill`即可。
 - 本文会持续更新，收录更多经过实践验证的`Agent Skills`和`MCP`工具。
 - 如果朋友们有使用过觉得不错的工具，欢迎评论留言。
@@ -136,7 +137,7 @@ npx skills add affaan-m/everything-claude-code@frontend-slides
 
 
 
-#### frontend-design🌟
+#### frontend-design🌟🔥
 
 **功能说明**：`Anthropic` 官方前端设计技能，提供专业级 `UI` 设计规范和响应式布局最佳实践，帮助 `AI` 生成美观、可访问、适配多端的前端界面代码。
 
@@ -150,7 +151,7 @@ npx skills add affaan-m/everything-claude-code@frontend-slides
 npx skills add anthropics/skills@frontend-design
 ```
 
-#### goframe-v2🌟
+#### goframe-v2🌟🔥
 
 **功能说明**：`GoFrame`框架专属`AI`技能，为`AI`深度理解`GoFrame`框架规范与最佳实践提供完整支持，涵盖命令行管理、配置管理、日志组件、错误处理、数据校验、数据库`ORM`等核心组件的设计概览、使用指南与注意事项，并内置`HTTP`服务、`gRPC`微服务等多种项目类型的实战代码示例，帮助`AI`生成高质量、可投产的`GoFrame`代码。
 
@@ -253,7 +254,7 @@ playwright-cli install --skills
 npx skills add anthropics/skills@skill-creator
 ```
 
-#### find-skills🌟
+#### find-skills🌟🔥
 
 **功能说明**：技能发现与推荐工具，当用户提问"有没有能做 `X` 的工具"或"如何完成 `X`"时，自动搜索技能库中最匹配的技能并给出安装命令和详情链接。是扩展 `AI` 能力边界的入口工具。
 
@@ -343,7 +344,7 @@ npx skills add anthropics/skills@canvas-design
 ```
 
 
-#### theme-factory🌟
+#### theme-factory🌟🔥
 
 **功能说明**：演示文稿与各类 `Artifact` 主题样式工具，内置 10 套精心搭配的主题（含配色方案和字体组合，如 `Ocean Depths`、`Midnight Galaxy`、`Tech Innovation` 等），展示主题画册供用户选择后自动应用到目标 `Artifact`，也支持根据需求即时生成自定义主题。
 
