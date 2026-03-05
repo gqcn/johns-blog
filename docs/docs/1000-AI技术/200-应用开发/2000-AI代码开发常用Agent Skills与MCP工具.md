@@ -224,6 +224,8 @@ npx skills add anthropics/skills@webapp-testing
 
 **使用场景**：自动化网页操作与测试、网页内容抓取、表单填写与按钮点击、页面截图与`PDF`导出、网络请求拦截与`Mock`、多会话并行浏览器管理、生成`Playwright`测试代码。
 
+**注意事项**：`playwright-cli`默认使用无头模式，因此在测试时你无法看到打开的UI界面，但是进程仍然存在，如果需要则提醒`AI`使用有头模式。
+
 **官网/参考**：[https://github.com/microsoft/playwright-cli](https://github.com/microsoft/playwright-cli)
 
 **安装命令：**
