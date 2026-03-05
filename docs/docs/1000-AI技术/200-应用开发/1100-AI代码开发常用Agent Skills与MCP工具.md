@@ -67,9 +67,18 @@ keywords:
     "mcp-doc-forge",
     "GoFrame Skills",
     "goframe-v2",
-    "GoFrame框架"
+    "GoFrame框架",
+    "playwright-cli",
+    "@playwright/cli",
+    "浏览器自动化",
+    "ui-ux-pro-max",
+    "UI/UX设计智能",
+    "davila7",
+    "shadcn-ui",
+    "shadcn/ui",
+    "stitch-skills"
   ]
-description: "系统梳理AI代码开发中常用的Agent Skills与MCP（Model Context Protocol）工具，涵盖everything-claude-code项目收录的编码开发、测试评估、安全审查、内容创作等多类Skills，专为GoFrame框架打造的goframe-v2技能，以及GitHub、Firecrawl、Exa Search、Context7、Supabase、ClickHouse、Memory、Sequential Thinking、Markitdown、Playwright、Chrome DevTools等主流MCP服务器配置与使用方式，帮助开发者快速了解、安装并使用这些工具，提升AI辅助开发效率。"
+description: "系统梳理AI代码开发中常用的Agent Skills与MCP（Model Context Protocol）工具，涵盖everything-claude-code项目收录的编码开发、测试评估、安全审查、内容创作等多类Skills，专为GoFrame框架打造的goframe-v2技能，微软官方playwright-cli浏览器自动化CLI工具，以及GitHub、Context7、Supabase、ClickHouse、Memory、Sequential Thinking、Markitdown、Playwright MCP、Chrome DevTools等主流MCP服务器配置与使用方式，帮助开发者快速了解、安装并使用这些工具，提升AI辅助开发效率。"
 toc_max_heading_level: 4
 ---
 
@@ -204,6 +213,28 @@ npx skills add affaan-m/everything-claude-code@e2e-testing
 npx skills add anthropics/skills@webapp-testing
 ```
 
+### 浏览器自动化类
+
+这类技能专注于浏览器自动化操作，让`AI`能够高效地控制浏览器完成测试、数据抓取等任务。
+
+#### playwright-cli
+
+**功能说明**：微软官方`Playwright CLI`工具，专为`AI`编码代理（`Coding Agent`）设计的浏览器自动化命令行接口。相比`Playwright MCP`，`CLI`方式更加`Token`高效——无需将大型工具`Schema`和可访问性树（`Accessibility Tree`）加载到模型上下文中，通过简洁的专用命令即可完成网页导航、点击、输入、截图、网络请求拦截等操作，非常适合需要在有限上下文窗口内兼顾大型代码库与浏览器自动化任务的高吞吐量编码代理。
+
+**使用场景**：自动化网页操作与测试、网页内容抓取、表单填写与按钮点击、页面截图与`PDF`导出、网络请求拦截与`Mock`、多会话并行浏览器管理、生成`Playwright`测试代码。
+
+**官网/参考**：[https://github.com/microsoft/playwright-cli](https://github.com/microsoft/playwright-cli)
+
+**安装命令：**
+
+```bash
+# 全局安装 playwright-cli
+npm install -g @playwright/cli@latest
+
+# 安装 Agent Skills（支持 Claude Code、GitHub Copilot 等编码代理）
+playwright-cli install --skills
+```
+
 ### 技能管理类
 
 这类技能专注于 `Agent Skills` 生态本身的管理，包括技能的创建、发现与安装推荐。
@@ -324,6 +355,36 @@ npx skills add anthropics/skills@canvas-design
 
 ```bash
 npx skills add anthropics/skills@theme-factory
+```
+
+
+#### ui-ux-pro-max
+
+**功能说明**：综合型`UI/UX`设计智能技能，内置50+`UI`风格、97种配色方案、57组字体搭配、99条`UX`规则和25种图表类型，覆盖`React`、`Next.js`、`Vue`、`Svelte`、`SwiftUI`、`React Native`、`Flutter`、`Tailwind`、`shadcn/ui`共9种技术栈。通过`--design-system`命令一键生成包含风格、配色、字体、互动动画等全要素的完整设计系统，并提供交付前核查清单保障专业`UI`品质。支持从解析用户需求、匹配设计风格、到生成针对特定技术栈代码的完整工作流。
+
+**使用场景**：设计网站、起始页、仪表盘、管理后台、电商页面、`SaaS应用`、移动`App`等各类前端项目的`UI`组件设计与实现、品牌视觉风格选择、`UX最佳实践审查`、配色方案与字体搜索、图表类型选择。
+
+**官网/参考**：[https://github.com/davila7/claude-code-templates](https://github.com/davila7/claude-code-templates)
+
+**安装命令：**
+
+```bash
+npx skills add davila7/claude-code-templates@ui-ux-pro-max
+```
+
+
+#### shadcn-ui
+
+**功能说明**：`Google`官方`stitch-skills`项目出品的`shadcn/ui`集成专家技能。`shadcn/ui`不同于传统组件库——元件源码直接复制到项目中，完全自主可改，无运行时包体积。该技能提供组件源码获取、自定义安装、主题配置及最佳实践指导，支持`v4`新特性（`Base UI`原语件、`RTL`、`Vega/Nova/Maia`等内置视觉风格），并内置与`shadcn MCP`工具的深度整合，允许`AI`通过工具搜索组件目录、获取组件元数据与示例代码、源码及整页块（`Blocks`）。
+
+**使用场景**：在`React`/`Next.js`项目中集成`shadcn/ui`组件、定制主题与深色模式、使用`react-hook-form + Zod`构建表单验证、搭建仪表盘`/`登录`/`侵边栏等常用页面块、组件变体编写和可访问性保障。
+
+**官网/参考**：[https://github.com/google-labs-code/stitch-skills](https://github.com/google-labs-code/stitch-skills)
+
+**安装命令：**
+
+```bash
+npx skills add google-labs-code/stitch-skills@shadcn-ui
 ```
 
 
@@ -488,5 +549,8 @@ npx skills add anthropics/skills@theme-factory
 - https://github.com/AgentDeskai/browser-tools-mcp
 - https://ghuntley.com/ralph/
 - https://github.com/gogf/skills
+- https://github.com/microsoft/playwright-cli
+- https://github.com/davila7/claude-code-templates
+- https://github.com/google-labs-code/stitch-skills
 
 
