@@ -244,7 +244,9 @@ playwright-cli install --skills
 
 这类技能专注于 `Agent Skills` 生态本身的管理，包括技能的创建、发现与安装推荐。
 
-#### skill-creator
+#### skill-creator🌟🔥
+
+> 适合全局安装。
 
 **功能说明**：`Anthropic` 官方认证的技能创建工具，通过访谈式分析帮助用户将重复工作流提炼为可复用的标准技能。支持完整的 **`draft → test → evaluate → improve`** 循环：自动生成 `SKILL.md` 结构、并行运行测试用例（对照实验对比有无技能的效果差异）、可视化评测结果，并提供描述优化模块以提升技能触发准确率。
 
@@ -259,6 +261,8 @@ npx skills add anthropics/skills@skill-creator
 ```
 
 #### find-skills🌟🔥
+
+> 适合全局安装。
 
 **功能说明**：技能发现与推荐工具，当用户提问"有没有能做 `X` 的工具"或"如何完成 `X`"时，自动搜索技能库中最匹配的技能并给出安装命令和详情链接。是扩展 `AI` 能力边界的入口工具。
 

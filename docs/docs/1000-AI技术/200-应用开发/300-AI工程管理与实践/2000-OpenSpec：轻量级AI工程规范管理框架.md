@@ -277,6 +277,47 @@ your-project/
 
 如果是选择了其他工具（如`GitHub Copilot`、`Cursor`等），相应的命令定义和技能文件会被生成到对应的集成目录中，使用方式与上述类似。
 
+### 项目配置文件（config.yaml）
+
+`openspec/config.yaml`是`OpenSpec`的项目级配置文件，在初始化时自动生成。它控制**工作流行为**和**AI 行为约束**，是项目个性化的核心入口。
+
+配置文件支持三个字段：
+
+| 字段 | 类型 | 必填 | 作用 |
+|---|---|---|---|
+| `schema` | `string` | 是 | 指定工作流`Schema`，默认`spec-driven` |
+| `context` | `string` | 否 | 项目背景信息，注入所有工件生成的指令中，上限`50KB`。该内容会作为隐性约束注入到每次`AI`生成工件时的系统提示词中，但不会出现在工件文件里。适合放技术栈、编码规范、领域背景等跨变更通用的信息 |
+| `rules` | `map` | 否 | 按工件`ID`设置约束规则，仅对指定工件（`proposal`/`specs`/`design`/`tasks`）生效 |
+
+> `context`和`rules`的内容是**给`AI`看的约束，不是写入文件的内容**——`AI`在生成工件时会参照它们，但永远不会把这两个字段的内容原文复制进工件文件中。
+
+配置示例：
+
+```yaml
+schema: spec-driven
+
+context: |
+  Tech stack: Go, GoFrame v2, SQLite (dev) / MySQL (prod)
+  API style: RESTful, JSON responses wrapped in {code, message, data}
+  Error codes: follow internal error code spec in docs/error-codes.md
+  All new APIs must include pagination support
+  Domain: multi-tenant SaaS platform
+
+rules:
+  proposal:
+    - Keep proposals under 500 words
+    - Always include a "Non-goals" section
+    - Reference the related issue number in Why section
+  specs:
+    - All scenarios must include both success and error cases
+    - HTTP status codes must follow RFC 7231
+  tasks:
+    - Break tasks into chunks completable in one session
+    - Each task group must have a corresponding spec requirement
+```
+
+
+
 ## 实战演示
 
 下面通过一个完整的实例，演示如何使用`OpenSpec`进行`AI`工程管理实践：用`GoFrame`框架从头构建一个用户服务，提供以下`RESTful`接口：
@@ -327,8 +368,6 @@ your-project/
 | `refactor-db-layer` | 重构类变更 |
 :::
 
-也可以通过自然语言告诉`AI`继续执行，它会自动调用该指令完成该步骤操作。
-
 ![OpenSpec第二步：提案与规划](assets/2000-OpenSpec：轻量级AI工程规范管理框架/image.png)
 
 生成的`4`个工件及其作用如下：
@@ -352,8 +391,6 @@ your-project/
 ```text
 /opsx:apply
 ```
-
-也可以通过自然语言要求`AI`开始实现。
 
 实现过程中如果发现设计需要调整，可以随时暂停，在更新工件中的任意内容后，再继续执行，`AI`会根据更新后的工件继续工作。
 
@@ -395,7 +432,7 @@ curl -s -X DELETE http://127.0.0.1:8080/api/v1/users/1
 
 ### 第五步：归档
 
-验证通过后，运行`/opsx:archive`完成整个变更周期：
+验证通过后，运行`/opsx:archive`斜杠指令完成整个变更周期：
 
 ```text
 /opsx:archive
