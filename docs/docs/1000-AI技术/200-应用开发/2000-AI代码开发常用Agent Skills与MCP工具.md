@@ -226,7 +226,7 @@ npx skills add anthropics/skills@webapp-testing
 
 **注意事项**：
 - `playwright-cli`默认使用无头模式，因此在测试时你无法看到打开的UI界面，但是进程仍然存在，如果需要则提醒`AI`使用有头模式。
-- 该`Skill`会不断开启新的浏览器实例并且难以清除掉，而`playwright MCP`会复用一个实例，因此我注意使用`playwright MCP`。
+- 该`Skill`会不断开启新的浏览器实例并且难以清除掉，而`playwright MCP`会复用一个实例，因此我主要还是使用`playwright MCP`。
 
 **官网/参考**：[https://github.com/microsoft/playwright-cli](https://github.com/microsoft/playwright-cli)
 
