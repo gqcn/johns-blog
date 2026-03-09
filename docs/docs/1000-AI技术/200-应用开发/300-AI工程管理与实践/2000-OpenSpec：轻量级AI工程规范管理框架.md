@@ -543,6 +543,24 @@ openspec/changes/<name>/tasks.md       # 本次任务清单
 
 本质上，`OpenSpec`的"增量规范"设计本身就是对上下文的一种天然分片——每次`AI`只需要理解"这次变更了什么"，而不需要理解"系统的一切"。
 
+### 生成的工件文件语言混乱，如何统一为中文？
+
+`OpenSpec`内置的工件模板（`proposal.md`、`spec.md`、`design.md`、`tasks.md`）本身是英文的，模板中的标题和占位符会直接影响`AI`生成内容时的语言倾向。此外，`AI`会倾向于跟随对话语言生成内容，如果你的需求描述或对话是中文，内容体通常会是中文，但标题结构往往保留英文，导致中英混杂。这对于需要人工审查`AI`生成的内容时不是很友好（如果不需要人工审查内容，那么该问题则没那么重要）。
+
+`OpenSpec`没有内置的语言开关，但可以通过`config.yaml`的`context`字段添加一条语言约束，**统一对所有工件的生成生效**（`/opsx:propose`、`/opsx:continue`、`/opsx:ff`等生成工件的命令均会注入此约束）：
+
+```yaml
+schema: spec-driven
+
+context: |
+  Output language: All artifact content must be written in Simplified Chinese,
+  including section titles, descriptions, scenario text, and task items.
+  The only exceptions are: code identifiers, API paths, technical terms with no
+  standard Chinese translation, and RFC keyword markers (SHALL/MUST/SHOULD/GIVEN/WHEN/THEN).
+```
+
+> 注意：`context`约束**仅在生成工件文件时生效**（即`/opsx:propose`等调用`openspec instructions <artifact-id>`的命令）。`/opsx:apply`执行实现代码时不会读取`context`字段，但这通常不影响工件文件本身的语言一致性，因为工件在`apply`阶段已经生成完毕。
+
 ## 总结
 
 `OpenSpec`提供了一种轻量而实用的方式来解决`AI`编程中最棘手的工程管理问题：如何在飞速的代码生成中保持工程纪律，如何让需求、设计、实现三者保持一致，如何让每一次技术决策都有迹可循。
