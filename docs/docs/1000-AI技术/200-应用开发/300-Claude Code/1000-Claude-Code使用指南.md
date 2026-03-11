@@ -177,6 +177,46 @@ claude
 /init
 ```
 
+### CC Switch（可视化配置工具）
+
+推荐使用[CC Switch](https://github.com/farion1231/cc-switch)来可视化管理`Claude Code`配置，并且管理多个`Token`服务商，进行便捷的服务切换。`CC Switch`是一款专为`Claude Code`、`Codex`、`Gemini CLI`、`OpenCode`和`OpenClaw`等`AI CLI`工具提供统一的可视化配置管理工具。它的核心价值在于消除手动编辑`JSON`/`TOML`/`.env`配置文件的繁琐操作——通过图形界面一键切换`API`供应商、管理`MCP`服务器与`Skills`，支持`Windows`、`macOS`和`Linux`全平台。
+
+![CC Switch](assets/1000-Claude-Code使用指南/image-2.png)
+
+**主要功能：**
+
+| 功能 | 说明 |
+|------|------|
+| **供应商管理** | 内置`50+`供应商预设，复制`API Key`即可一键导入并切换 |
+| **统一`MCP`管理** | 单一面板管理多个`CLI`工具的`MCP`服务器配置，支持双向同步 |
+| **`Skills`管理** | 从`GitHub`仓库或`ZIP`文件一键安装`Skills`，统一分发到各工具 |
+| **系统托盘快速切换** | 无需打开界面，直接从系统托盘菜单即时切换供应商 |
+| **云同步** | 通过`Dropbox`、`OneDrive`、`iCloud`或`WebDAV`跨设备同步配置 |
+| **用量追踪** | 跨供应商追踪`API`支出、请求数和`Token`用量，提供趋势图表 |
+| **会话管理** | 浏览、搜索和恢复全部`CLI`工具的历史对话记录 |
+
+所有配置数据存储在本地`SQLite`数据库（`~/.cc-switch/cc-switch.db`），采用原子写入机制保护配置不被损坏，并自动保留最近`10`份备份。
+
+#### 安装CC Switch
+
+**macOS（推荐使用`Homebrew`）：**
+
+```bash
+brew tap farion1231/ccswitch
+brew install --cask cc-switch
+```
+
+**其他发行版：**
+
+从 [Releases](https://github.com/farion1231/cc-switch/releases) 页面下载对应格式的安装包。
+
+#### 基本使用流程
+
+1. **添加供应商**：点击"添加供应商"→选择预设或填写自定义配置
+2. **切换供应商**：在主界面选中供应商点击"启用"，或通过系统托盘一键切换
+3. **生效方式**：重启终端使配置生效（`Claude Code`支持热切换，无需重启）
+4. **恢复官方登录**：添加"官方登录"预设，切换后执行一次`/login`完成`OAuth`授权即可
+
 ## 核心概念
 
 ![Claude Code核心概念](assets/1000-Claude-Code使用指南/image.png)
@@ -394,6 +434,36 @@ claude --resume session-name  # 按名称恢复会话
 | `Read(./.env)` | 匹配读取`.env`文件 |
 | `WebFetch(domain:example.com)` | 匹配访问特定域名 |
 
+### 推理努力程度（Effort Level）
+
+`Claude Code`通过`--effort`参数控制模型在响应前投入的推理深度，实现速度、成本与答案质量之间的灵活权衡。支持以下四个等级：
+
+| 等级 | 参数值 | 适用场景 |
+|------|--------|----------|
+| **低强度** | `low` | 简单查询、快速问答、代码格式调整等无需深度推理的任务，响应最快、消耗最少 |
+| **中等强度** | `medium` | 日常开发任务的默认选择，在速度与质量之间取得平衡 |
+| **高强度** | `high` | 复杂算法设计、架构分析、多步骤调试等需要深入思考的任务 |
+| **最大强度** | `max` | 最高难度问题，如深层并发缺陷、大规模架构重构，`Claude`会投入最大推理预算 |
+
+推理强度越高，模型的思考链越深，通常能带来更准确、更全面的答案，但也会消耗更多时间和`API`额度。建议根据任务复杂度选择合适等级，避免将高强度模式用于简单任务造成不必要的消耗。
+
+```bash
+claude --effort low      # 低强度，速度最快
+claude --effort medium   # 中等强度（默认）
+claude --effort high     # 高强度，适合复杂任务
+claude --effort max      # 最大强度，适合最高难度问题
+```
+
+也可以配合`-p`（非交互模式）按需指定推理强度，例如在自动化管道中对关键步骤单独提升等级：
+
+```bash
+# 快速查询用低强度
+claude -p "提取函数签名列表" --effort low
+
+# 复杂分析用高强度
+claude -p "分析这段代码的潜在竞态条件并给出修复方案" --effort high
+```
+
 ## 设计理念与架构原则
 
 ### 智能化设计
@@ -591,3 +661,7 @@ claude [options] [command] [prompt]
 - **安全可控**：分级权限模型和检查点机制确保操作可审计、可回退
 
 掌握`Claude Code`的关键是理解它的边界：它的核心约束是上下文窗口。主动管理上下文、给它可验证的标准、善用计划模式和子智能体，就能充分发挥其潜力。随着使用深入，你会逐渐培养出判断何时需要规划、何时可以直接执行的直觉，将`Claude Code`真正融入高效的开发工作流中。
+
+## 参考资料
+
+- https://code.claude.com/docs/en/overview
