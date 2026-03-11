@@ -73,62 +73,20 @@ toc_max_heading_level: 4
 
 ### 安装Claude Code
 
-`Claude Code`支持`macOS`、`Linux`、`WSL`和`Windows`，推荐使用官方脚本安装：
-
-**macOS / Linux / WSL：**
+`Claude Code`支持`macOS`、`Linux`、`WSL`和`Windows`，推荐使用官方脚本安装（不推荐使用`npm`安装）：
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
-```
-
-**Windows PowerShell：**
-
-```powershell
-irm https://claude.ai/install.ps1 | iex
-```
-
-**Windows CMD：**
-
-```bash
-curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
-```
-
-也可以通过`Homebrew`安装（macOS）：
-
-```bash
-brew install claude-code
 ```
 
 原生安装方式会自动在后台保持更新，始终运行最新版本。`Windows`用户需要先安装 [Git for Windows](https://git-scm.com/downloads/win)。
 
 ### 升级Claude Code
 
-**通过安装脚本升级（macOS / Linux / WSL）：**
-
-重新运行官方安装脚本即可完成升级：
+使用`update`命令升级即可：
 
 ```bash
-curl -fsSL https://claude.ai/install.sh | bash
-```
-
-**通过`npm`升级：**
-
-`Claude Code`底层使用`npm`包管理，也可以直接通过`npm`命令升级：
-
-```bash
-npm update -g @anthropic-ai/claude-code
-```
-
-**通过`Homebrew`升级（macOS）：**
-
-```bash
-brew upgrade claude-code
-```
-
-**通过`Windows PowerShell`升级：**
-
-```powershell
-irm https://claude.ai/install.ps1 | iex
+claude update 
 ```
 
 升级完成后，可以通过以下命令确认当前版本：
