@@ -43,6 +43,8 @@ toc_max_heading_level: 4
 
 ## 什么是Claude Code
 
+![Claude Code](assets/1000-Claude-Code使用指南/image-1.png)
+
 ### 基本介绍
 
 `Claude Code`是`Anthropic`推出的`AI`驱动的编程助手，运行在终端、`IDE`插件、桌面应用和浏览器等多种环境中。它的核心能力是：
@@ -176,6 +178,8 @@ claude
 ```
 
 ## 核心概念
+
+![Claude Code核心概念](assets/1000-Claude-Code使用指南/image.png)
 
 ### 智能体循环（Agentic Loop）
 
