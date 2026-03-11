@@ -13,7 +13,7 @@ up:
 	COMMIT_MSG=$$(echo "$$MSG" | tail -1) && \
 	echo "Commit: $$COMMIT_MSG" && \
 	git commit -m "$$COMMIT_MSG" && \
-	git push origin
+	git push origin main
 	
 .PHONY: build
 build:
