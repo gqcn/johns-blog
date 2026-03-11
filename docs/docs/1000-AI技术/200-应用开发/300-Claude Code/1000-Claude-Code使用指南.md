@@ -39,7 +39,7 @@ toc_max_heading_level: 4
 
 `Claude Code`由`Anthropic`开发，基于`Claude`大语言模型，通过精心设计的智能体循环（`Agentic Loop`）和工具系统，将强大的语言理解能力与实际的代码执行能力结合在一起。无论是快速理解一个陌生代码库、修复复杂的`Bug`、还是自动化大规模重构，`Claude Code`都能以接近资深工程师的水准完成工作。
 
-本文将系统介绍`Claude Code`的安装方法、核心概念、设计原理、常用命令以及`Git Worktree`并行会话功能，帮助开发者充分发挥其潜力。
+本文将系统介绍`Claude Code`的安装方法、核心概念、设计原理以及常用命令，帮助开发者充分发挥其潜力。
 
 ## 什么是Claude Code
 
@@ -79,46 +79,9 @@ toc_max_heading_level: 4
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
-原生安装方式会自动在后台保持更新，始终运行最新版本。`Windows`用户需要先安装 [Git for Windows](https://git-scm.com/downloads/win)。
+`Windows`用户需要先安装 [Git for Windows](https://git-scm.com/downloads/win)。
 
-### 升级Claude Code
-
-使用`update`命令升级即可：
-
-```bash
-claude update 
-```
-
-升级完成后，可以通过以下命令确认当前版本：
-
-```bash
-claude --version
-```
-
-### 登录账号
-
-首次运行时需要登录`Anthropic`账号：
-
-```bash
-claude
-# 启动后按提示完成登录
-```
-
-或在会话中使用命令：
-
-```bash
-/login
-```
-
-支持以下账号类型：
-
-| 账号类型 | 说明 |
-|----------|------|
-| Claude Pro/Max/Teams/Enterprise | 推荐，订阅制访问 |
-| Claude Console | 按量付费，`API`访问 |
-| Amazon Bedrock | 企业云服务商 |
-| Google Vertex AI | 企业云服务商 |
-| Microsoft Foundry | 企业云服务商 |
+**原生安装方式会自动在后台保持更新，始终运行最新版本。**
 
 ### 启动Claude Code
 
@@ -141,7 +104,7 @@ claude
 
 ![CC Switch](assets/1000-Claude-Code使用指南/image-2.png)
 
-**主要功能：**
+#### 主要功能
 
 | 功能 | 说明 |
 |------|------|
@@ -155,7 +118,7 @@ claude
 
 所有配置数据存储在本地`SQLite`数据库（`~/.cc-switch/cc-switch.db`），采用原子写入机制保护配置不被损坏，并自动保留最近`10`份备份。
 
-#### 安装CC Switch
+#### 如何安装
 
 **macOS（推荐使用`Homebrew`）：**
 
@@ -166,14 +129,8 @@ brew install --cask cc-switch
 
 **其他发行版：**
 
-从 [Releases](https://github.com/farion1231/cc-switch/releases) 页面下载对应格式的安装包。
+从 https://github.com/farion1231/cc-switch/releases 页面下载对应格式的安装包。
 
-#### 基本使用流程
-
-1. **添加供应商**：点击"添加供应商"→选择预设或填写自定义配置
-2. **切换供应商**：在主界面选中供应商点击"启用"，或通过系统托盘一键切换
-3. **生效方式**：重启终端使配置生效（`Claude Code`支持热切换，无需重启）
-4. **恢复官方登录**：添加"官方登录"预设，切换后执行一次`/login`完成`OAuth`授权即可
 
 ## 核心概念
 

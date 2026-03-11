@@ -42,6 +42,8 @@ toc_max_heading_level: 4
 
 ## 什么是Plugins
 
+![Claude Code Plugins](assets/3000-Claude-Code-Plugins使用指南/image-1.png)
+
 ### 设计目标
 
 `Plugins`的核心目标是实现`Claude Code`扩展能力的**可打包、可版本化、可分发**，主要解决以下几类问题：
