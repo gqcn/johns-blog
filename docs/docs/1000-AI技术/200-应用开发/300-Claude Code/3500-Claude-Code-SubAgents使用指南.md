@@ -43,10 +43,12 @@ toc_max_heading_level: 3
 
 ## 什么是SubAgents
 
+![Claude Code SubAgents](assets/3500-Claude-Code-SubAgents使用指南/image.png)
+
 `SubAgents`是`Claude Code`提供的专用化任务委托机制。每个子智能体都运行在独立的上下文窗口中，配备自定义系统提示、特定工具访问权限和独立的执行权限。当`Claude`遇到与某个子智能体描述匹配的任务时，会自动将该任务委托给对应的子智能体执行，子智能体独立完成任务后将结果返回给主对话。
 
 :::info NOTE
-如果需要多个智能体并行协作并相互通信，请参考 [agent teams](https://code.claude.com/docs/en/agent-teams) 特性。`SubAgents`在单个会话内工作，而`agent teams`则跨多个独立会话进行协调。
+如果需要多个智能体并行协作并相互通信，请参考 [AgentTeams](./4000-Claude-Code-AgentTeams使用指南.md) 特性。`SubAgents`在单个会话内工作，而`agent teams`则跨多个独立会话进行协调。
 :::
 
 ### 设计目标
