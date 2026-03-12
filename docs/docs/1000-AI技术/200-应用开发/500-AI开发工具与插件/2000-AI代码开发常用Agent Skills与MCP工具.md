@@ -35,6 +35,10 @@ keywords:
     "GitHub MCP",
     "Chrome DevTools MCP",
     "browser-tools-mcp",
+    "Paper MCP",
+    "Paper design tool",
+    "UI设计MCP",
+    "设计稿转代码",
     "飞书MCP",
     "Lark MCP",
     "lark-openapi-mcp",
@@ -84,7 +88,7 @@ keywords:
     "shadcn/ui",
     "stitch-skills"
   ]
-description: "系统梳理AI代码开发中常用的Agent Skills与MCP（Model Context Protocol）工具，涵盖everything-claude-code项目收录的编码开发、测试评估、安全审查、内容创作等多类Skills，专为GoFrame框架打造的goframe-v2技能，微软官方playwright-cli浏览器自动化CLI工具，以及GitHub、Context7、Supabase、ClickHouse、Memory、Sequential Thinking、Markitdown、Playwright MCP、Chrome DevTools等主流MCP服务器配置与使用方式，帮助开发者快速了解、安装并使用这些工具，提升AI辅助开发效率。"
+description: "系统梳理AI代码开发中常用的Agent Skills与MCP（Model Context Protocol）工具，涵盖everything-claude-code项目收录的编码开发、测试评估、安全审查、内容创作等多类Skills，专为GoFrame框架打造的goframe-v2技能，微软官方playwright-cli浏览器自动化CLI工具，以及GitHub、Context7、Supabase、ClickHouse、Memory、Sequential Thinking、Markitdown、Playwright MCP、Chrome DevTools、Figma MCP、Paper MCP等主流MCP服务器配置与使用方式，帮助开发者快速了解、安装并使用这些工具，提升AI辅助开发效率。"
 toc_max_heading_level: 4
 ---
 
@@ -588,6 +592,42 @@ npx skills add google-labs-code/stitch-skills@shadcn-ui
 ```
 
 **官网/参考**：[https://github.com/AgentDeskai/browser-tools-mcp](https://github.com/AgentDeskai/browser-tools-mcp)
+
+
+### UI设计类
+
+这类`MCP`工具专注于与`UI`设计工作流的深度集成，让`AI`能够直接读取设计稿信息，实现设计到代码的高效转换与交付。
+
+#### Figma
+
+**功能说明**：`Figma`官方`MCP`服务器，允许`AI`直接读取`Figma`设计文件的完整内容，包括图层结构、组件定义、设计变量（`Design Variables`）、样式（`Styles`）、原型链接、标注信息等。搭配`Figma Dev Mode`可获取精准的设计标注、代码片段和可导出资源，实现设计稿到前端代码的高效交付，大幅压缩设计与开发之间的沟通成本。
+
+**使用场景**：读取`Figma`设计稿并生成对应`UI`组件代码、提取`Design Token`和颜色/字体/间距规范、检查组件层级与属性参数、批量导出图标与资源、辅助`AI`理解设计意图并进行像素级还原。
+
+**注意事项**：使用前需在`Figma`设置页面（[https://www.figma.com/settings](https://www.figma.com/settings)）生成`Personal Access Token`，并将其配置到`MCP`服务器的环境变量中。
+
+**安装提示词**：
+```text
+安装MCP工具"figma-developer-mcp"，并完成该MCP工具的配置，参考：https://developers.figma.com/docs/figma-mcp-server/
+```
+
+**官网/参考**：https://developers.figma.com/docs/figma-mcp-server/
+
+
+#### Paper
+
+**功能说明**：`Paper`是一款轻量级`UI`设计与协作工具，其`MCP`服务器允许`AI`直接访问`Paper`中的设计稿、界面原型和设计组件，获取界面布局、色彩方案、字体规范等设计信息，并支持将提取的设计规范转化为可落地的前端代码。相比`Figma`，`Paper`更侧重快速草图与低保真原型的创作场景，适合产品初期的`UI`探索与迭代。
+
+**使用场景**：读取`Paper`中的`UI`原型草图与设计规范、提取界面布局与交互逻辑、将低保真原型转化为可交付的前端代码、辅助团队快速完成从创意草图到实现的完整流程。
+
+**注意事项**：使用前需在`Paper`平台生成`API Token`并完成`MCP`服务器的鉴权配置。部分高级功能（如实时协作内容同步）需要相应的账户权限。
+
+**安装提示词**：
+```text
+安装MCP工具"paper-mcp"，并完成该MCP工具的配置，参考：https://paper.design/docs/mcp
+```
+
+**官网/参考**：https://paper.design/docs/mcp
 
 
 ## 参考资料
