@@ -35,6 +35,12 @@ keywords:
     "GitHub MCP",
     "Chrome DevTools MCP",
     "browser-tools-mcp",
+    "飞书MCP",
+    "Lark MCP",
+    "lark-openapi-mcp",
+    "@larksuiteoapi/lark-mcp",
+    "飞书开放平台",
+    "办公协作",
     "AI工作流",
     "智能体工具",
     "AI编程辅助",
@@ -515,6 +521,45 @@ npx skills add google-labs-code/stitch-skills@shadcn-ui
 **官网/参考**：[https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking](https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking)
 
 
+### 办公协作类
+
+#### 飞书/Lark OpenAPI MCP
+
+**功能说明**：飞书/`Lark`官方`OpenAPI MCP`工具（`Beta`版本），将飞书开放平台的`API`接口封装为`MCP`工具，使`AI`助手能够直接调用飞书平台能力，实现即时通讯（创建群聊、收发消息）、云文档（搜索/读取/导入文档）、多维表格（创建表格、增删改查记录）、日历（查询/创建日程）、任务管理（创建/修改任务、添加成员与提醒）、知识库（搜索节点、获取内容）、通讯录（批量获取用户`ID`）等多种自动化场景。支持应用身份（`tenant_access_token`）和用户身份（`user_access_token`）两种认证模式，并提供`preset`预设工具集按需启用不同功能模块。
+
+**使用场景**：`AI`自动发送飞书消息与群通知、批量操作多维表格数据、搜索与读取飞书文档和知识库内容、自动创建日程安排与任务分配、构建飞书机器人集成。
+
+**注意事项**：
+- 使用前需在[飞书开放平台](https://open.feishu.cn/)创建应用并获取`App ID`和`App Secret`。
+- 暂不支持文件上传下载及直接编辑飞书云文档内容（仅支持导入和读取）。
+- 如需以用户身份调用`API`，需先通过`login`命令完成`OAuth`授权并设置重定向`URL`为`http://localhost:3000/callback`。
+
+**安装提示词**：
+```text
+安装MCP工具"@larksuiteoapi/lark-mcp"，并完成该MCP工具的配置，参考：https://github.com/larksuite/lark-openapi-mcp
+```
+
+**配置示例**：
+```json
+{
+  "mcpServers": {
+    "lark-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@larksuiteoapi/lark-mcp",
+        "mcp",
+        "-a", "<your_app_id>",
+        "-s", "<your_app_secret>"
+      ]
+    }
+  }
+}
+```
+
+**官网/参考**：[https://github.com/larksuite/lark-openapi-mcp](https://github.com/larksuite/lark-openapi-mcp)
+
+
 ### 浏览器自动化类
 
 #### Playwright🌟🔥
@@ -561,5 +606,6 @@ npx skills add google-labs-code/stitch-skills@shadcn-ui
 - https://github.com/microsoft/playwright-cli
 - https://github.com/davila7/claude-code-templates
 - https://github.com/google-labs-code/stitch-skills
+- https://github.com/larksuite/lark-openapi-mcp
 
 
