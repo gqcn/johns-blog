@@ -111,7 +111,7 @@ toc_max_heading_level: 4
 这类技能涵盖日常编码工作中的架构规范、设计模式、代码标准等，是最基础也最常用的一类。
 
 
-#### frontend-patterns
+#### frontend-patterns🌟🔥
 
 **功能说明**：前端开发模式技能，提供组件化设计思路、状态管理最佳实践、性能优化策略等前端工程化规范，帮助`AI`生成可维护、可扩展的前端代码。
 
@@ -192,7 +192,7 @@ npx skills add anthropics/skills@mcp-builder
 
 这类技能专注于测试策略、评估框架和持续验证，是保障`AI`生成代码质量的重要手段。
 
-#### e2e-testing🌟🔥
+#### e2e-testing🌟
 
 **功能说明**：端到端测试模式技能，内置`Playwright`测试框架最佳实践，涵盖`Page Object Model`设计模式、测试文件组织结构、`CI/CD`集成配置、`Artifact`管理，以及处理不稳定测试（`flaky tests`）的策略，帮助`AI`生成稳定可靠的`E2E`测试代码。
 
