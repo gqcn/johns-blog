@@ -102,9 +102,7 @@ claude
 
 推荐使用[CC Switch](https://github.com/farion1231/cc-switch)来可视化管理`Claude Code`配置，并且管理多个`Token`服务商，进行便捷的服务切换。`CC Switch`是一款专为`Claude Code`、`Codex`、`Gemini CLI`、`OpenCode`和`OpenClaw`等`AI CLI`工具提供统一的可视化配置管理工具。它的核心价值在于消除手动编辑`JSON`/`TOML`/`.env`配置文件的繁琐操作——通过图形界面一键切换`API`供应商、管理`MCP`服务器与`Skills`，支持`Windows`、`macOS`和`Linux`全平台。
 
-![CC Switch](assets/1000-Claude-Code使用指南/image-2.png)
-
-#### 主要功能
+**主要功能**：
 
 | 功能 | 说明 |
 |------|------|
@@ -118,7 +116,7 @@ claude
 
 所有配置数据存储在本地`SQLite`数据库（`~/.cc-switch/cc-switch.db`），采用原子写入机制保护配置不被损坏，并自动保留最近`10`份备份。
 
-#### 如何安装
+**如何安装**：
 
 **macOS（推荐使用`Homebrew`）：**
 
