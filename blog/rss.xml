@@ -4,37 +4,10 @@
         <title>John's Blog Blog</title>
         <link>https://johng.cn/blog</link>
         <description>John's Blog Blog</description>
-        <lastBuildDate>Wed, 11 Mar 2026 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Mon, 30 Sep 2024 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
-        <item>
-            <title><![CDATA[登山的意义]]></title>
-            <link>https://johng.cn/blog/the-meaning-of-mountain-hiking</link>
-            <guid>https://johng.cn/blog/the-meaning-of-mountain-hiking</guid>
-            <pubDate>Wed, 11 Mar 2026 00:00:00 GMT</pubDate>
-            <description><![CDATA[一篇关于登山与人生意义的散文诗。在山野间独行露营，聆听风声鸟鸣，仰望星河云海，感受四季轮转与风雨洗礼，在自然的辽阔与沉默中叩问内心，体悟生命最本真的力量与登山的深层意义。]]></description>
-            <content:encoded><![CDATA[<p>有时喜欢背着包独自进山，待上一段不被打扰的时光。</p>
-<p>特别是当工作与生活的喧嚣涌来，心底某个角落开始隐隐作痛时。</p>
-<p>露营在密林深处，听松涛阵阵；扎帐于溪涧之畔，枕流水入梦；栖身在山坡之上，与浮云比肩而眠。</p>
-<p><img decoding="async" loading="lazy" alt="登山的意义" src="https://johng.cn/assets/images/image-2-ba89611f90d3103f46a8eec1d3dc7095.png" width="1707" height="1280" class="img_ev3q"></p>
-<p>久违的云海翻涌在脚下，如千军万马奔腾而过，又如绸缎般温柔地铺展到天际。漫天的繁星缀满穹顶，银河横亘，每一颗光点都是亿万年前的叹息。而那璀璨的日出，从山脊线上喷薄而出的瞬间，金光刺破层云，仿佛整个世界都在那一刻被重新点燃。</p>
-<p><img decoding="async" loading="lazy" alt="登山的意义" src="https://johng.cn/assets/images/image-a9910378f05a4f7098e76e41feb7a506.png" width="1707" height="1280" class="img_ev3q"></p>
-<p>凌厉的山风，裹挟着草木的气息，掠过耳畔，像是大山低沉的呼吸，粗粝而诚恳，一遍遍拂去心头积落的尘埃。夜幕垂落，万籁俱寂后又生出另一番声响 — 猫头鹰在枝头发出苍凉的长鸣，不知名的小兽在灌木丛中窸窸窣窣地歌唱，合奏成一曲旷野的安魂曲。黑暗并不可怕，可怕的是在灯火通明中，听不见自己的心跳。</p>
-<p><img decoding="async" loading="lazy" alt="登山的意义" src="https://johng.cn/assets/images/image-1-284b6256675bc18f6c8acfa2f3cb7322.png" width="2276" height="1280" class="img_ev3q"></p>
-<p>夏日，一声声蝉鸣嘶哑而执拗，像是时光深处不肯罢休的呐喊。山间的丝丝清风穿林而过，带着花草的幽香和泥土的温润。淅淅沥沥的雨声落在帐篷上，落在阔叶上，落在心尖上，每一滴都似天空写给大地的情书。</p>
-<p><img decoding="async" loading="lazy" alt="登山的意义" src="https://johng.cn/assets/images/image-4-b115fa644eacf690959efccca7ce2e41.png" width="1707" height="1280" class="img_ev3q"></p>
-<p>冬日，皑皑积雪覆盖了来时路，世界变得纯净而肃穆。山涧被冰封在沉默之中，流水凝成晶莹的琥珀，时间仿佛也在此刻静止。山坡上狂风呼啸，刀割似的寒意侵入骨髓，却让人在凛冽中感到一种异样的清醒与庄严。</p>
-<p><img decoding="async" loading="lazy" alt="登山的意义" src="https://johng.cn/assets/images/image-3-b1350f60e0ef045212cfca8d39e2d107.png" width="1707" height="1280" class="img_ev3q"></p>
-<p>山不语，却容纳一切。</p>
-<p>风不问，却穿透所有。</p>
-<p>也许不用攀多高的山，也不用走太远的路。</p>
-<p>不必执念于峰顶的旗帜，也无需丈量脚下的里程。</p>
-<p>山从来不会因为你登顶而伟大，路也不会因为你远行而漫长。</p>
-<p>在每一次迈步中，在每一次喘息里，在每一次跌倒后重新站起的沉默里，</p>
-<p>只要一直在默默前行，不问山高，不惧路远。</p>
-<p>这，或许就是登山的意义。</p>]]></content:encoded>
-        </item>
         <item>
             <title><![CDATA[离开腾讯]]></title>
             <link>https://johng.cn/blog/i-leave-tencent</link>
@@ -42,7 +15,7 @@
             <pubDate>Mon, 30 Sep 2024 00:00:00 GMT</pubDate>
             <description><![CDATA[记录在腾讯工作3年6个月的真实经历与感悟。从两次面试的机缘巧合，到大厂职场的同质化与内卷，再到主动放弃晋升的选择，分享在互联网大厂工作的个人体验和对未来的坚持。]]></description>
             <content:encoded><![CDATA[<p>在腾讯工作了3年6个月，共1260天。</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="那一年">那一年<a href="https://johng.cn/blog/i-leave-tencent#%E9%82%A3%E4%B8%80%E5%B9%B4" class="hash-link" aria-label="Direct link to 那一年" title="Direct link to 那一年">​</a></h2>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="那一年">那一年<a href="https://johng.cn/blog/i-leave-tencent#%E9%82%A3%E4%B8%80%E5%B9%B4" class="hash-link" aria-label="Direct link to 那一年" title="Direct link to 那一�年">​</a></h2>
 <p>当年在2018年就已经面试过4轮，等着HR聊Offer来着，后面HC居然关闭了，还没个通知，心想这大厂的面试流程也还挺随意。</p>
 <p>3年后的2021年，由于一些机缘巧合，又重新面试了相同岗位，可能由于几年前的面试记录还有，那时的面试结果还不错，因此今年的面试流程也挺随意，有的面试官说其实面试流程总共已经走了太多了，总监面试的主要问题居然是问我期望薪资想涨多少😅。</p>
 <p>我刚入职腾讯的头一个晚上，我甚至还有点兴奋得睡不着觉😅。</p>
@@ -72,7 +45,7 @@
             <pubDate>Sat, 06 Jul 2024 00:00:00 GMT</pubDate>
             <description><![CDATA[记录三次独自挑战青龙峰的完整经历。第一次遭遇极端天气和失温症状被迫下撤,第二次在杜鹃林迷路体力透支未能登顶,第三次克服缺水困境成功登顶。分享高海拔登山的真实体验、路线探索、安全应对措施,以及独自面对山野挑战时的心理历程。]]></description>
             <content:encoded><![CDATA[<p>青龙峰这条线，我独自尝试了三次，这不仅是一次对山的挑战，更是一场与自己内心对话的修行。</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="第一次与极端天气的遭遇">第一次：与极端天气的遭遇<a href="https://johng.cn/blog/qinglong-mountain#%E7%AC%AC%E4%B8%80%E6%AC%A1%E4%B8%8E%E6%9E%81%E7%AB%AF%E5%A4%A9%E6%B0%94%E7%9A%84%E9%81%AD%E9%81%87" class="hash-link" aria-label="Direct link to 第一次：与极端天气的遭遇" title="Direct link to 第一次：与极端天气的遭遇">​</a></h2>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="第一次与极端��天气的遭遇">第一次：与极端天气的遭遇<a href="https://johng.cn/blog/qinglong-mountain#%E7%AC%AC%E4%B8%80%E6%AC%A1%E4%B8%8E%E6%9E%81%E7%AB%AF%E5%A4%A9%E6%B0%94%E7%9A%84%E9%81%AD%E9%81%87" class="hash-link" aria-label="Direct link to 第一次：与极端天气的遭遇" title="Direct link to 第一次：与极端天气的遭遇">​</a></h2>
 <p>2024年五一节期间，我背着重装出发，计划用4-5天的时间在山里慢慢探路。装备和食物都准备充足，尽管天气预报显示连日有雨，但日常规律的锻炼让我对自己的体能颇有自信，甚至有些轻视了天气的影响。</p>
 <p>这是第一个教训：山永远比我们想象的更强大。雨天进山，危险不仅在于湿滑的山路可能导致的意外，更在于风寒效应和水寒效应对人体的侵袭——失温，往往在不经意间悄然降临。山里的天气如同孩童的面孔，说变就变，那些平时遇不到的极端天气，可能在你最无助的时候突然出现。</p>
 <iframe src="//player.bilibili.com/player.html?isOutside=true&amp;aid=115876942583082&amp;bvid=BV12J6oBTEX6&amp;cid=35325152394&amp;p=1&amp;autoplay=0" width="100%" height="410" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen=""></iframe>
