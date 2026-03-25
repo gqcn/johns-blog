@@ -1,5 +1,5 @@
 ---
-slug: "/ai/harness-engineering-ai-agent-reliability"
+slug: "/ai/harness-engineering"
 title: "Harness Engineering：构建高可靠AI Agent的工程方法论"
 hide_title: true
 keywords:
