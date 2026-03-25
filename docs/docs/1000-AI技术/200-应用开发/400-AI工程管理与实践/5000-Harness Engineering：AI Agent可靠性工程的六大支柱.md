@@ -59,7 +59,7 @@ Agent = Model + Harness
 
 汽车比喻在这里尤为贴切：**模型是引擎，`Harness`是指南针和刹车系统**。一辆没有方向盘和刹车的跑车，无论引擎功率多大，都是一场灾难。同样，一个缺乏`Harness`工程保障的`AI Agent`，无论模型能力多强，在真实复杂场景中都将面临不可预测的失败。
 
-### 技术背景与问题由来
+## 技术背景与问题由来
 
 在`AI Agent`开发初期，大多数工程师将精力集中在两件事上：选择更好的模型，以及优化`prompt`（提示词）。这种"模型中心论"的开发范式带来了显著的局限性：
 
@@ -87,9 +87,12 @@ Agent = Model + Harness
 
 ## 六大支柱
 
+
 `Harness Engineering`的实践体系由六大核心支柱构成，每个支柱针对不同层面的可靠性挑战。
 
-### 支柱一：上下文架构（Context Architecture）
+### 上下文架构（Context Architecture）
+
+![上下文架构（Context Architecture）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-1.png>)
 
 **核心理念**：精准设计进入模型上下文的信息，避免信息过载。
 
@@ -124,7 +127,9 @@ Agent = Model + Harness
 
 **不足与替代实践**：`Claude Code`没有内置的自动上下文压缩触发机制。当上下文窗口接近上限时，需要用户手动执行`/compact`命令触发蒸馏，或开启新会话。开发者可在`CLAUDE.md`中显式约定规则，例如"当处理超过`5`个文件的大任务时，每完成一个阶段主动用一段摘要替代详细步骤记录"，以弥补自动压缩能力的缺失。
 
-### 支柱二：架构约束（Architectural Constraints）
+### 架构约束（Architectural Constraints）
+
+![架构约束（Architectural Constraints）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-2.png>)
 
 **核心理念**：用工具和代码强制执行规则，而非依赖`prompt`软约束。
 
@@ -167,7 +172,9 @@ Agent = Model + Harness
 
 **不足与替代实践**：`Claude Code`对工具参数的细粒度约束依赖`MCP`服务器实现，内置工具（如`run_in_terminal`）缺乏参数白名单机制。对于高风险操作，替代实践是在`CLAUDE.md`的操作规范（`operationalSafety`）章节中显式声明安全准则，例如"删除文件前必须先与用户确认"、"禁用`--force`和`--no-verify`参数"，将架构约束退化为可强制审查的提示约束。
 
-### 支柱三：自验证循环（Self-Validation Loops）
+### 自验证循环（Self-Validation Loops）
+
+![自验证循环（Self-Validation Loops）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-3.png>)
 
 **核心理念**：在`Agent`执行流程中内置验证检查点，防止死循环与静默失败。
 
@@ -233,7 +240,9 @@ flowchart TD
 
 **不足与替代实践**：`Claude Code`没有内置"最大迭代次数"的硬性限制，也没有进展停滞检测机制。当任务陷入困境时，`Claude Code`有时会过于"执着"地重试相同方案。弥补方法是在`CLAUDE.md`中显式约定终止规则，例如"如果同一问题连续尝试超过`3`次均失败，停止尝试并向用户报告当前状态和障碍，不要继续猜测"，将终止边界以文字规范的形式植入`Harness`。
 
-### 支柱四：上下文隔离（Context Isolation）
+### 上下文隔离（Context Isolation）
+
+![上下文隔离（Context Isolation）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-4.png>)
 
 **核心理念**：多`Agent`协作时，保持每个`Agent`上下文的纯净性，防止跨越边界的信息污染。
 
@@ -272,7 +281,9 @@ flowchart TD
 
 **不足与替代实践**：在单一会话内，`Claude Code`没有自动的任务间上下文清理机制。当一个长会话中连续处理多个不相关任务时，早期任务的上下文细节（特别是错误信息和异常状态）会残留并潜在地干扰后续任务的判断。替代实践是为每个独立任务主动开启新会话，并在`CLAUDE.md`中将项目级通用知识固化，而非依赖会话历史传递。对于确实需要在单会话内处理多任务的场景，可在任务切换时使用`/clear`重置对话历史，再通过`CLAUDE.md`恢复必要的项目上下文。
 
-### 支柱五：熵治理（Entropy Governance）
+### 熵治理（Entropy Governance）
+
+![熵治理（Entropy Governance）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-5.png>)
 
 **核心理念**：建立自维护机制，对抗`Agent`系统中上下文和状态的自然熵增趋势。
 
@@ -334,7 +345,9 @@ flowchart TD
 
 **不足与替代实践**：`Claude Code`的自动记忆写入是被动触发的（由`Claude Code`自行判断是否值得记录），缺乏定时清理过期记忆的主动机制。随着时间推移，`/memories/`目录中可能积累了大量已过时或矛盾的记忆条目。替代实践是在`CLAUDE.md`中建立记忆维护约定，例如要求`Claude Code`在每次会话结束时审查`/memories/session/`目录并更新关键进展，以及定期（每周或每个里程碑后）人工审查`/memories/repo/`中的过时条目并清理。
 
-### 支柱六：可拆卸性（Detachability）
+### 可拆卸性（Detachability）
+
+![可拆卸性（Detachability）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-6.png>)
 
 **核心理念**：以模块化设计构建`Harness`系统，使其能够随着模型的迭代进化而优雅适配。
 
