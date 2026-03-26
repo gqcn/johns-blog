@@ -1,16 +1,21 @@
 ## 依赖Claude Code，自动生成 commit message 并提交到远程仓库
 .PHONY: up
 up:
-	@if git diff --quiet HEAD && git diff --cached --quiet && [ -z "$$(git ls-files --others --exclude-standard)" ]; then \
-		echo "No changes to commit"; \
-		exit 0; \
-	fi
-	@git add -A
-	@echo "Analyzing changes and generating commit message via AI..."
 	@set -e; \
+	if git diff --quiet HEAD && git diff --cached --quiet && [ -z "$$(git ls-files --others --exclude-standard)" ]; then \
+		if git diff --quiet HEAD origin/$$(git branch --show-current) 2>/dev/null; then \
+			echo "No changes to commit and nothing to push"; \
+		else \
+			echo "No local changes, pushing unpushed commits..."; \
+			git push origin $$(git branch --show-current); \
+		fi; \
+		exit 0; \
+	fi; \
+	git add -A; \
+	echo "Analyzing changes and generating commit message via AI (model: $(or $(m),haiku))..."; \
 	MSG=$$(git diff --cached --stat && echo "---" && git diff --cached | head -2000 | \
 		claude -p "Analyze the git diff above and generate a concise commit message (single line, max 72 chars, lowercase, no quotes). Output only the commit message itself, nothing else." \
-		--model haiku) || { echo "Error: Claude command failed"; exit 1; }; \
+		--model $(or $(m),haiku)) || { echo "Error: Claude command failed"; exit 1; }; \
 	COMMIT_MSG=$$(echo "$$MSG" | tail -1); \
 	if [ -z "$$COMMIT_MSG" ]; then \
 		echo "Error: Failed to generate commit message"; \
