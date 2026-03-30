@@ -490,3 +490,6 @@ flowchart TD
 这六大支柱共同构成了`Agent`系统的"指南针和刹车系统"。随着`AI Agent`在生产环境中承担越来越关键的任务，`Harness Engineering`的工程投入，将成为区分可靠产品与失控系统的核心差异。
 
 
+## 参考资料
+
+- https://www.anthropic.com/engineering/harness-design-long-running-apps
