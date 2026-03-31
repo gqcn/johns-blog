@@ -212,6 +212,7 @@ openspec/changes/feature-name/
 执行`/opsx:apply`后，`AI`按照`tasks.md`中的任务清单逐条完成代码实现、测试编写和文档更新。**每个任务完成后自动调用`/openspec-review`技能进行代码和规范审查**。涉及前端页面功能的任务，还需创建`E2E`端到端测试用例并在执行过程中自动运行，确保功能实现的正确性。
 
 ![OpenSpec工程实践：按任务清单逐条实现](assets/6000-OpenSpec工程实践：SDD规范驱动开发的落地探索/image-9.png)
+![OpenSpec工程实践：按任务清单逐条实现示意](assets/6000-OpenSpec工程实践：SDD规范驱动开发的落地探索/image-10.png)
 
 **第四步：处理用户反馈（`/openspec-feedback`扩展技能）**
 
