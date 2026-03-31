@@ -1,6 +1,6 @@
 ---
 slug: "/ai/multi-node-multi-gpu-inference-scheme-selection"
-title: "多机多卡大模型推理服务：方案对比与Kthena选型实践"
+title: "多机多卡大模型推理服务：方案对比选型与Kthena实践"
 hide_title: true
 keywords:
   [
@@ -8,6 +8,8 @@ keywords:
     "大模型推理",
     "LLM推理",
     "Kthena",
+    "AIBrix",
+    "OME",
     "Kubernetes",
     "Volcano",
     "张量并行",
@@ -25,11 +27,13 @@ keywords:
     "推理服务治理",
     "vLLM",
     "SGLang",
+    "KubeRay",
     "Ray分布式",
+    "Open Model Engine",
     "网络拓扑调度",
     "推理框架"
   ]
-description: "本文深入介绍大模型推理服务在多机多卡场景下的部署方案选型与落地实践。结合华为昇腾910B NPU、GLM-5 744B参数量级模型的真实背景，分析单节点资源不足的核心痛点，对比LWS、RBG、Kthena三种业界方案的技术特点与取舍，重点讲解Kthena的架构设计、核心组件（ModelServing/ModelRoute/ModelServer/ModelBooster）、与Volcano调度器的深度集成，以及通过kind本地集群运行的完整示例，帮助读者快速掌握企业级多机多卡推理部署能力。"
+description: "本文深入介绍大模型推理服务在多机多卡场景下的部署方案选型与落地实践。结合华为昇腾910B NPU、GLM-5 744B参数量级模型的真实背景，分析单节点资源不足的核心痛点，对比LWS、RBG、Kthena、AIBrix、OME五种业界方案的技术特点与取舍，重点讲解Kthena的架构设计、核心组件（ModelServing/ModelRoute/ModelServer/ModelBooster）、与Volcano调度器的深度集成，以及通过kind本地集群运行的完整示例，帮助读者快速掌握企业级多机多卡推理部署能力。"
 toc_max_heading_level: 4
 ---
 
@@ -68,9 +72,9 @@ toc_max_heading_level: 4
 
 
 
-## 三种技术方案对比
+## 业界技术方案对比
 
-业界针对上述痛点提出了多种解决方案，当前较为主流的包括：`LeaderWorkerSet（LWS）`、`RoleBasedGroup（RBG）` 以及 `Kthena`。
+业界针对上述痛点提出了多种解决方案，当前较为主流的包括：`LeaderWorkerSet（LWS）`、`RoleBasedGroup（RBG）`、`Kthena`、`AIBrix` 以及 `OME（Open Model Engine）`。
 
 ### LeaderWorkerSet（LWS）
 
@@ -117,6 +121,55 @@ LeaderWorkerSet
 - `PD`分离的上层封装`DisaggregatedSet`仍在提案阶段（KEP-766），生产可用性有限
 - 不具备自动扩缩容、`LoRA`热加载、模型生命周期管理等高层能力
 
+### AIBrix
+
+`AIBrix`（[vllm-project/aibrix](https://github.com/vllm-project/aibrix)）由字节跳动开源并贡献至`vllm-project`社区，定位为云原生`GenAI`推理基础架构的"构建模块"工具箱，深度面向`vLLM`引擎的规模化企业部署场景。项目自`2024`年底首发以来版本迭代迅速（已达`v0.6.0`），并多次登上`KubeCon`主题演讲舞台。
+
+![AIBrix](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-3.png)
+
+**核心设计理念**
+
+将`Kubernetes`与`Ray`的职责严格分层：`Kubernetes`负责**粗粒度资源编排**（启动`Ray Cluster`、扩缩容、滚动升级），`Ray`负责**细粒度应用内部编排**（分布式张量并行、任务调度）。通过引入`RayClusterFleet`（对应`Deployment`）和`RayClusterReplicaSet`（对应`ReplicaSet`）两个`CRD`，将每一个`Ray Cluster`实例映射为一个推理服务副本，从而将`Kubernetes`成熟的运维管理能力（自动扩缩容、滚动升级）与`Ray`的分布式计算能力无缝结合。
+
+```
+RayClusterFleet
+└── RayClusterReplicaSet
+    ├── RayCluster (Replica 0) — Head + Workers (multi-node)
+    └── RayCluster (Replica 1) — Head + Workers
+```
+
+| 维度 | 说明 |
+|------|------|
+| 社区归属 | `vllm-project`（字节跳动发起），活跃度高 |
+| `Gang Scheduling` | 隐式（`Ray Cluster`整体原子语义），无专用调度器依赖 |
+| 角色类型 | `Head + Worker`（`Ray`内部管理，无独立`CRD`角色） |
+| `PD`分离支持 | 通过`Ray`框架内部路由实现，网关层可感知 |
+| 路由能力 | 内置`LLM Gateway`（`K8s Gateway API`+`Envoy`），支持模型感知路由 |
+| `Volcano`集成 | 无，使用标准`K8s`调度器 |
+| 模型生命周期 | `Unified AI Runtime Sidecar`（下载、指标标准化、`LoRA`管理） |
+| 自动扩缩容 | 内置`LLM`专属自动扩缩容（基于队列长度、`token`吞吐等指标） |
+| 异构推理 | 支持混合`GPU`异构推理，具备成本优化能力 |
+| 分布式`KV Cache` | 支持跨引擎实例的`KV Cache`共享与复用 |
+
+**优点**
+
+- 社区活跃，`vllm-project`生态背书，与`vLLM`引擎集成最深，版本跟进快
+- `Ray`+`Kubernetes`分层架构清晰，充分利用`Ray`的分布式调度能力，降低`Kubernetes Operator`复杂度
+- 内置`LLM Gateway`基于`K8s Gateway API`标准构建，具备模型感知、`LoRA Adapter`感知的智能路由能力
+- 独有的**分布式`KV Cache`**特性，支持跨`vLLM`实例的`KV`共享，显著提升缓存命中率
+- `GPU`硬件故障检测能力，主动感知硬件异常，提升推理服务可靠性
+- 内置`LLM`专属`Autoscaler`，基于真实推理负载（队列深度、`TTFT`、`token/s`等）精确扩缩容
+- 支持异构`GPU`混合推理，在满足`SLO`的前提下降低推理成本
+
+**缺点**
+
+- 强依赖`Ray`运行时，引入了额外的运维复杂度（`Ray Cluster`管理、版本兼容等），对不熟悉`Ray`的团队存在学习成本
+- 不支持`Volcano`/`Kueue`等专业调度器的`Gang Scheduling`——`Ray Cluster`原子语义可避免半部署死锁，但缺乏细粒度网络拓扑感知调度
+- 主要面向`vLLM`引擎优化，对`SGLang`、`TensorRT-LLM`等其他引擎的支持程度相对有限
+- `PD`分离能力依赖`Ray`框架内部实现，缺乏`Kthena`/`OME`那样声明式、可观测的多角色编排层
+- 对非`GPU`异构硬件（如昇腾`NPU`）的支持尚不完善
+
+
 ### RoleBasedGroup（RBG）
 
 `RBG`（[sgl-project/rbg](https://github.com/sgl-project/rbg)）由`SGLang`项目团队维护，在`LWS`设计基础上进行了扩展，将推理服务建模为"基于角色的协作有机体"（Role-Based Organism），以支持更复杂的生产部署场景，尤其是`PD`分离架构。
@@ -160,6 +213,66 @@ RoleBasedGroup
 - 与`Volcano`的集成深度不如`Kthena`，`subGroupPolicy`等高级功能未完全利用
 - 不具备自动扩缩容、模型下载管理等运维自动化能力
 
+
+
+### OME（Open Model Engine）
+
+`OME`（[sgl-project/ome](https://github.com/sgl-project/ome)）由`SGLang`社区发起，是一个面向企业级`LLM`服务的`Kubernetes Operator`，定位为**以模型为第一公民**的推理平台——将模型元数据、运行时选择、部署策略统一在一套声明式`CRD`体系内，同时深度集成`Kubernetes`生态标准组件（`LWS`、`Kueue`、`KEDA`、`K8s Gateway API`等）。
+
+![OME（Open Model Engine）](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-4.png)
+
+**核心设计理念**
+
+将**模型**（`BaseModel`/`FineTunedWeight`）、**运行时**（`ServingRuntime`）与**推理服务实例**（`InferenceService`）三者解耦，通过**智能运行时选择引擎**（基于模型架构、参数量、量化格式、框架兼容性的加权评分算法）自动将模型匹配到最优运行时配置，无需用户手动指定；同时通过`AcceleratorClass`抽象硬件能力，实现硬件感知调度（`BestFit`/`Cheapest`/`MostCapable`策略）。
+
+```
+BaseModel/ClusterBaseModel   (模型元数据 CRD，自动解析架构/参数量/量化格式)
+       │
+FineTunedWeight              (LoRA/微调权重 CRD)
+       │
+ServingRuntime               (运行时配置 CRD，支持 SGLang/vLLM/Triton)
+       │
+InferenceService             (部署实例 CRD)
+  ├── Engine Role (via LWS multi-node)
+  ├── Decoder Role (PD 分离 Decode 节点)
+  └── Router Role
+```
+
+| 维度 | 说明 |
+|------|------|
+| 社区归属 | `SGLang`社区，已有生产部署案例 |
+| `Gang Scheduling` | 通过`Kueue`实现多`Pod`组调度 |
+| 角色类型 | `Engine/Decoder/Router`多角色，底层通过`LWS`实现多节点 |
+| `PD`分离支持 | 原生支持，`Engine`+`Decoder`独立角色分别部署 |
+| 路由能力 | `K8s Gateway API` + `Gateway API Inference Extension` |
+| `Volcano`集成 | 无，使用`Kueue`进行`Gang Scheduling` |
+| 模型生命周期 | 完整（`BaseModel`自动解析架构参数、多格式支持、分布式存储、双重加密） |
+| 自动扩缩容 | `KEDA`自定义指标自动扩缩容 |
+| 运行时选择 | 智能自动匹配（加权评分算法） |
+| 硬件调度 | `AcceleratorClass`硬件感知调度，`GPU Bin-Packing`动态重优化 |
+| 性能基准 | 内置`BenchmarkJob` `CRD`，支持可配置负载测试 |
+| 管理界面 | 内置`Web Console`，支持模型浏览、`HuggingFace`搜索 |
+
+**优点**
+
+- **模型即一等公民**：`BaseModel CRD`内置模型架构自动解析（参数量、量化格式、架构类型），`80+`模型族预配置，显著降低部署门槛
+- 智能运行时自动匹配，无需用户手动绑定模型与运行时，减少配置出错
+- 对`SGLang`引擎支持最深入（`SGLang`同一团队维护），缓存感知负载均衡、多`LoRA`并发、`PD`分离等特性优先落地
+- 深度拥抱`Kubernetes`标准生态（`LWS`、`Kueue`、`KEDA`、`K8s Gateway API`），组件可替换性强
+- 内置`Web Console`管理界面，支持模型浏览、服务管理、`HuggingFace`模型搜索
+- `AcceleratorClass`+`GPU Bin-Packing`动态重优化，集群资源利用率高
+- 内置`BenchmarkJob`，可系统化评估不同模型/配置的性能表现
+- 支持模型存储加密（双重加密），满足企业安全合规需求
+
+**缺点**
+
+- 项目仍处于`v1beta1` `API`阶段，功能快速迭代，`API`可能变化
+- 不支持`Volcano`调度器，与已采用`Volcano`技术栈的集群存在冲突
+- 多节点推理底层依赖`LWS`，继承`LWS`的角色模型约束，复杂`PD`分离拓扑需通过`InferenceService`上层抽象组合实现，配置相对复杂
+- `Gang Scheduling`依赖`Kueue`，与`Volcano subGroupPolicy`细粒度调度能力相比，在拓扑感知方面（如`HyperNode`级别感知）尚有差距
+- 国际社区为主，中文文档和国内落地案例相对较少
+- 对非`NVIDIA GPU`硬件（如昇腾`NPU`）的支持尚不成熟
+
 ### Kthena
 
 `Kthena`（[volcano-sh/kthena](https://github.com/volcano-sh/kthena)）是由`Volcano`社区（华为）发起的企业级`LLM`推理平台，定位为一站式`Kubernetes`原生推理服务治理方案，覆盖从模型部署、流量路由到自动扩缩容的完整生命周期。
@@ -197,20 +310,26 @@ RoleBasedGroup
 - 架构复杂度较高，初次安装和学习曲线比`LWS`陡峭
 - 国际社区影响力尚处于建立阶段，中文文档相对更丰富
 
+
 ### 方案选型对比总结
 
-| 对比维度 | LWS | RBG | Kthena |
-|---------|-----|-----|--------|
-| 社区成熟度 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| 多角色支持 | ❌ 仅`Leader/Worker` | ✅ 任意多角色 | ✅ 任意多角色 |
-| `Gang Scheduling` | ⚠️ `Alpha` | ✅ | ✅（深度集成`Volcano`） |
-| 网络拓扑感知 | ⚠️ 有限 | ✅ | ✅（`HyperNode`） |
-| `PD`分离原生支持 | ⚠️ `KEP`阶段 | ✅ | ✅ |
-| 内置路由层 | ❌ | ❌ | ✅ |
-| 模型生命周期管理 | ❌ | ❌ | ✅ |
-| 自动扩缩容 | ❌ | ⚠️ 有限 | ✅ |
-| `Volcano`深度集成 | ⚠️ 可选 | ⚠️ 可选 | ✅ 原生 |
-| 方案完整性 | 基础工作负载 | 工作负载+协调 | 完整推理平台 |
+| 对比维度 | LWS | AIBrix | RBG | OME | Kthena |
+|---------|-----|--------|-----|-----|--------|
+| 社区归属 | `k8s-sigs`官方 | `vllm-project`（字节跳动） | `SGLang`社区 | `SGLang`社区 | `Volcano`社区（华为） |
+| 社区成熟度 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| 多角色支持 | ❌ 仅`Leader/Worker` | ⚠️ `Ray`内部管理 | ✅ 任意多角色 | ✅ `Engine`/`Decoder`/`Router` | ✅ 任意多角色 |
+| `Gang Scheduling` | ⚠️ `Alpha` | ⚠️ `Ray`原子语义 | ✅ | ✅（`Kueue`） | ✅（深度集成`Volcano`） |
+| 网络拓扑感知 | ⚠️ 有限 | ❌ | ✅ | ⚠️ 有限 | ✅（`HyperNode`） |
+| `PD`分离原生支持 | ⚠️ `KEP`阶段 | ⚠️ `Ray`内部 | ✅ | ✅ | ✅ |
+| 内置路由层 | ❌ | ✅（`LLM Gateway`） | ❌ | ✅（`Gateway API`） | ✅（`Kthena Router`） |
+| 模型生命周期管理 | ❌ | ⚠️ 下载+`LoRA` | ❌ | ✅（`BaseModel CRD`+自动解析） | ✅ |
+| 自动扩缩容 | ❌ | ✅（`LLM`专属） | ⚠️ 有限 | ✅（`KEDA`） | ✅ |
+| `Volcano`深度集成 | ⚠️ 可选 | ❌ | ⚠️ 可选 | ❌ | ✅ 原生 |
+| 分布式`KV Cache` | ❌ | ✅ | ❌ | ❌ | ❌ |
+| 智能运行时匹配 | ❌ | ❌ | ❌ | ✅（加权评分） | ❌ |
+| 硬件感知调度 | ❌ | ⚠️ 异构`GPU` | ⚠️ 有限 | ✅（`AcceleratorClass`） | ✅（`HyperNode`） |
+| 多推理引擎支持 | 无内置支持 | 主要`vLLM` | 主要`SGLang` | `SGLang`/`vLLM`/`Triton` | `vLLM`/`SGLang` |
+| 方案完整性 | 基础工作负载 | 推理基础架构工具箱 | 工作负载+协调 | 模型驱动推理平台 | 完整推理平台 |
 
 
 ## 为何选择 Kthena
@@ -820,9 +939,9 @@ spec:
 
 ## 总结
 
-本文从公司使用昇腾`NPU`部署`GLM-5 744B`超大规模模型的真实背景出发，系统梳理了多机多卡`LLM`推理部署的核心痛点，并对`LWS`、`RBG`、`Kthena`三种业界主流方案进行了深入对比分析。
+本文从公司使用昇腾`NPU`部署`GLM-5 744B`超大规模模型的真实背景出发，系统梳理了多机多卡`LLM`推理部署的核心痛点，并对`LWS`、`RBG`、`Kthena`、`AIBrix`和`OME`五种业界主流方案进行了深入对比分析。
 
-`Kthena`作为`Volcano`生态下的企业级推理平台，凭借与`Volcano`调度器的深度集成、完整的`PD`分离支持、内置的智能路由层以及端到端的模型生命周期管理，成为当前技术栈下最适合的选择。其`ModelServing`的三层抽象（`ServingGroup > Role > Entry/Worker`）精确描述了多节点协作推理的拓扑需求，`Gang Scheduling + HyperNode`网络拓扑感知调度从根本上解决了多机多卡部署的资源死锁和通信效率问题。
+整体而言，五种方案各有侧重：**`LWS`**是最接近`Kubernetes`官方标准的工作负载原语，适合需要最大可移植性和调度器无关性的场景；**`RBG`**在`LWS`基础上扩展了多角色协调能力，是`SGLang`用户快速落地`PD`分离的首选；**`AIBrix`**以字节跳动的工程实践为基础，通过`Ray`+`Kubernetes`分层架构提供了独特的分布式`KV Cache`和异构`GPU`混合推理能力，适合深度使用`vLLM`且对成本敏感的团队；**`OME`**以模型为第一公民，智能运行时自动匹配和硬件感知调度使其在多模型、多运行时的异构环境中具备突出优势，适合对模型管理标准化要求高的平台团队；**`Kthena`**作为`Volcano`生态下的企业级推理平台，凭借与`Volcano`调度器的深度集成、完整的`PD`分离支持、内置的智能路由层以及端到端的模型生命周期管理，成为当前技术栈下最适合的选择。
 
-随着`GLM-5`等更大规模模型的持续演进，`Kthena`的`PD`分离能力将为未来架构演进提供平滑路径，不需要替换底层平台即可支持更高级的推理优化策略。
+`Kthena`的`ModelServing`三层抽象（`ServingGroup > Role > Entry/Worker`）精确描述了多节点协作推理的拓扑需求，`Gang Scheduling + HyperNode`网络拓扑感知调度从根本上解决了多机多卡部署的资源死锁和通信效率问题。随着`GLM-5`等更大规模模型的持续演进，`Kthena`的`PD`分离能力将为未来架构演进提供平滑路径，不需要替换底层平台即可支持更高级的推理优化策略。
 
