@@ -376,19 +376,19 @@ openspec/changes/feature-name/
 
 推荐使用**中文**（如果团队语言是中文）。
 
-对于中文团队而言，`proposal.md`、`design.md`、`tasks.md`等变更产物使用中文能大幅降低阅读和维护成本。通过在`openspec/config.yaml`的`context`字段中声明`Output language: All artifact content must be written in Simplified Chinese`，即可确保所有`AI`生成的规范文档统一使用简体中文输出，无需在每次提示词中重复说明。
+需要注意的是，不同大模型对中英文的语义理解能力存在差异——由于主流大模型的训练语料以英文为主，模型对英文的语义理解通常略优于中文。然而，对于中文团队而言，`proposal.md`、`design.md`、`tasks.md`等变更产物使用中文能大幅降低阅读和维护成本，整体收益仍然更高。通过在`openspec/config.yaml`的`context`字段中声明`Output language: All artifact content must be written in Simplified Chinese`，即可确保所有`AI`生成的规范文档统一使用简体中文输出，无需在每次提示词中重复说明。
 
 ### CLAUDE.md中的内容应该使用中文还是英文？
 
 推荐使用**中文**（如果团队语言是中文）。
 
-`CLAUDE.md`的核心受众是项目团队成员，使用母语编写的规范约束可读性更高，维护起来也更自然。
+尽管大模型对英文的语义理解能力通常略优于中文，但`CLAUDE.md`的核心受众是项目团队成员。对中文团队来说，使用母语编写的规范约束可读性更高，维护起来也更自然，这一协作效率上的收益足以弥补语义理解上的细微差异。
 
 ### 自己编写的Skill应该使用中文还是英文？
 
 推荐使用**英文**。
 
-`Claude Code`的`Skill`（技能描述文件`SKILL.md`）建议使用英文编写，主要原因有两点：其一，`Claude Code`对英文指令的理解精准度和遵循一致性更有保障；其二，英文技能文件更易于在社区共享和复用。技能中涉及的具体业务约束可以通过引用`CLAUDE.md`来实现，无需在技能文件中重复定义业务上下文。
+`Claude Code`的`Skill`（技能描述文件`SKILL.md`）建议使用英文编写，主要原因有两点：其一，由于主流大模型的训练语料以英文为主，模型对英文指令的语义理解能力通常优于中文，使用英文编写技能文件能获得更高的指令理解精准度和遵循一致性；其二，英文技能文件更易于在社区共享和复用。技能中涉及的具体业务约束可以通过引用`CLAUDE.md`来实现，无需在技能文件中重复定义业务上下文。
 
 ### CLAUDE.md是否需要完整地手动编写？
 
