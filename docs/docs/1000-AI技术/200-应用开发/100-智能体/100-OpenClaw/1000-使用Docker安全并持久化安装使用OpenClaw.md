@@ -63,6 +63,17 @@ docker run --name ubuntu-server \
 
 参考官方文档一步一步安装即可，由于这里使用到的`Ubuntu`镜像是一个精简镜像，中间会涉及安装一些依赖：https://docs.openclaw.ai/install
 
+如果遇到安装太慢甚至超时，那么可以切换`npm`源为国内源，如下：
+```bash
+# 切换到阿里源
+npm config set registry https://registry.npmmirror.com
+
+# 查看是否成功
+npm config get registry
+
+# 切回官方
+npm config set registry https://registry.npmjs.org
+```
 
 ### OpenClaw配置初始化
 
