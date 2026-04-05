@@ -826,18 +826,6 @@ enabled = false
 | **MCP配置** | `config.toml`中的`[mcp_servers.*]`块 | `settings.json`中的`mcpServers`字段 |
 | **权限细粒度** | `MCP Server`级别到单个工具级别 | 工具级别 |
 
-### 工具选型建议
-
-| 场景 | 推荐工具 | 理由 |
-|------|----------|------|
-| 已有`ChatGPT`订阅 | `Codex CLI` | 无需额外付费，直接复用订阅 |
-| 已有`Claude`订阅 | `Claude Code` | 同上 |
-| 需要深度集成多种`AI`提供商 | `Codex CLI` | 原生支持`OpenRouter`等多提供商 |
-| 追求最强代码推理能力 | 两者均可 | 分别使用`o3`和`Claude Opus 4` |
-| 需要本地模型（Ollama） | `Codex CLI` | 原生支持`Ollama`提供商 |
-| 更完善的项目规则管理 | `Claude Code` | `.claude/rules/`目录支持路径作用域规则 |
-| 开源、可定制 | `Codex CLI` | `Apache-2.0`开源，可修改和自托管 |
-
 
 ## 总结
 
