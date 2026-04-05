@@ -189,3 +189,39 @@ node dist/index.js devices approve acc580cb-e50b-4f1e-a3bb-68cbe9e1dcbf
 保存后，`OpenClaw`的`gateway`会自动重加载配置无须手动重启`gateway`（如果不放心也可以手动重启`openclaw gateway restart`）。随后在`OpenClaw`聊天页面通过`/status`命令检查是否生效：
 
 ![OpenClaw：修改对接的模型配置](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-6.png)
+
+
+## 常见问题
+
+### control ui requires device identity (use HTTPS or localhost secure context)
+
+`OpenClaw`的`Control UI`强制要求在安全上下文 (`Secure Context`) 下运行，以生成设备身份密钥。你通过`HTTP` + 局域网 IP（如 `http://192.168.x.x:18789`）访问时，浏览器因非安全上下文而拒绝运行 `WebCrypto`，导致无身份验证，网关拒绝连接。
+
+建议通过配置`HTTPS`（自签证书 / 反向代理）：
+
+**Step1：生成证书**
+```bash
+mkdir -p ~/.openclaw/ssl
+openssl req -x509 -newkey rsa:4096 -keyout ~/.openclaw/ssl/key.pem -out ~/.openclaw/ssl/cert.pem -days 365 -nodes
+```
+
+**Step2：修改配置`~/.openclaw/config.json`**
+
+```json
+{
+  "gateway": {
+    "bind": "lan",
+    "tls": {
+      "enabled": true,
+      "cert": "/home/你的用户名/.openclaw/ssl/cert.pem",
+      "key": "/home/你的用户名/.openclaw/ssl/key.pem"
+    },
+    "controlUi": {
+      "allowedOrigins": ["https://192.168.1.100:18789"]
+    }
+  }
+}
+```
+访问`https://<局域网IP>:18789`（需信任证书）
+
+如果页面报错`pairing required`，那么请参考前面介绍的处理方式。
