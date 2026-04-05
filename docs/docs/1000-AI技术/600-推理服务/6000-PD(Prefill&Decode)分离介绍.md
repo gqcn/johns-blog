@@ -138,6 +138,65 @@ description: "深入探讨LLM推理中的PD(Prefill&Decode)分离技术，分析
 
 这些技术创新使得`PD`分离架构能够将额外开销控制在可接受范围内，同时实现显著的性能提升。
 
+## PD分离部署下的用户访问时序
+
+在`PD`分离部署架构中，一次完整的用户请求涉及三个角色的协同工作：用户（`Client`）、`Prefill`节点（`P`）和`Decode`节点（`D`）。下图详细展示了这三方之间完整的数据交互时序。
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as 用户（Client）
+    participant LB as 负载均衡/调度层
+    participant P as Prefill节点（P）
+    participant D as Decode节点（D）
+
+    Client->>LB: 发送推理请求（Prompt）
+    LB->>P: 路由请求至 Prefill 节点，携带完整 Prompt Token
+
+    note over P: Prefill 阶段<br/>并行处理所有输入 Token<br/>构建 KV Cache
+
+    P-->>P: 对输入 Token 进行并行前向计算
+    P-->>P: 生成完整 KV Cache
+    P-->>P: 产出第一个输出 Token（Token[1]）
+
+    P->>D: 传输 KV Cache（via 高速网络 RDMA/NVLink）
+    P->>LB: 返回 Token[1] 及请求转交信号
+
+    LB->>Client: 流式推送 Token[1]（TTFT 结束）
+    LB->>D: 通知 Decode 节点接管请求
+
+    note over D: Decode 阶段<br/>加载 KV Cache<br/>自回归逐 Token 生成
+
+    loop 自回归生成（每次迭代产出一个 Token）
+        D-->>D: 基于 KV Cache 前向计算，生成 Token[N]
+        D-->>D: 将新 Token 追加写入 KV Cache
+        D->>LB: 返回 Token[N]
+        LB->>Client: 流式推送 Token[N]（TBT 时间间隔）
+    end
+
+    D->>LB: 生成结束信号（遇到 EOS Token 或达到最大长度）
+    LB->>Client: 推送结束信号，关闭流式响应
+```
+
+### 时序关键环节说明
+
+| 阶段 | 参与方 | 核心动作 | 关键指标 |
+| --- | --- | --- | --- |
+| ① 请求接入 | `Client` → 调度层 → `P` | 用户发起请求，调度层将完整`Prompt`路由至`Prefill`节点 | - |
+| ② `Prefill`计算 | `P` | 并行处理所有输入`Token`，构建完整`KV Cache`，产出第一个`Token` | `TTFT` |
+| ③ `KV Cache`传输 | `P` → `D` | 通过高速网络（`RDMA`/`NVLink`）将`KV Cache`从`P`传输至`D` | 传输延迟 |
+| ④ `Decode`接管 | `D` | 加载`KV Cache`后以自回归方式逐步生成后续`Token` | `TPOT`/`TBT` |
+| ⑤ 流式推送 | 调度层 → `Client` | 每生成一个`Token`即实时推送给用户，保证响应连贯性 | `TBT` |
+| ⑥ 请求结束 | `D` → 调度层 → `Client` | 遇到终止条件后发送结束信号，关闭流式连接 | - |
+
+### 与传统一体化架构的对比
+
+在传统一体化部署中，`Prefill`和`Decode`在同一节点串行执行，新请求的`Prefill`计算会抢占正在进行`Decode`的`GPU`资源，导致`TBT`抖动。`PD`分离后：
+
+- `P`节点专注于`Prefill`计算，完成后立即释放资源处理下一个新请求，不影响`D`节点的`Decode`流程
+- `D`节点持续稳定地执行自回归生成，`TBT`不受新请求到达的干扰
+- 调度层可以独立控制`P`和`D`集群的并发规模，实现精细化弹性扩缩容
+
 ## PD分离带来的优势
 
 通过将`Prefill`和`Decode`阶段分离部署，这种架构在多个方面带来了显著的改进，特别是在处理长上下文（`long context`）场景时，其优势更加明显。
