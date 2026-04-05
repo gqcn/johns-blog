@@ -452,6 +452,40 @@ export CODEX_CA_CERTIFICATE="/path/to/company-ca.pem"
 export SSL_CERT_FILE="/path/to/ca-bundle.pem"
 ```
 
+### 项目级配置（`.codex/config.toml`）
+
+`Codex CLI`支持多层配置文件叠加，优先级从低到高依次为：
+
+| 层级 | 路径 | 说明 |
+|------|------|------|
+| **系统级** | `/etc/codex/config.toml`（Unix） | 管理员统一下发的系统配置 |
+| **用户级** | `~/.codex/config.toml` | 个人全局配置 |
+| **项目树** | 从仓库根到`cwd`各级目录的`.codex/config.toml` | 按目录层级逐级覆盖 |
+| **运行时** | `--config`参数 | 启动时临时覆盖 |
+
+高优先级层的配置会**覆盖**低优先级同名字段，未设置的字段则继承低层级的值。
+
+在项目根目录创建`.codex/config.toml`即可启用项目级配置：
+
+```toml
+# 项目根目录/.codex/config.toml
+
+# 为该项目指定特定模型
+model = "o3"
+
+# 项目级沙箱策略
+sandbox_mode = "workspace-write"
+
+# 项目专用MCP服务器
+[mcp_servers.project-db]
+command = "npx"
+args = ["-y", "@company/mcp-db-server"]
+```
+
+:::note 安全机制
+项目级和目录树级配置在**不受信任**的目录下会被自动禁用，以防止恶意仓库通过`config.toml`劫持`Codex`工具的行为。信任状态通过`codex trust`命令管理（见`/security-config`），与`AGENTS.md`的信任机制独立。
+:::
+
 ### 完整配置示例
 
 ```toml
@@ -482,7 +516,7 @@ command = "terminal-notifier -title 'Codex' -message 'Task done'"
 
 ## 使用CC Switch管理服务商
 
-手动编辑`config.toml`或每次切换时修改环境变量都比较繁琐，尤其是在`Claude Code`、`Codex`、`Gemini CLI`等多个工具之间频繁切换时。[CC Switch](https://github.com/farion1231/CC Switch)提供了一个可视化的桌面应用解决方案，能够统一管理多个`AI`编程工具的服务商配置。
+手动编辑`config.toml`或每次切换时修改环境变量都比较繁琐，尤其是在`Claude Code`、`Codex`、`Gemini CLI`等多个工具之间频繁切换时。[CC Switch](https://github.com/farion1231/cc-switch)提供了一个可视化的桌面应用解决方案，能够统一管理多个`AI`编程工具的服务商配置。
 
 ### CC Switch是什么
 
@@ -499,7 +533,7 @@ command = "terminal-notifier -title 'Codex' -message 'Task done'"
 
 ### 安装CC Switch
 
-从[GitHub Release页面](https://github.com/farion1231/CC Switch/releases/latest)下载对应平台的安装包，或通过以下方式安装：
+从[GitHub Release页面](https://github.com/farion1231/cc-switch/releases/latest)下载对应平台的安装包，或通过以下方式安装：
 
 ```bash
 # macOS（Homebrew，如果有配置相应tap）
@@ -786,7 +820,7 @@ enabled = false
 | 配置项 | Codex CLI | Claude Code |
 |--------|-----------|-------------|
 | **主配置文件** | `~/.codex/config.toml`（`TOML`格式） | `~/.claude/settings.json`（`JSON`格式） |
-| **项目级配置** | 无独立项目配置（通过`AGENTS.md`指令实现） | `.claude/settings.json` |
+| **项目级配置** | `.codex/config.toml`（从仓库根到`cwd`各层目录均可放置，逐层覆盖） | `.claude/settings.json` |
 | **模型配置** | `config.toml`中的`model`字段 | `settings.json`中的`model`字段 |
 | **沙箱配置** | `sandbox_mode`字段或`--sandbox`参数 | 通过权限配置间接控制 |
 | **MCP配置** | `config.toml`中的`[mcp_servers.*]`块 | `settings.json`中的`mcpServers`字段 |
