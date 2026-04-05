@@ -130,7 +130,7 @@ cd /root/.nvm/versions/node/v24.14.1/lib/node_modules/openclaw/
 node dist/index.js devices list
 ```
 
-> 如果不知道`openclaw`安装包的具体路径，可以使用该命令查找：`find / -name "index.js"` | grep "dist/index.js"
+> 如果不知道`openclaw`安装包的具体路径，可以使用该命令查找：`find / -name "index.js" | grep "dist/index.js"`
 
 终端输出：
 ![OpenClaw：查询当前Pending的秘钥配对请求](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-3.png)
