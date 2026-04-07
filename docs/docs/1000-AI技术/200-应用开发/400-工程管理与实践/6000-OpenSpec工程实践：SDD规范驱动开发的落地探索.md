@@ -47,9 +47,9 @@ toc_max_heading_level: 4
 - [《Spec-kit：SDD规范驱动开发的工程化工具》](./3000-Spec-kit：SDD规范驱动开发的工程化工具.md) - `Spec-kit`的工作流设计与模板约束机制
 - [《Superpowers：为AI编程智能体赋予工程化超能力》](./4000-Superpowers：为AI编程智能体赋予工程化超能力.md) - `Superpowers`的可组合技能库与工作流能力
 
-然而，理论与实践之间始终存在落差。本文聚焦**实战**：记录笔者如何选择`OpenSpec`作为落地框架、如何配置`Claude Code`工具链、如何在真实项目中执行五步`SDD`开发闭环，以及在实践过程中踩过的坑和总结出的改进方案。
+然而，理论与实践之间始终存在落差。本文聚焦**实战**：记录笔者如何选择`OpenSpec`作为落地框架、如何配置`Claude Code`工具链、如何在真实项目中执行`SDD`开发闭环，以及在实践过程中踩过的坑和总结出的改进方案。
 
-> 本文的项目基于`Claude Code` + `GLM-5`实践，项目地址：https://github.com/gqcn/openspec-practice/
+> 本文的项目基于`Claude Code` + `GLM/Claude/GPT`实践，项目地址：https://github.com/gqcn/openspec-practice/
 
 
 ## SDD工具横向对比
@@ -99,7 +99,6 @@ toc_max_heading_level: 4
 | `code-simplifier` | 代码简化插件，识别过度复杂的实现并提供更简洁的替代方案 |
 | `context7` | 实时上下文增强插件，能够从外部文档（如官方库文档）动态注入最新`API`上下文，显著提升`AI`对第三方库的理解准确性 |
 | `frontend-design` | 前端设计辅助插件，帮助生成符合设计规范的前端`UI`代码 |
-| `github` | `GitHub`集成插件，支持在会话中直接获取`Issue`、`PR`、代码仓库信息 |
 | `gopls-lsp` | `Go`语言服务器插件，提供`Go`代码的类型检查、诊断分析和符号解析能力 |
 | `playwright` | `Playwright`测试集成插件，支持`E2E`测试用例的自动化生成与运行 |
 | `ralph-loop` | 反馈循环插件，通过持续迭代帮助改进代码质量和实现方案 |
@@ -114,7 +113,7 @@ toc_max_heading_level: 4
 | 技能名称 | 用途描述 |
 |---|---|
 | `find-skills` | 元技能，帮助用户发现和安装适用于当前任务的`Claude Code`技能，自动扩展能力边界 |
-| `goframe-v2` | `GoFrame v2`框架规范技能，为`Go`后端开发提供框架最佳实践指导，确保代码符合`GoFrame`惯用模式 |
+| `goframe-v2` | `GoFrame`框架规范技能，为`Go`后端开发提供框架最佳实践指导，确保代码符合`GoFrame`惯用模式 |
 
 > 其中`goframe-v2`是当前实践项目使用的`Golang`后端框架，各位看官如果使用不同的技术栈，可以考虑开发或寻找对应的技能来提供框架规范审查能力，例如`Spring Boot`、`Django`、`Express`等主流后端框架都可以通过类似的技能实现规范审查。
 
@@ -124,7 +123,7 @@ toc_max_heading_level: 4
 
 以下是项目中实际使用的`config.yaml`配置：
 
-```yaml
+```yaml title="config.yaml"
 schema: spec-driven
 
 # 项目上下文（可选）：在 AI 创建各类产物时会自动注入
@@ -186,11 +185,11 @@ flowchart TD
 
 为此，笔者在项目的`CLAUDE.md`规范文档中补充了对每个阶段**自动触发条件**的明确描述，将流程驱动的判断从"人工记忆"转移为"规范约束"：
 
-- 探索式对话结束、形成清晰解决方案时 → 自动进入变更提案阶段
-- 变更提案文档生成完毕后 → 自动进入代码实现阶段
-- 每个任务代码实现完成后 → 自动触发`E2E`测试与`openspec-review`审查
-- 用户反馈问题或改进点时 → 自动触发`openspec-feedback`反馈修复流程
-- 用户确认本次迭代完成没有问题后 → 自动触发归档流程
+1. 探索式对话结束、形成清晰解决方案时 → 自动进入变更提案阶段
+2. 变更提案文档生成完毕后 → 自动进入代码实现阶段
+3. 每个任务代码实现完成后 → 自动触发`E2E`测试与`openspec-review`审查
+4. 用户反馈问题或改进点时 → 自动触发`openspec-feedback`反馈修复流程
+5. 用户确认本次迭代完成没有问题后 → 自动触发归档流程
 
 通过这种方式，流程的推进变得更加丝滑和自动化，用户只需专注于业务需求本身，无需记忆和手动触发每一个阶段命令，从而有效降低了心智负担，也避免了因跨阶段调用导致的流程混乱问题。
 
@@ -303,10 +302,11 @@ openspec/changes/feature-name/
 > | AI开发工具 | 工程约束配置文件 | 说明 |
 > |---|---|---|
 > | `Claude Code` | `CLAUDE.md` | 放置于项目根目录，每次会话自动注入 |
+> | `Codex` | `AGENTS.md` | 放置于项目根目录，每次会话自动注入 |
+> | `OpenCode` | `AGENTS.md` | 兼容`CLAUDE.md`，同时支持`AGENTS.md`作为约束文件 |
 > | `Cursor` | `.cursorrules` 或 `.cursor/rules/*.mdc` | 支持全局规则和目录级规则两种粒度 |
 > | `GitHub Copilot` | `.github/copilot-instructions.md` | 在仓库级别为`Copilot`提供上下文和约束 |
 > | `Windsurf` | `.windsurfrules` | 放置于项目根目录，作用与`CLAUDE.md`类似 |
-> | `OpenCode` | `AGENTS.md` | 兼容`CLAUDE.md`，同时支持`AGENTS.md`作为约束文件 |
 > 
 > 无论使用哪款`AI`开发工具，核心思路一致：**将项目开发过程中积累的规范和约束以机器可读的形式固化到约束配置文件中**，让`AI`在每次开发中自动遵循这些规范，减少重复犯错。
 
@@ -314,7 +314,7 @@ openspec/changes/feature-name/
 
 **问题**：`OpenSpec`框架本身没有内置测试覆盖的强制要求，完全依赖`AI`或开发者的自觉性。在实践初期发现，许多功能实现后缺乏有效的回归保护，用户的每次验收都可能引入新的质量风险。
 
-**改进方案**：通过编写`openspec-e2e`技能，在项目层面建立了严格的`E2E`测试规范：[openspec-e2e skill](https://github.com/gqcn/openspec-practice/blob/main/.claude/skills/openspec-e2e/SKILL.md)
+**改进方案**：通过编写`openspec-e2e`技能，在项目层面建立了严格的`E2E`测试规范：[openspec-e2e](https://github.com/gqcn/openspec-practice/blob/main/.claude/skills/openspec-e2e/SKILL.md)
 
 - **强制覆盖**：`tasks.md`中所有涉及用户可观察行为变更的任务，必须创建对应的`E2E`测试用例（`Playwright`）
 - **命名规范**：测试文件统一采用`TC{NNNN}-{brief-name}.ts`格式，`TC ID`全局唯一且单调递增，不允许复用
@@ -327,7 +327,7 @@ openspec/changes/feature-name/
 
 **问题**：`AI`完成的功能和生成的代码并非`100%`可靠。例如，业务需求背景描述不够全面、实施完成后的需求变更、细节调整等情况在业务迭代开发中极为普遍。虽然通过工程质量手段能解决一部分问题，但仍存在约`20%~40%`的不确定性，导致用户不得不投入大量精力进行验证和修复。
 
-**改进方案**：设计并实现了`openspec-feedback`技能，构建自动化的反馈闭环：[openspec-feedback skill](https://github.com/gqcn/openspec-practice/blob/main/.claude/skills/openspec-feedback/SKILL.md)
+**改进方案**：设计并实现了`openspec-feedback`技能，构建自动化的反馈闭环：[openspec-feedback](https://github.com/gqcn/openspec-practice/blob/main/.claude/skills/openspec-feedback/SKILL.md)
 
 - **问题追踪**：用户一旦发现问题，直接通过自然语言描述即可触发技能，技能自动将问题分类（`Bug`、功能缺失、交互改进、测试缺口）并记录到`tasks.md`，确保可追溯
 - **规范联动**：技能会评估反馈是否涉及"规范层"变更（即需求本身有变化），若是则先更新`Delta Specs`再记录任务，保证规范与代码的双向同步
@@ -380,7 +380,7 @@ openspec/changes/feature-name/
 
 通过"小粒度变更+及时归档"的组合策略，项目始终保持一个"精简活跃变更+完整主规范"的健康状态，有效控制了迭代过程中的上下文熵增。
 
-![OpenSpec工程实践：迭代的熵治理](assets/6000-OpenSpec工程实践：SDD规范驱动开发的落地探索/image-11.png)
+![OpenSpec：迭代的熵治理](assets/6000-OpenSpec工程实践：SDD规范驱动开发的落地探索/968c49aac8bff7b9d828294f7cf4db9c.png)
 
 ### 其他实践总结
 
@@ -474,6 +474,6 @@ openspec/changes/feature-name/
 
 更重要的是，这套方法论本身也在持续迭代。每次踩坑、每次反思、每次改进，都会沉淀为更完善的规范约束和更成熟的技能工具。**`SDD`工程实践的终点不是"找到一套完美的流程"，而是建立一套能够持续自我完善的工程文化。**
 
-欢迎在评论区分享你在`SDD`落地实践中的经验与挑战。
+欢迎在评论区交流分享你在`SDD`落地实践中的经验与挑战。
 
 
