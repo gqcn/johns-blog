@@ -58,9 +58,9 @@ timeline
 ```
 
 
-## WASM解决的问题与核心优势
+### WASM的核心优势
 
-### 高性能计算能力
+#### 高性能计算能力
 
 `WebAssembly`的二进制格式紧凑高效，浏览器引擎可对其进行预编译（`AOT`编译），执行速度可接近原生机器码。相比`JavaScript`，`WASM`在以下场景中性能提升显著：
 
@@ -69,11 +69,11 @@ timeline
 - 密码学运算
 - 科学计算与数值模拟
 
-### 语言多样性
+#### 语言多样性
 
 长期以来，浏览器端只能运行`JavaScript`。`WASM`打破了这一限制，使得开发者可以将现有的`C/C++`、`Rust`、`Go`等语言的代码库编译为`WASM`，直接在浏览器中复用已有生态。
 
-### 安全沙箱执行
+#### 安全沙箱执行
 
 `WebAssembly`模块运行在一个严格的内存安全沙箱环境中：
 
@@ -81,16 +81,16 @@ timeline
 - 控制流完整性：`WASM`的指令集设计保证了控制流的可验证性，防止任意代码跳转；
 - 与`JavaScript`共享同源策略：嵌入在浏览器中时，`WASM`遵循与`JavaScript`相同的安全策略。
 
-### 可移植性
+#### 可移植性
 
 `WebAssembly`的字节码格式与`CPU`架构无关，同一份`.wasm`文件可以在`x86`、`ARM`、`RISC-V`等各种硬件上运行，真正实现了"一次编译，到处运行"。
 
-### 开放可调试
+#### 开放可调试
 
 `WebAssembly`拥有对应的文本格式（`.wat`），可以由人类直接阅读。现代浏览器的开发者工具也逐步增加了对`WASM`调试的支持，包括源码映射（`Source Maps`）等功能。
 
 
-## WASM的应用场景
+### WASM的应用场景
 
 | 场景 | 典型案例 |
 |---|---|
@@ -315,7 +315,7 @@ python3 -m http.server 8080
 打开浏览器访问`http://localhost:8080/index.html`，在浏览器控制台中可以看到输出。
 
 
-## 与JavaScript交互（syscall/js）
+### 与JavaScript交互（syscall/js）
 
 `syscall/js`包是Go与`JavaScript`宿主环境交互的核心包，提供了对`JavaScript`值的访问和操作能力。
 
@@ -323,7 +323,7 @@ python3 -m http.server 8080
 `syscall/js`包被标记为实验性`API`，未纳入`Go`兼容性承诺范围，后续版本可能发生变化。
 :::
 
-### 核心类型
+#### 核心类型
 
 | 类型 | 说明 |
 |---|---|
@@ -331,7 +331,7 @@ python3 -m http.server 8080
 | `js.Func` | 包装一个`Go`函数，使其可以被`JavaScript`调用 |
 | `js.Type` | 枚举`JavaScript`值的类型（`TypeObject`、`TypeFunction`等） |
 
-### 访问全局对象与DOM
+#### 访问全局对象与DOM
 
 ```go
 package main
@@ -360,7 +360,7 @@ func main() {
 }
 ```
 
-### 将Go函数暴露给JavaScript
+#### 将Go函数暴露给JavaScript
 
 使用`js.FuncOf`可以将`Go`函数注册为`JavaScript`可调用的函数：
 
@@ -403,7 +403,7 @@ goAdd(3, 5); // 返回 8
 `js.FuncOf`返回的`Func`对象在不再使用时必须调用`Release()`方法释放资源。若`Go`程序始终运行（如上方`select{}`阻塞），则通常无需手动释放；但在回调场景中使用一次性函数时，记得调用`f.Release()`。
 :::
 
-### 处理JavaScript事件回调
+#### 处理JavaScript事件回调
 
 ```go
 package main
@@ -437,7 +437,7 @@ func main() {
 }
 ```
 
-### Go与JavaScript的类型映射
+#### Go与JavaScript的类型映射
 
 调用`js.ValueOf(x)`将`Go`值转换为`JavaScript`值时，类型映射规则如下：
 
@@ -452,7 +452,7 @@ func main() {
 | `[]interface{}` | `Array` |
 | `map[string]interface{}` | `Object` |
 
-### 高效的字节切片传输
+#### 高效的字节切片传输
 
 在`Go`与`JavaScript`之间传递大量二进制数据时，使用`CopyBytesToGo`和`CopyBytesToJS`效率优于逐字节赋值：
 
