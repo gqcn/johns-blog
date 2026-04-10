@@ -1,6 +1,6 @@
 ---
 slug: "/ai/copilot-skills-guide"
-title: "Copilot/Agent Skills使用指南"
+title: "不只是指令：用 Copilot Skills 打造 AI 的专业技能包"
 hide_title: true
 keywords:
   [

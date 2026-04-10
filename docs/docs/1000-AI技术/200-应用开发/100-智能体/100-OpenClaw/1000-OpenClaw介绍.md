@@ -1,6 +1,6 @@
 ---
 slug: "/ai/openclaw-introduction-and-setup"
-title: "OpenClaw基本介绍、安装配置"
+title: "OpenClaw：一个 Gateway 打通20+聊天应用，让你的 AI 助手随时待命"
 hide_title: true
 keywords: [OpenClaw, AI助手, 智能体, 自托管, Gateway, 多端接入, WhatsApp, Telegram, Discord, iMessage, 模型配置, openclaw.json, 配置参考, 频道路由, 多智能体, Skill, 插件, 沙盒, 会话管理, 开源AI, Pi agent]
 description: "OpenClaw 是一款开源的自托管个人 AI 助手网关，可将 WhatsApp、Telegram、Discord、iMessage 等 20+ 种消息渠道统一接入 AI 编码代理（Pi agent）。本文全面介绍 OpenClaw 的设计背景与解决的问题、整体架构设计（Gateway、Channel、Agent Runtime、Web Control UI 等核心组件）、以及 openclaw.json 配置文件的详细字段说明，帮助读者快速上手并深入理解这一强大的开源 AI 基础设施。"

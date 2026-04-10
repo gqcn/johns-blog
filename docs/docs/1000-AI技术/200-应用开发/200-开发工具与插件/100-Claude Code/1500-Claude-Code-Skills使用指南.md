@@ -1,6 +1,6 @@
 ---
 slug: "/ai/claude-code-skills"
-title: "Claude Code Skills使用指南"
+title: "Claude Code Skills：把团队最佳实践封装成 AI 可直接调用的技能"
 hide_title: true
 keywords:
   [

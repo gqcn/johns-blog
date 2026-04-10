@@ -1,6 +1,6 @@
 ---
 slug: "/ai/claude-code-guide"
-title: "Claude Code使用指南"
+title: "Claude Code：目前最强 AI 编程智能体的上手指南"
 hide_title: true
 keywords:
   [

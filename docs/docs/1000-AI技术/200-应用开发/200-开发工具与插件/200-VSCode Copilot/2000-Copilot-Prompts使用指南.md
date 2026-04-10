@@ -1,6 +1,6 @@
 ---
 slug: "/ai/copilot-prompts-guide"
-title: "Copilot Prompts使用指南"
+title: "告别重复提示：用 Copilot Prompts 快速触发标准化开发工作流"
 hide_title: true
 keywords:
   [

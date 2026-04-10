@@ -1,6 +1,6 @@
 ---
 slug: "/ai/claude-code-hooks"
-title: "Claude Code Hooks使用指南"
+title: "Claude Code Hooks：用事件钩子精细掌控 AI 智能体的每一步操作"
 hide_title: true
 keywords:
   [

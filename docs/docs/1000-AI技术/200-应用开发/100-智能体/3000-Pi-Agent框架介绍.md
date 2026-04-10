@@ -1,6 +1,6 @@
 ---
 slug: "/ai/pi-agent-framework-introduction"
-title: "Pi Agent 框架介绍"
+title: "Pi Agent：OpenClaw 背后的轻量 TypeScript 智能体引擎，无缝接入20+大模型"
 hide_title: true
 keywords: [Pi Agent, pi-mono, pi-ai, pi-agent-core, pi-coding-agent, 智能体框架, Agent Runtime, 工具调用, LLM, 多模型, OpenAI, Anthropic, Gemini, Bedrock, OpenClaw, 编码智能体, 流式事件, 会话管理, TypeScript, 技能扩展, Extension, Skill, RPC, SDK, 上下文压缩, 多模型切换]
 description: "Pi Agent 是一个开源的 TypeScript 智能体框架，由 pi-ai、pi-agent-core、pi-coding-agent 三层架构组成。它提供统一的多模型 LLM 抽象、基于事件流的 Agent 运行时、灵活的工具调用机制，以及交互式编码智能体 CLI。OpenClaw 底层的 Agent 就是基于 Pi Agent 框架实现的，理解 Pi Agent 的架构设计有助于深入掌握 OpenClaw 的工作原理和扩展能力。本文详细介绍 Pi Agent 的整体架构、核心包、事件模型、工具系统和使用示例。"

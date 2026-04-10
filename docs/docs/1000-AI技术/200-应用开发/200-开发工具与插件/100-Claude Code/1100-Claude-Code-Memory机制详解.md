@@ -1,6 +1,6 @@
 ---
 slug: "/ai/claude-code-memory"
-title: "Claude Code Memory机制详解"
+title: "告别金鱼记忆：Claude Code Memory 机制如何实现跨会话知识持久化"
 hide_title: true
 keywords:
   [

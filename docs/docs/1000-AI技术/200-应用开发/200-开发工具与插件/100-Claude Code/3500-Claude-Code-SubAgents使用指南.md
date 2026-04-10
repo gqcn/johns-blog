@@ -1,6 +1,6 @@
 ---
 slug: "/ai/claude-code-subagents"
-title: "Claude Code SubAgents是什么？如何使用？"
+title: "Claude Code SubAgents：用子智能体突破上下文瓶颈，实现任务并行"
 hide_title: true
 keywords:
   [

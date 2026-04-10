@@ -1,6 +1,6 @@
 ---
 slug: "/ai/claude-code-mcp"
-title: "Claude Code MCP使用指南"
+title: "MCP：赋予 Claude Code 连接 GitHub、数据库与百种外部工具的超能力"
 hide_title: true
 keywords:
   [

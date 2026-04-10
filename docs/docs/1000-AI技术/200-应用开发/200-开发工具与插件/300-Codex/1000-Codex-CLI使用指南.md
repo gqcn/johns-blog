@@ -1,6 +1,6 @@
 ---
 slug: "/ai/codex-cli-guide"
-title: "Codex CLI使用指南"
+title: "终端中的 AI 代码员：Codex CLI 从安装到深度使用全攻略"
 hide_title: true
 keywords:
   [

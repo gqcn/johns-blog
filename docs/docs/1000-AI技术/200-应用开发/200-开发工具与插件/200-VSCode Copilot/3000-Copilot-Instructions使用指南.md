@@ -1,6 +1,6 @@
 ---
 slug: "/ai/copilot-instructions-guide"
-title: "Copilot Instructions使用指南"
+title: "让 AI 永远记住你的规则：Copilot Instructions 配置完全手册"
 hide_title: true
 keywords:
   [

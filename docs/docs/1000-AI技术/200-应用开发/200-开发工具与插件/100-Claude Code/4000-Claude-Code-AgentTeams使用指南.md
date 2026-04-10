@@ -1,6 +1,6 @@
 ---
 slug: "/ai/claude-code-agent-teams"
-title: "Claude Code AgentTeams实验特性前瞻"
+title: "Claude Code AgentTeams：多智能体并行协作，AI 开发的下一个维度"
 hide_title: true
 keywords:
   [

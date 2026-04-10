@@ -1,6 +1,6 @@
 ---
 slug: "/ai/claude-code-plugins"
-title: "Claude Code Plugins使用指南"
+title: "Claude Code Plugins：一键打包分发，让团队共享你的 AI 开发工具链"
 hide_title: true
 keywords:
   [
