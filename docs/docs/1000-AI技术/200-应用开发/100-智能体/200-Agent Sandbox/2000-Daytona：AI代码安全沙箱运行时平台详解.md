@@ -934,6 +934,61 @@ func main() {
 在插件化架构的`AI`产品中（如编程助手、数据科学工具），用户安装和运行的第三方插件或工具在`Daytona`沙箱中执行，天然隔离于主应用进程，防止恶意插件对系统造成影响。
 
 
+## 与同类项目的对比
+
+以下对比基于三个项目的公开源码与官方文档，围绕定位、安全模型、SDK 支持、部署方式、网络控制、AI 集成等核心维度展开。
+
+### OpenSandbox（阿里巴巴）
+
+`OpenSandbox` 以**协议标准化**为核心设计理念，通过 `OpenAPI` 规范定义沙箱生命周期接口（`sandbox-lifecycle.yml`）和执行接口（`execd-api.yaml`），将沙箱能力抽象为统一的`API`层。同一套接口可接入 `Docker`、`Kubernetes`/`BatchSandbox` 不同运行时，以及 `gVisor`、`Kata-Containers`（支持 `QEMU`、`Firecracker`、`CLH`）等多种安全运行时，适合需要在多种`AI`框架和运行环境之间灵活切换的团队。
+
+其内置的 `Egress` 边车组件基于 `FQDN` 白名单 + `nftables` 实现出站流量拦截，`Ingress` 网关支持基于`Header`和 `URI` 的路由，网络策略开箱即用。官方 `MCP Server`（`opensandbox-mcp`）使 `Claude Code`、`Cursor` 等工具可直接通过 `MCP` 协议操作沙箱。项目已进入 `CNCF Landscape`，是三者中唯一具备沙箱协议标准化愿景的项目。
+
+### Daytona（daytonaio）
+
+`Daytona` 定位为**面向`AI`生成代码的弹性基础设施**，强调快速启动（`< 90ms`）、状态持久化与平台完整性。每个沙箱是一个以 `OCI/Docker` 标准容器为基础的隔离执行单元，拥有独立分配的 `vCPU`、`RAM`、磁盘和网络栈。架构分为三个平面：接口层（`CLI`、`Dashboard`、`SDK`、`REST API`），控制面（`NestJS API` 负责编排、`Snapshot Manager`、`SSH Gateway`、`Proxy`）和计算面（`Runner` 节点 + 沙箱内 `Daemon` 代理）。
+
+底层实现上，`Runner` 直接调用 `Docker SDK` 创建容器（`--privileged` 特权模式），并通过宿主机 `iptables` 规则对每个容器的 `IP` 单独设置出入站限制，实现比 `Docker` 原生网络隔离更细粒度的管控。`< 90ms` 冷启动依赖**预热池（`Warm Pool`）**——提前维持一批待命容器，请求到来时直接分配。`Daytona` 目前**仅支持 `Docker` 运行时**，没有 `gVisor`/`Kata` 等内核级安全运行时，也无 `Kubernetes` 适配器，计算节点选择由内置的`7`维加权调度器管理。
+
+面向开发者的功能极为完整：`Dashboard`（`Web UI`）、`Web Terminal`、`SSH`、`VNC`、`VPN`、预览 `URL`、`LSP` 支持、`Computer Use`、`Git` 操作、日志流等。`Snapshots` 功能支持将容器状态序列化为 `OCI` 镜像，后续沙箱可直接从快照启动，为跨会话的 `Agent` 工作流提供持久化保障。多语言 `SDK` 覆盖 `Python`、`TypeScript`、`Ruby`、`Go`、`Java` 共五种语言。已推出托管云服务（`app.daytona.io`），同时支持自托管（`Docker Compose`）和混合部署（托管控制面 + 自有计算节点）。
+
+### OpenShell（NVIDIA）
+
+`OpenShell` 是三者中安全机制最为深度的项目，定位为**自主 AI Agent 的安全隐私运行时**。核心思路是"纵深防御"：在`Linux`内核层面叠加四层隔离——`Landlock LSM`（文件系统访问控制）、`Seccomp BPF`（系统调用过滤）、网络命名空间（隔离出站流量，经 `HTTP CONNECT` 代理中转）和 `OPA`/`Rego` 策略引擎（基于进程身份 + 目标 `FQDN` + `HTTP Method/Path` 的七层决策）。
+
+网络侧还引入了 **Privacy Router**（推理路由器），能够透明拦截对`AI Inference API`的请求，剥离调用方凭据并注入后端凭据，避免`API Key`泄露至沙箱文件系统。策略以声明式 `YAML` 描述，静态字段（文件系统/进程）在创建时锁定，动态字段（网络/推理路由）支持热更新（`openshell policy set`），无需重启沙箱。内置对 `Claude Code`、`OpenCode`、`Codex`、`GitHub Copilot CLI` 的原生支持，凭据通过 **`Provider`** 机制注入为环境变量（从不写入磁盘）。基础设施以 `K3s`（轻量级 `Kubernetes`）内嵌于单一 `Docker` 容器中运行，支持 `GPU` 直通（`--gpu`，实验性）。当前为 `Alpha` 阶段，主打单机开发者场景，企业级多租户部署在路线图中。
+
+### 三维对比速查表
+
+| 维度 | `OpenSandbox`（阿里巴巴） | `Daytona`（daytonaio） | `OpenShell`（NVIDIA） |
+|---|---|---|---|
+| **项目定位** | 协议标准化的`AI`沙箱平台 | `AI`代码执行弹性基础设施 | 自主`Agent`安全隐私运行时 |
+| **开源协议** | `Apache 2.0` | `Apache 2.0` / `AGPL-3.0` | `Apache 2.0` |
+| **核心语言** | `Python`（服务端）+ 多语言 `SDK` | `Go`（`CLI/Runner`）+ `TypeScript`（`API`）+ 多语言 `SDK` | `Rust`（核心）+ `Python SDK` |
+| **多语言 SDK** | `Python`·`Java/Kotlin`·`TypeScript`·`C#/.NET`·`Go` | `Python`·`TypeScript`·`Ruby`·`Go`·`Java` | `Python`（主要），`CLI` 为主入口 |
+| **沙箱隔离机制** | `gVisor`/`Kata`（`QEMU`/`Firecracker`/`CLH`）/`runc`（可选） | `OCI/Docker` 容器（`--privileged`）+ `iptables` 双重网络隔离；无 `gVisor`/`Kata` 硬化运行时 | `Landlock LSM` + `Seccomp BPF` + 网络命名空间 + `OPA` 策略引擎（四层纵深防御） |
+| **容器运行时** | `Docker` / `containerd`（经 `Kubernetes CRI`）；安全运行时（`gVisor`/`Kata`）均为 `OCI`兼容 `shim` | 仅 `Docker Engine`（`Runner` 以 `DinD` 模式运行，内部依赖 `Docker` 守护进程；无裸 `containerd CRI` 接入） | `containerd`（`K3s` 默认容器运行时；沙箱以 `K8s Pod` 运行于内嵌 `K3s` 集群中） |
+| **网络出口控制** | `Egress` 边车：`FQDN` 白名单 + `nftables` | `network_block_all` 全封断 / `network_allow_list` CIDR 白名单 + `iptables` 细粒度规则 | `OPA`/`Rego` 七层策略 + 热更新；`Privacy Router` 推理路由 |
+| **AI 推理隐私保护** | 无内置机制 | 无内置机制 | 有（`Privacy Router`：剥离来源凭据，注入后端凭据） |
+| **凭据管理** | 无内置机制 | 无内置机制 | `Provider` 机制（环境变量注入，从不落盘） |
+| **MCP 集成** | 官方 `MCP Server`（`opensandbox-mcp`） | 官方 `MCP Server` | 无 |
+| **GPU 支持** | 无 | 无 | `--gpu` 直通（实验性） |
+| **状态快照** | 无 | `Snapshots`（OCI 镜像快照，跨会话持久化） | 无 |
+| **部署方式** | `Docker` / `Kubernetes` | `Docker Compose`（自托管）/ 托管云 / 混合部署 | `K3s-in-Docker`（单容器）/ 远程主机 |
+| **人工操作界面** | `CLI`（`osb`） | `Dashboard`·`Web Terminal`·`SSH`·`VNC`·`VPN`·预览 URL | `TUI`（类 `k9s`）·`SSH` |
+| **协议标准化** | `OpenAPI` 规范（`sandbox-lifecycle.yml` + `execd-api.yaml`）；`CNCF Landscape` | 自有 `REST API`（无统一沙箱协议规范） | `gRPC`（`proto/sandbox.proto`）；无通用标准 |
+| **大规模调度** | `Kubernetes` 原生（`BatchSandbox`/`agent-sandbox`） | 多 `Region` + 多 `Runner` 节点水平扩展 | `Alpha` 阶段，单机为主；企业级多租户待支持 |
+| **调度器** | `Kubernetes` 原生调度器（`kube-scheduler`）—— `K8s` 运行时模式；`Docker` 模式无集中调度 | 自研 `7` 维加权调度器（按 `CPU`/内存/磁盘/已分配资源等评分，选最优 `Runner` 节点；无 `Kubernetes` 依赖） | `K3s` 内嵌 `kube-scheduler`；`Alpha` 阶段为单节点，多节点调度尚未支持 |
+| **成熟度** | 生产可用，`CNCF Landscape` | 生产可用，已有托管云 | `Alpha`，主打开发者个人场景 |
+| **适用场景** | `AI`框架集成、代码沙箱标准化、大规模 `K8s` 批量任务 | `AI Coding Agent` 平台、持久化 `Agent` 工作流、组织级管控 | 单机 `Coding Agent` 安全运行、`AI` 推理隐私保护 |
+
+### 如何选择
+
+- 若需要**将沙箱能力统一接入多个 AI 框架**，或需要大规模 `Kubernetes` 批量沙箱调度，`OpenSandbox` 的协议标准化设计和原生 `K8s` 支持是最优选。
+- 若需要构建一个**面向组织的 AI Coding Agent 平台**，需要完整的用户管理、持久化快照、`Dashboard`、多区域部署和丰富的人工交互界面（`VNC`/`SSH`/`VPN`），`Daytona` 提供了最完整的平台工程体验。
+- 若是开发者个人使用 `Claude Code`/`Codex` 等 Agent，关注**凭据安全、推理隐私和网络访问控制**，希望用声明式 `YAML` 策略精细限制 Agent 的文件/网络行为，`OpenShell` 提供了目前最深度的安全纵深防御机制，但需接受其 `Alpha` 阶段的稳定性现状。
+
+
 ## 总结
 
 `Daytona`以沙箱为核心，构建了一套专为`AI`智能体时代设计的安全弹性代码执行基础设施。它解决了`AI`生成代码在生产环境中安全执行的核心难题，通过不超过`90ms`的冷启动速度、严格的资源与网络隔离、有状态快照机制以及丰富的多语言`SDK`，为智能体工作流提供了坚实的执行底座。

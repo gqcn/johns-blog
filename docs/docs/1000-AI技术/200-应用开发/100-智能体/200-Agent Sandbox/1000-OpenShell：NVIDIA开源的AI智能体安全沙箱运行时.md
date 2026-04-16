@@ -11,9 +11,9 @@ toc_max_heading_level: 4
 
 `OpenShell` 是 `NVIDIA` 开源的**自治 AI 智能体安全沙箱运行时**（`Safe Private Runtime for Autonomous AI Agents`），`GitHub` 地址为 [https://github.com/NVIDIA/OpenShell](https://github.com/NVIDIA/OpenShell)，官方文档地址为 [https://docs.nvidia.com/openshell/latest/index.html](https://docs.nvidia.com/openshell/latest/index.html)。
 
-当前 AI 编程智能体（如`Claude Code`、`OpenCode`、`Codex`、`GitHub Copilot CLI`等）在开发者本机或云服务器上运行时，往往拥有无限制的文件系统访问权限、任意出站网络权限以及执行任意命令的能力。这种"信任一切"的运行模式带来了严重的安全隐患：智能体可以读取 SSH 私钥、泄露代码仓库、向任意外部服务发送数据，甚至通过第三方依赖投毒导致供应链攻击。
+当前`AI`编程智能体（如`Claude Code`、`OpenCode`、`Codex`、`GitHub Copilot CLI`等）在开发者本机或云服务器上运行时，往往拥有无限制的文件系统访问权限、任意出站网络权限以及执行任意命令的能力。这种"信任一切"的运行模式带来了严重的安全隐患：智能体可以读取`SSH`私钥、泄露代码仓库、向任意外部服务发送数据，甚至通过第三方依赖投毒导致供应链攻击。
 
-`OpenShell` 正是为了解决这一问题而生。它为每个 AI 智能体提供**独立的隔离容器**（沙箱），通过声明式`YAML`策略文件，从文件系统、网络、进程、推理四个层面全面管控智能体的行为，做到"零信任、最小权限"。策略文件中静态部分（文件系统、进程）在沙箱创建时锁定，动态部分（网络、推理路由）支持在不重启沙箱的情况下热加载，兼顾安全性与灵活性。
+`OpenShell` 正是为了解决这一问题而生。它为每个`AI`智能体提供**独立的隔离容器**（沙箱），通过声明式`YAML`策略文件，从文件系统、网络、进程、推理四个层面全面管控智能体的行为，做到"零信任、最小权限"。策略文件中静态部分（文件系统、进程）在沙箱创建时锁定，动态部分（网络、推理路由）支持在不重启沙箱的情况下热加载，兼顾安全性与灵活性。
 
 > **当前版本状态**：`Alpha`（单用户模式）。`OpenShell` 目前专注于单开发者、单环境、单`Gateway`的使用场景，团队正在向多租户企业部署演进。
 

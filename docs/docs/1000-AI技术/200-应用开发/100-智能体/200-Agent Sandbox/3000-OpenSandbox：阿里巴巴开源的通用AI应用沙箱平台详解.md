@@ -750,9 +750,11 @@ func getEnv(key, fallback string) string {
 
 ### Daytona（daytonaio）
 
-`Daytona` 定位为**面向 AI 生成代码的弹性基础设施**，强调快速启动（`< 90ms`）、状态持久化与平台完整性。每个沙箱是一台"可组合计算机"，拥有独立内核、文件系统、网络栈以及分配的 `vCPU`/`RAM`/磁盘，基于 `OCI`/`Docker` 兼容运行时构建。其架构分为接口层（`CLI`、`Dashboard`、`API`），控制面（`NestJS API`，负责编排）和计算面（`Runner` 节点，负责运行沙箱）。
+`Daytona` 定位为**面向 AI 生成代码的弹性基础设施**，强调快速启动（`< 90ms`）、状态持久化与平台完整性。每个沙箱是一个以 `OCI/Docker` 标准容器为基础的隔离执行单元，拥有独立分配的 `vCPU`、`RAM`、磁盘和网络栈。架构分为三个平面：接口层（`CLI`、`Dashboard`、`SDK`、`REST API`），控制面（`NestJS API` 负责编排、`Snapshot Manager`、`SSH Gateway`、`Proxy`）和计算面（`Runner` 节点 + 沙箱内 `Daemon` 代理）。
 
-面向开发者的功能尤为完整：`Dashboard`（`Web UI`）、`Web Terminal`、`SSH`、`VNC`、`VPN`、预览`URL`、`LSP` 支持、`Computer Use`、`Git` 操作、日志流等。`Snapshots` 功能支持沙箱状态快照与恢复，为跨会话的`Agent`工作流提供持久化保障。多语言 `SDK` 覆盖 `Python`、`TypeScript`、`Ruby`、`Go`、`Java` 共五种语言，由 `OpenAPI` 自动生成客户端，一致性高。已推出托管云服务（`app.daytona.io`），同时支持自托管（`Docker Compose`）和混合部署（托管控制面 + 自有计算节点）。
+底层实现上，`Runner` 直接调用 `Docker SDK` 创建容器（`--privileged` 特权模式），并通过宿主机 `iptables` 规则对每个容器的 `IP` 单独设置出入站限制，实现比 `Docker` 原生网络隔离更细粒度的管控。`< 90ms` 冷启动依赖**预热池（`Warm Pool`）**——提前维持一批待命容器，请求到来时直接分配。`Daytona` 目前**仅支持 `Docker` 运行时**，没有 `gVisor`/`Kata` 等内核级安全运行时，也无 `Kubernetes` 适配器，计算节点选择由内置的 7 维加权调度器管理。
+
+面向开发者的功能极为完整：`Dashboard`（`Web UI`）、`Web Terminal`、`SSH`、`VNC`、`VPN`、预览 `URL`、`LSP` 支持、`Computer Use`、`Git` 操作、日志流等。`Snapshots` 功能支持将容器状态序列化为 `OCI` 镜像，后续沙箱可直接从快照启动，为跨会话的 `Agent` 工作流提供持久化保障。多语言 `SDK` 覆盖 `Python`、`TypeScript`、`Ruby`、`Go`、`Java` 共五种语言。已推出托管云服务（`app.daytona.io`），同时支持自托管（`Docker Compose`）和混合部署（托管控制面 + 自有计算节点）。
 
 ### OpenShell（NVIDIA）
 
@@ -765,20 +767,22 @@ func getEnv(key, fallback string) string {
 | 维度 | `OpenSandbox`（阿里巴巴） | `Daytona`（daytonaio） | `OpenShell`（NVIDIA） |
 |---|---|---|---|
 | **项目定位** | 协议标准化的`AI`沙箱平台 | `AI`代码执行弹性基础设施 | 自主`Agent`安全隐私运行时 |
-| **开源协议** | `Apache 2.0` | `Apache 2.0` | `Apache 2.0` |
+| **开源协议** | `Apache 2.0` | `Apache 2.0` / `AGPL-3.0` | `Apache 2.0` |
 | **核心语言** | `Python`（服务端）+ 多语言 `SDK` | `Go`（`CLI/Runner`）+ `TypeScript`（`API`）+ 多语言 `SDK` | `Rust`（核心）+ `Python SDK` |
 | **多语言 SDK** | `Python`·`Java/Kotlin`·`TypeScript`·`C#/.NET`·`Go` | `Python`·`TypeScript`·`Ruby`·`Go`·`Java` | `Python`（主要），`CLI` 为主入口 |
-| **沙箱隔离机制** | `gVisor`/`Kata`（`QEMU`/`Firecracker`/`CLH`）/`runc`（可选） | 独立内核（`OCI` 容器 + 完整网络栈） | `Landlock LSM` + `Seccomp BPF` + 网络命名空间 + `OPA` 策略引擎（四层纵深防御） |
-| **网络出口控制** | `Egress` 边车：`FQDN` 白名单 + `nftables` | `Network Limits` 系统钩子 | `OPA`/`Rego` 七层策略 + 热更新；`Privacy Router` 推理路由 |
+| **沙箱隔离机制** | `gVisor`/`Kata`（`QEMU`/`Firecracker`/`CLH`）/`runc`（可选） | `OCI/Docker` 容器（`--privileged`）+ `iptables` 双重网络隔离；无 `gVisor`/`Kata` 硬化运行时 | `Landlock LSM` + `Seccomp BPF` + 网络命名空间 + `OPA` 策略引擎（四层纵深防御） |
+| **容器运行时** | `Docker` / `containerd`（经 `Kubernetes CRI`）；安全运行时（`gVisor`/`Kata`）均为 `OCI`兼容 `shim` | 仅 `Docker Engine`（`Runner` 以 `DinD` 模式运行，内部依赖 `Docker` 守护进程；无裸 `containerd CRI` 接入） | `containerd`（`K3s` 默认容器运行时；沙箱以 `K8s Pod` 运行于内嵌 `K3s` 集群中） |
+| **网络出口控制** | `Egress` 边车：`FQDN` 白名单 + `nftables` | `network_block_all` 全封断 / `network_allow_list` `CIDR` 白名单 + `iptables` 细粒度规则 | `OPA`/`Rego` 七层策略 + 热更新；`Privacy Router` 推理路由 |
 | **AI 推理隐私保护** | 无内置机制 | 无内置机制 | 有（`Privacy Router`：剥离来源凭据，注入后端凭据） |
 | **凭据管理** | 无内置机制 | 无内置机制 | `Provider` 机制（环境变量注入，从不落盘） |
 | **MCP 集成** | 官方 `MCP Server`（`opensandbox-mcp`） | 官方 `MCP Server` | 无 |
 | **GPU 支持** | 无 | 无 | `--gpu` 直通（实验性） |
-| **状态快照** | 无 | `Snapshots`（跨会话持久化） | 无 |
-| **部署方式** | `Docker` / `Kubernetes` | `Docker Compose`（自托管）/ 托管云 / 混合部署 | `K3s`-in-`Docker`（单容器）/ 远程主机 |
+| **状态快照** | 无 | `Snapshots`（`OCI` 镜像快照，跨会话持久化） | 无 |
+| **部署方式** | `Docker` / `Kubernetes` | `Docker Compose`（自托管）/ 托管云 / 混合部署 | `K3s-in-Docker`（单容器）/ 远程主机 |
 | **人工操作界面** | `CLI`（`osb`） | `Dashboard`·`Web Terminal`·`SSH`·`VNC`·`VPN`·预览 URL | `TUI`（类 `k9s`）·`SSH` |
 | **协议标准化** | `OpenAPI` 规范（`sandbox-lifecycle.yml` + `execd-api.yaml`）；`CNCF Landscape` | 自有 `REST API`（无统一沙箱协议规范） | `gRPC`（`proto/sandbox.proto`）；无通用标准 |
-| **大规模调度** | `Kubernetes` 原生（`BatchSandbox`/`agent-sandbox`） | 多 `Region` + `Runner` 计算节点 | `Alpha` 阶段，单机为主；企业级多租户待支持 |
+| **大规模调度** | `Kubernetes` 原生（`BatchSandbox`/`agent-sandbox`） | 多 `Region` + 多 `Runner` 节点水平扩展 | `Alpha` 阶段，单机为主；企业级多租户待支持 |
+| **调度器** | `Kubernetes` 原生调度器（`kube-scheduler`）—— `K8s` 运行时模式；`Docker` 模式无集中调度 | 自研 `7` 维加权调度器（按 `CPU`/内存/磁盘/已分配资源等评分，选最优 `Runner` 节点；无 `Kubernetes` 依赖） | `K3s` 内嵌 `kube-scheduler`；`Alpha` 阶段为单节点，多节点调度尚未支持 |
 | **成熟度** | 生产可用，`CNCF Landscape` | 生产可用，已有托管云 | `Alpha`，主打开发者个人场景 |
 | **适用场景** | `AI`框架集成、代码沙箱标准化、大规模 `K8s` 批量任务 | `AI Coding Agent` 平台、持久化 `Agent` 工作流、组织级管控 | 单机 `Coding Agent` 安全运行、`AI` 推理隐私保护 |
 
