@@ -450,6 +450,62 @@ openshell sandbox create \
 `OpenShell`项目本身也遵循智能体驱动的开发工作流：`.agents/skills/`目录中包含用于`CLI`使用、集群调试、推理排障、策略生成等场景的智能体技能文件，所有实现工作均由人工审批后交由智能体执行。这赋予了`OpenShell`独特的自我进化能力。
 
 
+## 同类项目对比
+
+随着`AI`智能体安全隔离需求的兴起，业界已经出现了若干定位相近的开源和商业项目。以下从部署模式、隔离机制、策略能力、`AI`针对性等维度对它们进行横向比较。
+
+### 主要同类项目简介
+
+- **E2B**（[https://e2b.dev](https://e2b.dev) · GitHub: [e2b-dev/E2B](https://github.com/e2b-dev/E2B) ⭐11.7k）是目前与`OpenShell`最为接近的项目，专为`AI`编程智能体提供云端隔离沙箱，提供开源`SDK`，支持`Python`/`JavaScript`调用。沙箱以轻量虚拟机（`Firecracker microVM`）为基础，启动速度快（约`500ms`），主要用于云端托管场景。
+
+- **Daytona**（[https://daytona.io](https://daytona.io) · GitHub: [daytonaio/daytona](https://github.com/daytonaio/daytona) ⭐72.3k）是一个开源的`AI`代码沙箱基础设施平台，通过`Dev Container`规范提供安全、弹性的执行环境，适用于`AI`生成代码的运行与隔离。
+
+- **gVisor**（[https://gvisor.dev](https://gvisor.dev) · GitHub: [google/gvisor](https://github.com/google/gvisor) ⭐18.1k）是`Google`开源的容器沙箱运行时，通过用户态内核（`Sentry`）拦截系统调用实现强隔离，与`containerd`/`Docker`集成，是通用的容器安全加固方案，不针对`AI`智能体场景。
+
+- **Kata Containers**（[https://katacontainers.io](https://katacontainers.io) · GitHub: [kata-containers/kata-containers](https://github.com/kata-containers/kata-containers) ⭐7.8k）通过轻量虚拟机为每个容器提供强隔离，与`OCI`运行时兼容，安全隔离强度高，但资源开销相对更大，同样不专门针对`AI`场景。
+
+- **Runloop**（[https://runloop.ai](https://runloop.ai)）是面向`AI`智能体的云端沙箱平台，提供托管的隔离执行环境和文件系统快照能力，商业闭源，以`SaaS API`形式提供服务。
+
+- **Modal**（[https://modal.com](https://modal.com)）是云端无服务器计算平台，提供容器化隔离执行，面向通用`AI/ML` 工作负载，不专注`AI`智能体安全策略。
+
+- **Firejail**（GitHub: [netblue30/firejail](https://github.com/netblue30/firejail) ⭐7.3k）是 `Linux` 下的通用应用沙箱工具，利用`Linux namespace`和`seccomp`提供轻量隔离，成熟稳定，但缺乏`AI`智能体专用的凭据管理和推理路由能力。
+
+### 功能对比表
+
+| 特性 | OpenShell | E2B | gVisor | Kata Containers | Daytona | Firejail |
+|---|---|---|---|---|---|---|
+| **GitHub ⭐** | [NVIDIA/OpenShell](https://github.com/NVIDIA/OpenShell) ⭐5k | [e2b-dev/E2B](https://github.com/e2b-dev/E2B) ⭐11.7k | [google/gvisor](https://github.com/google/gvisor) ⭐18.1k | [kata-containers/kata-containers](https://github.com/kata-containers/kata-containers) ⭐7.8k | [daytonaio/daytona](https://github.com/daytonaio/daytona) ⭐72.3k | [netblue30/firejail](https://github.com/netblue30/firejail) ⭐7.3k |
+| **开源协议** | `Apache 2.0` | `Apache 2.0` | `Apache 2.0` | `Apache 2.0` | `AGPL-3.0` | `GPL-2.0` |
+| **部署模式** | 自托管（本地/远程） | 云托管为主 | 自托管 | 自托管 | 自托管 | 本地 |
+| **AI 智能体专用** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **网络策略（L4）** | ✅ `OPA/Rego` | 基础隔离 | ✅ | ✅ | ❌ | ✅ `namespace` |
+| **网络策略（L7）** | ✅ `HTTP` 方法级 | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **策略热更新** | ✅ 无需重启 | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **文件系统隔离** | ✅ `Landlock LSM` | ✅ VM 隔离 | ✅ | ✅ VM 隔离 | ✅ `Dev Container` | ✅ `namespace` |
+| **进程隔离** | ✅ `seccomp BPF` | ✅ VM 隔离 | ✅ 用户态内核 | ✅ VM 隔离 | 基础 | ✅ `seccomp` |
+| **凭据安全注入** | ✅ 占位符替换 | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **推理路由（Privacy Router）** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **GPU 直通** | ✅ 实验性 | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **自定义沙箱镜像（BYOC）** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **SSH 访问沙箱** | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| **终端仪表盘（TUI）** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **启动速度** | 中（K3s 初始化） | 快（~500ms） | 中 | 慢（VM 启动） | 中 | 快 |
+| **成熟度** | `Alpha` | `GA` | `GA` | `GA` | `GA` | `GA` |
+
+### 选型建议
+
+| 场景 | 推荐方案 |
+|---|---|
+| 本地/私有化部署 AI 智能体，需完整安全策略 | **OpenShell** |
+| 云端快速启动 AI 沙箱，不关心自托管 | **E2B** 或 **Runloop** |
+| 通用容器安全加固，不涉及 AI 场景 | **gVisor** 或 **Kata Containers** |
+| 开发环境标准化（非安全隔离目的） | **Daytona** |
+| 单机简单应用沙箱 | **Firejail** |
+
+`OpenShell`的核心差异化在于：它是目前唯一将**L7 网络策略热更新**、**凭据占位符隔离**、**推理 API 路由**三者合一、专门面向 AI 编程智能体设计的自托管开源方案。对于有私有化部署需求、对 AI 智能体凭据安全有严格要求的团队，`OpenShell`是目前最接近生产就绪的选择。
+
+---
+
 ## 总结
 
 `OpenShell`代表了`AI`智能体基础设施安全的一个重要方向：当`AI`编程助手逐渐具备自主执行代码、访问网络和操作文件系统的能力时，如何在不牺牲效率的前提下为其套上可控的"围栏"，成为每个企业和开发团队必须面对的课题。`OpenShell`通过`Linux`内核安全机制（`Landlock`、`seccomp`）、应用层策略引擎（`OPA/Rego`）、隐私路由器和声明式策略的有机结合，提供了一套生产级的解决方案参考，值得在`AI`智能体大规模落地之前认真研究和部署。
