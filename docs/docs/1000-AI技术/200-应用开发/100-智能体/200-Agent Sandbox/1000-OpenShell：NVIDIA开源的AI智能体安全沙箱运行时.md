@@ -17,7 +17,8 @@ toc_max_heading_level: 4
 
 > **当前版本状态**：`Alpha`（单用户模式）。`OpenShell` 目前专注于单开发者、单环境、单`Gateway`的使用场景，团队正在向多租户企业部署演进。
 
----
+
+![OpenShell](assets/1000-OpenShell：NVIDIA开源的AI智能体安全沙箱运行时/image.png)
 
 ## 解决的核心问题
 
@@ -184,7 +185,7 @@ graph TB
 凭据在沙箱内通过占位符替换机制注入：智能体进程看到的是占位符环境变量，代理在出站请求时将占位符替换为真实凭据后再转发。
 
 
-## 保护层级
+### 保护层级
 
 `OpenShell`在四个层面实施防御：
 
@@ -470,27 +471,32 @@ openshell sandbox create \
 
 - **Firejail**（GitHub: [netblue30/firejail](https://github.com/netblue30/firejail) ⭐7.3k）是 `Linux` 下的通用应用沙箱工具，利用`Linux namespace`和`seccomp`提供轻量隔离，成熟稳定，但缺乏`AI`智能体专用的凭据管理和推理路由能力。
 
+- **OpenSandbox**（[https://open-sandbox.ai](https://open-sandbox.ai) · GitHub: [alibaba/OpenSandbox](https://github.com/alibaba/OpenSandbox)）是阿里巴巴开源的**通用 AI 应用沙箱平台**，提供Python/Java/TypeScript/Go/C# 多语言`SDK`、统一沙箱生命周期`API`，以及`Docker`/`Kubernetes`两种运行时，覆盖编程智能体（`Claude Code`/`Gemini CLI`/`Codex`等）、浏览器自动化（`Playwright`/`Chrome VNC`）、桌面环境和强化学习训练等场景。底层支持`gVisor`、`Kata Containers`、`Firecracker microVM`等安全容器运行时加固，内置`Ingress` + `Egress`流量管控，并提供`MCP Server`直接集成`LLM`工具调用链。已入选`CNCF Landscape`。
+
 ### 功能对比表
 
-| 特性 | OpenShell | E2B | gVisor | Kata Containers | Daytona | Firejail |
-|---|---|---|---|---|---|---|
-| **GitHub ⭐** | [NVIDIA/OpenShell](https://github.com/NVIDIA/OpenShell) ⭐5k | [e2b-dev/E2B](https://github.com/e2b-dev/E2B) ⭐11.7k | [google/gvisor](https://github.com/google/gvisor) ⭐18.1k | [kata-containers/kata-containers](https://github.com/kata-containers/kata-containers) ⭐7.8k | [daytonaio/daytona](https://github.com/daytonaio/daytona) ⭐72.3k | [netblue30/firejail](https://github.com/netblue30/firejail) ⭐7.3k |
-| **开源协议** | `Apache 2.0` | `Apache 2.0` | `Apache 2.0` | `Apache 2.0` | `AGPL-3.0` | `GPL-2.0` |
-| **部署模式** | 自托管（本地/远程） | 云托管为主 | 自托管 | 自托管 | 自托管 | 本地 |
-| **AI 智能体专用** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **网络策略（L4）** | ✅ `OPA/Rego` | 基础隔离 | ✅ | ✅ | ❌ | ✅ `namespace` |
-| **网络策略（L7）** | ✅ `HTTP` 方法级 | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **策略热更新** | ✅ 无需重启 | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **文件系统隔离** | ✅ `Landlock LSM` | ✅ VM 隔离 | ✅ | ✅ VM 隔离 | ✅ `Dev Container` | ✅ `namespace` |
-| **进程隔离** | ✅ `seccomp BPF` | ✅ VM 隔离 | ✅ 用户态内核 | ✅ VM 隔离 | 基础 | ✅ `seccomp` |
-| **凭据安全注入** | ✅ 占位符替换 | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **推理路由（Privacy Router）** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **GPU 直通** | ✅ 实验性 | ✅ | ❌ | ✅ | ❌ | ❌ |
-| **自定义沙箱镜像（BYOC）** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **SSH 访问沙箱** | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
-| **终端仪表盘（TUI）** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **启动速度** | 中（K3s 初始化） | 快（~500ms） | 中 | 慢（VM 启动） | 中 | 快 |
-| **成熟度** | `Alpha` | `GA` | `GA` | `GA` | `GA` | `GA` |
+| 特性 | OpenShell | E2B | gVisor | Kata Containers | Daytona | OpenSandbox | Firejail |
+|---|---|---|---|---|---|---|---|
+| **GitHub ⭐** | [NVIDIA/OpenShell](https://github.com/NVIDIA/OpenShell) ⭐5k | [e2b-dev/E2B](https://github.com/e2b-dev/E2B) ⭐11.7k | [google/gvisor](https://github.com/google/gvisor) ⭐18.1k | [kata-containers/kata-containers](https://github.com/kata-containers/kata-containers) ⭐7.8k | [daytonaio/daytona](https://github.com/daytonaio/daytona) ⭐72.3k | [alibaba/OpenSandbox](https://github.com/alibaba/OpenSandbox) | [netblue30/firejail](https://github.com/netblue30/firejail) ⭐7.3k |
+| **开源协议** | `Apache 2.0` | `Apache 2.0` | `Apache 2.0` | `Apache 2.0` | `AGPL-3.0` | `Apache 2.0` | `GPL-2.0` |
+| **部署模式** | 自托管（本地/远程） | 云托管为主 | 自托管 | 自托管 | 自托管 | 自托管（Docker/K8s）| 本地 |
+| **AI 智能体专用** | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **网络策略（L4）** | ✅ `OPA/Rego` | 基础隔离 | ✅ | ✅ | ❌ | ✅ Egress 控制 | ✅ `namespace` |
+| **网络策略（L7）** | ✅ `HTTP` 方法级 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **策略热更新** | ✅ 无需重启 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **文件系统隔离** | ✅ `Landlock LSM` | ✅ VM 隔离 | ✅ | ✅ VM 隔离 | ✅ Docker 容器 | ✅ Docker 容器 | ✅ `namespace` |
+| **进程隔离** | ✅ `seccomp BPF` | ✅ VM 隔离 | ✅ 用户态内核 | ✅ VM 隔离 | 基础 | ✅ 可选安全运行时 | ✅ `seccomp` |
+| **凭据安全注入** | ✅ 占位符替换 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **推理路由（Privacy Router）** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **GPU 直通** | ✅ 实验性 | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **自定义沙箱镜像（BYOC）** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **SSH 访问沙箱** | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **MCP Server 支持** | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ |
+| **多语言 SDK** | Python | Python/JS | ❌ | ❌ | Python/TS/Go/Ruby/Java | Python/Java/TS/Go/C# | ❌ |
+| **Kubernetes 原生** | ✅ K3s | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| **终端仪表盘（TUI）** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **启动速度** | 中（K3s 初始化） | 快（~500ms） | 中 | 慢（VM 启动） | 中（含预热池）| 中 | 快 |
+| **成熟度** | `Alpha` | `GA` | `GA` | `GA` | `GA` | `Beta` | `GA` |
 
 ### 选型建议
 
@@ -500,6 +506,7 @@ openshell sandbox create \
 | 云端快速启动 AI 沙箱，不关心自托管 | **E2B** 或 **Runloop** |
 | 通用容器安全加固，不涉及 AI 场景 | **gVisor** 或 **Kata Containers** |
 | 开发环境标准化（非安全隔离目的） | **Daytona** |
+| 通用 AI 应用平台，需 K8s 大规模调度与多语言 SDK | **OpenSandbox** |
 | 单机简单应用沙箱 | **Firejail** |
 
 `OpenShell`的核心差异化在于：它是目前唯一将**L7 网络策略热更新**、**凭据占位符隔离**、**推理 API 路由**三者合一、专门面向 AI 编程智能体设计的自托管开源方案。对于有私有化部署需求、对 AI 智能体凭据安全有严格要求的团队，`OpenShell`是目前最接近生产就绪的选择。
