@@ -287,17 +287,17 @@ graph TD
 
 `Paperclip`的插件系统（`Plugin Runtime`）使用`Node.js`内置的`vm`模块构建沙箱，在隔离的`VM Context`中加载插件的工作进程（`Plugin Worker`）。沙箱具备以下安全特性：
 
-**全局变量白名单。** 沙箱`Context`中仅注入显式许可的全局对象（`console`、`setTimeout`、`URL`、`TextEncoder`等），不暴露`process`、`fs`等危险对象。
+- **全局变量白名单。** 沙箱`Context`中仅注入显式许可的全局对象（`console`、`setTimeout`、`URL`、`TextEncoder`等），不暴露`process`、`fs`等危险对象。
 
-**模块导入白名单。** 裸模块（`Bare Module Specifier`）需要在`allowedModuleSpecifiers`中显式列出，未在允许列表中的模块一律拒绝导入，防止插件意外访问主机敏感资源。
+- **模块导入白名单。** 裸模块（`Bare Module Specifier`）需要在`allowedModuleSpecifiers`中显式列出，未在允许列表中的模块一律拒绝导入，防止插件意外访问主机敏感资源。
 
-**路径逃逸防护。** 相对导入路径经过`realpathSync`解析后，会严格检查是否落在插件根目录（`pluginRoot`）之内，防止通过`../`路径逃逸访问插件目录以外的文件。
+- **路径逃逸防护。** 相对导入路径经过`realpathSync`解析后，会严格检查是否落在插件根目录（`pluginRoot`）之内，防止通过`../`路径逃逸访问插件目录以外的文件。
 
-**执行超时。** 使用`vm.Script.runInContext`的`timeout`参数限制脚本执行时间（默认`2000ms`），防止插件中的无限循环挂起服务器进程。
+- **执行超时。** 使用`vm.Script.runInContext`的`timeout`参数限制脚本执行时间（默认`2000ms`），防止插件中的无限循环挂起服务器进程。
 
-**能力门控（`Capability Gating`）。** 每个插件需要在`manifest`中声明自己的能力列表（`capabilities`），通过`CapabilityScopedInvoker`包装的主机`RPC`调用在执行前都会经过`CapabilityValidator`校验，不在声明范围内的操作一律拒绝。
+- **能力门控（`Capability Gating`）。** 每个插件需要在`manifest`中声明自己的能力列表（`capabilities`），通过`CapabilityScopedInvoker`包装的主机`RPC`调用在执行前都会经过`CapabilityValidator`校验，不在声明范围内的操作一律拒绝。
 
-**仅支持`CommonJS`。** 沙箱加载器只支持`CommonJS`格式，`ESM`模块会被检测并拒绝（通过`looksLikeEsm`函数判断），以确保沙箱的初始化时序和超时机制能够正确覆盖模块体执行。
+- **仅支持`CommonJS`。** 沙箱加载器只支持`CommonJS`格式，`ESM`模块会被检测并拒绝（通过`looksLikeEsm`函数判断），以确保沙箱的初始化时序和超时机制能够正确覆盖模块体执行。
 
 ```mermaid
 graph LR
@@ -498,18 +498,18 @@ paperclipai skills install https://github.com/paperclipai/skills/paperclip-workf
 
 | 对比维度 | Paperclip | Multica | CrewAI | AutoGen | LangGraph | OpenClaw |
 |---|---|---|---|---|---|---|
-| **定位** | 公司级多智能体编排控制平面 | 多智能体任务管理平台 | 角色扮演多智能体框架 | 对话式多智能体框架 | 状态机工作流编排 | 单体 AI 编码智能体 |
-| **组织架构** | 完整 Org Chart，层级管理汇报 | 扁平任务分配 | 角色列表 | 对话组 | 无 | 无 |
+| **定位** | 公司级多智能体编排控制平面 | 多智能体任务管理平台 | 角色扮演多智能体框架 | 对话式多智能体框架 | 状态机工作流编排 | 单体 `AI` 编码智能体 |
+| **组织架构** | 完整`Org Chart`，层级管理汇报 | 扁平任务分配 | 角色列表 | 对话组 | 无 | 无 |
 | **目标对齐** | 使命→目标→项目→任务完整链 | 项目→任务 | 无 | 无 | 无 | 无 |
-| **心跳调度** | 内置，按 Cron 定时唤醒 | 内置 | 无 | 无 | 无 | 无 |
+| **心跳调度** | 内置，按 `Cron` 定时唤醒 | 内置 | 无 | 无 | 无 | 无 |
 | **预算控制** | 按智能体/项目/公司分级预算 | 基础成本追踪 | 无 | 无 | 无 | 无 |
 | **治理审批** | 内置审批网关，可回滚 | 无 | 无 | 无 | 无 | 无 |
-| **沙箱隔离** | VM 沙箱（插件）+ Git Worktree（工作区） | Git Worktree | 无 | 无 | 无 | 无 |
-| **智能体来源** | 任意（BYOA）| Claude/Codex/OpenClaw 等 | 框架内 Agent | 框架内 Agent | 框架内 Node | 自身 |
+| **沙箱隔离** | `VM` 沙箱（插件）+ `Git Worktree`（工作区） | `Git Worktree` | 无 | 无 | 无 | 无 |
+| **智能体来源** | 任意（`BYOA`）| `Claude/Codex/OpenClaw` 等 | 框架内 `Agent` | 框架内 `Agent` | 框架内 `Node` | 自身 |
 | **持久会话** | 跨重启恢复任务上下文 | 支持 | 无 | 部分 | 无 | 无 |
 | **多公司隔离** | 完整数据隔离，单实例多公司 | 单项目 | 无 | 无 | 无 | 无 |
 | **公司模板** | 导入/导出整套公司配置 | 无 | 无 | 无 | 无 | 无 |
-| **插件系统** | 内置，VM 沙箱隔离 | 无 | 工具插件 | 工具插件 | 工具插件 | 无 |
+| **插件系统** | 内置，`VM` 沙箱隔离 | 无 | 工具插件 | 工具插件 | 工具插件 | 无 |
 | **移动端** | 可通过浏览器访问 | 无 | 无 | 无 | 无 | 无 |
 
 ### Paperclip vs Multica
@@ -533,15 +533,15 @@ paperclipai skills install https://github.com/paperclipai/skills/paperclip-workf
 
 与同类项目相比，`Paperclip`有以下几点最为突出的优势：
 
-**真正的「带你自己的智能体」（`BYOA`）。** 任何能接收调用的程序都是合法的`Paperclip`智能体，无需特定`SDK`或框架，`Claude Code`、`Codex`、自定义`Python`脚本、`HTTP Webhook`都可以无缝接入。
+- **真正的「带你自己的智能体」（`BYOA`）。** 任何能接收调用的程序都是合法的`Paperclip`智能体，无需特定`SDK`或框架，`Claude Code`、`Codex`、自定义`Python`脚本、`HTTP Webhook`都可以无缝接入。
 
-**企业级组织建模。** `Org Chart`、`Goal Hierarchy`、`Budget`、`Governance`等这些在企业软件中司空见惯的概念，被首次系统性地引入到`AI`多智能体协作领域。
+- **企业级组织建模。** `Org Chart`、`Goal Hierarchy`、`Budget`、`Governance`等这些在企业软件中司空见惯的概念，被首次系统性地引入到`AI`多智能体协作领域。
 
-**原子化执行保证。** 任务认领和预算扣减的原子性处理是大多数开源项目忽略的工程细节，`Paperclip`在架构层面解决了多智能体并发调度的经典双重执行问题。
+- **原子化执行保证。** 任务认领和预算扣减的原子性处理是大多数开源项目忽略的工程细节，`Paperclip`在架构层面解决了多智能体并发调度的经典双重执行问题。
 
-**跨重启持久会话。** 对本地会话型适配器（`Claude Code`、`Codex`等）提供任务上下文的持久化，使智能体的工作状态能够在服务器重启后无缝恢复。
+- **跨重启持久会话。** 对本地会话型适配器（`Claude Code`、`Codex`等）提供任务上下文的持久化，使智能体的工作状态能够在服务器重启后无缝恢复。
 
-**可移植的公司模板。** 整个公司的组织配置可以被打包、分享和复用，这让「一键复制一家`AI`公司」变成了现实，也是向「`Clipmart`」（公司模板市场）生态演进的基础。
+- **可移植的公司模板。** 整个公司的组织配置可以被打包、分享和复用，这让「一键复制一家`AI`公司」变成了现实，也是向「`Clipmart`」（公司模板市场）生态演进的基础。
 
 ## 项目现状与展望
 
