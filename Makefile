@@ -68,7 +68,7 @@ up:
 build:
 	yarn run build
 
-## image: 将 docs 中被引用的本地图片转换为 WebP，并更新引用、删除原图 [IMAGE_FLAGS=--dry-run] [WEBP_LOSSLESS=1|0] [WEBP_QUALITY=1-100]
+## image: 将 docs 和 blog 中被引用的本地图片转换为 WebP，并更新引用、删除原图 [IMAGE_FLAGS=--dry-run] [WEBP_LOSSLESS=1|0] [WEBP_QUALITY=1-100]
 # 默认使用无损 WebP，避免降低图片质量；只有 WEBP_LOSSLESS=0 时 WEBP_QUALITY 才用于有损压缩。
 WEBP_LOSSLESS ?= 1
 WEBP_QUALITY ?= 100

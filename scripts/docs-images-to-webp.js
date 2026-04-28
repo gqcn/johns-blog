@@ -4,7 +4,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 
-// 将 docs 中“实际被引用”的本地图片转换为 WebP，并同步改写引用路径。
+// 将 docs 和 blog 中“实际被引用”的本地图片转换为 WebP，并同步改写引用路径。
 // 转换成功且文档写入完成后会删除原始图片，避免留下未使用的旧格式文件。
 let sharp;
 try {
@@ -15,7 +15,7 @@ try {
 }
 
 const ROOT_DIR = path.resolve(__dirname, '..');
-const DOCS_DIR = path.join(ROOT_DIR, 'docs');
+const CONTENT_DIRS = ['docs', 'blog'].map((dir) => path.join(ROOT_DIR, dir));
 const STATIC_DIR = path.join(ROOT_DIR, 'static');
 const DOC_EXTS = new Set(['.md', '.mdx']);
 const CONVERTIBLE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif']);
@@ -45,12 +45,14 @@ function parseBoolean(value) {
 }
 
 async function main() {
-  const docFiles = (await walk(DOCS_DIR)).filter((file) => DOC_EXTS.has(path.extname(file)));
-  const docs = new Map();
+  const contentFiles = (
+    await Promise.all(CONTENT_DIRS.map((dir) => walkIfExists(dir)))
+  ).flat().filter((file) => DOC_EXTS.has(path.extname(file)));
+  const contents = new Map();
   const refs = [];
 
   // 扫描 Markdown/MDX 中的图片引用，跳过代码块和行内代码，避免误改示例代码。
-  for (const file of docFiles) {
+  for (const file of contentFiles) {
     const content = await fs.readFile(file, 'utf8');
     const protectedRanges = collectProtectedRanges(content);
     const fileRefs = [
@@ -61,7 +63,7 @@ async function main() {
       ...collectFrontmatterRefs(content),
     ];
 
-    docs.set(file, content);
+    contents.set(file, content);
 
     for (const ref of fileRefs) {
       const resolved = resolveImageRef(ref.value, file);
@@ -140,7 +142,7 @@ async function main() {
   let updatedRefCount = 0;
   // 先写回所有文档引用，再删除原图；这样可以避免文档仍指向已删除文件。
   for (const [file, replacements] of replacementsByFile) {
-    const original = docs.get(file);
+    const original = contents.get(file);
     const updated = applyReplacements(original, replacements);
     if (updated === original) {
       continue;
@@ -173,7 +175,7 @@ async function main() {
   }
 
   printSummary({
-    docFiles: docFiles.length,
+    contentFiles: contentFiles.length,
     localRefs: refs.length,
     existingRefs: existingRefs.length,
     missingRefs,
@@ -206,6 +208,13 @@ async function walk(dir) {
   }
 
   return files;
+}
+
+async function walkIfExists(dir) {
+  if (!(await exists(dir))) {
+    return [];
+  }
+  return walk(dir);
 }
 
 function collectProtectedRanges(content) {
@@ -698,16 +707,16 @@ function toPosix(value) {
 
 function printSummary(summary) {
   const mode = dryRun ? 'dry run' : 'write';
-  console.log(`docs image conversion (${mode})`);
+  console.log(`content image conversion (${mode})`);
   console.log(`- webp mode: ${lossless ? 'lossless' : `quality ${quality}`}`);
-  console.log(`- docs scanned: ${summary.docFiles}`);
+  console.log(`- content files scanned: ${summary.contentFiles}`);
   console.log(`- local image refs found: ${summary.localRefs}`);
   console.log(`- existing local refs: ${summary.existingRefs}`);
   console.log(`- already webp refs: ${summary.alreadyWebpRefs}`);
   console.log(`- source images to convert: ${summary.sourceCount}`);
   console.log(`- converted images: ${summary.convertedCount}`);
   console.log(`- original images ${dryRun ? 'to delete' : 'deleted'}: ${summary.deletedCount}`);
-  console.log(`- docs updated: ${summary.updatedDocCount}`);
+  console.log(`- content files updated: ${summary.updatedDocCount}`);
   console.log(`- refs updated: ${summary.updatedRefCount}`);
 
   if (summary.missingRefs.length > 0) {
