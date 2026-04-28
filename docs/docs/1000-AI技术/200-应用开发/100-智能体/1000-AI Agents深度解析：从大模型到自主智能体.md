@@ -4,7 +4,7 @@ title: "AI Agents深度解析：从大模型到自主智能体"
 hide_title: true
 keywords: [AI Agents, 智能体, 人工智能, 大语言模型, LLM, 自主智能体, 多智能体系统, AutoGPT, LangChain, AgentGPT, 认知架构, 工具调用, 任务规划, 记忆系统, RAG, 感知决策执行, ReAct, Chain-of-Thought, Function Calling, MCP协议]
 description: "深入解析AI Agents（智能体）的核心概念、技术架构和应用场景。从人工智能发展历史到大模型能力边界，详细阐述AI Agents如何通过感知、记忆、规划、工具、执行和反馈六大闭环模块，突破大模型的局限性，实现真正的自主智能。涵盖个人助理、软件开发、数据分析、客户服务等8大应用场景，以及多智能体系统、具身智能等未来发展趋势。"
-image: /og-images/ai-agents.png
+image: /og-images/ai-agents.webp
 toc_max_heading_level: 4
 ---
 

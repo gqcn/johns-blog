@@ -42,7 +42,7 @@ toc_max_heading_level: 3
 
 ## 什么是OpenSpec
 
-![什么是OpenSpec](assets/2000-OpenSpec：轻量级AI工程规范管理框架/image-3.png)
+![什么是OpenSpec](assets/2000-OpenSpec：轻量级AI工程规范管理框架/image-3.webp)
 
 `OpenSpec`的官方定义是：
 
@@ -368,7 +368,7 @@ rules:
 | `refactor-db-layer` | 重构类变更 |
 :::
 
-![OpenSpec第二步：提案与规划](assets/2000-OpenSpec：轻量级AI工程规范管理框架/image.png)
+![OpenSpec第二步：提案与规划](assets/2000-OpenSpec：轻量级AI工程规范管理框架/image.webp)
 
 生成的`4`个工件及其作用如下：
 
@@ -382,7 +382,7 @@ rules:
 在进入实现之前，你可以直接编辑这些工件进行调整，`AI`的实现将完全以修改后的工件为准。这是`OpenSpec`规范先行理念的核心体现。
 
 
-![OpenSpec第二步：提案与规划，生成的文档](assets/2000-OpenSpec：轻量级AI工程规范管理框架/image-2.png)
+![OpenSpec第二步：提案与规划，生成的文档](assets/2000-OpenSpec：轻量级AI工程规范管理框架/image-2.webp)
 
 ### 第三步：实现
 
@@ -443,7 +443,7 @@ curl -s -X DELETE http://127.0.0.1:8080/api/v1/users/1
 1. **合并增量规范到主规范**：将`changes/user-http-service/specs/`下的增量规范按`ADDED`/`MODIFIED`/`REMOVED`规则合并到`openspec/specs/`，使主规范与代码的当前行为保持一致
 2. **移动变更文件夹**：将`changes/user-http-service/`整体移入`changes/archive/`，从活跃变更列表中清除，同时完整保留本次变更的提案、设计、任务清单等所有上下文，支持日后追溯
 
-![OpenSpec第五步：归档](assets/2000-OpenSpec：轻量级AI工程规范管理框架/image-1.png)
+![OpenSpec第五步：归档](assets/2000-OpenSpec：轻量级AI工程规范管理框架/image-1.webp)
 
 归档后，`openspec/specs/user-crud/spec.md`就成为了用户服务行为的永久记录。下次任何人——无论是新成员还是`AI`——都可以通过读取`specs/`来理解系统当前的行为，而不需要翻历史聊天记录。
 

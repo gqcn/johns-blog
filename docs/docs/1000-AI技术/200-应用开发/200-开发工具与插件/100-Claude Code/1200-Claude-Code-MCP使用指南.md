@@ -42,7 +42,7 @@ toc_max_heading_level: 3
 
 ## 什么是MCP
 
-![Claude Code MCP](assets/1200-Claude-Code-MCP使用指南/image.png)
+![Claude Code MCP](assets/1200-Claude-Code-MCP使用指南/image.webp)
 
 ### 设计背景与问题定义
 

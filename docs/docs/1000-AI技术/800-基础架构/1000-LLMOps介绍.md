@@ -31,7 +31,7 @@ description: "全面介绍LLMOps技术体系，包括LLMOps的背景与定义、
 
 ## LLMOps概述
 
-![什么是LLMOps](assets/1000-LLMOps技术介绍/image-1.png)
+![什么是LLMOps](assets/1000-LLMOps技术介绍/image-1.webp)
 
 ### 什么是LLMOps
 
@@ -47,7 +47,7 @@ description: "全面介绍LLMOps技术体系，包括LLMOps的背景与定义、
 
 早期的`LLMs`，如`BERT`和`GPT-2`出现于2018年左右，而差不多五年之后，`LLMOps`概念正在迅速崛起，其中最主要的原因是在2022年12月发布的`ChatGPT`吸引了大量媒体的关注。
 
-![LLMOps产生的背景](assets/1000-LLMOps技术介绍/image.png)
+![LLMOps产生的背景](assets/1000-LLMOps技术介绍/image.webp)
 
 然而，大模型的工程化落地面临诸多挑战：
 
@@ -80,7 +80,7 @@ description: "全面介绍LLMOps技术体系，包括LLMOps的背景与定义、
 
 ## LLMOps与MLOps的区别
 
-![LLMOps与MLOps的区别](assets/1000-LLMOps技术介绍/image-3.png)
+![LLMOps与MLOps的区别](assets/1000-LLMOps技术介绍/image-3.webp)
 
 ### 基本概念对比
 
@@ -137,7 +137,7 @@ description: "全面介绍LLMOps技术体系，包括LLMOps的背景与定义、
 
 ## LLMOps功能特性
 
-![LLMOps功能特性](assets/1000-LLMOps技术介绍/image-2.png)
+![LLMOps功能特性](assets/1000-LLMOps技术介绍/image-2.webp)
 
 | 功能模块 | 子模块 | 功能项 | 说明 |
 |---------|-------|-------|------|

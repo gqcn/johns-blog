@@ -35,7 +35,7 @@ total = used + free + buff/cache
 
 #### 虚拟地址映射的物理内存
 
-![](/attachments/p619795.png)
+![](/attachments/p619795.webp)
 
 *   **物理内存**：硬件安装的内存（**内存条**）。
 *   **虚拟内存**：操作系统为程序运行提供的内存。程序运行空间包括**用户空间（用户态）**和**内核空间（内核态）**。
@@ -58,13 +58,13 @@ total = used + free + buff/cache
 
 虚拟地址映射的物理内存可以区分为**共享物理内存**和**独占物理内存**。如下图所示，物理内存1和3由进程A独占，物理内存2由进程B独占，物理内存4由进程A和进程B共享。
 
-![](/attachments/p619791.png)
+![](/attachments/p619791.webp)
 
 #### PageCache
 
 除了通过`MMap`文件直接映射外，进程文件还可以通过系统调用`Buffered I/O`相关的`Syscall`将数据写入到`PageCache`，因此，`PageCache`也会占用一部分内存。
 
-![](/attachments/p620216.png)
+![](/attachments/p620216.webp)
 
 ## 进程内存统计指标
 
@@ -88,7 +88,7 @@ total = used + free + buff/cache
 该命令展示的内存单位默认为`KB`。
 :::
 
-![](/attachments/image-2024-5-6_15-47-44.png)
+![](/attachments/image-2024-5-6_15-47-44.webp)
 
 | 命令  | 内存  | 说明  | 计算公式 |
 | --- | --- | --- | --- |
@@ -103,7 +103,7 @@ total = used + free + buff/cache
 该命令展示的内存单位默认为`KB`。
 :::
 
-![](/attachments/image-2024-5-6_15-49-57.png)
+![](/attachments/image-2024-5-6_15-49-57.webp)
 
 | 命令  | 内存  | 说明  | 计算公式 |
 | --- | --- | --- | --- |
@@ -117,7 +117,7 @@ total = used + free + buff/cache
 该命令需要单独安装。
 :::
 
-![](/attachments/image-2024-5-6_15-54-38.png)
+![](/attachments/image-2024-5-6_15-54-38.webp)
 
 | 命令  | 内存  | 说明  | 计算公式 |
 | --- | --- | --- | --- |
@@ -127,7 +127,7 @@ total = used + free + buff/cache
 
 #### 内存指标关系
 
-![](/attachments/p623795.png)
+![](/attachments/p623795.webp)
 
 :::tip
 `WSS(Memoy Working Set Size)`指标：一种更为合理评估进程内存真实使用内存的计算方式。
@@ -139,7 +139,7 @@ total = used + free + buff/cache
 
 `cgroup`用于对`Linux`的一组进程资源进行限制、管理和隔离。更多信息，请参见[官方文档](https://access.redhat.com/documentation/zh-cn/red_hat_enterprise_linux/6/html/resource_management_guide/ch01)。  
 `cgroup`按层级管理，每个节点都包含一组文件，用于统计由这个节点包含的`cgroup`的某些方面的指标。例如，`Memory Control Group(memcg)`统计内存相关指标。   
-![](/attachments/p624557.png)
+![](/attachments/p624557.webp)
 
 `memory cgroup`文件包含以下指标：
 
@@ -203,7 +203,7 @@ memory.numa_stat           ## 显示numa相关的内存
 
 返回示例如下：
 
-![](/attachments/p624725.png)
+![](/attachments/p624725.webp)
 
 *   `LIMIT`对应控制组的`memory.limit_in_bytes`
 *   `MEM USAGE`对应控制组的`memory.usage_in_bytes - memory.stat[total_cache]`

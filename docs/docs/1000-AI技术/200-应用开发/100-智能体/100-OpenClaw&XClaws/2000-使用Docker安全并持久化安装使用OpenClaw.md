@@ -81,7 +81,7 @@ npm config set registry https://registry.npmjs.org
 
 安装完成后会生成一系列配置文件在`/root/.openclaw/`目录下。
 
-![OpenClaw配置初始化](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-1.png)
+![OpenClaw配置初始化](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-1.webp)
 
 其中终端提示的`Control UI`的地址如`http://127.0.0.1:18789/#token=7bda7b7682552bec66417be05372f2a8878c529e8420546e`是后面登录管理后台的地址，其中的`token`是随机生成的。咱们先保存这个地址。
 
@@ -105,7 +105,7 @@ npm config set registry https://registry.npmjs.org
 
 通过`openclaw gateway run`指令启动`OpenClaw`的`gateway`服务。
 
-![OpenClaw：启动OpenClaw gateway](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image.png)
+![OpenClaw：启动OpenClaw gateway](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image.webp)
 
 
 
@@ -114,7 +114,7 @@ npm config set registry https://registry.npmjs.org
 
 宿主机浏览器打开前面保存的管理页面的地址`http://127.0.0.1:18789/#token=7bda7b7682552bec66417be05372f2a8878c529e8420546e`，大概是这样：
 
-![访问OpenClaw](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-2.png)
+![访问OpenClaw](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-2.webp)
 
 会报错`pairing required`，这是因为我们是使用的容器启动的`OpenClaw`，不是本机直接使用`OpenClaw`。我们需要让`OpenClaw`允许当前宿主机浏览器打开管理后台页面。
 
@@ -133,18 +133,18 @@ node dist/index.js devices list
 > 如果不知道`openclaw`安装包的具体路径，可以使用该命令查找：`find / -name "index.js" | grep "dist/index.js"`
 
 终端输出：
-![OpenClaw：查询当前Pending的秘钥配对请求](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-3.png)
+![OpenClaw：查询当前Pending的秘钥配对请求](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-3.webp)
 
 执行以下指令允许秘钥配对：
 ```bash
 node dist/index.js devices approve acc580cb-e50b-4f1e-a3bb-68cbe9e1dcbf
 ```
 
-![OpenClaw：执行以下指令允许秘钥配对](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-4.png)
+![OpenClaw：执行以下指令允许秘钥配对](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-4.webp)
 
 随后再次返回宿主机浏览器时，可以看到`OpenClaw`的管理页面已经可以正常访问了：
 
-![访问OpenClaw](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-5.png)
+![访问OpenClaw](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-5.webp)
 
 
 ## 常见配置
@@ -188,7 +188,7 @@ node dist/index.js devices approve acc580cb-e50b-4f1e-a3bb-68cbe9e1dcbf
 
 保存后，`OpenClaw`的`gateway`会自动重加载配置无须手动重启`gateway`（如果不放心也可以手动重启`openclaw gateway restart`）。随后在`OpenClaw`聊天页面通过`/status`命令检查是否生效：
 
-![OpenClaw：修改对接的模型配置](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-6.png)
+![OpenClaw：修改对接的模型配置](assets/1000-使用Docker安全并持久化安装使用OpenClaw/image-6.webp)
 
 
 ## 常见问题

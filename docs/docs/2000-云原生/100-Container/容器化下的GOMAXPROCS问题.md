@@ -32,7 +32,7 @@ func main() {
 
 线上容器里的服务通常都对`CPU`资源做了限制，例如默认的 `4C`。但是在容器里通过 `lscpu` 命令仍然能看到宿主机的所有 `CPU` 核心：
 
-![](/attachments/95c4e8faeaf64218803c57f31dae1f3f.png)
+![](/attachments/95c4e8faeaf64218803c57f31dae1f3f.webp)
 
   
 这就导致`Golang`服务默认会拿宿主机的`CPU`核心数来调用 `runtime.GOMAXPROCS()`，导致进程 数量远远大于可用的`CPU`核心，不仅导致`Golang` `Runtime`的调度成本提高，还引起频繁上下文切换，影响高负载情况下的服务性能。

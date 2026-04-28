@@ -21,7 +21,7 @@ description: "分析和解决 Kubernetes Pod 卡在 ContainerCreating 或 Termin
 
 部分`Pod`在新版本发布后一直处于`ContainerCreating`状态，经过`kubectl delete`命令删除后一直`Terminating`状态。
 
-![](/attachments/image-2024-4-16_16-33-32.png)
+![](/attachments/image-2024-4-16_16-33-32.webp)
 
 ## 排查过程
 
@@ -54,9 +54,9 @@ description: "分析和解决 Kubernetes Pod 卡在 ContainerCreating 或 Termin
 
 用于在指定`container`成功`Running`后执行一些自定义脚本，具体介绍：[https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)
 
-![](/attachments/image-2024-4-16_17-9-27.png)
+![](/attachments/image-2024-4-16_17-9-27.webp)
 
-![](/attachments/image-2024-4-16_16-36-18.png)
+![](/attachments/image-2024-4-16_16-36-18.webp)
 
 ### 相关联的docker bug
 
@@ -94,7 +94,7 @@ docker kill nginx
 
 每当`Pod Spec`变化时，例如创建时，会按照`EphemeralContainers、InitContainers、Containers`依次执行容器创建。具体参考：[https://github.com/kubernetes/kubernetes/blob/b722d017a34b300a2284b890448e5a605f21d01e/pkg/kubelet/kuberuntime/kuberuntime\_manager.go#L1048](https://github.com/kubernetes/kubernetes/blob/b722d017a34b300a2284b890448e5a605f21d01e/pkg/kubelet/kuberuntime/kuberuntime_manager.go#L1048)
 
-![](/attachments/image-2024-4-16_18-2-48.png)
+![](/attachments/image-2024-4-16_18-2-48.webp)
 
 :::tip
 这种创建虽然在`kubernetes`中是顺序执行的，但是宿主机的容器启动成功却是异步的，不能保证顺序性。
@@ -103,7 +103,7 @@ docker kill nginx
 
 但是，如果容器中存在`PostStart`脚本，那么将会阻塞后续容器的创建，需要等待`PostStart`脚本执行完成后才会继续执行。具体参考：[https://github.com/kubernetes/kubernetes/blob/b722d017a34b300a2284b890448e5a605f21d01e/pkg/kubelet/kuberuntime/kuberuntime\_container.go#L297](https://github.com/kubernetes/kubernetes/blob/b722d017a34b300a2284b890448e5a605f21d01e/pkg/kubelet/kuberuntime/kuberuntime_container.go#L297)
 
-![](/attachments/image-2024-4-16_17-59-57.png)
+![](/attachments/image-2024-4-16_17-59-57.webp)
 
 如果底层是`docker`，那么这里使用的便正是`docker exec`命令来实现的`PostStart`自定义脚本执行。
 
@@ -134,9 +134,9 @@ kubectl delete -n xxx pod/xxx --force
 
 操作记录：
 
-![](/attachments/image-2024-4-16_16-43-36.png)
+![](/attachments/image-2024-4-16_16-43-36.webp)
 
-![](/attachments/image-2024-4-16_16-42-9.png)
+![](/attachments/image-2024-4-16_16-42-9.webp)
 
   
 

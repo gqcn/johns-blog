@@ -18,7 +18,7 @@ toc_max_heading_level: 4
 > **当前版本状态**：`Alpha`（单用户模式）。`OpenShell` 目前专注于单开发者、单环境、单`Gateway`的使用场景，团队正在向多租户企业部署演进。
 
 
-![OpenShell](assets/1000-OpenShell：NVIDIA开源的AI智能体安全沙箱运行时/image.png)
+![OpenShell](assets/1000-OpenShell：NVIDIA开源的AI智能体安全沙箱运行时/image.webp)
 
 ## 解决的核心问题
 

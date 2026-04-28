@@ -15,7 +15,7 @@ toc_max_heading_level: 4
 
 智能体和开发者可以通过`Daytona SDK`、`REST API`和`CLI`与沙箱进行编程交互，覆盖沙箱生命周期管理、文件系统操作、进程与代码执行以及运行时配置等各类操作。`Daytona`的有状态环境 **快照（Snapshot）** 机制支持跨会话的持久化智能体操作，使其成为构建`AI`智能体架构的理想底层基础设施。
 
-![Daytona](assets/4000-Daytona：AI代码安全沙箱运行时平台详解/image.png)
+![Daytona](assets/4000-Daytona：AI代码安全沙箱运行时平台详解/image.webp)
 
 ## 解决的核心问题
 

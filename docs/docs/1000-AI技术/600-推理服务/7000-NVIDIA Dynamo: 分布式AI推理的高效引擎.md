@@ -34,7 +34,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 `NVIDIA Dynamo`采用模块化架构设计，旨在为分布式环境中的生成式AI模型提供高效的推理服务。它支持所有主要的LLM框架，包括`NVIDIA TensorRT-LLM`、`vLLM`和`SGLang`，并整合了最先进的`LLM`推理服务优化技术。
 
-![Dynamo架构图](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image.png>)
+![Dynamo架构图](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image.webp>)
 
 `NVIDIA Dynamo`包含多项关键特性，使其能够实现大规模分布式和分离式推理服务。
 
@@ -42,9 +42,9 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 ### 分离式服务（Disaggregated Serving）
 
-![NVIDIA Dynamo分离式服务架构示意图](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-6.png>)
+![NVIDIA Dynamo分离式服务架构示意图](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-6.webp>)
 
-![NVIDIA Dynamo Prefill和Decode分离部署架构图](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-1.png>)
+![NVIDIA Dynamo Prefill和Decode分离部署架构图](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-1.webp>)
 
 传统的`LLM`部署将推理的预填充（`Prefill`）和解码（`Decode`）阶段放在同一个`GPU`或节点上，这种方法阻碍了性能优化，无法充分利用`GPU`资源：
 
@@ -57,7 +57,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 ### NVIDIA Dynamo 规划器：优化分布式推理中的GPU资源
 
-![Dynamo 规划器工作流程](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-2.png>)
+![Dynamo 规划器工作流程](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-2.webp>)
 
 在大规模分布式和解耦式推理系统中，高效管理`GPU`资源是提升吞吐量和降低延迟的关键。虽然解耦式服务能显著提高推理吞吐量和效率，但并非所有请求都适合这种方案。  
 
@@ -72,7 +72,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 ### NVIDIA Dynamo 智能路由：减少KV缓存的高成本重新计算
 
-![Dynamo Smart Router工作原理](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-4.png>)
+![Dynamo Smart Router工作原理](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-4.webp>)
 
 在响应用户提示前，`LLM`需构建输入请求的上下文理解，即`KV`缓存。这一过程计算密集且随输入请求大小呈二次增长。复用`KV`缓存可避免从头计算，减少推理时间和计算资源消耗。这对频繁执行相同请求的场景（如系统提示、单用户多轮聊天机器人交互、代理工作流）尤为有利。为此需要高效的数据管理机制，判断何时何地可复用`KV`缓存。  
 
@@ -84,7 +84,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 `NVIDIA Dynamo`分布式`KV`缓存管理器通过将较旧或访问频率较低的`KV`缓存块卸载到成本更低的存储（如`CPU`主机内存、本地存储或网络对象存储），解决了这一问题。该功能使组织能以`GPU`内存成本的极小部分存储`PB`级`KV`缓存数据。通过将`KV`缓存卸载至不同存储层级，开发者可释放宝贵`GPU`资源，同时保留历史`KV`缓存以减少推理计算成本。 
 
-![Dynamo KV Cache Manager架构](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-3.png>)
+![Dynamo KV Cache Manager架构](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-3.webp>)
 
 `NVIDIA Dynamo`分布式`KV`缓存管理器采用先进缓存策略，优先将高频访问数据保留在`GPU`内存，低频数据迁移至共享`CPU`主机内存、SSD或网络对象存储。其智能淘汰策略平衡过度缓存（引发查找延迟）与缓存不足（导致查找失败和`KV`缓存重新计算）的问题。  
 
@@ -98,7 +98,7 @@ description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分
 
 此外，它们需支持硬件和网络无关的加速通信库，可高效跨`GPU`和存储层级（如`CPU`内存、块、文件及对象存储）移动数据，并兼容多种网络协议。  
 
-![NVIDIA推理传输库（NIXL）抽象了异构存储设备间的数据移动复杂性](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-5.png>)
+![NVIDIA推理传输库（NIXL）抽象了异构存储设备间的数据移动复杂性](<assets/NVIDIA Dynamo: 分布式AI推理的高效引擎/image-5.webp>)
 
 `NVIDIA`推理传输库（`NIXL`）是高性能、低延迟的点对点通信库，提供一致的数据移动`API`，利用相同语义快速异步跨不同存储层级移动数据。其专为推理数据移动优化，支持非阻塞和非连续数据传输。  
 

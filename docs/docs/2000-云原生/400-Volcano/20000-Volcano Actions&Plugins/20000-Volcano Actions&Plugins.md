@@ -28,7 +28,7 @@ description: "深入解析Volcano调度器的Actions和Plugins机制，包括调
 
 `Volcano`调度器是一个为高性能计算、机器学习和批处理工作负载设计的`Kubernetes`调度器。它的核心功能之一是通过可插拔的`Actions`(动作)和`Plugins`(插件)机制来实现灵活的调度策略。
 
-![](../../assets/zh-cn_image_0000002065638558.png)
+![](../../assets/zh-cn_image_0000002065638558.webp)
 
 
 ## Actions与Plugins

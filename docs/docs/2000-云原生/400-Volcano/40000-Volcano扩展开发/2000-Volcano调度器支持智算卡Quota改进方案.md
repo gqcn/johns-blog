@@ -95,7 +95,7 @@ graph TD
 
 
 **调度器内部工作流程**：
-![Volcano调度器工作流程示意图](assets/7000-Volcano调度器支持智算卡Quota改进方案/image.png)
+![Volcano调度器工作流程示意图](assets/7000-Volcano调度器支持智算卡Quota改进方案/image.webp)
 
 这张图来源`volcano`官网，展示了`volcano`调度器执行的工作流程。调度器中存在`action`和`plugin`两种类型的可插拔资源，`action`用于实现一些关键步骤，如任务入队（`enqueue`）、资源分配（`allocate`）、抢占（`preempt`）、回收（`reclaim`）等；但是`action`的具体实现是依赖`plugin`注册的扩展点函数。`plugin`资源定义了具体的功能特性实现，用于在各个`action`步骤来实现具体的业务逻辑。
 
@@ -397,7 +397,7 @@ spec:
 `Volcano`提供了很强大的插件扩展机制，考虑到后续和社区的`Volcano`源码升级融合（或者反哺贡献社区），我们使用了独立的插件来实现卡维度和单实例多卡的额度管控能力。这样可以实现热插拔能力，对`Volcano`调度器源码没有侵入性和影响，可以通过配置的方式即可启用/卸载该插件。
 我们的插件名称使用`capacity-card`，插件整体的实现可以参考官方的`capacity`插件。以下为`demo`验证代码的代码结构示例，可以看到，通过独立插件的设计对于`Volcano`社区源码几乎没有侵入性，完全可热插拔。
 
-![Volcano 调度器插件扩展设计](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-1.png)
+![Volcano 调度器插件扩展设计](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-1.webp)
 
 ##### 额度资源对象
 在插件的`Quota`管控实现中，需要使用到一些关键的额度资源对象来维护特定类型的资源额度，便于运行时高效计算队列的额度是否足以运行指定任务，如下：
@@ -414,9 +414,9 @@ spec:
 
 以下为`demo`验证代码片段截图示例：
 
-![调度器插件扩展设计-额度资源对象](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-2.png)
+![调度器插件扩展设计-额度资源对象](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-2.webp)
 
-![调度器插件扩展设计-额度资源对象](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-3.png)
+![调度器插件扩展设计-额度资源对象](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-3.webp)
 
 
 ##### 资源对象初始化
@@ -524,7 +524,7 @@ spec:
 ##### 具体执行流程
 以下是该插件的关键执行流程，以及关键操作介绍，整体流程都是串行执行，以避免并发调度问题。
 
-![调度器插件扩展设计-额度资源对象](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-4.png)
+![调度器插件扩展设计-额度资源对象](assets/7000-Volcano调度器支持智算卡Quota改进方案/image-4.webp)
 
 ##### Event信息提示
 在`Volcano`默认的配额管理插件`capacity`中，一旦出现队列额度问题，只有查看调度器日志信息才能确定`任务/Pod`无法调度的原因，运维效率低下。

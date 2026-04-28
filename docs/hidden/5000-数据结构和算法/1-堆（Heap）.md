@@ -24,7 +24,7 @@ description: "详细介绍堆（Heap）数据结构的概念、实现原理和�
 
 例子：
 
-![](/attachments/2019-05/auto-4064751-14a6cde25bdff968.png)
+![](/attachments/2019-05/auto-4064751-14a6cde25bdff968.webp)
 
 这是一个最大堆，，因为每一个父节点的值都比其子节点要大。`10` 比 `7` 和 `2` 都大。`7` 比 `5` 和 `1`都大。
 
@@ -102,13 +102,13 @@ array[parent(i)] >= array[i]
 
  
 
-![](/attachments/2020-05/auto-4064751-4b11a151bf6c2148.png)
+![](/attachments/2020-05/auto-4064751-4b11a151bf6c2148.webp)
 
 
 
 
 
-![](/attachments/2020-05/auto-4064751-7515fe1d9f3104ad.png)
+![](/attachments/2020-05/auto-4064751-7515fe1d9f3104ad.webp)
 
 
 
@@ -118,7 +118,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-d6fd28a1ba7dbb1a.png)
+![](/attachments/2020-05/auto-4064751-d6fd28a1ba7dbb1a.webp)
 
 
 
@@ -128,7 +128,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-26be199ebd40f8bf.png)
+![](/attachments/2020-05/auto-4064751-26be199ebd40f8bf.webp)
 
 
 
@@ -136,7 +136,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-9590755bc6109a38.png)
+![](/attachments/2020-05/auto-4064751-9590755bc6109a38.webp)
 
 
 
@@ -152,7 +152,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-525f0584ffbdbbed.png)
+![](/attachments/2020-05/auto-4064751-525f0584ffbdbbed.webp)
 
 
 
@@ -170,7 +170,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-9a3b75e40d3f9f04.png)
+![](/attachments/2020-05/auto-4064751-9a3b75e40d3f9f04.webp)
 
 
 
@@ -214,7 +214,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-51fd43a2d2191488.png)
+![](/attachments/2020-05/auto-4064751-51fd43a2d2191488.webp)
 
 
 
@@ -230,7 +230,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-7dd89da71927acb8.png)
+![](/attachments/2020-05/auto-4064751-7dd89da71927acb8.webp)
 
 
 
@@ -242,7 +242,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-785a7a6cd104f775.png)
+![](/attachments/2020-05/auto-4064751-785a7a6cd104f775.webp)
 
 
 
@@ -252,7 +252,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-d7dae273e1f5a0ba.png)
+![](/attachments/2020-05/auto-4064751-d7dae273e1f5a0ba.webp)
 
 
 
@@ -264,7 +264,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-7eb32c6486a44f73.png)
+![](/attachments/2020-05/auto-4064751-7eb32c6486a44f73.webp)
 
 
 
@@ -272,7 +272,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-71783aa7bd24a51f.png)
+![](/attachments/2020-05/auto-4064751-71783aa7bd24a51f.webp)
 
 
 
@@ -280,7 +280,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-c28b15dc371b8e97.png)
+![](/attachments/2020-05/auto-4064751-c28b15dc371b8e97.webp)
 
 
 
@@ -288,7 +288,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-bfc42e89b5411f9b.png)
+![](/attachments/2020-05/auto-4064751-bfc42e89b5411f9b.webp)
 
 
 
@@ -296,7 +296,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-8b04275965f88961.png)
+![](/attachments/2020-05/auto-4064751-8b04275965f88961.webp)
 
 
 
@@ -308,7 +308,7 @@ array[parent(i)] >= array[i]
 
 我们还是用前面的例子，删除 `(7)`:
 
-![](/attachments/2019-05/Heap1.png)
+![](/attachments/2019-05/Heap1.webp)
 
 对应的数组是
 
@@ -328,7 +328,7 @@ array[parent(i)] >= array[i]
 
 
 
-![](/attachments/2020-05/auto-4064751-ef711e0072fc773a.png)
+![](/attachments/2020-05/auto-4064751-ef711e0072fc773a.webp)
 
 
 

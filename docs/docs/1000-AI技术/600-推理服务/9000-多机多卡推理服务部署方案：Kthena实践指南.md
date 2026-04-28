@@ -80,7 +80,7 @@ toc_max_heading_level: 4
 
 `LWS`（[kubernetes-sigs/lws](https://github.com/kubernetes-sigs/lws)）是`Kubernetes SIG-Apps`下的子项目，提供了一种以"Leader-Worker 组"为单位进行`Pod`复制的`API`，是目前最接近`Kubernetes`官方标准的多节点推理部署方案。
 
-![LeaderWorkerSet（LWS）](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-2.png)
+![LeaderWorkerSet（LWS）](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-2.webp)
 
 **核心设计理念**
 
@@ -125,7 +125,7 @@ LeaderWorkerSet
 
 `AIBrix`（[vllm-project/aibrix](https://github.com/vllm-project/aibrix)）由字节跳动开源并贡献至`vllm-project`社区，定位为云原生`GenAI`推理基础架构的"构建模块"工具箱，深度面向`vLLM`引擎的规模化企业部署场景。项目自`2024`年底首发以来版本迭代迅速（已达`v0.6.0`），并多次登上`KubeCon`主题演讲舞台。
 
-![AIBrix](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-3.png)
+![AIBrix](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-3.webp)
 
 **核心设计理念**
 
@@ -174,7 +174,7 @@ RayClusterFleet
 
 `RBG`（[sgl-project/rbg](https://github.com/sgl-project/rbg)）由`SGLang`项目团队维护，在`LWS`设计基础上进行了扩展，将推理服务建模为"基于角色的协作有机体"（Role-Based Organism），以支持更复杂的生产部署场景，尤其是`PD`分离架构。
 
-![RoleBasedGroup（RBG）](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-1.png)
+![RoleBasedGroup（RBG）](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-1.webp)
 
 **核心设计理念**
 
@@ -219,7 +219,7 @@ RoleBasedGroup
 
 `OME`（[sgl-project/ome](https://github.com/sgl-project/ome)）由`SGLang`社区发起，是一个面向企业级`LLM`服务的`Kubernetes Operator`，定位为**以模型为第一公民**的推理平台——将模型元数据、运行时选择、部署策略统一在一套声明式`CRD`体系内，同时深度集成`Kubernetes`生态标准组件（`LWS`、`Kueue`、`KEDA`、`K8s Gateway API`等）。
 
-![OME（Open Model Engine）](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-4.png)
+![OME（Open Model Engine）](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image-4.webp)
 
 **核心设计理念**
 
@@ -277,7 +277,7 @@ InferenceService             (部署实例 CRD)
 
 `Kthena`（[volcano-sh/kthena](https://github.com/volcano-sh/kthena)）是由`Volcano`社区（华为）发起的企业级`LLM`推理平台，定位为一站式`Kubernetes`原生推理服务治理方案，覆盖从模型部署、流量路由到自动扩缩容的完整生命周期。
 
-![Kthena](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image.png)
+![Kthena](assets/9000-多机多卡推理服务部署方案：Kthena实践指南/image.webp)
 
 **核心设计理念**
 

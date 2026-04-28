@@ -43,7 +43,7 @@ toc_max_heading_level: 4
 
 ## 什么是Claude Code
 
-![Claude Code](assets/1000-Claude-Code使用指南/image-1.png)
+![Claude Code](assets/1000-Claude-Code使用指南/image-1.webp)
 
 ### 基本介绍
 
@@ -132,7 +132,7 @@ brew install --cask cc-switch
 
 ## 核心概念
 
-![Claude Code核心概念](assets/1000-Claude-Code使用指南/image.png)
+![Claude Code核心概念](assets/1000-Claude-Code使用指南/image.webp)
 
 ### 智能体循环（Agentic Loop）
 

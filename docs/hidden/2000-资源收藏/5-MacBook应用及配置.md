@@ -31,6 +31,6 @@ export GOPATH=/Users/john/go
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 ```
 
-![](/attachments/image-2024-8-19_14-12-56.png)
+![](/attachments/image-2024-8-19_14-12-56.webp)
 
-![](/attachments/image-2024-8-19_14-13-9.png)
+![](/attachments/image-2024-8-19_14-13-9.webp)

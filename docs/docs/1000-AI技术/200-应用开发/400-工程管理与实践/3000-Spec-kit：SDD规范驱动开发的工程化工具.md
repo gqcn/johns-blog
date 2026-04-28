@@ -39,7 +39,7 @@ toc_max_heading_level: 4
 
 ## 什么是Spec-kit
 
-![Spec-kit](assets/Spec-kit：SDD规范驱动开发的工程化工具/image.png)
+![Spec-kit](assets/Spec-kit：SDD规范驱动开发的工程化工具/image.webp)
 
 `Spec-kit`的官方定义是：
 
@@ -387,7 +387,7 @@ specify init my-project --ai gemini --no-git
 
 初始化完成后，在项目目录中启动`AI`助手，即可看到`/speckit.*`系列命令可用。
 
-![spec-kit初始化项目](assets/Spec-kit：SDD规范驱动开发的工程化工具/image-1.png)
+![spec-kit初始化项目](assets/Spec-kit：SDD规范驱动开发的工程化工具/image-1.webp)
 
 ### 完整使用示例：构建相册管理应用
 

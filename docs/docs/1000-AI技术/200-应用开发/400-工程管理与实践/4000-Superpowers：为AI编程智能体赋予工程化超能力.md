@@ -81,7 +81,7 @@ toc_max_heading_level: 4
 
 ## 什么是Superpowers
 
-![什么是Superpowers](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-4.png)
+![什么是Superpowers](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-4.webp)
 
 `Superpowers`是一个完整的软件开发工作流框架，构建于一套可组合的"技能"（`Skills`）之上。其官方定义是：
 
@@ -274,7 +274,7 @@ ln -s ~/.config/opencode/superpowers/skills \
 
 最终生成设计文档：`docs/plans/2026-03-03-user-service-design.md`（[示例文件](./assets/Superpowers：为AI编程智能体赋予工程化超能力/2026-03-03-user-service-design.md.txt)），内容包含目录结构、`API`规范、数据流图、错误处理策略等。
 
-![阶段一：头脑风暴与设计（brainstorming）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image.png)
+![阶段一：头脑风暴与设计（brainstorming）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image.webp)
 
 ### 阶段二：编写实现计划（writing-plans）
 
@@ -325,11 +325,11 @@ ln -s ~/.config/opencode/superpowers/skills \
 
 任务会按照批次执行，每批次完成`2-3`个任务：
 
-![Superpowers任务执行，每批次完成2-3个任务](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-2.png)
+![Superpowers任务执行，每批次完成2-3个任务](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-2.webp)
 
 在任务批次完成后使用`git`提交，然后等待用户确认继续下一批次：
 
-![Superpowers任务执行，在任务批次完成后使用git提交，然后等待用户确认继续下一批次](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-3.png)
+![Superpowers任务执行，在任务批次完成后使用git提交，然后等待用户确认继续下一批次](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-3.webp)
 
 
 实际的`git`提交历史完整记录了每个任务的开发过程：
@@ -389,7 +389,7 @@ curl -s -X DELETE http://127.0.0.1:8080/api/v1/users/1
 
 ### 阶段五：收尾（finishing-a-development-branch）
 
-![Superpowers阶段五：收尾（finishing-a-development-branch）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-1.png)
+![Superpowers阶段五：收尾（finishing-a-development-branch）](assets/Superpowers：为AI编程智能体赋予工程化超能力/image-1.webp)
 
 
 ## 总结

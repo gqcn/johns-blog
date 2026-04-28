@@ -26,7 +26,7 @@ toc_max_heading_level: 2
 
 **关联动作**：`allocate`, `backfill`, `preempt`, `reclaim`
 
-![](../../assets/fair-share.png)
+![](../../assets/fair-share.webp)
 
 **工作原理**：
 - 读取任务的`PriorityClass`或优先级注解
@@ -148,7 +148,7 @@ spec:
 
 **关联动作**：`allocate`, `backfill`, `enqueue`, `preempt`, `reclaim`
 
-![](../../assets/drfjob.png)
+![](../../assets/drfjob.webp)
 
 **工作原理**：
 - 计算每个任务的主导资源（即任务所需的最多的资源类型）
@@ -605,7 +605,7 @@ spec:
 **NUMA简介**：
 `NUMA`（`Non-Uniform Memory Access`，非统一内存访问）是一种计算机内存架构，在这种架构中，内存访问时间取决于内存相对于处理器的位置。在`NUMA`系统中，处理器访问其本地内存（同一`NUMA`节点上的内存）比访问非本地内存（其他`NUMA`节点上的内存）要快。这种架构在现代多处理器服务器中非常常见，对于高性能计算工作负载来说至关重要。
 
-![](../../assets/20220602110808.png)
+![](../../assets/20220602110808.webp)
 
 **主要功能**：优化对`NUMA`（非统一内存访问）架构的支持，提高计算密集型任务的性能。
 

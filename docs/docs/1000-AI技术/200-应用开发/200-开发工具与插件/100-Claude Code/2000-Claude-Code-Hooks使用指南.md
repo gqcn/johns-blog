@@ -42,7 +42,7 @@ toc_max_heading_level: 4
 
 ## 什么是Hooks
 
-![Claude Code Hooks](assets/2000-Claude-Code-Hooks使用指南/image-1.png)
+![Claude Code Hooks](assets/2000-Claude-Code-Hooks使用指南/image-1.webp)
 
 ### 设计目标
 
@@ -83,7 +83,7 @@ flowchart TD
 
 ## Hook生命周期
 
-![Claude Code Hook生命周期](assets/2000-Claude-Code-Hooks使用指南/image.png)
+![Claude Code Hook生命周期](assets/2000-Claude-Code-Hooks使用指南/image.webp)
 
 ### 事件总览
 

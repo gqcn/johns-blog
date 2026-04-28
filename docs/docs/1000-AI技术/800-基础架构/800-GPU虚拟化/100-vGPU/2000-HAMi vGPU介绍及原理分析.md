@@ -8,7 +8,7 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 
 ## HAMi项目概述
 
-![HAMi整体架构](assets/1000-vGPU方案调研/image-2.png)
+![HAMi整体架构](assets/1000-vGPU方案调研/image-2.webp)
 
 **HAMi** (`Heterogeneous AI Computing Virtualization Middleware`) 是开源的 `vGPU`与调度系统 https://project-hami.io/ ，目标是为`Kubernetes`环境下的深度学习/推理任务提供细粒度、灵活的`GPU`资源管理能力。其思路是：在`Kubernetes`调度层与`GPU driver`层能力之间，建立一个智能的中间层，用统一的接口和策略提供给用户。这样，用户提交任务时不需要关心底层细节，只需要声明需要多少`GPU`算力/显存，`HAMi`就能动态分配、隔离并调度。
 
@@ -71,7 +71,7 @@ description: "HAMi是CNCF沙箱项目，提供Kubernetes环境下的GPU虚拟化
 
 ## HAMi整体架构
 
-![HAMi关键组件详解](assets/1000-vGPU方案调研/image-3.png)
+![HAMi关键组件详解](assets/1000-vGPU方案调研/image-3.webp)
 
 `HAMi`采用分层架构设计，由以下四个核心组件协同工作：
 
@@ -190,7 +190,7 @@ spec:
 
 ## HAMi原理分析
 
-![HAMi原理分析](assets/1000-vGPU方案调研/image-6.png)
+![HAMi原理分析](assets/1000-vGPU方案调研/image-6.webp)
 
 
 ### Pod调度阶段

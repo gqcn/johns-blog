@@ -84,7 +84,7 @@ description: "全面解析NVIDIA GPU Direct通信技术体系，包括GPU Direct
 
 ### GPU Direct Storage原理
 
-![GPU Direct Storage](<assets/4250-GPU Direct通信技术/image.png>)
+![GPU Direct Storage](<assets/4250-GPU Direct通信技术/image.webp>)
 
 
 
@@ -152,7 +152,7 @@ description: "全面解析NVIDIA GPU Direct通信技术体系，包括GPU Direct
 
 **没有`GPU Direct P2P`时的数据传输：**
 
-![没有GPU Direct P2P时的数据传输](<assets/4250-GPU Direct通信技术/2.gif>)
+![没有GPU Direct P2P时的数据传输](<assets/4250-GPU Direct通信技术/2.webp>)
 
 - 数据从源`GPU`通过`PCIe`拷贝到`CPU`主机内存（第`1`次拷贝）
 - 再从`CPU`内存通过`PCIe`拷贝到目标`GPU`（第`2`次拷贝）
@@ -162,7 +162,7 @@ description: "全面解析NVIDIA GPU Direct通信技术体系，包括GPU Direct
 
 **核心机制**：如果两个`GPU`连接到同一`PCIe`总线（或同一`PCIe`交换机），允许它们直接访问彼此的显存，无需`CPU`参与。
 
-![GPU Direct P2P时的数据传输](<assets/4250-GPU Direct通信技术/3.gif>)
+![GPU Direct P2P时的数据传输](<assets/4250-GPU Direct通信技术/3.webp>)
 
 **技术要点：**
 1. **PCIe P2P协议**：`GPU`间通过`PCIe`的点对点传输能力直接通信
@@ -309,7 +309,7 @@ description: "全面解析NVIDIA GPU Direct通信技术体系，包括GPU Direct
 
 ### 架构拓扑
 
-![NVSwitch](<assets/4250-GPU Direct通信技术/image-1.png>)
+![NVSwitch](<assets/4250-GPU Direct通信技术/image-1.webp>)
 
 - 每个`GPU`连接到所有`NVSwitch`
 - 每个`NVSwitch`连接到所有`GPU`

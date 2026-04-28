@@ -48,7 +48,7 @@ resources:
 
 如 kubernetes 官网上的图所示：
 
-![](../assets/deviceplugin-framework-overview.png)
+![](../assets/deviceplugin-framework-overview.webp)
 
 ### Kubelet 部分
 
@@ -110,7 +110,7 @@ service Registration {
 
 大致如下：
 
-![](../assets/k8s-device-plugin-timeline.png)
+![](../assets/k8s-device-plugin-timeline.webp)
 
 ## 实现
 
@@ -779,7 +779,7 @@ I0719 14:03:55.905267       1 api.go:32] device update,new device list [g1]
 *   插件注册：`DevicePlugin`启动时会想节点上的`Kubelet`发起注册，这样`Kubelet`就可以感知到该插件的存在了
 *   `kubelet`调用插件：注册完成后，当有`Pod`申请对于资源时，`kubelet`就会调用该插件 API 实现具体功能
 
-![](../assets/deviceplugin-framework-overview.png)
+![](../assets/deviceplugin-framework-overview.webp)
 
 以下是总结的几个常见问题：
 

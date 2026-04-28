@@ -103,7 +103,7 @@ description: "深入探讨AI模型开发训练推理场景下的CPU亲和性与N
 
 ### CPU缓存架构
 
-![CPU缓存架构](assets/3000-CPU亲和性与NUMA亲和性调度/image.png)
+![CPU缓存架构](assets/3000-CPU亲和性与NUMA亲和性调度/image.webp)
 
 `CPU`缓存是影响`CPU`亲和性效果的关键因素，采用分层设计：
 
@@ -330,7 +330,7 @@ taskset -c 0-7 <command>
 - **远程访问代价**：`CPU`访问其他`NUMA`节点的内存（跨节点访问）会产生额外延迟
 - **可扩展性强**：通过增加`NUMA`节点可以线性扩展系统规模
 
-![CPU处理器架构：SMP、NUMA、MPP](../../../7000-操作系统和网络/assets/CPU处理器架构：SMP、NUMA、MPP/image-7.png)
+![CPU处理器架构：SMP、NUMA、MPP](../../../7000-操作系统和网络/assets/CPU处理器架构：SMP、NUMA、MPP/image-7.webp)
 
 ### NUMA架构的层级结构
 

@@ -73,15 +73,15 @@ $ go tool pprof -http :8080 pprof.heap
 Serving web UI on http://localhost:8080
 ```
 
-![](/attachments/image-2024-5-11_16-0-58.png)
+![](/attachments/image-2024-5-11_16-0-58.webp)
 
 点开火炬图发现内存占用居然会处在框架的缓存组件方法`GetOrSetFuncLock`上，说明程序不断地去调用缓存方法来读取和缓存数据，很有可能就是缓存失效了，或者缓存没有起作用，导致频繁地更新缓存。通过查看程序，发现这里的代码写得垃圾得一批，缓存根本没起作用，缓存键名加了一个时间戳是什么鬼？**脑子抽了？😰**
 
-![](/attachments/image-2024-5-11_16-19-22.png)
+![](/attachments/image-2024-5-11_16-19-22.webp)
 
 为了方便缓存，这里调整一下`Gatherer`的接口实现，增加`Name`接口实现，并封装了新的方法来聚合这块缓存逻辑：
 
-![](/attachments/image-2024-5-11_17-15-7.png)
+![](/attachments/image-2024-5-11_17-15-7.webp)
 
 ### sample2
 
@@ -89,11 +89,11 @@ Serving web UI on http://localhost:8080
 
 修复该问题后重新执行`pprof`分析。这次发现问题出在了`io.ReadAll`上。由于业务插件在采集业务程序的指标时是通过`HTTP GET`拉取，里面使用了`ReadAll`方法来完成读取业务程序的指标数据，并返回给上层转换为`Prometheus`数据结构，处理后再`push`给远端存储。
 
-![](/attachments/image-2024-5-11_16-25-42.png)
+![](/attachments/image-2024-5-11_16-25-42.webp)
 
 涉及到的代码如下。但是由于业务实例的**指标数据过大（几MB到100+MB不等）**，这里完整读取的话会申请一块新的临时内存，造成过大的内存压力，所以这里的内存问题比较容易凸显。
 
-![](/attachments/image-2024-5-11_16-29-31.png)
+![](/attachments/image-2024-5-11_16-29-31.webp)
 
 :::tip
 这种问题其实属于常见问题，对于所有的`HTTP`访问操作都容易出现。大多数`HTTP`访问的场景下，程序员的思维逻辑都是直接完整读取后再交给上层处理，但是这样会额外占用一块无意义的临时内存。
@@ -101,7 +101,7 @@ Serving web UI on http://localhost:8080
 
 因此去掉临时内存申请，改为直接`res.Body`流式读取。同时程序中其他`HTTP`请求也做类似的改进。
 
-![](/attachments/image-2024-5-11_16-35-7.png)
+![](/attachments/image-2024-5-11_16-35-7.webp)
 
 ### sample3
 
@@ -109,15 +109,15 @@ Serving web UI on http://localhost:8080
 
 修复后继续`pprof`分析，发现现在内存占用主要是在执行`RemoteWrite`远端写入时的第三方包数据结构转换组件调用上。
 
-![](/attachments/image-2024-5-11_16-37-22.png)
+![](/attachments/image-2024-5-11_16-37-22.webp)
 
 这个`fmtutil`包是属于`prometheus`官方社区的组件包，用于执行指标数据的各种数据结构转换。我们看看这个`fmtutil.makeLabels`做了什么事情。
 
-![](/attachments/image-2024-5-11_16-40-53.png)
+![](/attachments/image-2024-5-11_16-40-53.webp)
 
 可以看到内存分配主要是这里的`labels`数组创建。这里的`prompb.Label`数据结构很奇怪，它这里使用了**值传参**形式，也就是说，指标标签的键值对都会复制一遍到这个`labels`中。而我们知道，指标数据容量主要是标签键值对的大小容量占用，那么这里就会不断申请很多内存用于拷贝标签键值对数据。
 
-![](/attachments/image-2024-5-11_16-43-57.png)
+![](/attachments/image-2024-5-11_16-43-57.webp)
 
 我们这里来梳理一下业务实例的监控指标的数据结构转换流程：
 
@@ -133,11 +133,11 @@ Metric Text -> dto.MetricFamily -> prompb.WriteRequest
 
 那么既然这里有两次协议转换，为什么`Metric Text`到`dto.MetricFamily`没有出现内存占用问题呢？我们来看看它的数据结构：
 
-![](/attachments/image-2024-5-11_16-45-59.png)
+![](/attachments/image-2024-5-11_16-45-59.webp)
 
 可以看到，在转换为`dto.MetricFamily`的时候，内存容量占比较大的部分使用的是指针，其实并没有涉及到额外的内存申请。因此对转换`prompb.WriteRequest`数据结构的优化可以参考该思路。通过查看`Prometheus`的源码，发现其实这里不太好改，因为这是个公开的数据结构，并且引用的地方还蛮多，直接修改会有兼容问题。回顾自身的监控采集程序，已经没有更多的优化空间。而针对社区组件的改动，也许未来再详细考虑吧。
 
-![](/attachments/tapd_69993163_base64_1715248124_728.png)
+![](/attachments/tapd_69993163_base64_1715248124_728.webp)
 
 ### 其他一些点
 

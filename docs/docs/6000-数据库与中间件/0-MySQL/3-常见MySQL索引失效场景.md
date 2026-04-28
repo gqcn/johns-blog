@@ -103,7 +103,7 @@ explain select * from t_user where id = 1;
 
 执行结果：
 
-![](/attachments/e6803fc893d64b17cfb91908c80dc441507821.jpg)
+![](/attachments/e6803fc893d64b17cfb91908c80dc441507821.webp)
 
 explain
 
@@ -137,7 +137,7 @@ explain select * from t_user where id_no = '1002';
 
 `explain`结果：
 
-![](/attachments/098520242868b81fce270731652ade402f1fd8.jpg)
+![](/attachments/098520242868b81fce270731652ade402f1fd8.webp)
 
 explain-01
 
@@ -159,7 +159,7 @@ explain select * from t_user where id_no = '1002' and username = 'Tom2';
 
 `explain`结果：
 
-![](/attachments/a3f097581706548b5bc446d70a6bd4bbf22635.jpg)
+![](/attachments/a3f097581706548b5bc446d70a6bd4bbf22635.webp)
 
 explain-02
 
@@ -173,7 +173,7 @@ explain select * from t_user where id_no = '1002' and age = 12;
 
 `explain`结果：
 
-![](/attachments/819ad350161afb240da140d1c29dd668c15301.jpg)
+![](/attachments/819ad350161afb240da140d1c29dd668c15301.webp)
 
 explain-03
 
@@ -189,7 +189,7 @@ explain select * from t_user where username = 'Tom2' and age = 12;
 
 `explain`结果：
 
-![](/attachments/6297212227be9bcef09770cd1de90a55a87e6d.jpg)
+![](/attachments/6297212227be9bcef09770cd1de90a55a87e6d.webp)
 
 explain-04
 
@@ -227,7 +227,7 @@ explain select id_no, username, age from t_user where age = 12;
 
 `explain`结果：
 
-![](/attachments/f28761f347d3c9fe4b4091bb38dd9d1afe5eb8.jpg)
+![](/attachments/f28761f347d3c9fe4b4091bb38dd9d1afe5eb8.webp)
 
 覆盖索引
 
@@ -247,7 +247,7 @@ explain select * from t_user where id + 1 = 2 ;
 
 `explain`结果：
 
-![](/attachments/e4f30b8148b6ccc9b60014c89b9aac9a272794.jpg)
+![](/attachments/e4f30b8148b6ccc9b60014c89b9aac9a272794.webp)
 
 索引列计算
 
@@ -276,7 +276,7 @@ explain select * from t_user where SUBSTR(id_no,1,3) = '100';
 
 `explain`结果：
 
-![](/attachments/48fd28277f2576fc89591825a06b02203fcc93.jpg)
+![](/attachments/48fd28277f2576fc89591825a06b02203fcc93.webp)
 
 索引-函数
 
@@ -298,7 +298,7 @@ explain select * from t_user where id_no like '%00%';
 
 `explain`结果：
 
-![](/attachments/b20fe761388f74bb3c34154faa92d5440c49e3.jpg)
+![](/attachments/b20fe761388f74bb3c34154faa92d5440c49e3.webp)
 
 索引-like
 
@@ -322,7 +322,7 @@ explain select * from t_user where id_no = 1002;
 
 `explain`结果：
 
-![](/attachments/f3e8a3f83a05aa4aeea925b3c7ac26de6beb8d.jpg)
+![](/attachments/f3e8a3f83a05aa4aeea925b3c7ac26de6beb8d.webp)
 
 隐式转换
 
@@ -354,7 +354,7 @@ explain select * from t_user where id = 2 or username = 'Tom2';
 
 `explain`结果：
 
-![](/attachments/359039493770a8eee6d109c0c35b94f742dfde.jpg)
+![](/attachments/359039493770a8eee6d109c0c35b94f742dfde.webp)
 
 or-索引
 
@@ -370,7 +370,7 @@ explain select * from t_user where id  > 1 or id  < 80;
 
 `explain`结果：
 
-![](/attachments/a9aab576945582c3840420eb96645031dd12e2.jpg)
+![](/attachments/a9aab576945582c3840420eb96645031dd12e2.webp)
 
 or-范围
 
@@ -388,7 +388,7 @@ explain select * from t_user where id > age;
 
 `explain`结果：
 
-![](/attachments/f68a9c44459768dae2a752511ed7bd1d5b8fd1.jpg)
+![](/attachments/f68a9c44459768dae2a752511ed7bd1d5b8fd1.webp)
 
 索引-两列比较
 
@@ -406,7 +406,7 @@ explain select * from t_user where id_no <> '1002';
 
 `explain`结果：
 
-![](/attachments/f88f13f4773f1d7db197912fa801f55330e2ba.jpg)
+![](/attachments/f88f13f4773f1d7db197912fa801f55330e2ba.webp)
 
 索引-不等
 
@@ -426,7 +426,7 @@ explain select * from t_user where id != 2;
 
 `explain`结果：
 
-![](/attachments/d4f3ce2714c27f4af6e9605ba826afa1666c5b.jpg)
+![](/attachments/d4f3ce2714c27f4af6e9605ba826afa1666c5b.webp)
 
 不等-ID
 
@@ -442,7 +442,7 @@ explain select * from t_user where id_no is not null;
 
 `explain`结果：
 
-![](/attachments/037f61b8691edc5d5e48895f19b44fa361f6ac.jpg)
+![](/attachments/037f61b8691edc5d5e48895f19b44fa361f6ac.webp)
 
 索引-is not null
 
@@ -470,7 +470,7 @@ explain select * from t_user where id_no not in('1002' , '1003');
 
 `explain`结果：
 
-![](/attachments/68ed8df972ce4621ca5979f22db89b0f713b51.jpg)
+![](/attachments/68ed8df972ce4621ca5979f22db89b0f713b51.webp)
 
 索引-not in
 
@@ -482,7 +482,7 @@ explain select * from t_user where id not in (2,3);
 
 `explain`结果：
 
-![](/attachments/d84b371582e8f4bff9213587783cde3a23c8cf.jpg)
+![](/attachments/d84b371582e8f4bff9213587783cde3a23c8cf.webp)
 
 主键-not in
 
@@ -498,7 +498,7 @@ explain select * from t_user u1 where not exists (select 1 from t_user u2 where 
 
 `explain`结果：
 
-![](/attachments/823542d28fd53af78221214b04e1ff23413db6.jpg)
+![](/attachments/823542d28fd53af78221214b04e1ff23413db6.webp)
 
 索引-not in
 
@@ -516,7 +516,7 @@ explain select * from t_user order by id_no ;
 
 `explain`结果：
 
-![](/attachments/b35e6b61460a813a147441a61eeb4a4c83eac0.jpg)
+![](/attachments/b35e6b61460a813a147441a61eeb4a4c83eac0.webp)
 
 索引-order by
 
@@ -530,7 +530,7 @@ explain select * from t_user order by id_no limit 10;
 
 `explain`结果：
 
-![](/attachments/11f565b49dea3fbe1b8809c376268f597b418a.jpg)
+![](/attachments/11f565b49dea3fbe1b8809c376268f597b418a.webp)
 
 order by limit
 
@@ -544,7 +544,7 @@ explain select * from t_user order by id desc;
 
 `explain`结果：
 
-![](/attachments/f2482e858f7f2bf2321868ffbf063ff62fb9ed.jpg)
+![](/attachments/f2482e858f7f2bf2321868ffbf063ff62fb9ed.webp)
 
 主键-order by
 
@@ -570,7 +570,7 @@ explain select * from t_user order by id_no desc,username desc;
 
 `explain`结果：
 
-![](/attachments/a5bec7975f9577766da744f89f213cdaa10011.jpg)
+![](/attachments/a5bec7975f9577766da744f89f213cdaa10011.webp)
 
 orderby多索引
 
@@ -590,7 +590,7 @@ explain select * from t_user where create_time > '2023-02-24 09:04:23';
 
 `explain`结果：
 
-![](/attachments/81f486858a5f263ab7f574057e8bd8887598af.jpg)
+![](/attachments/81f486858a5f263ab7f574057e8bd8887598af.webp)
 
 索引-参数
 
@@ -604,7 +604,7 @@ explain select * from t_user where create_time > '2022-02-27 09:04:23';
 
 `explain`结果：
 
-![](/attachments/827d6fb59e22d5690ee605882fb1f05a2ba3f7.jpg)
+![](/attachments/827d6fb59e22d5690ee605882fb1f05a2ba3f7.webp)
 
 索引-参数
 

@@ -16,13 +16,13 @@ description: "探讨 Argo Workflow 中的模板数据存储机制，包括模板
 *   本地系统为`macOs Big Sur 11.3.1`。
 *   当前已经运行了一些实例：
 
-![](/attachments/image2021-7-5_16-34-59.png)
+![](/attachments/image2021-7-5_16-34-59.webp)
 
 ## 查看`Kubernetes etcd`
 
 *   进入到`kube-system`命名空间下的`etcd`容器中：
 
-![](/attachments/image2021-7-5_16-41-13.png)
+![](/attachments/image2021-7-5_16-41-13.webp)
 
 *   为方便操作这里设置一下`etcdctl`的别名：
     
@@ -32,15 +32,15 @@ description: "探讨 Argo Workflow 中的模板数据存储机制，包括模板
     
 *   随后使用命名 `etcdctl get / --prefix=true --keys-only=true` 查看所有的键名列表，可以看到有很多自定义的 `/registry/[argoproj.io/workflows](http://argoproj.io/workflows)`  为前缀的键名：
 
-![](/attachments/image2021-7-5_16-45-2.png)
+![](/attachments/image2021-7-5_16-45-2.webp)
 
 可以看到这个前缀跟`WorkflowInformer`注册`ListWatch`时的`Resource`参数有一定的关联关系，第三级的话是`namespace`，第四级的话是`pod`名称。
 
-![](/attachments/image2021-7-7_14-58-56.png)
+![](/attachments/image2021-7-7_14-58-56.webp)
 
 *   可以看到这里都是`argo`注册的`Workflow CRD`数据，我们拿其中的 `steps-4ttw6(对应官方示例steps.yaml) ` 查看下其中数据是什么样子的：
 
-![](/attachments/image2021-7-5_16-47-18.png)
+![](/attachments/image2021-7-5_16-47-18.webp)
 
 *   为方便查看，我们将结果格式化一下，由于内容较长，[这里可以点击查看格式化后的文件](#)。
 

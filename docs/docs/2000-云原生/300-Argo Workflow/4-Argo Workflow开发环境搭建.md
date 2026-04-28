@@ -84,7 +84,7 @@ GRANT ALL ON argo.* TO 'mysql'@'%';
 
 #### 2）注释掉`argo-workflows`项目中的端口转发
 
-![](/attachments/image2021-8-9_16-34-51.png)
+![](/attachments/image2021-8-9_16-34-51.webp)
 
 ### 执行代码编译&运行
 
@@ -98,7 +98,7 @@ make start PROFILE=mysql
 
 :::tip
 当argo相关服务启动后，可以发现argo数据库被初始化了相关数据表。
-![](/attachments/image2021-8-9_16-36-46.png)
+![](/attachments/image2021-8-9_16-36-46.webp)
 :::
 
 ## 检查服务状态
@@ -151,17 +151,17 @@ eval $(minikube -p minikube docker-env) && make build
 
 如果遇到`checksum mismatch`的问题：
 
-![](/attachments/image2021-8-9_11-43-11.png)
+![](/attachments/image2021-8-9_11-43-11.webp)
 
 由于编译是使用的`Docker`执行，因此找到`Dockerfile`对应的地址，去掉`go.sum`即可。
 
-![](/attachments/image2021-8-23_16-53-20.png)
+![](/attachments/image2021-8-23_16-53-20.webp)
 
 #### `2）unrecognized import path "golang.org/x/sys": reading https://golang.org/x/sys?go-get=1: 404 Not Found`
 
 编译阶段报错：
 
-![](/attachments/image2021-8-23_15-48-23.png)
+![](/attachments/image2021-8-23_15-48-23.webp)
 
 可能由于`GFW`的关系无法访问对应的地址，在国内想好好撸代码真的是太不容易了，在`go.mod`中增加一个`replace`吧：
 
@@ -171,19 +171,19 @@ golang.org/x/sys => github.com/golang/sys v0.0.0-20200317113312-5766fd39f98d
 
 #### 3）`FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory`
 
-![](/attachments/image2021-8-9_14-31-29.png)
+![](/attachments/image2021-8-9_14-31-29.webp)
 
 我花了数个小时没有解决通该问题，由于本次开发不会涉及到UI的修改，因此可以把`Dockerfile`中涉及到`ui`的部分注释掉。随后重新执行编译命令即可。
 
-![](/attachments/image2021-8-25_19-41-24.png)
+![](/attachments/image2021-8-25_19-41-24.webp)
 
-![](/attachments/image2021-8-25_19-41-14.png)
+![](/attachments/image2021-8-25_19-41-14.webp)
 
 #### `4）Container image "argoproj/argoexec:latest" is not present with pull policy of Never`
 
 运行阶段报错：
 
-![](/attachments/image2021-8-9_15-43-55.png)
+![](/attachments/image2021-8-9_15-43-55.webp)
 
 `参考argo官方issue：[https://github.com/argoproj/argo-workflows/issues/3672](https://github.com/argoproj/argo-workflows/issues/3672)`
 
@@ -195,4 +195,4 @@ eval $(minikube -p minikube docker-env) && make build
 
 #### 编译镜像结果
 
-![](/attachments/image2021-8-9_15-9-35.png)
+![](/attachments/image2021-8-9_15-9-35.webp)

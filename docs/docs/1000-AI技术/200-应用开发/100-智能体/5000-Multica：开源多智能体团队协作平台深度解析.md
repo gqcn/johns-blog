@@ -40,7 +40,7 @@ toc_max_heading_level: 4
 
 项目地址：[https://github.com/multica-ai/multica](https://github.com/multica-ai/multica)
 
-![Multica](assets/5000-Multica：开源多智能体团队协作平台深度解析/image.png)
+![Multica](assets/5000-Multica：开源多智能体团队协作平台深度解析/image.webp)
 
 `Multica`解决了当前`AI`辅助开发中的核心痛点：
 

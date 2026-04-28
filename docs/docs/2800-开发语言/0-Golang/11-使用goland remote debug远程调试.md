@@ -69,7 +69,7 @@ kubectl -n khaos port-forward pod/khaos-guardian-8p2gx 2345:2345 --address 0.0.0
 
 增加`Go Remote`配置即可。可以看到，这里的`IDE`也有提示如何开启远程调试的步骤。
 
-![](/attachments/image-2024-5-24_15-31-18.png)
+![](/attachments/image-2024-5-24_15-31-18.webp)
 
   
 

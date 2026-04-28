@@ -42,7 +42,7 @@ toc_max_heading_level: 4
 
 ## 什么是Plugins
 
-![Claude Code Plugins](assets/3000-Claude-Code-Plugins使用指南/image-1.png)
+![Claude Code Plugins](assets/3000-Claude-Code-Plugins使用指南/image-1.webp)
 
 ### 设计目标
 
@@ -108,7 +108,7 @@ claude plugin install formatter@my-marketplace
 ```
 也可以通过斜杠命令`/plugin`进行插件的安装管理：
 
-![安装和管理Claude Code Plugins](assets/3000-Claude-Code-Plugins使用指南/image.png)
+![安装和管理Claude Code Plugins](assets/3000-Claude-Code-Plugins使用指南/image.webp)
 
 **插件管理命令：**
 

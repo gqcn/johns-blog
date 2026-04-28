@@ -21,9 +21,9 @@ journalctl -u kubelet
 
 发下以下错误：
 
-![](/attachments/tapd_69993163_base64_1715136610_905.png)
+![](/attachments/tapd_69993163_base64_1715136610_905.webp)
 
-![](/attachments/tapd_69993163_base64_1715139686_366.png)
+![](/attachments/tapd_69993163_base64_1715139686_366.webp)
 
 通过该错误去检索到社区也反馈过类似的`issue`：
 
@@ -32,15 +32,15 @@ journalctl -u kubelet
 
 查看当前集群的`kubelet`版本是：`v1.22.0`。然后查看了一下`kubernetes`的源码，发现问题出现在这两个地方：只要有个别container的指标获取不了数据，所有的containers指标数据都不会返回了。
 
-![](/attachments/tapd_69993163_base64_1715153128_685.png)
+![](/attachments/tapd_69993163_base64_1715153128_685.webp)
 
-![](/attachments/tapd_69993163_base64_1715153103_322.png)
+![](/attachments/tapd_69993163_base64_1715153103_322.webp)
 
 ## 问题修复
 
 这个问题不应该只有我遇到了，经过仔细查看`issue`的讨论，发现该`issue`在**2021年5月10号**就已经修复了，对应的是`cadvisor v0.43.0`: [https://github.com/google/cadvisor/commit/655773dc5ee9cbf48fe3f629f4e724c75dcd569c](https://github.com/google/cadvisor/commit/655773dc5ee9cbf48fe3f629f4e724c75dcd569c) 对应已修复的最低`kubernetes`版本为 `v1.23.0`：
 
-![](/attachments/tapd_69993163_base64_1715155501_445.png)
+![](/attachments/tapd_69993163_base64_1715155501_445.webp)
 
   
 

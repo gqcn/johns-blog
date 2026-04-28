@@ -44,7 +44,7 @@ toc_max_heading_level: 3
 
 ## 什么是Harness Engineering
 
-![Harness Engineering](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image.png>)
+![Harness Engineering](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image.webp>)
 
 `Harness Engineering`（驾驭工程）是`AI Agent`开发领域中一个关键的工程方法论，其核心理念是：
 
@@ -98,7 +98,7 @@ Agent = Model + Harness
 
 ### 上下文架构（Context Architecture）
 
-![上下文架构（Context Architecture）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-1.png>)
+![上下文架构（Context Architecture）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-1.webp>)
 
 **核心理念**：精准设计进入模型上下文的信息，避免信息过载。
 
@@ -135,7 +135,7 @@ Agent = Model + Harness
 
 ### 架构约束（Architectural Constraints）
 
-![架构约束（Architectural Constraints）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-2.png>)
+![架构约束（Architectural Constraints）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-2.webp>)
 
 **核心理念**：用工具和代码强制执行规则，而非依赖`prompt`软约束。
 
@@ -179,7 +179,7 @@ Agent = Model + Harness
 
 ### 自验证循环（Self-Validation Loops）
 
-![自验证循环（Self-Validation Loops）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-3.png>)
+![自验证循环（Self-Validation Loops）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-3.webp>)
 
 **核心理念**：在`Agent`执行流程中内置验证检查点，防止死循环与静默失败。
 
@@ -254,7 +254,7 @@ flowchart TD
 
 ### 上下文隔离（Context Isolation）
 
-![上下文隔离（Context Isolation）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-4.png>)
+![上下文隔离（Context Isolation）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-4.webp>)
 
 **核心理念**：多`Agent`协作时，保持每个`Agent`上下文的纯净性，防止跨越边界的信息污染。
 
@@ -295,7 +295,7 @@ flowchart TD
 
 ### 熵治理（Entropy Governance）
 
-![熵治理（Entropy Governance）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-5.png>)
+![熵治理（Entropy Governance）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-5.webp>)
 
 **核心理念**：建立自维护机制，对抗`Agent`系统中上下文和状态的自然熵增趋势。
 
@@ -357,7 +357,7 @@ flowchart TD
 
 ### 可拆卸性（Detachability）
 
-![可拆卸性（Detachability）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-6.png>)
+![可拆卸性（Detachability）](<assets/5000-Harness Engineering：AI Agent可靠性工程的六大支柱/image-6.webp>)
 
 **核心理念**：以模块化设计构建`Harness`系统，使其能够随着模型的迭代进化而优雅适配。
 

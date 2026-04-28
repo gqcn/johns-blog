@@ -224,7 +224,7 @@ const (
 `Job`直接包含一个或多个`Task`，每个`Task`可以有多个`Pod`副本，`Pod`的`ownerReferences`指向`Job`。
 `Task`是`Volcano`中用于管理`Pod`集合的抽象，是一对一关系。
 
-![Task/Pod状态转换](../../assets/v2-0a38d4ee885e17ce828f581eab1d795b_1440w.jpg)
+![Task/Pod状态转换](../../assets/v2-0a38d4ee885e17ce828f581eab1d795b_1440w.webp)
 
 `Task`的状态定义如下：
 

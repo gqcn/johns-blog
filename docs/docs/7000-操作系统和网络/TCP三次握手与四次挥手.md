@@ -17,7 +17,7 @@ description: "深入解析TCP协议中的三次握手和四次挥手过程，包
 
 ## 三次握手
 
- ![](/attachments/20-01-06-4.1.png)
+ ![](/attachments/20-01-06-4.1.webp)
 
 ### TCP三次握手变2次会有什么问题
 
@@ -31,7 +31,7 @@ description: "深入解析TCP协议中的三次握手和四次挥手过程，包
 
 ## 四次挥手
 
-![](/attachments/20-01-33-4.1.png)
+![](/attachments/20-01-33-4.1.webp)
 
 ### 四次挥手释放连接时，等待2MSL的意义
 

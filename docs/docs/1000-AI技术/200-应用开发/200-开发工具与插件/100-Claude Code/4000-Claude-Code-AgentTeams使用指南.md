@@ -46,7 +46,7 @@ toc_max_heading_level: 3
 
 ## 什么是AgentTeams
 
-![Claude Code AgentTeams](assets/4000-Claude-Code-AgentTeams使用指南/image.png)
+![Claude Code AgentTeams](assets/4000-Claude-Code-AgentTeams使用指南/image.webp)
 
 `AgentTeams`是`Claude Code`提供的多智能体并行协作机制。它协调多个`Claude Code`实例共同工作：一个会话担任团队`Lead`，负责创建团队、生成任务列表、调度`Teammate`并汇总结果；各`Teammate`各自运行在独立的上下文窗口中，能够直接相互通信，也可以被用户直接操控，而非只能通过`Lead`间接交互。
 

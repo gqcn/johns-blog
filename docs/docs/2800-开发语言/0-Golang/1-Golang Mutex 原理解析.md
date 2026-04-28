@@ -39,7 +39,7 @@ const (
 
 注意到 state 是一个 int32 变量，内部实现时把该变量分成四份，用于记录 Mutex 的状态。
 
-![](/attachments/image-2024-9-2_11-34-27.png)
+![](/attachments/image-2024-9-2_11-34-27.webp)
 
 *   Locked: 表示该 Mutex 是否已经被锁定，0表示没有锁定，1表示已经被锁定；
 *   Woken: 表示是否有协程已经被唤醒，0表示没有协程唤醒，1表示已经有协程唤醒，正在加锁过程中；
@@ -79,11 +79,11 @@ func (m *Mutex) Lock() {
 
 假设协程B在尝试加锁前，已经有一个协程A获取到了锁，此时的状态为：
 
-![](/attachments/image-2024-9-2_11-34-53.png)
+![](/attachments/image-2024-9-2_11-34-53.webp)
 
 此时协程B尝试加锁，被阻塞，Mutex 的状态为：
 
-![](/attachments/image-2024-9-2_11-35-14.png)
+![](/attachments/image-2024-9-2_11-35-14.webp)
 
 Waiter 计数器增加了1，协程B将会持续阻塞，直到 `Locked` 值变成0 后才会被唤醒。
 

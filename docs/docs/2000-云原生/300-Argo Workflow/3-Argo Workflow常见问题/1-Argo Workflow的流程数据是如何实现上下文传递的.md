@@ -24,23 +24,23 @@ description: "深入分析 Argo Workflow 中的数据流转机制，包括 Param
 
 这是 `Argo Workflow`中最简单的方式，甚至都不用做任何的脚本执行解析。因为变量都直接通过`Yaml`的形式配置到了`Workflow`中，`Argo Workflow Controller`中可以直接通过模板变量解析的方式即可将参数嵌入到命令行参数中。我们以官方示例`steps.yaml`作为示例演示一下。
 
-![](/attachments/image2021-7-6_11-9-55.png)
+![](/attachments/image2021-7-6_11-9-55.webp)
 
 我们查看一下创建的`Pod`情况：
 
-![](/attachments/image2021-7-6_11-22-11.png)
+![](/attachments/image2021-7-6_11-22-11.webp)
 
 `hello1`节点的执行：
 
-![](/attachments/image2021-7-6_11-33-33.png)
+![](/attachments/image2021-7-6_11-33-33.webp)
 
 `hello2a`节点的执行：
 
-![](/attachments/image2021-7-6_11-34-22.png)
+![](/attachments/image2021-7-6_11-34-22.webp)
 
 `hello2b`节点的执行：
 
-![](/attachments/image2021-7-6_11-35-11.png)
+![](/attachments/image2021-7-6_11-35-11.webp)
 
 ### 带有`Outputs`输出的`Parameters`
 
@@ -48,39 +48,39 @@ description: "深入分析 Argo Workflow 中的数据流转机制，包括 Param
 
 `Parameters`存储到`MetaData.Annotations`：
 
-![](/attachments/image2021-7-5_20-23-45.png)
+![](/attachments/image2021-7-5_20-23-45.webp)
 
 在`Argo Workflow Controller`中`Template`使用`MetaData.Annotations：`
 
-![](/attachments/image2021-7-6_10-35-11.png)
+![](/attachments/image2021-7-6_10-35-11.webp)
 
-![](/attachments/image2021-7-3_15-42-58.png)
+![](/attachments/image2021-7-3_15-42-58.webp)
 
 我们以官方实例`output-parameter.yaml`作为示例演示一下。
 
-![](/attachments/image2021-7-6_11-47-49.png)
+![](/attachments/image2021-7-6_11-47-49.webp)
 
 执行后我们看看`Pod`情况：
 
-![](/attachments/image2021-7-6_11-48-51.png)
+![](/attachments/image2021-7-6_11-48-51.webp)
 
 `generate-parameter`执行结果的保存：
 
-![](/attachments/image2021-7-6_11-50-16.png)
+![](/attachments/image2021-7-6_11-50-16.webp)
 
 `consumer-parameter`对于其他节点执行结果参数的输入：
 
-![](/attachments/image2021-7-6_11-52-59.png)
+![](/attachments/image2021-7-6_11-52-59.webp)
 
 ## Artifacts
 
 `Artifacts`会稍微复杂一些。`Argo`默认使用`minio`来对`Artifacts`做存储和读取，并且`Main Container`对于`Atifacts`内容的操作原理都是基于共享`Volume`。也就是说往往必须要挂载`Volume`来使用`Artifacts`，不过`Volume`的挂载是由`Argo Workflow Controller`自动帮我们实现的，我们并不能直接感知到。我们以官方示例`artifact-passing.yaml`作为示例演示一下。
 
-![](/attachments/image2021-7-6_15-32-39.png)
+![](/attachments/image2021-7-6_15-32-39.webp)
 
 在`generate-artifact`的节点`Annotiations`中只有`Artifacts`的输出路径及类型，真实的内容是保存到`minio`中的：
 
-![](/attachments/image2021-7-6_15-35-12.png)
+![](/attachments/image2021-7-6_15-35-12.webp)
 
 在`consume-artifact`节点中`Init/Wait/Main Containers`挂载了相同的`Volume`，因此可以共享`Artifacts`数据。其中`Init Container`负责将`Artifacts`的内容拉取到本地的`/argo/inputs/artifacts`路径下，随后`Main Container`会读取`/tmp/message`路径下的内容，这两个路径均是来自于相同的`Volume (input-artifacts)`。
 

@@ -30,14 +30,14 @@ description: "深入讲解CPU处理器的三种主流架构：对称多处理器
 
 说到`CPU`首先想到的可能是这样的：
 
-![英特尔代号为Cooper Lake的至强铂金9200处理器](assets/CPU处理器架构：SMP、NUMA、MPP/image.png)
+![英特尔代号为Cooper Lake的至强铂金9200处理器](assets/CPU处理器架构：SMP、NUMA、MPP/image.webp)
 
 
 该系列`CPU`物理封装长宽尺寸为`76.0×72.5`毫米，也是目前`Intel`史上最大的处理器，那`CPU`里面是什么样子呢？
 
 `CPU`内部封装1个或者多个物理核，物理核有独立的各级缓存和电路结构，只有1个物理核心就是单核`CPU`，有多个物理核心就是多核`CPU`。
 
-![4核CPU内部结构简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-1.png)
+![4核CPU内部结构简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-1.webp)
 
 对于处理器规格一致的服务器来说，总的物理核心数计算方法为：
 
@@ -45,7 +45,7 @@ description: "深入讲解CPU处理器的三种主流架构：对称多处理器
 物理核心数=总CPU数*单CPU中物理核心数
 ```
 
-![多CPU多物理核简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-2.png)
+![多CPU多物理核简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-2.webp)
 
 
 
@@ -60,7 +60,7 @@ description: "深入讲解CPU处理器的三种主流架构：对称多处理器
 未开启HT: 逻辑核心数=物理核心数=总CPU数*单CPU中物理核心数
 ```
 
-![CPU&物理核&逻辑核简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-3.png)
+![CPU&物理核&逻辑核简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-3.webp)
 
 
 
@@ -74,24 +74,24 @@ description: "深入讲解CPU处理器的三种主流架构：对称多处理器
 
 `SMP(Symmetric Multi Processing)`，对称多处理系统内有许多紧耦合多处理器，在这样的系统中，所有的CPU共享全部资源，如总线，内存和`I/O`系统等，操作系统或管理数据库的复本只有一个，这种系统有一个最大的特点就是共享所有资源。多个`CPU`之间没有区别，平等地访问内存、外设、一个操作系统。操作系统管理着一个队列，每个处理器依次处理队列中的进程。如果两个处理器同时请求访问一个资源（例如同一段内存地址），由硬件、软件的锁机制去解决资源争用问题。`Access to RAM is serialized; this and cache coherency issues causes performance to lag slightly behind the number of additional processors in the system.`
 
-![SMP架构简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-4.png)
+![SMP架构简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-4.webp)
 
 所谓对称多处理器结构，是指服务器中多个`CPU`对称工作，无主次或从属关系。各`CPU`共享相同的物理内存，每个`CPU`访问内存中的任何地址所需时间是相同的，因此`SMP`也被称为一致存储器访问结构(`UMA ： Uniform Memory Access`)。对`SMP`服务器进行扩展的方式包括增加内存、使用更快的`CPU`、增加`CPU`、扩充`I/O`(槽口数与总线数)以及添加更多的外部设备(通常是磁盘存储)。
 
 `SMP`服务器的主要特征是共享，系统中所有资源(`CPU`、内存、`I/O`等 ) 都是共享的。也正是由于这种特征，导致了`SMP`服务器的主要问题，那就是它的扩展能力非常有限。对于`SMP`服务器而言，每一个共享的环节都可能造成`SMP`服务器扩展时的瓶颈，而最受限制的则是内存。由于每个`CPU`必须通过相同的内存总线访问相同的内存资源，因此随着`CPU`数量的增加，内存访问冲突将迅速增加，最终会造成`CPU`资源的浪费，使`CPU`性能的有效性大大降低。实验证明，`SMP`服务器`CPU`利用率最好的情况是`2`至`4`个`CPU`。
 
-![SMP扩展-效率曲线](assets/CPU处理器架构：SMP、NUMA、MPP/image-5.png)
+![SMP扩展-效率曲线](assets/CPU处理器架构：SMP、NUMA、MPP/image-5.webp)
 
 ### 非一致存储访问结构(NUMA)
 
 
 由于`SMP`在扩展能力上的限制，人们开始探究如何进行有效地扩展从而构建大型系统的技术，`NUMA: Non-Uniform Memory Access`就是这种努力下的结果之一。利用`NUMA`技术，可以把几十个`CPU`(甚至上百个`CPU`)组合在一个服务器内。
 
-![NUMA架构CPU模块内部结构](assets/CPU处理器架构：SMP、NUMA、MPP/image-6.png)
+![NUMA架构CPU模块内部结构](assets/CPU处理器架构：SMP、NUMA、MPP/image-6.webp)
 
 `NUMA`服务器的基本特征是具有多个`CPU`模块，每个`CPU`模块由多个`CPU`(如`4`个)组成，并且具有独立的本地内存、`I/O`槽口(如`PCIE`)等。由于其节点之间可以通过互联模块(如称为`Crossbar Switch`)进行连接和信息交互，因此每个`CPU`可以访问整个系统的内存(这是`NUMA`系统与`MPP`系统的重要差别)。显然，访问本地内存的速度将远远高于访问远地内存(系统内其它节点的内存)的速度，这也是非一致存储访问`NUMA`的由来。由于这个特点，为了更好地发挥系统性能，开发应用程序时需要尽量减少不同`CPU`模块之间的信息交互。
 
-![NUMA架构整体简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-7.png)
+![NUMA架构整体简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-7.webp)
 
 利用`NUMA`技术，可以较好地解决原来`SMP`系统的扩展问题，在一个物理服务器内可以支持上百个`CPU`。比较典型的`NUMA`服务器的例子包括`HP`的`Superdome`、`SUN15K`、`IBMp690`等。
 
@@ -101,7 +101,7 @@ description: "深入讲解CPU处理器的三种主流架构：对称多处理器
 
 `MPP: Massively Parallel Processing`，大规模并行处理系统，这样的系统是由许多松耦合的处理单元组成的，要注意的是这里指的是处理单元而不是处理器。每个单元内的`CPU`都有自己私有的资源，如总线，内存，硬盘等。在每个单元内都有操作系统和管理数据库的实例复本。这种结构最大的特点在于不共享资源。
 
-![MPP架构简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-8.png)
+![MPP架构简图](assets/CPU处理器架构：SMP、NUMA、MPP/image-8.webp)
 
 和`NUMA`不同，`MPP`提供了另外一种进行系统扩展的方式，它由多个`SMP`服务器通过一定的节点互联网络进行连接，协同工作，完成相同的任务，从用户的角度来看是一个服务器系统。其基本特征是由多个`SMP`服务器(每个`SMP`服务器称节点)通过节点互联网络连接而成，每个节点只访问自己的本地资源(内存、存储等)，是一种完全无共享(`Share Nothing`)结构，因而扩展能力最好，理论上其扩展无限制，目前的技术可实现`512`个节点互联，数千个`CPU`。目前业界对节点互联网络暂无标准，如`NCR`的`Bynet`，`IBM`的`SPSwitch`，它们都采用了不同的内部实现机制。但节点互联网仅供`MPP`服务器内部使用，对用户而言是透明的。
 

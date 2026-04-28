@@ -19,7 +19,7 @@ toc_max_heading_level: 4
 - **`AI`代码执行（`AI Code Execution`）**：多语言代码解释器，为数据分析、在线教育等提供安全执行环境
 - **强化学习训练（`RL Training`）**：在隔离沙箱中运行强化学习训练循环
 
-![OpenSandbox](assets/5000-OpenSandbox：阿里巴巴开源的通用AI应用沙箱平台详解/image.png)
+![OpenSandbox](assets/5000-OpenSandbox：阿里巴巴开源的通用AI应用沙箱平台详解/image.webp)
 
 ## 解决的核心问题
 

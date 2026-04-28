@@ -24,7 +24,7 @@ kubectl[commond]
 
 另外所有的命令选项都可以通过执行 `--help ` 获得**特定命令**的帮助信息。 
 
-![](/attachments/image2022-4-24_16-56-32.png)
+![](/attachments/image2022-4-24_16-56-32.webp)
 
 ## get
 
@@ -38,7 +38,7 @@ kubectl get [(-o|--output=)json|yaml|wide|go-template=...|go-template-file=...|j
 
 可以直接使用 `kubectl get po` 获取当前运行的所有`pods`的信息，或使用 `kubectl get po -o wide` 获取`pod`运行在哪个节点上的信息。注意：集群中可以创建多个`namespace`，未显示的指定`namespace`的情况下，所有操作都是针对`default namespace`。如下图所示列出了`default` 和`kube-system`的`pods`：
 
-![](assets/20160425212037227.png)
+![](assets/20160425212037227.webp)
 
 **获取`namespace`信息：**
 
@@ -55,11 +55,11 @@ kubectl get namespace
 可以通过使用选项`-o`。如：  
 1）`kubectl get po -o yaml`以`yaml`格式输出`pod`的详细信息。
 
-![](assets/20160425213027232.png)
+![](assets/20160425213027232.webp)
 
 2）`kubectl get po -o json`以`json`格式输出`pod`的详细信息。
 
-![](assets/20160425213047717.png)
+![](assets/20160425213047717.webp)
 
 3）另外还可以使用 `-o=custom-columns=` 定义直接获取指定内容的值。如前面使用`json`和`yaml`格式的输出中，`metadata.labels.app`的值可以使用如下命令获取。 
 
@@ -236,7 +236,7 @@ kubectl attach kube-dns-v9-rcfuk -c skydns —namespace=kube-system
 kubectl config view
 ```
 
-![](/attachments/image2021-5-17_16-34-18.png)
+![](/attachments/image2021-5-17_16-34-18.webp)
 
 切换当前操作集群
 
@@ -244,7 +244,7 @@ kubectl config view
 kubectl config user-context 集群名称
 ```
 
-![](/attachments/image2021-5-17_16-34-53.png)
+![](/attachments/image2021-5-17_16-34-53.webp)
 
 ## port-forward
 
@@ -278,7 +278,7 @@ kubectl port-forward <pod_name> <forward_port> --namespace <namespace> --address
 
 3. 在浏览器输入`nodeip:本地9800端口`进行访问。
 
-    ![](/attachments/830887-20210508141329187-1863523021.png)
+    ![](/attachments/830887-20210508141329187-1863523021.webp)
 
 4. 访问`pod`。
 

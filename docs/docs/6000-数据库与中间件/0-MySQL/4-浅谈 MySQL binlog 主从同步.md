@@ -38,7 +38,7 @@ Server 层的日志系统（归档日志），binlog 中跟踪对其数据库的
 
 ## 主从同步的基础流程
 
-![](/attachments/linkedkeeper0_bb790df4-28f3-4e4e-9de0-9e6a233b0348.png)
+![](/attachments/linkedkeeper0_bb790df4-28f3-4e4e-9de0-9e6a233b0348.webp)
 
 1.  主库接收到更新命令，执行更新操作，生成 binlog
 
@@ -80,7 +80,7 @@ Server 层的日志系统（归档日志），binlog 中跟踪对其数据库的
 
 ### 3，从库并行复制策略
 
-![](/attachments/linkedkeeper0_5a7fd527-6038-49b1-a4f0-7cd20dad38ef.png)
+![](/attachments/linkedkeeper0_5a7fd527-6038-49b1-a4f0-7cd20dad38ef.webp)
 
 **核心思想：**
 

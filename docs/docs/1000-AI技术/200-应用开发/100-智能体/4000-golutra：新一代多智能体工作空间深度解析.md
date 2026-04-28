@@ -41,7 +41,7 @@ toc_max_heading_level: 4
 
 `Golutra` 是一款新一代**多智能体工作空间**桌面应用，标语为"**一个人，一个 AI 军团**"（`One Person. One AI Squad.`）。项目地址：[https://github.com/golutra/golutra](https://github.com/golutra/golutra)，官网：[https://www.golutra.com/](https://www.golutra.com/)。
 
-![Golutra](assets/4000-golutra：新一代多智能体工作空间深度解析/image.png)
+![Golutra](assets/4000-golutra：新一代多智能体工作空间深度解析/image.webp)
 
 它由独立开发者 [seekskyworld](https://github.com/seekskyworld) 历经三个月打磨，采用`Vue 3 + Rust`，基于`Tauri`桌面架构构建，支持`Windows`、`macOS`和`Linux`三平台。
 

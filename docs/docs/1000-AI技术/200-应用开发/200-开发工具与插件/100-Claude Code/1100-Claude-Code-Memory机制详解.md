@@ -42,7 +42,7 @@ toc_max_heading_level: 4
 
 ## Memory机制概述
 
-![Claude Code Memory机制](assets/1100-Claude-Code-Memory机制详解/image.png)
+![Claude Code Memory机制](assets/1100-Claude-Code-Memory机制详解/image.webp)
 
 ### 核心问题
 

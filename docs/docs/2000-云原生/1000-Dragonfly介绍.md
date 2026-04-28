@@ -29,7 +29,7 @@ description: "Dragonfly是一款基于P2P的智能镜像和文件分发工具，
 
 提起网络下载领域，你应该首先会想到基于`TCP/IP`协议簇的`C/S`模式。这种模式希望每一个客户机都与服务器建立`TCP`连接，服务器轮询监听`TCP`连接并依次响应，如下图：  
 
- ![网络下载](./assets/5d3b12856d43463fb737de3b88ee5b89.png)
+ ![网络下载](./assets/5d3b12856d43463fb737de3b88ee5b89.webp)
  
  上世纪末期，基于`C/S`模式的思想，人们发展了`HTTP`、`FTP`等应用层协议。然而`C/S`模式的弊端很明显：服务器的负载过大，下载速率过慢。随着互联网规模的增大以及客户对于下载数据大小，下载速率等需求的上升，这些弊端被不断放大。
 
@@ -37,7 +37,7 @@ description: "Dragonfly是一款基于P2P的智能镜像和文件分发工具，
 
 基于上述背景，有人结合`P2P`网络与负载均衡的思想，提出`P2P`下载模式。这种模式不再把所有的下载压力丢给服务器，服务器只负责传递文件元数据，真正的文件下载连接建立在客户机与客户机之间。同时一个文件可以被分片为多个块，同一个文件中不同的块可以在不同的客户机之上下载，使得下载文件在`P2P`网络中动态流通，大幅提升了下载效率，如下图：  
 
- ![P2P 下载原理](./assets/fb7c62d1b67049e289acc0fed05e17f5.png)
+ ![P2P 下载原理](./assets/fb7c62d1b67049e289acc0fed05e17f5.webp)
  
  去中心化的`P2P`下载基于`DHT`技术，它采用分布式全网方式来进行信息的存储和检索。所有信息均以哈希表条目形式加以存储，这些条目被分散地存储在各个节点上，从而以全网方式构成一张巨大的分布式哈希表。在此基础上做到对单服务器的去中心化，哈希表负责对负载的分摊，将全网负载均摊到多个机器之上。
 
@@ -51,7 +51,7 @@ description: "Dragonfly是一款基于P2P的智能镜像和文件分发工具，
 
 `Dragonfly`结合`C/S`架构与`P2P`架构的优点。它提供面向客户的`C/S`架构下载模式。同时它也提供面向服务器集群的`P2P`回源模式，与传统`P2P`不同的是，对等网络建立在`Scheduler`内部，目标是最大化`P2P`内部下载效率，如下图：  
 
-![Dragonfly原理](./assets/fae57f4226fd405f806b67d3aa83c30e.png)
+![Dragonfly原理](./assets/fae57f4226fd405f806b67d3aa83c30e.webp)
 
 ### **架构简介**
 
@@ -61,7 +61,7 @@ description: "Dragonfly是一款基于P2P的智能镜像和文件分发工具，
 
 其中`Manager`提供总体配置功能，拉取其他角色的配置并相互通信。`Scheduler`提供下载调度功能，其调度结果直接影响下载速率。`Seed Peer`负责回源下载，从外部网络中拉取所需的镜像或文件。`Peer`作为`C/S`架构中的服务器，通过多种协议向客户提供下载功能。架构图如下：
 
- ![Dragonfly架构简介](./assets/b9b9fd0d98f3445f9b09e95014dc996e.png)
+ ![Dragonfly架构简介](./assets/b9b9fd0d98f3445f9b09e95014dc996e.webp)
  
  其中，`Seed Peer`支持使用多种协议从外部网络中回源下载，同时也支持当作集群当中一个`Peer`使用。`Peer`提供基于多种协议的下载服务，也提供为镜像仓库或其他下载任务的代理服务。
 
@@ -77,7 +77,7 @@ description: "Dragonfly是一款基于P2P的智能镜像和文件分发工具，
 
 `Scheduler`的核心就是选取一组最优`Parent`节点供当前下载`Peer`进行下载。`Scheduler`面向`Task`，一次`Task`就是一次完整的下载任务，在`Scheduler`中存储`Task`信息和相应`P2P`下载网络的`DAG`。调度过程是首先过滤异常`Parent`节点，根据多维度进行过滤，比如判断该`Peer`是否是`BadNode`，判断逻辑为假设每个节点的响应时长都遵循正态分布，若一个节点目前的响应时长处于 6σ 范围之外，那么认为该节点是`BadNode`，剔除该节点。再根据历史下载特征值对剩余待定`Parent`节点进行打分，返回一组分数最高的`Parent`提供给当前`Peer`进行下载。  
 
-![Dragonfly Scheduler](./assets/3a82facd49334978a776f90b5728e015.png)
+![Dragonfly Scheduler](./assets/3a82facd49334978a776f90b5728e015.webp)
 
 ### **`Seed Peer`和`Peer`**
 
@@ -95,7 +95,7 @@ description: "Dragonfly是一款基于P2P的智能镜像和文件分发工具，
 
 `Dragonfly`会自动隔离异常节点来提高下载稳定性，`Dragonfly`中各个组件通过`Keepalive`与`Manager`进行联系，`Manager`能够保证返回给`Peer`的`Scheduler`地址和返回给`Scheduler`的`Seed Peer`地址都是可用的。不可用的`Scheduler`和`Seed Peer`不会被`Manager`推给需要进行下载任务的`Peer`或`Scheduler`，从而达到隔离异常节点的目的，这也是实例维度的异常隔离，如下图：  
 
- ![Dragonfly](./assets/493a056a5806443db47f4a37b3b1adab.png)
+ ![Dragonfly](./assets/493a056a5806443db47f4a37b3b1adab.webp)
  
  另外`Dragonfly`在调度时以`Task`为单位，也确保了整个调度过程的稳定性。在收到一个新的`Task`调度请求之后，`Scheduler`触发`Seed Peer`进行回源下载；在收到一个已有`Task`的调度请求之后，`Scheduler`调度最优`Parent Peer`集合返回给`Peer`。这个逻辑确保了无论`Task`是否下载过，`Dragonfly`都可以对其进行处理。此外在`Scheduler`调度过程中，对响应时长过慢的`Peer`，认为目前是异常节点，将不会作为`Parent Peer`被返还。这也是`Task`维度的异常隔离。
 

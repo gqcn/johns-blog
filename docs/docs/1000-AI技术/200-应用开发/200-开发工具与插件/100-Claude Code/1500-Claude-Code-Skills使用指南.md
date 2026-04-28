@@ -45,7 +45,7 @@ toc_max_heading_level: 4
 
 ## 什么是Skills
 
-![Claude Code Skills](assets/1500-Claude-Code-Skills使用指南/image.png)
+![Claude Code Skills](assets/1500-Claude-Code-Skills使用指南/image.webp)
 
 `Skills`是`Claude Code`提供的技能扩展机制，核心是一个包含`SKILL.md`文件的目录。创建`SKILL.md`后，`Claude`会将该技能加入工具箱：可以用`/技能名`直接调用，也可以由`Claude`在对话时判断相关性后自动加载。
 

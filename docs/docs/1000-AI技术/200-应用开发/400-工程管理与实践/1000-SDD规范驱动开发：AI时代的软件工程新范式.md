@@ -40,7 +40,7 @@ toc_max_heading_level: 3
 
 ## 传统开发范式的痛点
 
-![传统开发范式的痛点](assets/SDD规范驱动开发：AI时代的软件工程新范式/image.png)
+![传统开发范式的痛点](assets/SDD规范驱动开发：AI时代的软件工程新范式/image.webp)
 
 ### "凭感觉编码"的危机
 
@@ -69,7 +69,7 @@ toc_max_heading_level: 3
 
 ## 什么是SDD规范驱动开发
 
-![什么是SDD规范驱动开发](assets/SDD规范驱动开发：AI时代的软件工程新范式/image-1.png)
+![什么是SDD规范驱动开发](assets/SDD规范驱动开发：AI时代的软件工程新范式/image-1.webp)
 
 ### 核心思想：权力的倒置
 
