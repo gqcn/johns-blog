@@ -145,6 +145,12 @@ const config: Config = {
           to: '/blog',
         },
 
+        
+        {
+          href: 'https://linapro.ai/',
+          position: 'right',
+          className: 'header-linapro-link',
+        },
         {
           href: 'https://goframe.org/',
           position: 'right',
