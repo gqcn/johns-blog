@@ -37,6 +37,8 @@ description: "本文聚焦`OpenSpec`在团队多人协作场景中的`Git`工程
 toc_max_heading_level: 3
 ---
 
+在`SDD`工程实践中，规范文档的多人协作治理是一个容易被忽视却极其关键的环节。本文以`OpenSpec`为例，系统探讨规范文档在`Git`中的版本管理、归档策略与冲突治理，直接回答团队协作中最常见的工程实践难题。
+
 ## 前言
 
 当`OpenSpec`还只是一个人使用时，很多问题都显得很简单：文档先放本地也没关系，`changes`目录偶尔乱一点也还能接受，等功能做完了再手动`archive`一下，似乎一切都能运转。
@@ -225,19 +227,19 @@ toc_max_heading_level: 3
 
 ```mermaid
 flowchart TD
-    A["Contributor branch<br/>code + openspec/changes/{change-id}"] --> B[Feature PR]
-    B --> C{Review passed?}
-    C -- No --> D[Revise PR]
+    A["贡献者代码<br/> + <br/>openspec/changes/{changeid}"] --> B[功能 PR]
+    B --> C{审查通过？}
+    C -- 否 --> D[修改 PR]
     D --> B
-    C -- Yes --> E[Merge to main]
-    E --> F[archive queue]
-    F --> G[Archive on latest main]
-    G --> H{Checks passed?}
-    H -- No --> I[Stop and report conflict]
-    H -- Yes --> J[Open bot PR for archived specs]
-    J --> K[Maintainer review]
-    K --> L[Merge archive PR]
-    L --> M[openspec/specs/ updated]
+    C -- 是 --> E[合并到 main]
+    E --> F[归档队列]
+    F --> G[基于最新 main 执行归档]
+    G --> H{校验通过？}
+    H -- 否 --> I[停止并报告冲突]
+    H -- 是 --> J[创建归档规范的 bot PR]
+    J --> K[负责人审核]
+    K --> L[合并归档 PR]
+    L --> M[openspec/specs/ 已更新]
 ```
 
 这套流程的核心价值在于职责边界清晰，而不是步骤的多少。
