@@ -129,11 +129,7 @@ const config: Config = {
           label: '可观测性',
           to: '/observability',
         },
-        {
-          position: 'left',
-          label: '生活笔记',
-          to: '/life',
-        },
+
         {
           position: 'right',
           label: '关于我',
@@ -145,21 +141,28 @@ const config: Config = {
           to: '/blog',
         },
 
-        
         {
-          href: 'https://linapro.ai/',
+          type: 'dropdown',
+          label: '开源',
           position: 'right',
-          className: 'header-linapro-link',
-        },
-        {
-          href: 'https://goframe.org/',
-          position: 'right',
-          className: 'header-goframe-link',
-        },
-        {
-          href: 'https://github.com/gqcn',
-          position: 'right',
-          className: 'header-github-link',
+          className: 'header-links-dropdown',
+          items: [
+            {
+              label: 'Github',
+              href: 'https://github.com/gqcn',
+              className: 'header-github-link',
+            },
+            {
+              label: 'Linapro.AI',
+              href: 'https://linapro.ai/',
+              className: 'header-linapro-link',
+            },
+            {
+              label: 'GoFrame',
+              href: 'https://goframe.org/',
+              className: 'header-goframe-link',
+            },
+          ],
         },
       ],
     },
