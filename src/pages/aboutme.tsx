@@ -45,7 +45,6 @@ export default function AboutMe(): JSX.Element {
                             <ul>
                                 <li>在文章下方评论区留言</li>
                                 <li>个人微信号：<code>389961817</code></li>
-                                <li>GitHub：<a href="https://github.com/gqcn" target="_blank" rel="noreferrer">https://github.com/gqcn</a></li>
                             </ul>
                         </div>
                     </div>
