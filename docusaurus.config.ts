@@ -36,7 +36,9 @@ const config: Config = {
           lastVersion: 'current'
         },
         // Will be passed to @docusaurus/plugin-content-blog (false to disable)
-        blog: {},
+        blog: {
+          blogSidebarCount: 100,
+        },
         // Will be passed to @docusaurus/plugin-content-pages (false to disable)
         pages: {},
         // Will be passed to @docusaurus/theme-classic.
