@@ -320,3 +320,31 @@ html.blog-wrapper ul.table-of-contents > li > ul > li > ul > li::before,
 html.blog-wrapper ul.table-of-contents > li > ul > li > ul > li > ul > li::before {
   content: none !important;
 }
+
+/*
+ * TOC 标题过长时单行省略。
+ * docusaurus-numbered-headings 会把链接设为 display:inline !important
+ * （为了让 li::before 序号与标题同一行），inline 元素无法应用 text-overflow，
+ * 因此用 flex 排布序号 + 链接，并为链接开启省略。
+ */
+.table-of-contents li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.table-of-contents li > a.table-of-contents__link {
+  display: block !important;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-of-contents li > ul {
+  flex: 1 0 100%;
+  min-width: 0;
+  width: 100%;
+}
