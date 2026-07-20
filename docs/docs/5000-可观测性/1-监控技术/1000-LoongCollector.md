@@ -13,7 +13,7 @@ description: "本文详细介绍 LoongCollector——阿里巴巴开源的新一
 
 ## 什么是 LoongCollector
 
-`LoongCollector`是阿里云可观测团队开源的新一代高性能数据采集器，其前身为`iLogtail`项目。`LoongCollector`在继承`iLogtail`强大日志采集与处理能力的基础上进行了全面升级，从原来单一的日志采集场景扩展为涵盖 **日志（`Logs`）、指标（`Metrics`）、链路（`Traces`）、事件（`Events`）、性能剖析（`Profiles`）** 的统一可观测数据采集与处理平台。
+`LoongCollector`是阿里云可观测团队开源的新一代高性能数据采集器，其前身为`iLogtail`项目。`LoongCollector`在继承`iLogtail`强大日志采集与处理能力的基础上进行了全面升级，从原来单一的日志采集场景扩展为涵盖 **日志（`Logs`）、指标（`Metrics`）、链路（`Traces`）、性能剖析（`Profiles`）** 的统一可观测数据采集与处理平台，并通过`eBPF`等能力采集文件、网络、进程等系统事件类数据。
 
 > **项目地址：**[https://github.com/alibaba/loongcollector](https://github.com/alibaba/loongcollector)
 
@@ -31,7 +31,7 @@ description: "本文详细介绍 LoongCollector——阿里巴巴开源的新一
 
 `LoongCollector`在性能方面拥有显著优势。根据官方基准测试数据，其吞吐量相比其他主流采集器高出约 **`10倍`**，而资源消耗降低约 **`80%`**。
 
-| 场景 | LoongCollector | Filebeat | Fluentd | Logstash |
+| 场景 | LoongCollector | FluentBit | Vector | Filebeat |
 |---|---|---|---|---|
 | 单行日志最大吞吐 | `546 MB/s` | `36 MB/s` | `38 MB/s` | `9 MB/s` |
 | 多行日志最大吞吐 | `238 MB/s` | `24 MB/s` | `22 MB/s` | `6 MB/s` |
@@ -39,11 +39,11 @@ description: "本文详细介绍 LoongCollector——阿里巴巴开源的新一
 
 在 `10 MB/s` 处理负载下的资源消耗对比：
 
-| 场景 | LoongCollector | Filebeat | Fluentd |
-|---|---|---|---|
-| 单行（`512B`） | `3.40% CPU / 29 MB RAM` | `12.29% CPU / 47 MB RAM` | `35.80% CPU / 83 MB RAM` |
-| 多行（`512B`） | `5.82% CPU / 29 MB RAM` | `28.35% CPU / 46 MB RAM` | `55.99% CPU / 85 MB RAM` |
-| 正则（`512B`） | `14.20% CPU / 34 MB RAM` | `37.32% CPU / 46 MB RAM` | `43.90% CPU / 91 MB RAM` |
+| 场景 | LoongCollector | FluentBit | Vector | Filebeat |
+|---|---|---|---|---|
+| 单行（`512B`） | `3.40% CPU / 29.01 MB RAM` | `12.29% CPU / 46.84 MB RAM` | `35.80% CPU / 83.24 MB RAM` | 性能不足 |
+| 多行（`512B`） | `5.82% CPU / 29.39 MB RAM` | `28.35% CPU / 46.39 MB RAM` | `55.99% CPU / 85.17 MB RAM` | 性能不足 |
+| 正则（`512B`） | `14.20% CPU / 34.02 MB RAM` | `37.32% CPU / 46.44 MB RAM` | `43.90% CPU / 90.51 MB RAM` | 不支持 |
 
 其性能优势主要来自以下底层设计：
 
@@ -78,6 +78,8 @@ description: "本文详细介绍 LoongCollector——阿里巴巴开源的新一
 
 并深度支持云原生`Kubernetes`场景，基于标准`CRI API`实现无侵入的`K8s`元数据`AutoTagging`（`Namespace`、`Pod`、`Container`、`Labels`等）。
 
+需要注意的是，官方资料中的`Events`更多指统一数据模型中的事件类数据，以及`eBPF`安全事件、网络事件、`Docker`/`ETW`等系统事件采集场景，并不等同于内置支持采集`Kubernetes Event`资源对象。源码中`metric_meta_kubernetes`和`service_kubernetes_meta`采集的是`Pod`、`Node`、`Service`、`Deployment`等`K8s`资源元数据及关系，不包含对`Event`对象的专用监听。如果要采集`Node Problem Detector`产生的`Kubernetes Events`，仍建议使用专门的事件导出组件将其转换为日志或`OTLP`等格式，`LoongCollector`可以再通过容器标准输出或文件日志方式采集这些导出结果。
+
 ### 可编程数据处理管道
 
 `LoongCollector`通过`SPL引擎`与`多语言Plugin引擎`双引擎构建完善的可编程体系：
@@ -90,12 +92,11 @@ description: "本文详细介绍 LoongCollector——阿里巴巴开源的新一
 
 ### 灵活配置管理
 
-`LoongCollector`社区设计了统一的`Agent`管控协议，并提供`ConfigServer`服务实现以下能力：
+`LoongCollector`支持本地配置热加载，也设计了统一的`Agent`管控协议。开源文档中的`ConfigServer`用于多实例场景下统一管理采集配置、版本和运行状态；云上或商业形态还可以结合`SLS Console`、`SDK`、`K8s Operator`等入口。
 
 - 以`Agent`组形式对采集`Agent`进行统一管理
 - 远程批量下发、修改采集配置
 - 监控`Agent`运行状态，汇总告警信息
-- 支持`SLS Console`、`SDK`、`K8s Operator`等多种管控入口
 
 ## 架构设计
 
@@ -159,38 +160,50 @@ graph TB
 
 ## 插件体系详解
 
-`LoongCollector`的流水线由以下五类插件组成，各插件均有**原生插件**（C++实现）和**扩展插件**（Go实现）两种形态。
+`LoongCollector`的流水线由以下五类插件组成。输入、处理、输出插件主要分为**原生插件**（C++实现）和**扩展插件**（Go实现）两类；聚合插件和`Extension`主要属于 Go 扩展插件体系。
 
 ### 输入插件（Input）
 
-负责从各类数据源采集原始数据，是流水线的数据入口。每条流水线当前只允许配置一个输入插件。
+负责从各类数据源采集原始数据，是流水线的数据入口。常见的本地文件、容器标准输出、一次性文件等单例输入在一条流水线中只能配置一个；原生`Input`与扩展`Input`也需要满足源码中的拓扑检查规则。
 
 **原生输入插件（高性能 C++ 实现）：**
 
 | 插件名 | 说明 |
 |---|---|
-| `input_file` | 文本日志文件采集，支持多路径、通配符 |
+| `input_agentsight` | `AgentSight`可观测数据采集 |
+| `input_file` | 文本日志文件采集，支持通配符；`FilePaths`当前仅限一个路径规则 |
 | `input_container_stdio` | 从容器标准输出/标准错误流采集日志 |
-| `input_ebpf_file_security` | `eBPF`文件安全事件采集 |
-| `input_ebpf_network_observer` | `eBPF`网络可观测数据采集 |
-| `input_ebpf_network_security` | `eBPF`网络安全事件采集 |
-| `input_ebpf_process_security` | `eBPF`进程安全事件采集 |
-| `input_internal_metrics` | 导出`LoongCollector`自身运行指标 |
+| `input_cpu_profiling` | 基于`eBPF`采集`CPU Profiling`数据 |
+| `input_file_security` | 基于`eBPF`采集文件安全事件 |
+| `input_forward` | 接收来自其他实例或系统的转发数据 |
+| `input_host_meta` | 定时采集主机、进程及关联关系等元数据 |
+| `input_host_monitor` | 采集主机`CPU`、内存、磁盘、网络等指标 |
 | `input_internal_alarms` | 导出`LoongCollector`自身告警数据 |
+| `input_internal_metrics` | 导出`LoongCollector`自身运行指标 |
+| `input_network_observer` | 基于`eBPF`采集网络可观测数据 |
+| `input_network_security` | 基于`eBPF`采集网络安全事件 |
+| `input_process_security` | 基于`eBPF`采集进程安全事件 |
+| `input_prometheus` | 按`ScrapeConfig`抓取`Prometheus`指标 |
+| `input_static_file_onetime` | 一次性文件采集 |
 
 **常用扩展输入插件（Go 实现）：**
 
 | 插件名 | 说明 |
 |---|---|
-| `service_http_server` | 接收`HTTP/HTTPS/Unix Socket/TCP`请求，支持`SLS`协议和`OTLP`等 |
-| `service_kafka` | 从`Kafka`读取数据 |
-| `service_otlp` | 通过`HTTP/gRPC`接收`OTLP`数据 |
-| `service_journal` | 采集 `Linux systemd Journal`日志 |
-| `service_syslog` | 采集`Syslog`数据 |
-| `service_canal` | 采集`MySQL Binlog`（通过`Canal`） |
+| `input_command` | 定期执行脚本或命令并采集输出 |
+| `metric_meta_host` | 采集主机`Meta`数据 |
 | `metric_system_v2` | 主机监控指标（CPU、内存、磁盘、网络等） |
+| `service_canal` | 采集`MySQL Binlog`（通过`Canal`） |
+| `service_docker_stdout` | 旧版 Go 容器标准输出采集 |
+| `service_etw` | 采集`Windows ETW`实时事件 |
+| `service_go_profile` | 采集`Go`应用`pprof`性能剖析数据 |
 | `service_gpu_metric` | 采集`NVIDIA GPU`指标 |
-| `service_go_profile` | 采集 `Go` 应用`pprof`性能剖析数据 |
+| `service_http_server` | 接收`HTTP/HTTPS/Unix Socket/TCP`请求，支持`SLS`协议和`OTLP`等 |
+| `service_journal` | 采集 `Linux systemd Journal`日志 |
+| `service_kafka` | 从`Kafka`读取数据 |
+| `service_kubernetes_meta` | 采集`Kubernetes`资源元数据及关系，不采集`Kubernetes Event`对象 |
+| `service_otlp` | 通过`HTTP/gRPC`接收`OTLP`日志、指标和链路数据 |
+| `service_syslog` | 采集`Syslog`数据 |
 
 ### 处理插件（Processor）
 
@@ -212,6 +225,7 @@ graph TB
 | `processor_parse_timestamp_native` | 时间字段解析，设置事件`__time__` |
 | `processor_filter_regex_native` | 基于正则的事件过滤 |
 | `processor_desensitize_native` | 字段内容脱敏处理 |
+| `processor_timestamp_filter_native` | 基于时间戳过滤事件 |
 
 **常用扩展处理插件（Go 实现）：**
 
@@ -221,12 +235,14 @@ graph TB
 | `processor_json` | `JSON`格式日志解析 |
 | `processor_grok` | `Grok`语法数据处理 |
 | `processor_add_fields` | 添加固定字段 |
+| `processor_appender` | 追加字段 |
 | `processor_rename` | 重命名字段 |
 | `processor_drop` | 丢弃指定字段 |
 | `processor_filter_regex` | 正则过滤日志（扩展版） |
 | `processor_desensitize` | 敏感数据脱敏 |
 | `processor_split_log_regex` | 多行日志切分（如 Java 异常栈） |
 | `processor_cloud_meta` | 自动添加云平台元数据信息 |
+| `processor_log_to_sls_metric` | 将日志字段转换为`SLS Metric` |
 | `processor_rate_limit` | 日志限速，防止突发流量 |
 
 ### 聚合插件（Aggregator）
@@ -251,6 +267,7 @@ graph TB
 | `flusher_sls` | 输出到阿里云`SLS`（日志服务） |
 | `flusher_file` | 写入本地文件 |
 | `flusher_blackhole` | 丢弃数据（用于测试） |
+| `flusher_kafka_native` | 使用 C++ 实现输出到`Kafka` |
 
 **扩展输出插件（Go 实现）：**
 
@@ -260,8 +277,9 @@ graph TB
 | `flusher_kafka_v2` | 输出到`Kafka`（推荐版本） |
 | `flusher_elasticsearch` | 输出到`Elasticsearch` |
 | `flusher_clickhouse` | 输出到`ClickHouse` |
+| `flusher_doris` | 输出到`Apache Doris` |
 | `flusher_loki` | 输出到`Loki` |
-| `flusher_otlp_log` | 通过`OTLP`协议输出日志 |
+| `flusher_otlp` | 通过`OTLP`协议输出日志、指标或链路数据 |
 | `flusher_http` | 通过`HTTP`输出到自定义后端 |
 | `flusher_prometheus` | 通过`Prometheus RemoteWrite`输出指标 |
 | `flusher_pulsar` | 输出到`Pulsar` |
@@ -282,24 +300,32 @@ graph TB
 
 ### 直接下载（Linux/macOS）
 
-从官方 Release 下载预编译包：
+生产环境建议从[官方 Releases](https://github.com/alibaba/loongcollector/releases)下载当前稳定版预编译包，并核对发布页中的文件名与校验和。国内用户也可以按发布页说明使用阿里云 OSS 地址，常见命名模式如下：
 
 ```bash
-# 下载 Linux amd64 版本（请查看 GitHub Releases 获取最新版本号）
-wget https://loongcollector-community-edition.oss-cn-shanghai.aliyuncs.com/0.2.0/loongcollector-0.2.0.linux-amd64.tar.gz
-tar -xzvf loongcollector-0.2.0.linux-amd64.tar.gz
-cd loongcollector-0.2.0
+# VERSION、OS、ARCH 请以 GitHub Releases 中实际资产为准
+VERSION=<release_version>
+OS=linux
+ARCH=amd64
+wget "https://loongcollector-community-edition.oss-cn-shanghai.aliyuncs.com/${VERSION}/loongcollector-${VERSION}.${OS}-${ARCH}.tar.gz"
+tar -xzvf "loongcollector-${VERSION}.${OS}-${ARCH}.tar.gz"
+cd "loongcollector-${VERSION}"
 ```
 
 ### Docker 部署
 
 ```bash
-# 使用 Docker 运行，挂载宿主机根目录和 /var/run
+IMAGE=sls-opensource-registry.cn-shanghai.cr.aliyuncs.com/loongcollector-community-edition/loongcollector:<release_version>
+
+# 使用 Docker 运行，挂载宿主机根目录、容器运行时目录和采集配置目录
 docker run -d --name loongcollector \
   -v /:/logtail_host:ro \
   -v /var/run:/var/run \
-  alibaba/loongcollector:latest
+  -v "$(pwd)/config:/usr/local/loongcollector/conf/continuous_pipeline_config/local" \
+  "${IMAGE}"
 ```
+
+阿里云镜像仓库通常使用明确版本号标签，不应假设存在可用的`latest`浮动标签；如需使用`latest`，请以 Release 正文中列出的`GHCR`镜像说明为准。
 
 ### 从源码编译
 
@@ -321,7 +347,7 @@ nohup ./loongcollector > stdout.log 2> stderr.log &
 
 ## 采集配置详解
 
-`LoongCollector`的每条流水线对应一个配置文件，支持`YAML`和`JSON`两种格式。配置文件默认存放于`./conf/continuous_pipeline_config/local`目录，支持**热加载**（默认最长 `10` 秒生效）。
+`LoongCollector`的每条流水线通常对应一个配置文件，支持`YAML`和`JSON`两种格式。持续采集配置默认存放于`conf/continuous_pipeline_config/local`，一次性采集配置存放于`conf/onetime_pipeline_config/local`；实例级系统参数则位于`conf/instance_config`，不要与采集配置混放。持续采集配置支持**热加载**，默认最长约 `10` 秒生效，可通过实例级参数`config_scan_interval`调整。
 
 **配置文件结构：**
 
@@ -330,11 +356,12 @@ nohup ./loongcollector > stdout.log 2> stderr.log &
 | `enable` | `bool` | 否 | `true` | 是否启用当前配置 |
 | `global` | `object` | 否 | 空 | 全局配置 |
 | `global.StructureType` | `string` | 否 | `v1` | 流水线版本（`v1` 或 `v2`） |
-| `global.InputIntervalMs` | `int` | 否 | `1000` | `MetricInput`采集间隔（毫秒） |
+| `global.InputIntervalMs` | `int` | 否 | `1000` | 扩展（Go）`Input`默认调度间隔（毫秒） |
+| `global.InputMaxFirstCollectDelayMs` | `int` | 否 | `10000` | 扩展`Input`首次采集前随机等待上限（毫秒） |
 | `global.EnableTimestampNanosecond` | `bool` | 否 | `false` | 是否启用纳秒级时间戳 |
-| `inputs` | `array` | 是 | / | 输入插件列表（目前仅支持 `1` 个） |
+| `inputs` | `array` | 是 | / | 输入插件列表；单例输入通常只能配置 `1` 个，并受原生/扩展拓扑约束 |
 | `processors` | `array` | 否 | 空 | 处理插件列表（可多个，按序执行） |
-| `aggregators` | `array` | 否 | 空 | 聚合插件列表（最多 `1` 个） |
+| `aggregators` | `array` | 否 | 空 | 聚合插件列表（目前最多 `1` 个，主要与 Go 投递路径组合） |
 | `flushers` | `array` | 是 | / | 输出插件列表（至少 `1` 个） |
 | `extensions` | `array` | 否 | 空 | 扩展插件列表 |
 
@@ -342,7 +369,7 @@ nohup ./loongcollector > stdout.log 2> stderr.log &
 
 ### 示例一：采集文件日志并输出到标准输出
 
-最简单的使用场景，将本地日志文件的内容采集并打印到标准输出，适合调试和验证配置：
+最简单的使用场景是将本地日志文件内容采集并打印到标准输出，适合调试和验证配置。`Tags: true`用于在`flusher_stdout`中显示`__tag__`字段：
 
 ```yaml
 enable: true
@@ -353,6 +380,7 @@ inputs:
 flushers:
   - Type: flusher_stdout
     OnlyStdout: true
+    Tags: true
 ```
 
 启动`LoongCollector`后，向日志文件写入内容：
@@ -369,7 +397,7 @@ echo '{"level":"info","msg":"Hello LoongCollector"}' >> /var/log/app/app.log
 
 ### 示例二：正则解析日志并提取字段
 
-对采集到的文本日志使用正则表达式进行字段提取，适合结构化 Nginx、Apache 等格式的访问日志：
+对采集到的文本日志使用原生正则处理器进行字段提取，适合结构化`Nginx`、`Apache`等格式的访问日志：
 
 ```yaml
 enable: true
@@ -380,7 +408,7 @@ inputs:
 processors:
   - Type: processor_parse_regex_native
     SourceKey: content
-    # 匹配格式：127.0.0.1 - - [10/Jan/2024:12:00:00 +0000] "GET /api/v1 200 512"
+    # 匹配格式：127.0.0.1 - - [10/Jan/2024:12:00:00 +0000] "GET /api/v1 HTTP/1.1" 200 512
     Regex: '(\S+)\s+-\s+-\s+\[([^\]]+)\]\s+"(\S+)\s+(\S+)\s+\S+"\s+(\d+)\s+(\d+)'
     Keys:
       - remote_addr
@@ -392,6 +420,7 @@ processors:
 flushers:
   - Type: flusher_stdout
     OnlyStdout: true
+    Tags: true
 ```
 
 ### 示例三：采集 JSON 格式日志并输出到 Kafka
@@ -413,9 +442,12 @@ flushers:
     Brokers:
       - kafka-broker:9092
     Topic: app-logs
-    # 若 Kafka 开启了认证，可配置 SASL
-    # SASLUsername: user
-    # SASLPassword: password
+    # 若 Kafka 开启认证，请在 Authentication 下配置 SASL/TLS/Kerberos 等参数
+    # Authentication:
+    #   SASL:
+    #     Username: user
+    #     Password: password
+    #     SaslMechanism: PLAIN
 ```
 
 ### 示例四：采集容器标准输出（Kubernetes 场景）
@@ -426,19 +458,21 @@ flushers:
 enable: true
 inputs:
   - Type: input_container_stdio
-    # 通过 Label 过滤只采集特定应用的容器日志
-    IncludeContainerLabel:
-      app: my-service
-    # 自动附加 K8s 元数据（Namespace、Pod 名、Container 名等）
-    K8sNamespaceRegex: ".*"
+    ContainerFilters:
+      # 通过 Pod Label 过滤只采集特定应用的容器日志
+      IncludeK8sLabel:
+        app: my-service
+      # 限定采集的命名空间，未配置时表示采集所有命名空间
+      K8sNamespaceRegex: ".*"
 flushers:
   - Type: flusher_stdout
     OnlyStdout: true
+    Tags: true
 ```
 
 ### 示例五：多行日志采集（Java 异常堆栈）
 
-Java 应用的异常堆栈日志往往跨越多行，需要使用`processor_split_log_regex`进行多行合并：
+Java 应用的异常堆栈日志往往跨越多行。源码文档推荐优先在`input_file`的`Multiline`配置中完成多行聚合；旧式`processor_split_log_regex`仍可用，但需要放在`processors`列表第一项。
 
 ```yaml
 enable: true
@@ -446,23 +480,19 @@ inputs:
   - Type: input_file
     FilePaths:
       - /var/log/java/application.log
-    # 多行模式下，先采集原始多行内容
     Multiline:
       Mode: custom
-      StartPattern: '\d{4}-\d{2}-\d{2}'
-processors:
-  - Type: processor_split_log_regex
-    SplitKey: content
-    # 以日期开头的行作为每条日志的起始行
-    SplitRegex: '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
+      # 以日期时间开头的行作为每条日志的起始行
+      StartPattern: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
 flushers:
   - Type: flusher_stdout
     OnlyStdout: true
+    Tags: true
 ```
 
 ### 示例六：SPL 引擎处理数据
 
-使用`processor_spl`插件通过类`SQL`的`SPL`语法对数据进行灵活的过滤和字段处理：
+使用`processor_spl`插件通过`SPL`语法对数据进行灵活的解析、过滤和字段处理：
 
 ```yaml
 enable: true
@@ -472,14 +502,14 @@ inputs:
       - /var/log/app/access.log
 processors:
   - Type: processor_spl
-    # 仅保留 HTTP 状态码 >= 400 的错误请求，并提取 status 字段
     Script: |
-      * | parse-regexp content, '(\d{3})$' as status
-        | where status >= '400'
-        | project-away content
+      *
+      | parse-regexp content, '([\d\.]+) \S+ \S+ \[(\S+) \S+\] \"(\w+) ([^\\"]*)\" ([\d\.]+) (\d+) (\d+) (\d+|-) \"([^\\"]*)\" \"([^\\"]*)\"' as ip, time, method, url, request_time, request_length, status, length, ref_url, browser
+      | project-away content
 flushers:
   - Type: flusher_stdout
     OnlyStdout: true
+    Tags: true
 ```
 
 

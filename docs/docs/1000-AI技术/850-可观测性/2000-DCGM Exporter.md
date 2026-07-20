@@ -1,5 +1,5 @@
 ---
-slug: "/observability/gpu-dcgm-exporter"
+slug: "/ai/gpu-dcgm-exporter"
 title: "DCGM Exporter：NVIDIA GPU监控指标与可观测性实践"
 hide_title: true
 keywords:
