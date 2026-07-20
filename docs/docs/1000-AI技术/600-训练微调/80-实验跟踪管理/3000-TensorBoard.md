@@ -13,6 +13,20 @@ toc_max_heading_level: 3
 
 `TensorBoard`以独立包形式发布（`pip install tensorboard`），也随`TensorFlow`捆绑分发。除原生支持`TensorFlow`生态外，`PyTorch`自`1.1`版本起在官方库`torch.utils.tensorboard`中内置了对`TFEvents`日志格式的写入支持，使其成为跨框架通用的实验可视化平台。
 
+## 与训练代码的关系
+
+使用`TensorBoard`时，训练代码不一定需要直接对接复杂的`TensorBoard SDK`，但必须有某种方式向日志目录写入`TensorBoard`能够识别的`TFEvents`文件。`TensorBoard`服务本身不会直接参与模型训练，也不会自动从普通终端输出、`CSV`或`JSON`日志中推断训练指标；它只负责扫描`logdir`目录，读取其中的`events.out.tfevents.*`文件并展示可视化结果。
+
+不同训练框架的接入方式有所差异：
+
+| 框架 / 场景 | 接入方式 | 是否自动记录 |
+|---|---|---|
+| `TensorFlow / Keras` | 使用`tf.keras.callbacks.TensorBoard`回调或`tf.summary`接口 | `Keras`回调可自动记录`loss`、`accuracy`等内置指标 |
+| `PyTorch`原生训练循环 | 使用`torch.utils.tensorboard.SummaryWriter`显式写入标量、图像、直方图等数据 | 不会自动记录，需要在训练循环中调用`add_scalar`等方法 |
+| 高级训练框架 | 使用框架内置的`TensorBoard Logger`或配置开关 | 取决于框架实现，通常会自动记录常见训练指标 |
+
+因此，在`PyTorch`项目中可以认为官方库已经内置了`TensorBoard`日志写入接口，但这并不等同于训练过程会被自动采集。开发者仍需在训练循环中创建`SummaryWriter`，并在合适的训练步或`epoch`调用`writer.add_scalar()`、`writer.add_histogram()`等方法写入日志。启动`tensorboard --logdir runs`只是读取和展示这些日志；如果代码没有生成`TFEvents`文件，界面中就不会出现对应的指标曲线。
+
 ## 解决的核心问题
 
 机器学习训练过程长期面临以下挑战：
@@ -109,6 +123,8 @@ with writer.as_default():
 ```
 
 #### 使用方式（PyTorch）
+
+`PyTorch`提供的是官方日志写入接口，而不是自动实验采集器。以下代码需要放入训练循环中，明确告诉`TensorBoard`要记录哪些指标：
 
 ```python
 from torch.utils.tensorboard import SummaryWriter
