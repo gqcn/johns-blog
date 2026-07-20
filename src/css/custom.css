@@ -326,6 +326,11 @@ html.blog-wrapper ul.table-of-contents > li > ul > li > ul > li > ul > li::befor
  * docusaurus-numbered-headings 会把链接设为 display:inline !important
  * （为了让 li::before 序号与标题同一行），inline 元素无法应用 text-overflow，
  * 因此用 flex 排布序号 + 链接，并为链接开启省略。
+ *
+ * 注意：li 设为 flex 后会禁用垂直 margin 折叠。Infima 默认给每个 li
+ * margin: var(--ifm-toc-padding-vertical)（0.5rem），折叠时一级分类间距≈0.5rem；
+ * 不折叠时会变成「末级子项 margin-bottom + 下一项 margin-top」≈1rem。
+ * 对嵌套 ul 使用等量负 margin，抵消多出来的那一段间距。
  */
 .table-of-contents li {
   display: flex;
@@ -347,4 +352,5 @@ html.blog-wrapper ul.table-of-contents > li > ul > li > ul > li > ul > li::befor
   flex: 1 0 100%;
   min-width: 0;
   width: 100%;
+  margin-bottom: calc(-1 * var(--ifm-toc-padding-vertical));
 }

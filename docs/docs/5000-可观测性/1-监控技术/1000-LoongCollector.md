@@ -1,5 +1,5 @@
 ---
-slug: "/ai/loongcollector"
+slug: "/observability/loongcollector"
 title: "LoongCollector：新一代高性能可观测数据采集器"
 hide_title: true
 keywords:
@@ -17,13 +17,13 @@ description: "本文详细介绍 LoongCollector——阿里巴巴开源的新一
 
 > **项目地址：**[https://github.com/alibaba/loongcollector](https://github.com/alibaba/loongcollector)
 
-品牌名称`LoongCollector`灵感源自东方神话中的"中国龙"（Loong）形象，Logo 中两个字母`O`如同灵动的双眼。这与`LoongCollector`的设计理念高度契合：龙眼代表全面精准的数据洞察力；龙的灵活身躯象征对多变环境的高度适应性；龙的强大力量象征在高强度负载下卓越的性能与稳定性。
+品牌名称`LoongCollector`灵感源自东方神话中的"中国龙"（`Loong`）形象，`Logo` 中两个字母`O`如同灵动的双眼。这与`LoongCollector`的设计理念高度契合：龙眼代表全面精准的数据洞察力；龙的灵活身躯象征对多变环境的高度适应性；龙的强大力量象征在高强度负载下卓越的性能与稳定性。
 
 `LoongCollector`是`LoongSuite`（阿里巴巴统一可观测数据采集套件）的核心节点级`Agent`组件。`LoongSuite`还包括：
 
-- [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent)：为 Java 应用提供进程级探针
-- [LoongSuite Go Agent](https://github.com/alibaba/loongsuite-go-agent)：为 Golang 应用提供编译期插桩
-- [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent)：为 Python 应用提供进程级探针
+- [LoongSuite Java Agent](https://github.com/alibaba/loongsuite-java-agent)：为 `Java` 应用提供进程级探针
+- [LoongSuite Go Agent](https://github.com/alibaba/loongsuite-go-agent)：为 `Golang` 应用提供编译期插桩
+- [LoongSuite Python Agent](https://github.com/alibaba/loongsuite-python-agent)：为 `Python` 应用提供进程级探针
 
 ## 核心特性
 

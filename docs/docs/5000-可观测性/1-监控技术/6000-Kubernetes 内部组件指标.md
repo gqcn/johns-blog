@@ -1,5 +1,5 @@
 ---
-slug: "/ai/observability/kubernetes-internal-metrics"
+slug: "/observability/kubernetes-internal-metrics"
 title: "Kubernetes 内部组件指标：API Server、Kubelet 与运行时 Label 说明"
 hide_title: true
 keywords:
@@ -15,6 +15,12 @@ description: "系统介绍 Kubernetes 内部组件常见指标，覆盖 API Serv
 
 
 ## 监控指标
+
+集群的内部指标，大部分场景下没什么用，常用于管控类指标监控。
+
+组件源码地址：https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io/apiserver
+
+Sample文件：[kube-internal.txt](/attachments/kube-internal.txt)
 
 ### API Server
 

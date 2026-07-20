@@ -1,5 +1,5 @@
 ---
-slug: "/ai/observability/kube-state-metrics"
+slug: "/observability/kube-state-metrics"
 title: "kube-state-metrics：Kubernetes 对象状态指标与 Label 说明"
 hide_title: true
 keywords:
@@ -16,6 +16,9 @@ description: "系统介绍 kube-state-metrics 的 Node、PV、PVC、Pod、容器
 
 ## 监控指标
 
+组件源码仓库：https://github.com/kubernetes/kube-state-metrics
+
+Sample文件：[kube-state.txt](/attachments/kube-state.txt)
 
 ### Node
 
@@ -60,7 +63,7 @@ description: "系统介绍 kube-state-metrics 的 Node、PV、PVC、Pod、容器
 | `kube_persistentvolumeclaim_created` | `gauge` | `Unix` 时间戳（秒） | 对象创建时间的 `Unix` 时间戳。 |
 | `kube_persistentvolumeclaim_deletion_timestamp` | `gauge` | <span style={{whiteSpace: 'nowrap'}}>`Unix` 时间戳（秒）</span> | 对象删除时间的 `Unix` 时间戳。 |
 
-### Pod 元数据/生命周期
+### Pod 元数据
 
 | 指标名称 | 类型 | 单位/值 | 说明 |
 |---|---|---|---|
