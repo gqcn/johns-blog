@@ -266,16 +266,3 @@ histogram_quantile(
 )
 ```
 
-## 使用注意事项
-
-`volcano_e2e_job_scheduling_duration`是`Gauge`，源码会在作业任务每次成功`Allocate`或`Pipeline`时覆盖写入。它适合表示“当前保留的调度耗时”，不适合用`increase()`当作累计耗时计算。
-
-`volcano_job_retry_counts`虽然是`Counter`，但它统计的是`Gang`插件发现作业不可调度的次数，不是业务层作业重启次数，也不是`status.retryCount`字段。
-
-`volcano_unschedule_task_count`和`volcano_job_retry_counts`的`job_id`当前只传入作业名，没有命名空间。如果集群允许不同命名空间中存在同名`Volcano Job`，建议查询时结合`instance`、`pod`、采集目标或业务侧作业列表进一步确认。
-
-`volcano_job_completed_phase_count`和`volcano_job_failed_phase_count`的`job_name`当前传入`namespace/name`，与调度器侧`job_name`或`job_id`命名方式不同。做跨指标关联时需要先统一标签值。
-
-作业级`Label`会带来较高基数。大规模批处理集群中，建议为`volcano_e2e_job_scheduling_duration`、`volcano_job_retry_counts`等高基数指标配置合理保留周期，必要时通过记录规则聚合到`queue`、`job_namespace`等稳定维度。
-
-`acs`的`resourceRequests`是接口字段，不是`Prometheus`指标。它的值来自`Volcano Job`规格中的资源声明，不代表实时资源使用量；实时`CPU`、内存或加速卡使用量仍需要结合`cAdvisor`、设备插件、节点监控或其它资源使用指标。
