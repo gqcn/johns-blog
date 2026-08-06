@@ -30,7 +30,7 @@ description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项�
 
 ## Kubeflow项目简介
 
-![Kubeflow](../100-开发训练平台/assets/AI模型开发训练平台开源项目调研/image.webp)
+![Kubeflow](../../100-开发训练平台/assets/AI模型开发训练平台开源项目调研/image.webp)
 
 ### 项目背景
 

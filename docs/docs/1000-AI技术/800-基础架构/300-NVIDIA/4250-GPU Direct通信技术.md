@@ -198,6 +198,85 @@ description: "全面解析NVIDIA GPU Direct通信技术体系，包括GPU Direct
 
 
 
+## GPUDirect RDMA（远程直接内存访问）
+
+### 技术背景
+
+`GPU Direct P2P`和`NVLink`主要解决同一节点内的`GPU`通信。当训练任务扩展到多个节点时，梯度、参数和激活值需要通过`InfiniBand`或`RoCE`网络在节点之间传输，此时数据通常还要经过主机内存中转。
+
+**普通RDMA用于GPU通信时的数据路径：**
+
+```text
+源GPU显存 → 源主机内存 → 源RDMA网卡 → 网络
+          → 目标RDMA网卡 → 目标主机内存 → 目标GPU显存
+```
+
+普通`RDMA`已经能够绕过操作系统内核，让`RDMA`网卡直接读写应用程序注册的主机内存；但它的通信端点通常仍是**主机内存**。对于`GPU`工作负载，发送端需要先把数据从显存复制到主机内存，接收端再将数据从主机内存复制到显存。这两次额外复制会占用`PCIe`和主机内存带宽，并增加端到端延迟。
+
+### GPUDirect RDMA原理
+
+`GPUDirect RDMA`（简称`GDR`）允许`RDMA`网卡通过`PCIe P2P`直接读写`GPU`显存，不再使用主机内存作为网络传输的中转缓冲区。
+
+```text
+源GPU显存 → 源RDMA网卡 → InfiniBand/RoCE网络
+          → 目标RDMA网卡 → 目标GPU显存
+```
+
+典型的数据传输过程如下：
+
+1. 应用程序或通信库分配`GPU`显存缓冲区
+2. `GPU`驱动将显存页面固定并映射给支持`GDR`的`RDMA`网卡
+3. 通信库注册该显存缓冲区，建立`Queue Pair`并交换访问所需的地址和密钥
+4. 网卡的`DMA`引擎直接从源端显存读取数据，通过网络发送，并直接写入目标端显存
+5. 通信库根据完成事件以及`GPU`与网卡之间的内存一致性要求，同步后续计算
+
+`GDR`绕过的是数据传输过程中的主机内存和内核数据路径，并不意味着`CPU`完全退出通信。缓冲区分配、内存注册、连接建立和通信任务提交等控制面操作通常仍由`CPU`和通信库负责。由`GPU`直接发起网络操作属于更进一步的`GPU-initiated networking`能力，不能与`GPUDirect RDMA`混为一谈。
+
+### 与普通RDMA的区别
+
+`GPUDirect RDMA`不是一种新的网络协议，而是对普通`RDMA`数据路径的扩展。两者都可以使用`InfiniBand`或`RoCE`，也都具有`Kernel Bypass`、`CPU Offload`和低延迟等特性；核心区别在于**网卡直接访问的内存类型**。
+
+| 对比项 | 普通RDMA | GPUDirect RDMA |
+|:------:|----------|----------------|
+| <span style={{whiteSpace: 'nowrap'}}><strong>网卡直接访问的内存</strong></span> | 注册的主机用户态内存 | 注册的`GPU`显存 |
+| <span style={{whiteSpace: 'nowrap'}}><strong>GPU数据的传输路径</strong></span> | 显存与主机内存之间需要暂存和复制 | 网卡通过`PCIe P2P`直接读写显存 |
+| <span style={{whiteSpace: 'nowrap'}}><strong>是否绕过操作系统内核</strong></span> | 是 | 是 |
+| <span style={{whiteSpace: 'nowrap'}}><strong>是否绕过主机内存</strong></span> | 对普通主机应用是零拷贝；对`GPU`数据通常不是 | 是，不需要主机内存暂存`GPU`数据 |
+| <span style={{whiteSpace: 'nowrap'}}><strong>CPU角色</strong></span> | 负责控制面；`GPU`场景还需安排显存与主机内存复制 | 通常仍负责控制面，但不参与数据搬运 |
+| <span style={{whiteSpace: 'nowrap'}}><strong>硬件要求</strong></span> | 支持`RDMA`的网卡和`InfiniBand/RoCE`网络 | 在普通`RDMA`基础上，还要求`GPU`、网卡、驱动和`PCIe`拓扑支持显存直访 |
+| <span style={{whiteSpace: 'nowrap'}}><strong>典型场景</strong></span> | 主机内存数据库、分布式存储、通用`HPC`通信 | 多节点`GPU`训练、`GPU`计算和`GPU`间集合通信 |
+
+因此，**RDMA可用不代表GPUDirect RDMA可用**。如果`RDMA`网卡只能注册主机内存，通信库仍会回退到主机内存中转路径。
+
+### 软硬件条件
+
+- **GPU与驱动**：`NVIDIA GPU`和驱动必须支持`GPUDirect RDMA`的显存映射与共享机制
+- **RDMA网卡**：网卡及其驱动必须支持对`GPU`显存执行`DMA`，常见于`NVIDIA ConnectX`系列网卡
+- **Peer Memory机制**：系统需要提供`nvidia-peermem`或受支持的`DMA-BUF`机制，使`RDMA`驱动能够注册和映射`GPU`显存
+- **PCIe拓扑**：`GPU`与网卡应尽量位于同一`PCIe Root Complex`或相近的`PCIe Switch`下，避免跨`NUMA`节点和处理器互联
+- **通信软件**：需要使用支持`GPU`缓冲区的`NCCL`、`CUDA-aware MPI`、`UCX`或相应的`RDMA Verbs`应用
+- **网络环境**：底层仍需正确配置`InfiniBand`或`RoCE`网络；使用`RoCE`时还要处理拥塞控制、流量控制和网络隔离
+
+### 拓扑和部署限制
+
+- **拓扑影响显著**：跨`CPU Socket`或跨`PCIe Root Complex`可能降低带宽，部分平台甚至无法完成`PCIe P2P`访问
+- **IOMMU与ACS限制**：`IOMMU`映射、`ACS`重定向和虚拟化配置可能阻断或改变设备间的`P2P`路径
+- **容器权限要求**：容器环境需要正确注入`GPU`和`RDMA`设备，并配置驱动、内存锁定及相关设备权限
+- **回退不易察觉**：通信库可能在`GDR`不可用时自动回退到主机内存中转，因此仅验证`RDMA`连通性并不足够
+
+部署时可以使用`nvidia-smi topo -m`检查`GPU`与网卡的拓扑关系，通过`ibv_devinfo`确认`RDMA`设备状态，并结合`NCCL Tests`及`NCCL_DEBUG=INFO`验证实际是否启用了`GDR`数据路径。
+
+### 应用场景
+
+- **多节点数据并行训练**：加速跨节点梯度同步和`AllReduce`操作
+- **大模型并行训练**：降低张量并行、流水线并行跨节点传输的开销
+- **分布式推理**：减少跨节点传递激活值和缓存数据的延迟
+- **GPU加速HPC**：让计算结果直接从显存进入高速网络，避免主机内存暂存
+
+`GPUDirect RDMA`与`NVLink/NVSwitch`是互补关系：`NVLink/NVSwitch`负责节点内的高速`GPU`互联，`GPUDirect RDMA`负责通过网卡和网络进行节点间通信。大规模训练集群通常同时使用这两类技术。
+
+
+
 ## NVLink（高速GPU互联）
 
 ### 为什么需要NVLink？
@@ -340,6 +419,7 @@ description: "全面解析NVIDIA GPU Direct通信技术体系，包括GPU Direct
 |------|----------|------|------|----------|
 | `GPU Direct Storage` | `GPU ↔ 存储` | `200+ GB/s` | 低 | 数据加载、`I/O`密集 |
 | `GPU Direct P2P` | `GPU ↔ GPU（PCIe）` | `128 GB/s` | 中 | 小规模多`GPU` |
+| `GPUDirect RDMA` | `GPU ↔ 网卡 ↔ 远端GPU` | 取决于`InfiniBand/RoCE`链路 | 低 | 多节点`GPU`通信 |
 | `NVLink` | `GPU ↔ GPU（直连）` | `900 GB/s` | 极低 | 大规模多`GPU` |
 | `NVSwitch` | `GPU ↔ GPU（全互联）` | `900 GB/s` | 极低 | 超大规模AI训练 |
 
@@ -350,16 +430,12 @@ description: "全面解析NVIDIA GPU Direct通信技术体系，包括GPU Direct
 3. **降低延迟**：缩短数据传输路径，提升实时性
 4. **提升带宽**：充分利用设备间高速互联能力
 
-### 技术演进路径
+### 典型通信路径
 
 ```text
-GPU Direct Storage → 解决I/O瓶颈
-       ↓
-GPU Direct P2P → 解决GPU间通信（PCIe限制）
-       ↓
-NVLink → 提供高速点对点互联
-       ↓
-NVSwitch → 实现GPU全互联
+存储到GPU：GPU Direct Storage → 解决I/O数据加载瓶颈
+节点内GPU：GPU Direct P2P → NVLink → NVSwitch
+节点间GPU：GPUDirect RDMA → 通过InfiniBand/RoCE直接传输显存数据
 ```
 
 ### 应用价值
