@@ -54,7 +54,7 @@ description: "面向徒步、登山和露营场景，系统介绍Meteoblue应用
 
 ## 5天天气图
 
-![九峰山祖师殿5天内天气](/attachments/meteoblue/jiufengshan-5day.png)
+![九峰山祖师殿5天内天气](/attachments/meteoblue/jiufengshan-5day.webp)
 
 [Meteoblue的5天气象图说明](https://content.meteoblue.com/en/private-customers/website-help/forecast/meteograms/5-days/)将该视图分为三个上下对齐的图表，横轴都是当地时间。淡黄色背景表示白天，白色背景表示夜间；竖向虚线是截图生成时刻。所有曲线和柱状图都要沿同一条时间轴上下对照，不能只看单个图标。
 
@@ -175,7 +175,7 @@ description: "面向徒步、登山和露营场景，系统介绍Meteoblue应用
 
 ## 14天天气图
 
-![九峰山祖师殿14天内天气](/attachments/meteoblue/jiufengshan-14day.png)
+![九峰山祖师殿14天内天气](/attachments/meteoblue/jiufengshan-14day.webp)
 
 按照[Meteoblue的14天天气图说明](https://content.meteoblue.com/en/private-customers/website-help/14-day-weather/)，该视图用于观察天气过程和不确定性的变化，不适合把第`10`天某个图标理解成精确行程预报。
 
@@ -203,7 +203,7 @@ description: "面向徒步、登山和露营场景，系统介绍Meteoblue应用
 
 ## 多模型天气图
 
-![九峰山祖师殿多模型天气](/attachments/meteoblue/jiufengshan-multimodel.png)
+![九峰山祖师殿多模型天气](/attachments/meteoblue/jiufengshan-multimodel.webp)
 
 [Meteoblue的MultiModel说明](https://content.meteoblue.com/en/private-customers/website-help/forecast/multimodel/)指出，`MultiModel`把不同数值模型的原始预测并列展示，目的不是给出一个更精确的单点结果，而是让用户看见可能的发展分支。
 
