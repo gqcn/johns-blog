@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>彭州九峰山 · 九座山峰位置图</title>
+  <link rel="stylesheet" href="vendor/leaflet.css" />
+  <style>
+    :root {
+      --ink: #1c1914;
+      --paper: #f4efe4;
+      --cinnabar: #c23a2b;
+      --gold: #c4a35a;
+      --moss: #4a5d43;
+      --slate: #3e4a52;
+      --label: #fffdf6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "STSong", serif;
+      color: var(--ink);
+      background: var(--ink);
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      height: 100%;
+    }
+
+    aside {
+      background: var(--paper);
+      border-right: 1px solid #d9d0bf;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      z-index: 500;
+    }
+
+    header {
+      padding: 28px 24px 16px;
+      border-bottom: 1px solid #e2d8c6;
+      background: var(--paper);
+    }
+
+    header .kicker {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      letter-spacing: 0.28em;
+      font-size: 11px;
+      color: var(--cinnabar);
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-weight: 700;
+      font-size: 32px;
+      line-height: 1.15;
+      margin: 8px 0 10px;
+    }
+
+    header p {
+      font-size: 13px;
+      line-height: 1.65;
+      color: #5b5348;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 24px;
+      border-bottom: 1px solid #e2d8c6;
+      background: var(--paper);
+    }
+
+    .toolbar button {
+      font-family: inherit;
+      font-size: 13px;
+      border: 1px solid #cbbfa8;
+      background: #fff;
+      color: var(--ink);
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+
+    .toolbar button.active,
+    .toolbar button:hover {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+
+    .peak-list {
+      overflow: auto;
+      padding: 8px 12px 16px;
+      flex: 1;
+      background: var(--paper);
+    }
+
+    .peak {
+      display: grid;
+      grid-template-columns: 36px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .peak:hover, .peak.active {
+      background: #ece4d4;
+    }
+
+    .num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .peak h2 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .peak .aka {
+      font-size: 12px;
+      color: #6d6458;
+      margin-top: 1px;
+    }
+
+    .peak .gps {
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 11px;
+      color: #7a7266;
+      margin-top: 4px;
+      letter-spacing: 0.01em;
+    }
+
+    .peak .src {
+      font-size: 10px;
+      color: #9a8f7e;
+      margin-top: 2px;
+    }
+
+    .ele {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 12px;
+      color: #6d6458;
+      white-space: nowrap;
+    }
+
+    .map-wrap {
+      position: relative;
+      min-height: 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #1a1e18;
+    }
+
+    .leaflet-container { font-family: inherit; background: #1a1e18; }
+
+    .leaflet-tooltip.peak-label {
+      background: #1c1914;
+      color: #fffdf6;
+      border: 1px solid rgba(244, 239, 228, 0.22);
+      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.45);
+      padding: 0;
+      border-radius: 3px;
+      margin: 0;
+      white-space: nowrap;
+    }
+    .leaflet-tooltip-top.peak-label:before { border-top-color: #1c1914; }
+    .leaflet-tooltip-bottom.peak-label:before { border-bottom-color: #1c1914; }
+    .leaflet-tooltip-left.peak-label:before { border-left-color: #1c1914; }
+    .leaflet-tooltip-right.peak-label:before { border-right-color: #1c1914; }
+    .leaflet-tooltip-top.peak-label { margin-top: -8px; }
+    .leaflet-tooltip-bottom.peak-label { margin-top: 8px; }
+    .leaflet-tooltip-left.peak-label { margin-left: -8px; }
+    .leaflet-tooltip-right.peak-label { margin-left: 8px; }
+
+    .peak-chip {
+      border-left: 3px solid #c4a35a;
+      padding: 4px 9px 5px 8px;
+      line-height: 1.2;
+    }
+    .peak-chip-name {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fffdf6;
+      letter-spacing: 0.06em;
+    }
+    .peak-chip-aka {
+      display: block;
+      margin-top: 2px;
+      font-size: 10px;
+      font-weight: 500;
+      color: #d9c7a0;
+      letter-spacing: 0.04em;
+    }
+
+    .ref-label {
+      background: rgba(255, 253, 246, 0.9);
+      color: #5b5348;
+      border: 1px dashed #b7aa92;
+      padding: 0 5px;
+      font-size: 10px;
+      border-radius: 2px;
+      box-shadow: none;
+    }
+
+    .leaflet-control-attribution { display: none !important; }
+
+    .leaflet-control-scale {
+      margin-left: 16px !important;
+      margin-bottom: 16px !important;
+    }
+    .leaflet-control-scale-line {
+      border: 2px solid #1c1914;
+      border-top: none;
+      color: #1c1914;
+      background: rgba(244, 239, 228, 0.94);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      text-shadow: none;
+      padding: 1px 4px 0;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
+    }
+
+    .layers {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      z-index: 400;
+      display: flex;
+      gap: 6px;
+    }
+
+    .layers button {
+      font-family: inherit;
+      font-size: 12px;
+      background: rgba(244, 239, 228, 0.94);
+      border: 1px solid #d9d0bf;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .layers button.active {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+
+    .leaflet-contourHalo-pane { z-index: 430 !important; }
+    .leaflet-contourLine-pane { z-index: 435 !important; }
+    .leaflet-contourLabel-pane { z-index: 455 !important; }
+    .leaflet-trackHalo-pane { z-index: 445 !important; }
+    .leaflet-trackLine-pane { z-index: 450 !important; }
+    .leaflet-trackHalo-pane svg,
+    .leaflet-trackLine-pane svg {
+      overflow: visible;
+    }
+    .leaflet-contourHalo-pane svg,
+    .leaflet-contourLine-pane svg {
+      overflow: visible;
+    }
+    .ele-label-wrap {
+      background: none !important;
+      border: none !important;
+    }
+    .ele-label {
+      font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #ffe89a;
+      background: rgba(16, 13, 9, 0.58);
+      padding: 0 3px;
+      border-radius: 2px;
+      white-space: nowrap;
+      line-height: 13px;
+      text-align: center;
+    }
+    .overview .ele-label-wrap { display: none !important; }
+
+    .leaflet-tooltip.peak-label { z-index: 700; }
+    .leaflet-tooltip.ref-label { z-index: 500; }
+    .leaflet-tooltip.group-label {
+      z-index: 800;
+      font-size: 13px;
+      padding: 2px 8px;
+    }
+    .overview .leaflet-tooltip.peak-label,
+    .overview .leaflet-tooltip.ref-label { display: none !important; }
+    .overview .leaflet-tooltip.group-label,
+    .overview .leaflet-tooltip.city-label { display: block !important; }
+
+    @media (max-width: 860px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+      }
+      aside {
+        border-right: none;
+        display: contents;
+      }
+      header,
+      .toolbar {
+        display: none;
+      }
+      .map-wrap { order: 1; }
+      .peak-list {
+        order: 2;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 8px 10px 12px;
+        background: var(--paper);
+        border-top: 1px solid #e2d8c6;
+        gap: 4px;
+      }
+      .peak {
+        min-width: 108px;
+        grid-template-columns: 24px 1fr;
+        padding: 8px;
+        background: #fff;
+        border: 1px solid #e2d8c6;
+      }
+      .peak h2 { font-size: 14px; }
+      .peak .aka, .peak .ele, .peak .gps, .peak .src { display: none; }
+      #map { order: 2; min-height: 0; }
+      .layers { flex-direction: column; top: 12px; right: 12px; }
+      .leaflet-control-scale {
+        margin-left: 12px !important;
+        margin-bottom: 12px !important;
+      }
+      .peak-chip { padding: 3px 7px 4px 6px; }
+      .peak-chip-name { font-size: 12px; }
+      .peak-chip-aka { font-size: 9px; }
+      .leaflet-tooltip.ref-label { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <header>
+        <div class="kicker">四川 · 彭州</div>
+        <h1>彭州九峰山</h1>
+        <p>九峰之名，依九座山峰而得。清嘉庆《彭县志》：东北曰青龙、朱雀、火焰、天牙，中曰背光，西南曰仙人、黄龙、元武、白虎。</p>
+      </header>
+      <div class="toolbar">
+        <button id="btnPeaks" class="active">九峰特写</button>
+        <button id="btnPengzhou">彭州位置</button>
+      </div>
+      <div class="peak-list" id="list"></div>
+    </aside>
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="layers">
+        <button data-layer="img" class="active">卫星</button>
+        <button data-layer="mix">混合</button>
+        <button data-layer="street">街道</button>
+        <button id="btnContour">等高线</button>
+        <button id="btnTrack" class="active">轨迹</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/leaflet.js"></script>
+  <script src="contours.js"></script>
+  <script src="tracks.js"></script>
+  <script>
+    const PI = Math.PI;
+    const A = 6378245.0;
+    const EE = 0.00669342162296594323;
+
+    function outOfChina(lat, lon) {
+      return lon < 72.004 || lon > 137.8347 || lat < 0.8293 || lat > 55.8271;
+    }
+
+    function transformLat(x, y) {
+      let r = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+      r += (20.0 * Math.sin(6.0 * x * PI) + 20.0 * Math.sin(2.0 * x * PI)) * 2.0 / 3.0;
+      r += (20.0 * Math.sin(y * PI) + 40.0 * Math.sin(y / 3.0 * PI)) * 2.0 / 3.0;
+      r += (160.0 * Math.sin(y / 12.0 * PI) + 320 * Math.sin(y * PI / 30.0)) * 2.0 / 3.0;
+      return r;
+    }
+
+    function transformLon(x, y) {
+      let r = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+      r += (20.0 * Math.sin(6.0 * x * PI) + 20.0 * Math.sin(2.0 * x * PI)) * 2.0 / 3.0;
+      r += (20.0 * Math.sin(x * PI) + 40.0 * Math.sin(x / 3.0 * PI)) * 2.0 / 3.0;
+      r += (150.0 * Math.sin(x / 12.0 * PI) + 300.0 * Math.sin(x / 30.0 * PI)) * 2.0 / 3.0;
+      return r;
+    }
+
+    function wgs84ToGcj02(lat, lon) {
+      if (outOfChina(lat, lon)) return { lat: lat, lon: lon };
+      let dLat = transformLat(lon - 105.0, lat - 35.0);
+      let dLon = transformLon(lon - 105.0, lat - 35.0);
+      const radLat = lat / 180.0 * PI;
+      let magic = Math.sin(radLat);
+      magic = 1 - EE * magic * magic;
+      const sqrtMagic = Math.sqrt(magic);
+      dLat = (dLat * 180.0) / ((A * (1 - EE)) / (magic * sqrtMagic) * PI);
+      dLon = (dLon * 180.0) / (A / sqrtMagic * Math.cos(radLat) * PI);
+      return { lat: lat + dLat, lon: lon + dLon };
+    }
+
+    const peaks = [
+      {
+        id: 1,
+        name: "青龙峰",
+        aka: "",
+        ele: 3922,
+        lat: 31.390457,
+        lon: 103.877566,
+        dir: "东北",
+        color: "#2f6f6a",
+        label: "left",
+        src: "轨迹「登顶青龙峰」",
+        note: "嘉庆志东北首峰。自接引禅院登顶。"
+      },
+      {
+        id: 2,
+        name: "白虎峰",
+        aka: "老君堂",
+        ele: 4280,
+        lat: 31.3906449,
+        lon: 103.7554113,
+        dir: "东北",
+        color: "#5c6b3a",
+        label: "top",
+        src: "OSM 高程 4284 米",
+        note: "东北高峰，与一把伞、三口锅同列。即地图所标「老君堂」。"
+      },
+      {
+        id: 3,
+        name: "火焰峰",
+        aka: "",
+        ele: 3592,
+        lat: 31.3325481,
+        lon: 103.8285688,
+        dir: "东北",
+        color: "#c23a2b",
+        label: "right",
+        src: "OSM 实名 火焰峰",
+        note: "红房子线经金顶后续登此脊；金顶雷音寺在东北约 1.8 公里。"
+      },
+      {
+        id: 4,
+        name: "天牙峰",
+        aka: "",
+        ele: 3970,
+        lat: 31.4186472,
+        lon: 103.8963532,
+        dir: "东北",
+        color: "#6b5a3e",
+        label: "bottom",
+        src: "OSM 高程 3970 米",
+        note: "东北尽处，在青龙峰以北。光绪志作天呀峰。"
+      },
+      {
+        id: 5,
+        name: "背光峰",
+        aka: "三口锅",
+        ele: 4069,
+        lat: 31.3482890,
+        lon: 103.8133044,
+        dir: "中",
+        color: "#3d5a80",
+        label: "left",
+        src: "轨迹「三口锅」登顶",
+        note: "居九峰正中。点位取三口锅轨迹最高点。"
+      },
+      {
+        id: 6,
+        name: "仙人峰",
+        aka: "红照壁",
+        ele: 4507,
+        lat: 31.4293955,
+        lon: 103.8161659,
+        dir: "西南",
+        color: "#7a3e6d",
+        label: "top",
+        src: "OSM 实名 红照壁",
+        note: "西南高峰之一。"
+      },
+      {
+        id: 7,
+        name: "黄龙峰",
+        aka: "长年峰",
+        ele: 4550,
+        lat: 31.4177737,
+        lon: 103.8226917,
+        dir: "西南",
+        color: "#8a6a1f",
+        label: "left",
+        src: "高德实名 长年峰",
+        note: "西南脊上的高峰，即地图所标「长年峰」。"
+      },
+      {
+        id: 8,
+        name: "玄武峰",
+        aka: "城墙岩 · 元武峰",
+        ele: 4086,
+        lat: 31.3709013,
+        lon: 103.7788504,
+        dir: "西南",
+        color: "#2f3f4f",
+        label: "left",
+        src: "高德实名 城墙岩",
+        note: "在三口锅以西，即地图所标「城墙岩」。"
+      },
+      {
+        id: 9,
+        name: "朱雀峰",
+        aka: "一把伞",
+        ele: 3354,
+        lat: 31.3085286,
+        lon: 103.7873538,
+        dir: "西南",
+        color: "#b4532a",
+        label: "bottom",
+        src: "高德实名 一把伞",
+        note: "西南尽处，即地图所标「一把伞」。双树顶、朱雀峰三峰轨迹登顶于此。"
+      }
+    ];
+
+    const refs = [
+      { name: "太子城", lat: 31.4342319, lon: 103.7898496 },
+      { name: "红房子", lat: 31.3100317, lon: 103.8530562 },
+      { name: "金顶", lat: 31.3418626, lon: 103.8440926 },
+      { name: "彭州市区", lat: 30.9908, lon: 103.9580 }
+    ];
+
+    peaks.forEach((p) => {
+      p.gpsLat = p.lat;
+      p.gpsLon = p.lon;
+      const c = wgs84ToGcj02(p.lat, p.lon);
+      p.lat = c.lat;
+      p.lon = c.lon;
+    });
+    refs.forEach((r) => {
+      const c = wgs84ToGcj02(r.lat, r.lon);
+      r.lat = c.lat;
+      r.lon = c.lon;
+    });
+    const cityGcj = wgs84ToGcj02(30.9908, 103.9580);
+    const swGcj = wgs84ToGcj02(30.96, 103.72);
+    const neGcj = wgs84ToGcj02(31.46, 104.02);
+
+    const map = L.map("map", {
+      zoomControl: true,
+      minZoom: 3,
+      maxZoom: 18,
+      attributionControl: false
+    });
+
+    const ScaleBar = L.Control.Scale.extend({
+      _updateMetric: function (maxMeters) {
+        const meters = this._getRoundNum(maxMeters);
+        const label = meters < 1000 ? meters + " 米" : (meters / 1000) + " 公里";
+        this._updateScale(this._mScale, label, meters / maxMeters);
+      }
+    });
+    function cssPxPerInch() {
+      const probe = document.createElement("div");
+      probe.style.cssText = "position:absolute;visibility:hidden;width:1in";
+      document.body.appendChild(probe);
+      const px = probe.offsetWidth || 96;
+      probe.remove();
+      return px;
+    }
+    new ScaleBar({
+      imperial: false,
+      metric: true,
+      maxWidth: cssPxPerInch(),
+      position: "bottomleft"
+    }).addTo(map);
+    map.createPane("contourHalo");
+    map.getPane("contourHalo").style.zIndex = 430;
+    map.getPane("contourHalo").style.pointerEvents = "none";
+    map.createPane("contourLine");
+    map.getPane("contourLine").style.zIndex = 435;
+    map.getPane("contourLine").style.pointerEvents = "none";
+    map.createPane("contourLabel");
+    map.getPane("contourLabel").style.zIndex = 440;
+    map.getPane("contourLabel").style.pointerEvents = "none";
+    map.createPane("trackHalo");
+    map.getPane("trackHalo").style.zIndex = 445;
+    map.getPane("trackHalo").style.pointerEvents = "none";
+    map.createPane("trackLine");
+    map.getPane("trackLine").style.zIndex = 450;
+    map.getPane("trackLine").style.pointerEvents = "none";
+    const trackHaloRenderer = L.svg({ pane: "trackHalo", padding: 1 });
+    const trackLineRenderer = L.svg({ pane: "trackLine", padding: 1 });
+
+    const satLayer = L.tileLayer(
+      "https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",
+      { subdomains: "1234", maxZoom: 18, minZoom: 3 }
+    );
+    const satLabel = L.tileLayer(
+      "https://webst0{s}.is.autonavi.com/appmaptile?style=8&x={x}&y={y}&z={z}",
+      { subdomains: "1234", maxZoom: 18, minZoom: 3 }
+    );
+    const streetLayer = L.tileLayer(
+      "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
+      { subdomains: "1234", maxZoom: 18, minZoom: 3 }
+    );
+
+    const layerSets = {
+      img: [satLayer],
+      mix: [satLayer, satLabel],
+      street: [streetLayer]
+    };
+    let currentLayers = [];
+    let currentBase = "img";
+    let contourHalo = null;
+    let contourLine = null;
+    let contourLabels = null;
+    let contourLayer = null;
+    let contoursOn = false;
+    let trackLayer = null;
+    let trackOn = true;
+
+    function haloStyle(feat) {
+      const k = feat.properties.kind;
+      const street = currentBase === "street";
+      const w = k === "major" ? 2.8 : k === "mid" ? 2.0 : 1.4;
+      if (street) {
+        return { color: "#fff8e8", weight: w, opacity: 0.7, lineJoin: "round", lineCap: "round" };
+      }
+      return { color: "#1a160f", weight: w, opacity: 0.28, lineJoin: "round", lineCap: "round" };
+    }
+
+    function lineStyle(feat) {
+      const k = feat.properties.kind;
+      const street = currentBase === "street";
+      if (street) {
+        return {
+          color: k === "major" ? "#c4922a" : "#d4a84a",
+          weight: k === "major" ? 1.7 : k === "mid" ? 1.15 : 0.8,
+          opacity: 0.92,
+          lineJoin: "round",
+          lineCap: "round"
+        };
+      }
+      return {
+        color: k === "major" ? "#f0c95a" : k === "mid" ? "#e6c056" : "#d9b24c",
+        weight: k === "major" ? 1.7 : k === "mid" ? 1.15 : 0.85,
+        opacity: k === "major" ? 0.95 : k === "mid" ? 0.88 : 0.78,
+        lineJoin: "round",
+        lineCap: "round"
+      };
+    }
+
+    function addEleLabels(labelFc) {
+      const group = L.layerGroup();
+      if (!labelFc || !labelFc.features) return group;
+      labelFc.features.forEach((f) => {
+        const [lon, lat] = f.geometry.coordinates;
+        const ele = f.properties.ele;
+        const ang = f.properties.angle || 0;
+        const icon = L.divIcon({
+          className: "ele-label-wrap",
+          html: `<div class="ele-label" style="transform:rotate(${ang}deg)">${ele}</div>`,
+          iconSize: [34, 13],
+          iconAnchor: [17, 6]
+        });
+        L.marker([lat, lon], {
+          icon,
+          pane: "contourLabel",
+          interactive: false,
+          keyboard: false
+        }).addTo(group);
+      });
+      return group;
+    }
+
+    function addContours(data) {
+      if (!data) return;
+      const lines = data.lines && data.lines.features ? data.lines : data;
+      const labels = data.labels || { type: "FeatureCollection", features: [] };
+      if (!lines || !lines.features) return;
+      if (contourLayer && map.hasLayer(contourLayer)) map.removeLayer(contourLayer);
+      const pathOpts = { interactive: false, smoothFactor: 0 };
+      contourHalo = L.geoJSON(lines, { pane: "contourHalo", style: haloStyle, ...pathOpts });
+      contourLine = L.geoJSON(lines, { pane: "contourLine", style: lineStyle, ...pathOpts });
+      contourLabels = addEleLabels(labels);
+      contourLayer = L.layerGroup([contourHalo, contourLine, contourLabels]);
+      if (contoursOn) contourLayer.addTo(map);
+      updateEleLabelVisibility();
+    }
+
+    function restyleContours() {
+      if (contourHalo) contourHalo.setStyle(haloStyle);
+      if (contourLine) contourLine.setStyle(lineStyle);
+    }
+
+    function updateEleLabelVisibility() {
+      const pane = map.getPane("contourLabel");
+      if (!pane) return;
+      const overview = map.getContainer().classList.contains("overview");
+      pane.style.display = contoursOn && !overview ? "" : "none";
+    }
+
+    function showLayer(name) {
+      currentBase = name;
+      currentLayers.forEach((ly) => {
+        if (map.hasLayer(ly)) map.removeLayer(ly);
+      });
+      currentLayers = layerSets[name];
+      currentLayers.forEach((ly) => ly.addTo(map));
+      restyleContours();
+    }
+
+    const startLayer = new URLSearchParams(location.search).get("layer") || "img";
+    showLayer(layerSets[startLayer] ? startLayer : "img");
+    document.querySelectorAll(".layers button[data-layer]").forEach((b) => {
+      b.classList.toggle("active", b.dataset.layer === (layerSets[startLayer] ? startLayer : "img"));
+    });
+
+    document.querySelectorAll(".layers button[data-layer]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".layers button[data-layer]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        showLayer(btn.dataset.layer);
+      });
+    });
+
+    if (window.JIUFENG_CONTOURS) {
+      addContours(window.JIUFENG_CONTOURS);
+    } else {
+      fetch("contours.json")
+        .then((r) => r.json())
+        .then(addContours)
+        .catch(() => {});
+    }
+
+    document.getElementById("btnContour").addEventListener("click", () => {
+      contoursOn = !contoursOn;
+      document.getElementById("btnContour").classList.toggle("active", contoursOn);
+      if (!contourLayer) return;
+      if (contoursOn) contourLayer.addTo(map);
+      else map.removeLayer(contourLayer);
+      updateEleLabelVisibility();
+    });
+
+    function approxMeters(aLat, aLon, bLat, bLon) {
+      const dy = (aLat - bLat) * 111320;
+      const mid = ((aLat + bLat) / 2) * PI / 180;
+      const dx = (aLon - bLon) * 111320 * Math.cos(mid);
+      return Math.hypot(dx, dy);
+    }
+
+    function addAllTracks(tracks) {
+      if (!tracks || !tracks.length) return;
+      if (trackLayer && map.hasLayer(trackLayer)) map.removeLayer(trackLayer);
+      const layers = [];
+      const starts = [];
+      tracks.forEach((t) => {
+        const segs = t.segments || (t.coords ? [t.coords] : []);
+        segs.forEach((seg) => {
+          if (!seg || seg.length < 2) return;
+          const latlngs = seg.map((p) => [p[0], p[1]]);
+          layers.push(L.polyline(latlngs, {
+            pane: "trackHalo",
+            renderer: trackHaloRenderer,
+            color: "#140f0c",
+            weight: 7,
+            opacity: 0.42,
+            lineJoin: "round",
+            lineCap: "round",
+            interactive: false,
+            smoothFactor: 0
+          }));
+          layers.push(L.polyline(latlngs, {
+            pane: "trackLine",
+            renderer: trackLineRenderer,
+            color: t.color,
+            weight: 3.2,
+            opacity: 0.96,
+            lineJoin: "round",
+            lineCap: "round",
+            interactive: false,
+            smoothFactor: 0
+          }));
+        });
+        const first = (t.start && t.start.length >= 2) ? t.start : (segs[0] && segs[0][0]);
+        if (first) {
+          starts.push({
+            lat: first[0],
+            lon: first[1],
+            name: t.startName || "起点"
+          });
+        }
+      });
+
+      const uniqueStarts = [];
+      starts.forEach((s) => {
+        if (uniqueStarts.some((u) => approxMeters(u.lat, u.lon, s.lat, s.lon) < 120)) return;
+        if (refs.some((r) => r.name !== "彭州市区" && approxMeters(r.lat, r.lon, s.lat, s.lon) < 180)) return;
+        uniqueStarts.push(s);
+      });
+
+      uniqueStarts.forEach((s) => {
+        const startIcon = L.divIcon({
+          className: "",
+          html: `<div style="
+            width:10px;height:10px;border-radius:50%;
+            background:#2f9e6a;
+            border:2px solid #fffdf6;
+            box-shadow:0 0 0 1px #2f9e6a, 0 1px 4px rgba(0,0,0,.4);
+          "></div>`,
+          iconSize: [10, 10],
+          iconAnchor: [5, 5],
+          tooltipAnchor: [8, 0]
+        });
+        const startMarker = L.marker([s.lat, s.lon], {
+          icon: startIcon,
+          zIndexOffset: 800
+        });
+        startMarker.bindTooltip(s.name, {
+          permanent: true,
+          direction: "right",
+          className: "ref-label",
+          opacity: 0.95
+        });
+        layers.push(startMarker);
+      });
+
+      trackLayer = L.layerGroup(layers);
+      if (trackOn) trackLayer.addTo(map);
+    }
+
+    if (window.JIUFENG_TRACKS) addAllTracks(window.JIUFENG_TRACKS);
+
+    document.getElementById("btnTrack").addEventListener("click", () => {
+      trackOn = !trackOn;
+      document.getElementById("btnTrack").classList.toggle("active", trackOn);
+      if (!trackLayer) return;
+      if (trackOn) trackLayer.addTo(map);
+      else map.removeLayer(trackLayer);
+    });
+
+    const peakBounds = L.latLngBounds(peaks.map((p) => [p.lat, p.lon]));
+    const viewBounds = L.latLngBounds(peaks.map((p) => [p.lat, p.lon]));
+    if (window.JIUFENG_TRACKS) {
+      window.JIUFENG_TRACKS.forEach((t) => {
+        if (t.start && t.start.length >= 2) viewBounds.extend([t.start[0], t.start[1]]);
+        (t.segments || []).forEach((seg) => {
+          seg.forEach((p) => viewBounds.extend([p[0], p[1]]));
+        });
+      });
+    }
+    const pengzhouBounds = L.latLngBounds(
+      [swGcj.lat, swGcj.lon],
+      [neGcj.lat, neGcj.lon]
+    );
+
+    const markers = {};
+    const groupLabel = L.tooltip({
+      permanent: true,
+      direction: "top",
+      opacity: 1,
+      className: "group-label peak-label"
+    })
+      .setLatLng(peakBounds.getCenter())
+      .setContent('<div class="peak-label">九峰山</div>');
+
+    let cityMarker = null;
+
+    function folkName(p) {
+      if (!p.aka) return "";
+      if (p.aka.indexOf("城墙岩") === 0) return "城墙岩";
+      return p.aka;
+    }
+
+    peaks.forEach((p) => {
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="
+          width:12px;height:12px;border-radius:50%;
+          background:${p.color};
+          border:2px solid #fffdf6;
+          box-shadow:0 0 0 1px ${p.color}, 0 1px 4px rgba(0,0,0,.4);
+        "></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
+        tooltipAnchor:
+          p.label === "top" ? [0, -8] :
+          p.label === "bottom" ? [0, 8] :
+          p.label === "left" ? [-8, 0] : [8, 0]
+      });
+
+      const m = L.marker([p.lat, p.lon], { icon, zIndexOffset: 1000 + p.id });
+      const folk = folkName(p);
+      m.bindTooltip(
+        `<div class="peak-chip" style="border-left-color:${p.color}"><span class="peak-chip-name">${p.name}</span>${folk ? `<span class="peak-chip-aka">(${folk})</span>` : ""}</div>`,
+        {
+          permanent: true,
+          direction: p.label,
+          opacity: 1,
+          className: "peak-label"
+        }
+      );
+      m.bindPopup(
+        `<strong>${p.name}</strong>${folk ? " (" + folk + ")" : ""}<br/>海拔 ${p.ele} 米 · ${p.dir}<br/>GPS ${p.gpsLat.toFixed(6)}, ${p.gpsLon.toFixed(6)}<br/>${p.note}`
+      );
+      m.addTo(map);
+      m.on("click", () => selectPeak(p.id, false));
+      markers[p.id] = m;
+    });
+
+    refs.forEach((r) => {
+      if (r.name === "彭州市区") return;
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="width:8px;height:8px;border-radius:50%;background:#f4efe4;border:1px solid #1c1914"></div>`,
+        iconSize: [8, 8],
+        iconAnchor: [4, 4]
+      });
+      L.marker([r.lat, r.lon], { icon, zIndexOffset: 200 })
+        .bindTooltip(r.name, {
+          permanent: true,
+          direction: r.name.includes("太子") ? "left" : r.name === "金顶" ? "top" : "right",
+          className: "ref-label",
+          opacity: 0.95
+        })
+        .addTo(map);
+    });
+
+    const list = document.getElementById("list");
+    peaks.forEach((p) => {
+      const el = document.createElement("div");
+      el.className = "peak";
+      el.dataset.id = p.id;
+      el.innerHTML = `
+        <div class="num" style="background:${p.color}">${p.id}</div>
+        <div>
+          <h2>${p.name}</h2>
+          <div class="aka">${p.dir} · ${p.aka || "嘉庆志原名"}</div>
+          <div class="gps">${p.gpsLat.toFixed(6)}, ${p.gpsLon.toFixed(6)}</div>
+          <div class="src">${p.src || ""}</div>
+        </div>
+        <div class="ele">${p.ele} 米</div>
+      `;
+      el.addEventListener("click", () => selectPeak(p.id, true));
+      list.appendChild(el);
+    });
+
+    function selectPeak(id, fly) {
+      document.querySelectorAll(".peak").forEach((el) => {
+        el.classList.toggle("active", Number(el.dataset.id) === id);
+      });
+      const p = peaks.find((x) => x.id === id);
+      if (fly) map.flyTo([p.lat, p.lon], Math.max(map.getZoom(), 13), { duration: 0.8 });
+      markers[id].openPopup();
+    }
+
+    function setOverview(on) {
+      map.getContainer().classList.toggle("overview", on);
+      if (on) {
+        if (!map.hasLayer(groupLabel)) groupLabel.addTo(map);
+      } else if (map.hasLayer(groupLabel)) {
+        map.removeLayer(groupLabel);
+      }
+      updateEleLabelVisibility();
+    }
+
+    function showPeaks() {
+      document.getElementById("btnPeaks").classList.add("active");
+      document.getElementById("btnPengzhou").classList.remove("active");
+      setOverview(false);
+      const mobile = window.innerWidth < 860;
+      map.fitBounds(mobile ? viewBounds.pad(0.34) : viewBounds, mobile
+        ? { maxZoom: 12 }
+        : { paddingTopLeft: [36, 48], paddingBottomRight: [48, 140] }
+      );
+    }
+
+    function showPengzhou() {
+      document.getElementById("btnPengzhou").classList.add("active");
+      document.getElementById("btnPeaks").classList.remove("active");
+      setOverview(true);
+      map.fitBounds(pengzhouBounds, { padding: [24, 24] });
+      if (!cityMarker) {
+        cityMarker = L.circleMarker([cityGcj.lat, cityGcj.lon], {
+          radius: 6,
+          color: "#f4efe4",
+          fillColor: "#c23a2b",
+          fillOpacity: 1,
+          weight: 2
+        }).addTo(map);
+        cityMarker.bindTooltip("彭州市", {
+          permanent: true,
+          direction: "right",
+          className: "ref-label city-label"
+        });
+      }
+    }
+
+    document.getElementById("btnPeaks").addEventListener("click", showPeaks);
+    document.getElementById("btnPengzhou").addEventListener("click", showPengzhou);
+
+    const startView = new URLSearchParams(location.search).get("view");
+    const startPeak = Number(new URLSearchParams(location.search).get("peak"));
+    if (startView === "pengzhou") showPengzhou();
+    else showPeaks();
+    if (markers[startPeak]) {
+      setTimeout(() => selectPeak(startPeak, true), 500);
+    }
+    const relayout = () => {
+      map.invalidateSize();
+      if (startView === "pengzhou") showPengzhou();
+      else showPeaks();
+    };
+    setTimeout(relayout, 80);
+    setTimeout(relayout, 400);
+    window.addEventListener("resize", () => map.invalidateSize());
+    map.on("zoomend", updateEleLabelVisibility);
+  </script>
+</body>
+</html>
