@@ -7,6 +7,7 @@
 .settings/
 .vscode/
 vendor/
+!static/jiufengshan-map/vendor/
 pkg/
 bin/
 **/.DS_Store
