@@ -9,6 +9,8 @@
     transition: max-width 0.28s ease;
   }
 
+  /* No TOC column in the row: don't keep a 25% empty gutter. */
+  .docItemCol:only-child,
   .docItemColFull {
     max-width: 100% !important;
     transition: max-width 0.28s ease;

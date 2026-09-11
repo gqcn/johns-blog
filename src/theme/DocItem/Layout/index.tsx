@@ -36,7 +36,7 @@ function useDocTOC() {
     ) : undefined;
 
   return {
-    hidden,
+    canRender,
     mobile,
     desktop,
   };
@@ -47,17 +47,17 @@ export default function DocItemLayout({children}: Props): JSX.Element {
   const {metadata} = useDoc();
   const {collapsed, collapse, expand} = useDesktopTocCollapsed();
   const showDesktopToc = Boolean(docTOC.desktop) && !collapsed;
-  const contentExpanded = Boolean(docTOC.desktop) && collapsed;
+  const tocCollapsed = docTOC.canRender && collapsed;
 
   return (
     <div className="row">
       <div
         className={clsx(
           'col',
-          !docTOC.hidden && !contentExpanded && styles.docItemCol,
-          contentExpanded && styles.docItemColFull,
+          docTOC.canRender && !collapsed && styles.docItemCol,
+          tocCollapsed && styles.docItemColFull,
         )}>
-        {contentExpanded && <DesktopTOCReopenButton onExpand={expand} />}
+        {tocCollapsed && <DesktopTOCReopenButton onExpand={expand} />}
         <ContentVisibility metadata={metadata} />
         <DocVersionBanner />
         <div className={styles.docItemContainer}>
