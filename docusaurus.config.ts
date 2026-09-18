@@ -174,7 +174,7 @@ const config: Config = {
       maxHeadingLevel: 3,
     },
     footer: {
-      copyright: `copyright ${new Date().getFullYear()} johng.cn<br /><a class="footer__beian" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">蜀ICP备2026020342号-2</a>`,
+      copyright: `Copyright ${new Date().getFullYear()} johng.cn<br /><a class="footer__beian" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">蜀ICP备2026020342号-2</a>`,
     },
     // 代码块配置
     prism: {
