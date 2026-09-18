@@ -51,8 +51,8 @@ keywords: [docusaurus, 静态网站, github actions, gh-pages, force_orphan, ngi
 
 效果：
 
-- 远端 `gh-pages` 永远只有最新 1 条记录，历史 hashed 资源不再进分支
-- 已有 clone 无法对这次改写做 `git pull`（非快进 / unrelated histories）
+- 远端 `gh-pages` 永远只有最新 1 条记录，历史 `hashed` 资源不再进分支
+- 已有 `clone` 无法对这次改写做 `git pull`（非快进 / `unrelated histories`）
 - 新 `git clone --depth 1 --branch gh-pages` 不受影响
 - GitHub 报表体积要等他们 GC 不可达对象，**不会立刻变小**；长期不用的旧分支也应删掉，否则对象仍被引用
 
@@ -89,9 +89,8 @@ server {
 
 # www.johng.cn:443
 server {
-    listen      443;
+    listen      443 ssl;
     server_name www.johng.cn;
-    ssl                       on;
     ssl_certificate           /etc/letsencrypt/live/www.johng.cn/fullchain.pem;
     ssl_certificate_key       /etc/letsencrypt/live/www.johng.cn/privkey.pem;
     ssl_protocols             TLSv1 TLSv1.1 TLSv1.2;
@@ -107,9 +106,8 @@ server {
 
 # johng.cn:443
 server {
-    listen      443;
+    listen      443 ssl;
     server_name johng.cn;
-    ssl                       on;
     ssl_certificate           /etc/letsencrypt/live/johng.cn/fullchain.pem;
     ssl_certificate_key       /etc/letsencrypt/live/johng.cn/privkey.pem;
     ssl_protocols             TLSv1 TLSv1.1 TLSv1.2;
