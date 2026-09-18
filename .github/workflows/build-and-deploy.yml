@@ -36,3 +36,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
+          # Rewrite gh-pages to a single orphan commit on every deploy so
+          # hashed build artifacts from previous publishes are not retained.
+          force_orphan: true

@@ -120,8 +120,9 @@ include /etc/nginx/modules-enabled/*.conf;
 配置定时任务，自动从`github`拉取最新代码，并且自动续期`SSL`证书。定时任务配置文件路径`/etc/crontab`。
 
 ```ini 
-# 定时拉取最新的官网静态页构建结果
-*/5 * * * * www cd /home/www/johng.cn && git pull origin gh-pages > ~/github-pull-johng.cn.log
+# 定时同步最新的官网静态页构建结果。
+# gh-pages 每次部署都会 orphan 成 1 条提交，普通 git pull 无法快进，必须 fetch + reset。
+*/5 * * * * www (cd /home/www/johng.cn && git fetch --depth=1 origin +gh-pages:refs/remotes/origin/gh-pages && git reset --hard origin/gh-pages && git clean -fd && git gc --prune=now --quiet) > /home/www/github-pull-johng.cn.log 2>&1
 
 # 每天尝试续期一次，证书续期需要先关闭80端口的WebServer监听
 0 3 * * * root service nginx stop 
