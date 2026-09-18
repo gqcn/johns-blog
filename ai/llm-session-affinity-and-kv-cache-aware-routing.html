@@ -1,0 +1,506 @@
+<!doctype html><html lang=en dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-docs/AI技术/推理服务/大模型推理服务会话保持与KVCache感知路由技术详解" data-has-hydrated=false><meta charset=UTF-8><meta name=generator content="Docusaurus v3.6.3"><title data-rh=true>大模型推理服务会话保持与KV Cache感知路由：技术原理、开源方案与选型 | John's Blog</title><meta data-rh=true name=viewport content="width=device-width,initial-scale=1.0"><meta data-rh=true name=twitter:card content=summary_large_image><meta data-rh=true property=og:url content=https://johng.cn/ai/llm-session-affinity-and-kv-cache-aware-routing><meta data-rh=true property=og:locale content=en><meta data-rh=true name=docusaurus_locale content=en><meta data-rh=true name=docsearch:language content=en><meta data-rh=true name=author content="John Guo"><meta data-rh=true property=og:image content=https://johng.cn/img/favicon.png><meta data-rh=true name=docusaurus_version content=current><meta data-rh=true name=docusaurus_tag content=docs-default-current><meta data-rh=true name=docsearch:version content=current><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current><meta data-rh=true property=og:title content="大模型推理服务会话保持与KV Cache感知路由：技术原理、开源方案与选型 | John's Blog"><meta data-rh=true name=description content="本文从大模型推理的Prefill与Decode过程出发，解释KV Cache为何能降低多轮对话和长前缀请求的首Token延迟，以及普通轮询、扩缩容、模板变化、缓存淘汰和多租户隔离为何会破坏命中。文章系统比较客户端IP、Cookie与Header粘滞、一致性哈希、服务端会话映射、近似前缀路由、KV事件精确索引和分层共享缓存，并结合Higress、AIBrix、llm-d Router、NVIDIA Dynamo、SGLang Router、LMCache与Mooncake源码给出原理、边界、选型和观测方法。"><meta data-rh=true property=og:description content="本文从大模型推理的Prefill与Decode过程出发，解释KV Cache为何能降低多轮对话和长前缀请求的首Token延迟，以及普通轮询、扩缩容、模板变化、缓存淘汰和多租户隔离为何会破坏命中。文章系统比较客户端IP、Cookie与Header粘滞、一致性哈希、服务端会话映射、近似前缀路由、KV事件精确索引和分层共享缓存，并结合Higress、AIBrix、llm-d Router、NVIDIA Dynamo、SGLang Router、LMCache与Mooncake源码给出原理、边界、选型和观测方法。"><meta data-rh=true name=keywords content="大模型推理服务,会话保持,KV Cache,前缀缓存,缓存命中率,Prefix Caching,Session Affinity,Cache Aware Routing,负载均衡,Prefill,Decode,TTFT,vLLM,Higress,AIBrix,llm-d Router,NVIDIA Dynamo,SGLang Router,LMCache,Mooncake,Gateway API Inference Extension,分布式KV Cache,一致性哈希,多轮对话"><link data-rh=true rel=icon href=/img/favicon.ico><link data-rh=true rel=canonical href=https://johng.cn/ai/llm-session-affinity-and-kv-cache-aware-routing><link data-rh=true rel=alternate href=https://johng.cn/ai/llm-session-affinity-and-kv-cache-aware-routing hreflang=en><link data-rh=true rel=alternate href=https://johng.cn/ai/llm-session-affinity-and-kv-cache-aware-routing hreflang=x-default><link data-rh=true rel=preconnect href=https://XGS1CPQERK-dsn.algolia.net crossorigin><link rel=alternate type=application/rss+xml href=/blog/rss.xml title="John's Blog RSS Feed"><link rel=alternate type=application/atom+xml href=/blog/atom.xml title="John's Blog Atom Feed"><link rel=search type=application/opensearchdescription+xml title="John's Blog" href=/opensearch.xml><script src=https://hm.baidu.com/hm.js?6b4ae23dc83ee5efe875b7172af6c7c1 async></script><link rel=stylesheet href=/assets/css/styles.10668e91.css><script src=/assets/js/runtime~main.19bb555b.js defer></script><script src=/assets/js/main.7ae8ed3c.js defer></script><body class=navigation-with-keyboard><script>!function(){var t,e=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();t=null!==e?e:"light",document.documentElement.setAttribute("data-theme",t)}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><div role=region aria-label="Skip to main content"><a class=skipToContent_fXgn href=#__docusaurus_skipToContent_fallback>Skip to main content</a></div><nav aria-label=Main class="navbar navbar--fixed-top"><div class=navbar__inner><div class=navbar__items><button aria-label="Toggle navigation bar" aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><b class="navbar__title text--truncate">John's Blog</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/ai>AI技术</a><a class="navbar__item navbar__link" href=/cloud-native>云原生</a><a class="navbar__item navbar__link" href=/notes>日常笔记</a><a class="navbar__item navbar__link" href=/programming>开发语言</a><a class="navbar__item navbar__link" href=/architecture>技术架构</a><a class="navbar__item navbar__link" href=/observability>可观测性</a></div><div class="navbar__items navbar__items--right"><a class="navbar__item navbar__link" href=/aboutme>关于我</a><a class="navbar__item navbar__link" href=/blog>博客</a><div class="navbar__item dropdown dropdown--hoverable dropdown--right"><a href=# aria-haspopup=true aria-expanded=false role=button class="navbar__link header-links-dropdown">开源</a><ul class=dropdown__menu><li><a href=https://github.com/gqcn target=_blank rel="noopener noreferrer" class="dropdown__link header-github-link">Github<svg width=12 height=12 aria-hidden=true viewBox="0 0 24 24" class=iconExternalLink_nPIU><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></svg></a><li><a href=https://linapro.ai/ target=_blank rel="noopener noreferrer" class="dropdown__link header-linapro-link">Linapro.AI<svg width=12 height=12 aria-hidden=true viewBox="0 0 24 24" class=iconExternalLink_nPIU><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></svg></a><li><a href=https://goframe.org/ target=_blank rel="noopener noreferrer" class="dropdown__link header-goframe-link">GoFrame<svg width=12 height=12 aria-hidden=true viewBox="0 0 24 24" class=iconExternalLink_nPIU><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></svg></a></ul></div><div class=navbarSearchContainer_Bca1><button type=button class="DocSearch DocSearch-Button" aria-label="Search (Command+K)"><span class=DocSearch-Button-Container><svg width=20 height=20 class=DocSearch-Search-Icon viewBox="0 0 20 20" aria-hidden=true><path d="M14.386 14.386l4.0877 4.0877-4.0877-4.0877c-2.9418 2.9419-7.7115 2.9419-10.6533 0-2.9419-2.9418-2.9419-7.7115 0-10.6533 2.9418-2.9419 7.7115-2.9419 10.6533 0 2.9419 2.9418 2.9419 7.7115 0 10.6533z" stroke=currentColor fill=none fill-rule=evenodd stroke-linecap=round stroke-linejoin=round /></svg><span class=DocSearch-Button-Placeholder>Search</span></span><span class=DocSearch-Button-Keys></span></button></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="main-wrapper mainWrapper_z2l0"><div class=docsWrapper_hBAB><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type=button></button><div class=docRoot_UBD9><div class=sidebarSlot_v5LR><div class=toggleRail_lcc4><button type=button class=toggleButton_GjYT title=收起左侧栏目 aria-label=收起左侧栏目 aria-controls=docs-sidebar aria-expanded=true><svg width=15 height=15 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round class="lucide lucide-chevrons-left" aria-hidden=true><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg></button></div><aside id=docs-sidebar class="theme-doc-sidebar-container docSidebarContainer_RSuS"><div class=sidebarViewport_pYEE><div class=sidebar_njMd><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--active" href=/ai>AI技术</a><button aria-label="Collapse sidebar category 'AI技术'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul style=display:block;overflow:visible;height:auto class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/ai/openclaw-introduction-and-setup>应用开发</a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role=button aria-expanded=true tabindex=0 href=/ai/online-offline-batch-inference>推理服务</a></div><ul style=display:block;overflow:visible;height:auto class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/ai/online-offline-batch-inference>在线推理与离线批量推理</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/ai/llm-api-evaluation-guide>大模型API服务评测指南：指标、方法与工具</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/ai/llm-session-affinity-and-kv-cache-aware-routing>大模型推理服务会话保持与KV Cache感知路由：技术原理、开源方案与选型</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/ai/pd-separation>PD(Prefill&Decode)分离</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/ai/nvidia-dynamo>NVIDIA Dynamo: 分布式AI推理的高效引擎</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/ai/single-node-multi-gpu-nvlink-communication-issue>单机多卡部署，GPU之间无法使用NVLINK通信问题排查</a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/ai/multi-node-multi-gpu-inference-scheme-selection>多机多卡大模型推理服务：方案对比选型与Kthena实践</a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/ai/slurm-hpc-ai-training>训练微调</a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/ai/jupyterhub-intro>模型开发</a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/ai/rdma-brief>基础架构</a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/ai/gpu-dcgm-diagnostics>可观测性</a></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist menu__link--sublist-caret" role=button aria-expanded=false tabindex=0 href=/ai/basic-terminology>入门知识</a></div></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/cloud-native>云原生</a><button aria-label="Expand sidebar category '云原生'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/notes>日常笔记</a><button aria-label="Expand sidebar category '日常笔记'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/programming>开发语言</a><button aria-label="Expand sidebar category '开发语言'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/architecture>技术架构</a><button aria-label="Expand sidebar category '技术架构'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/management>技术管理</a><button aria-label="Expand sidebar category '技术管理'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/observability>可观测性</a><button aria-label="Expand sidebar category '可观测性'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/database-and-middleware>数据库与中间件</a><button aria-label="Expand sidebar category '数据库与中间件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/operating-systems-and-networks>操作系统和网络</a><button aria-label="Expand sidebar category '操作系统和网络'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="menu__link menu__link--sublist" href=/life>生活笔记</a><button aria-label="Expand sidebar category '生活笔记'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside></div><main class=docMainContainer_TBSr><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_z5aJ"><div class=docItemContainer_c0TR><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label=Breadcrumbs><ul class=breadcrumbs itemscope itemtype=https://schema.org/BreadcrumbList><li class=breadcrumbs__item><a aria-label="Home page" class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_YNFT><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class=breadcrumbs__item><a class=breadcrumbs__link itemprop=item href=/ai><span itemprop=name>AI技术</span></a><meta itemprop=position content=1><li class=breadcrumbs__item><span class=breadcrumbs__link>推理服务</span><meta itemprop=position content=2><li itemscope itemprop=itemListElement itemtype=https://schema.org/ListItem class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link itemprop=name>大模型推理服务会话保持与KV Cache感知路由：技术原理、开源方案与选型</span><meta itemprop=position content=3></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type=button class="clean-btn tocCollapsibleButton_p7nN">本页目录</button></div><div class="theme-doc-markdown markdown"><h2 class="anchor anchorWithStickyNavbar_LWe7" id=引言>引言<a href=#引言 class=hash-link aria-label="Direct link to 引言" title="Direct link to 引言">​</a></h2>
+<p>同一个用户连续追问三轮，应用已经把聊天记录完整保存到数据库，为什么第二轮仍然很慢？单台机器测试时明明可以复用前文，为什么增加几台机器以后，重复计算反而变多？给网关加上“会话编号”以后，为什么问题依然存在？</p>
+<p>这些问题常被统称为“会话保持问题”，实际涉及三个不同层次：应用是否记住聊天历史、网关是否把相关问题交给合适的服务实例，以及模型服务是否仍然保留着上一次计算的“笔记”。任意一层断开，模型都可能重新阅读整段历史。</p>
+<p><img decoding=async loading=lazy alt=会话保持涉及应用历史、网关选实例和引擎KV笔记三层 src=/assets/images/image-635d3bde034633f77bad90053f0b4c2e.webp width=1280 height=720 class=img_ev3q></p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=一个简单的生活类比>一个简单的生活类比<a href=#一个简单的生活类比 class=hash-link aria-label="Direct link to 一个简单的生活类比" title="Direct link to 一个简单的生活类比">​</a></h3>
+<p>可以把大模型想象成一位图书管理员。读者递来一摞资料并提出问题，管理员需要先读完资料、在草稿纸上整理重点，然后再一个字一个字地组织回答。</p>
+<!-- -->
+<p>这里的“通读资料”叫作预填充，也就是<code>Prefill</code>；“草稿笔记”叫作<code>KV Cache</code>；“逐步写出回答”叫作解码，也就是<code>Decode</code>；前台选择哪位管理员，则对应网关的路由决策。</p>
+<p>如果第二次提问仍然交给原管理员，并且草稿纸还在、资料开头也完全相同，管理员就可以直接翻看笔记，只阅读新增加的部分。如果换了一位管理员，或者原来的笔记已经被清理，就只能从头再读。所谓会话保持，解决的正是“尽量把相关问题交给拥有那份笔记的人”；它能增加复用机会，却不能保证笔记一定存在。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=文中出现的一些术语>文中出现的一些术语<a href=#文中出现的一些术语 class=hash-link aria-label="Direct link to 文中出现的一些术语" title="Direct link to 文中出现的一些术语">​</a></h3>
+<p>后文会反复出现下面这些词。它们描述的是同一条处理链路，而不是互相独立的技术。</p>
+<table><thead><tr><th>术语<th>通俗解释<tbody><tr><td><code>GPU</code><td>负责大规模并行计算的处理器，是模型真正执行计算的主要设备<tr><td><code>Prefill</code><td>模型先通读全部输入并形成中间计算结果的阶段，中文常译为“预填充”<tr><td><code>KV Cache</code><td><code>Prefill</code>留下的中间计算结果，相当于模型读完前文后写下的草稿笔记<tr><td>前缀<td>输入中从开头起保持不变的部分，例如多轮对话共同拥有的聊天历史<tr><td>前缀缓存<td>保存并复用相同前缀的<code>KV Cache</code>，避免再次通读这部分内容<tr><td>缓存命中<td>需要的笔记仍然存在并能直接使用；找不到或不能使用则叫“未命中”<tr><td>缓存命中率<td>已成功复用的请求或输入<code>Token</code>占比；统计口径不同，结论也可能不同<tr><td>冷缓存与热缓存<td>刚启动或缺少常用内容的缓存称为冷缓存；已经积累较多常用内容的称为热缓存<tr><td><code>Decode</code><td>模型利用已有笔记，一个<code>Token</code>接一个<code>Token</code>生成答案的阶段<tr><td><code>TTFT</code><td>从发出请求到收到第一个输出<code>Token</code>的时间，也就是用户等到第一个字的时间<tr><td>吞吐<td>单位时间内处理的请求数或<code>Token</code>数，用来衡量整个服务的处理能力<tr><td>尾延迟<td>最慢那一小部分请求的耗时，常用<code>P95</code>或<code>P99</code>观察<tr><td><code>LoRA</code><td>一种给基础模型外挂少量适配参数的方法，不同<code>LoRA</code>产生的<code>KV Cache</code>通常不能直接混用<tr><td><code>LRU</code><td>“优先清理最久没有使用内容”的缓存淘汰思路，英文全称为<code>Least Recently Used</code></table>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=先分清三种会话状态>先分清三种“会话状态”<a href=#先分清三种会话状态 class=hash-link aria-label="Direct link to 先分清三种“会话状态”" title="Direct link to 先分清三种“会话状态”">​</a></h3>
+<p><img decoding=async loading=lazy alt=应用会话、请求运行态和可复用前缀缓存是三种不同状态 src=/assets/images/image-1-5e7d755a9e816990306f80b240ca1cf5.webp width=1280 height=720 class=img_ev3q></p>
+<p>“保持会话”在不同团队口中可能代表完全不同的事情。</p>
+<table><thead><tr><th>状态<th>保存的内容<th>常见位置<th>丢失后的结果<tbody><tr><td><strong>应用会话</strong><td>消息、用户偏好、工具结果<td>数据库、<code>Redis</code>等高速内存数据库<td>模型不知道历史，需要重新取数<tr><td><strong>请求运行态</strong><td>当前生成请求的序列状态和<code>KV</code>块<td>推理引擎、<code>GPU</code>高速显存<td>正在生成的请求失败，通常需要重试<tr><td><strong>可复用前缀缓存</strong><td>已处理前缀对应的数字中间结果块，技术上称为<code>K/V</code>张量块<td><code>GPU</code>高速显存、服务器内存、磁盘或远端缓存<td>请求仍能执行，但需要重新<code>Prefill</code></table>
+<!-- -->
+<p>大多数兼容<code>OpenAI API</code>格式的接口仍然是“这次请求只看这次输入”：应用需要发送本轮所需的完整上下文，或者使用服务端明确提供的会话型接口。即使服务端替应用保存了消息，也不代表它承诺长期保留某台机器上的<code>KV Cache</code>。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=kv-cache为什么决定多轮会话的性能><code>KV Cache</code>为什么决定多轮会话的性能<a href=#kv-cache为什么决定多轮会话的性能 class=hash-link aria-label="Direct link to kv-cache为什么决定多轮会话的性能" title="Direct link to kv-cache为什么决定多轮会话的性能">​</a></h2>
+<p><img decoding=async loading=lazy alt="Prefill通读、Decode生成，KV Cache是可复用的注意力中间结果" src=/assets/images/image-2-a3c87a490d2e8a75c9e1063e320ffe3b.webp width=1280 height=720 class=img_ev3q></p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=prefill与decode分别在做什么><code>Prefill</code>与<code>Decode</code>分别在做什么<a href=#prefill与decode分别在做什么 class=hash-link aria-label="Direct link to prefill与decode分别在做什么" title="Direct link to prefill与decode分别在做什么">​</a></h3>
+<p>现在再看它们的技术含义。大多数聊天模型采用<code>Transformer</code>结构，它是一类善于计算不同输入片段之间关系的神经网络。模型以“根据前文预测下一个<code>Token</code>”的方式反复生成内容，这种方式称为自回归生成。一次推理通常分为两个阶段：</p>
+<ul>
+<li><code>Prefill</code>阶段读取整个输入，为模型每一层计算后续还要使用的中间结果，并产生第一个输出<code>Token</code>。输入越长，要阅读和计算的内容通常越多，因此它是<code>TTFT</code>的重要组成部分。</li>
+<li><code>Decode</code>阶段每次生成一个新<code>Token</code>。它复用前面保存的中间结果，不必在每一步都重新计算全部历史；这一阶段还会受到显存读取速度、同时处理多少请求以及调度方式的影响。</li>
+</ul>
+<p>模型用来判断“当前应该关注前文哪些部分”的计算方法叫作<strong>注意力机制</strong>。这些中间结果在注意力机制中分为<code>Key</code>和<code>Value</code>两组数字，所以简称为<code>K/V</code>。普通读者不必先理解矩阵运算，只需要记住：它们是模型读过前文后留下的计算笔记，不是聊天文本本身。</p>
+<!-- -->
+<p>为什么“通读输入”会很贵？在经典全注意力中，一个<code>Token</code>需要与许多其他<code>Token</code>计算关联。输入长度翻倍时，需要比较的组合数量大约会变成原来的四倍，因此其理论计算量随长度近似按平方增长。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=多轮对话为什么天然适合前缀复用>多轮对话为什么天然适合前缀复用<a href=#多轮对话为什么天然适合前缀复用 class=hash-link aria-label="Direct link to 多轮对话为什么天然适合前缀复用" title="Direct link to 多轮对话为什么天然适合前缀复用">​</a></h3>
+<p>假设聊天模板每轮都把新消息追加在末尾：</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-text codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">第一轮：系统提示 + 用户问题A</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">第二轮：系统提示 + 用户问题A + 助手回答A + 用户问题B</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">第三轮：系统提示 + 用户问题A + 助手回答A + 用户问题B + 助手回答B + 用户问题C</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p>第二轮包含第一轮的完整前缀，第三轮又包含第二轮的完整前缀。如果推理引擎支持前缀缓存，并且请求落到仍保存这些块的实例上，就只需对新增尾部执行<code>Prefill</code>。</p>
+<!-- -->
+<p><code>vLLM</code>的自动前缀缓存，也就是<code>Automatic Prefix Caching</code>，是一个典型实现。它先把<code>KV Cache</code>切成固定大小的块，再为每个块计算一个内容指纹，这个指纹称为哈希。当前块的<code>Token</code>编号、前一个块的哈希以及模型执行身份都会参与计算，因此只有从输入开头连续相同的完整块才能复用。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=命中到底需要哪些条件>命中到底需要哪些条件<a href=#命中到底需要哪些条件 class=hash-link aria-label="Direct link to 命中到底需要哪些条件" title="Direct link to 命中到底需要哪些条件">​</a></h3>
+<p>“同一个会话”只是业务语义。要复用张量，至少要满足下面几类条件：</p>
+<table><thead><tr><th>条件<th>常见破坏因素<tbody><tr><td><strong>相同模型执行身份</strong><td>模型版本、权重、量化方式、<code>LoRA</code>适配器变化<tr><td><strong>相同的连续<code>Token</code>前缀</strong><td>模板、空格、消息顺序、工具定义或图片变化<tr><td><strong>到达持有缓存的执行位置</strong><td>轮询到其他<code>Pod</code>、跨地域或跨处理域<tr><td><strong>缓存仍然存在且可用</strong><td><code>LRU</code>淘汰、进程重启、缩容、显存压力<tr><td><strong>块边界满足引擎规则</strong><td>尾部不足一个完整块，只能从下一个边界重新算<tr><td><strong>隔离身份一致</strong><td>租户盐、缓存命名空间或安全域不同</table>
+<p>这里的“相同输入”是模板渲染和分词后的完整前缀相同，不是用户肉眼看起来意思相近。以下细节都可能改变<code>Token</code>序列：</p>
+<ul>
+<li>系统时间、随机请求编号被插入系统提示；</li>
+<li>工具定义顺序不稳定，或<code>JSON</code>这种结构化请求格式的字段顺序和默认值发生变化；</li>
+<li>聊天模板、表示文本开始和结束的<code>BOS/EOS</code>特殊标记、角色分隔符或分词器版本变化；</li>
+<li>历史消息被摘要、裁剪或重新排序；</li>
+<li>多模态占位符、图片内容或<code>LoRA</code>适配器发生变化。</li>
+</ul>
+<p>因此，更稳妥的提示词结构是“稳定内容在前，易变内容在后”：静态系统提示、固定工具定义、长文档放在前部，时间戳、用户本轮问题和随机字段放在尾部。托管服务的官方文档同样强调前缀一致性；<code>OpenAI</code>还明确说明，维持同一会话并不能保证命中，缓存状态位于具体机器上，路由会影响复用。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=缓存命中率的真正痛点>缓存命中率的真正痛点<a href=#缓存命中率的真正痛点 class=hash-link aria-label="Direct link to 缓存命中率的真正痛点" title="Direct link to 缓存命中率的真正痛点">​</a></h2>
+<p><img decoding=async loading=lazy alt=Token命中率、冷缓存切分和热点排队才是真正痛点 src=/assets/images/image-3-41d391a25b03eed3775390622fbf9eab.webp width=1280 height=720 class=img_ev3q></p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=请求命中率容易掩盖问题>请求命中率容易掩盖问题<a href=#请求命中率容易掩盖问题 class=hash-link aria-label="Direct link to 请求命中率容易掩盖问题" title="Direct link to 请求命中率容易掩盖问题">​</a></h3>
+<p>至少应区分两种指标：</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-text codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">请求命中率 = 至少命中一个缓存块的请求数 ÷ 可缓存请求数</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain" style=display:inline-block></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">Token命中率 = 所有请求命中的输入Token数之和 ÷ 所有输入Token数之和</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p>假设<code>100</code>个请求都只命中<code>16 Token</code>，请求命中率可能是<code>100%</code>，但对每个包含约<code>8000 Token</code>的输入几乎没有价值。对成本和<code>Prefill</code>工作量更有解释力的是按<code>Token</code>加权的命中率。<code>OpenAI</code>官方也建议用所有请求的已缓存输入量除以总输入量，也就是汇总<code>cached_tokens / input_tokens</code>。</p>
+<p>使用<code>vLLM</code>时，可以从它公开的监控数据中观察以下指标。名称看起来较长，但含义并不复杂：</p>
+<table><thead><tr><th><code>vLLM</code>指标<th>它在回答什么问题<tbody><tr><td><code>prefix_cache_queries</code><td>总共查找了多少个前缀缓存块<tr><td><code>prefix_cache_hits</code><td>其中多少个块查找成功<tr><td><code>prompt_tokens_total</code><td>模型总共收到多少输入<code>Token</code><tr><td><code>kv_cache_usage_perc</code><td>当前<code>KV Cache</code>空间用了多少<tr><td><code>time_to_first_token_seconds</code><td>用户等到第一个输出<code>Token</code>用了多久</table>
+<p>不过，<code>Token</code>命中率也不直接等于节省的计算比例。注意力计算、分块边界、批处理、远端缓存加载和排队都会影响最终延迟，所以必须同时看<code>TTFT</code>和吞吐。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=多副本把一份热前缀切成多份冷缓存>多副本把一份热前缀切成多份冷缓存<a href=#多副本把一份热前缀切成多份冷缓存 class=hash-link aria-label="Direct link to 多副本把一份热前缀切成多份冷缓存" title="Direct link to 多副本把一份热前缀切成多份冷缓存">​</a></h3>
+<p>下面假设会话<code>S1</code>的前三轮分别被轮询到三个<code>Pod</code>：</p>
+<!-- -->
+<p>单实例测试往往看不出这个问题，因为请求只能回到同一个缓存池。一旦上线轮询、随机或最少连接，多轮会话和共享系统提示就会在多个副本上重复预热。扩容越积极，短时间内冷缓存比例可能越高。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=热点排队与命中率互相拉扯>热点、排队与命中率互相拉扯<a href=#热点排队与命中率互相拉扯 class=hash-link aria-label="Direct link to 热点、排队与命中率互相拉扯" title="Direct link to 热点、排队与命中率互相拉扯">​</a></h3>
+<p>如果某个<code>Pod</code>保存着全公司的公共<code>20K Token</code>系统提示，把所有请求都送过去能提高命中率，却可能让它排队，而其他<code>GPU</code>空闲。此时一次缓存命中节省的<code>Prefill</code>时间，可能小于额外排队时间。</p>
+<p>生产路由的目标不应是“最大化命中率”，而应是“在满足负载和可靠性约束时，最小化请求的预计完成成本”。一个便于理解的抽象评分是：</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-text codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">节点成本 = 未缓存Prefill成本</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">         + 排队成本</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">         + Decode占用成本</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">         + 远端KV加载成本</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">         + 故障惩罚</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">         - 本地缓存收益</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p>不同项目对这些项的归一化、权重和阈值不同，但方向相同：缓存局部性只是调度信号之一。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=缓存索引会变旧>缓存索引会变旧<a href=#缓存索引会变旧 class=hash-link aria-label="Direct link to 缓存索引会变旧" title="Direct link to 缓存索引会变旧">​</a></h3>
+<p>路由器观察到“请求<code>P</code>刚被送到<code>Pod-A</code>”，只能推测<code>Pod-A</code>可能拥有前缀<code>P</code>。之后还可能发生：</p>
+<ul>
+<li>请求失败，缓存根本没有写成；</li>
+<li>推理引擎因显存压力先于路由器淘汰了块；</li>
+<li><code>Pod</code>重启或被缩容，路由器尚未清理索引；</li>
+<li>多个网关副本各自只看到一部分流量；</li>
+<li>路由器和推理引擎采用不同的分词器、块大小或缓存身份。</li>
+</ul>
+<p>这就是“近似前缀索引”与“真实<code>KV Cache</code>目录”的差别。近似方案部署简单、侵入小；精确方案则需要引擎发布块的增加和删除事件，并处理事件丢失、乱序、重放、启动快照和版本兼容。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=扩缩容和故障是正常路径>扩缩容和故障是正常路径<a href=#扩缩容和故障是正常路径 class=hash-link aria-label="Direct link to 扩缩容和故障是正常路径" title="Direct link to 扩缩容和故障是正常路径">​</a></h3>
+<p>硬会话粘滞若没有失效策略，会把请求持续发给已经不存在或过载的节点。服务端会话映射还要处理<code>TTL</code>、并发请求、滚动发布和跨路由副本一致性。这里的<code>TTL</code>是“这条记录还能存活多久”，到期后绑定会被清理。真正可用的方案必须规定：</p>
+<ol>
+<li>目标节点不健康时如何解除绑定；</li>
+<li>新节点加入时是否迁移会话；</li>
+<li>路由器重启后如何恢复映射；</li>
+<li>重试是否仍发往同一节点；</li>
+<li>把<code>Prefill</code>和<code>Decode</code>部署到不同机器时，应该绑定哪个阶段。</li>
+</ol>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=常见会话保持技术方案>常见会话保持技术方案<a href=#常见会话保持技术方案 class=hash-link aria-label="Direct link to 常见会话保持技术方案" title="Direct link to 常见会话保持技术方案">​</a></h2>
+<p>会话保持并不是一个单独开关，而是一条从低成本到高精度的技术光谱。</p>
+<p><img decoding=async loading=lazy alt=从粘滞、哈希、会话映射到精确KV索引和分层共享缓存 src=/assets/images/image-4-7e1a31dae31a75c1949d9d441940fcf2.webp width=1280 height=720 class=img_ev3q></p>
+<!-- -->
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=基于client-ipcookie或header的粘滞>基于<code>Client IP</code>、<code>Cookie</code>或<code>Header</code>的粘滞<a href=#基于client-ipcookie或header的粘滞 class=hash-link aria-label="Direct link to 基于client-ipcookie或header的粘滞" title="Direct link to 基于client-ipcookie或header的粘滞">​</a></h3>
+<p>最简单的做法是选一个稳定标记，让相同标记尽量落到同一后端。<code>Client IP</code>是客户端的网络地址，<code>Cookie</code>是浏览器保存并随请求带回的小段标记，<code>Header</code>则是请求附带的元数据字段。网络地址转换<code>NAT</code>会让多台设备共用一个公网地址，因此相同<code>Client IP</code>未必代表同一个用户。在用于管理容器和服务的<code>Kubernetes</code>平台中，<code>Service</code>是访问一组后端实例的统一入口；它原生支持按客户端地址保持会话，即<code>sessionAffinity: ClientIP</code>，默认关闭，并且可以设置保持时间。</p>
+<table><thead><tr><th>路由键<th>优点<th>主要问题<tbody><tr><td><code>Client IP</code><td>无需改客户端<td>经过<code>NAT</code>后许多用户可能共用一个公网地址，代理和移动网络也会改变地址<tr><td><code>Cookie</code><td>浏览器接入方便<td>非浏览器客户端不自然，需要签名和过期控制<tr><td>自定义<code>Header</code><td>语义清晰，适合<code>API</code><td>需要客户端配合，必须防伪造和越权</table>
+<p>这类方案完全不知道输入前缀。同一个会话若分叉或改写历史，仍会去旧节点；不同用户共享相同长文档，也无法跨会话复用。它适合先快速改善多轮聊天，不适合把缓存命中率当作严格目标。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=一致性哈希与rendezvous-hash>一致性哈希与<code>Rendezvous Hash</code><a href=#一致性哈希与rendezvous-hash class=hash-link aria-label="Direct link to 一致性哈希与rendezvous-hash" title="Direct link to 一致性哈希与rendezvous-hash">​</a></h3>
+<p>哈希可以把任意会话编号变成一个看似随机但结果稳定的数字。对<code>session_id</code>、租户标识或稳定前缀摘要做一致性哈希，就能用这个数字选择后端，而不必另外保存一张集中式会话表。后端集合稳定时，同一个键会选择同一节点；扩缩容时也只需移动一部分键，而不是让全部会话重新分配。<code>Envoy</code>中的<code>Ring Hash</code>和<code>Maglev</code>都是这类确定性负载均衡算法。</p>
+<p>最高随机权重哈希，也就是<code>Rendezvous Hash</code>，做法更加直观：让一个会话分别与每个健康节点组成一对，计算每一对的稳定分数，然后选择最高分的节点。</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-text codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">对每个健康节点：</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">    分数 = hash（会话编号 + 节点编号）</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain" style=display:inline-block></span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">选择分数最高的节点</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p>它实现简单，节点变化时迁移也相对有限。<code>AIBrix</code>的调用方会话键方案就使用<code>Rendezvous Hash</code>选<code>Pod</code>。</p>
+<p>优点是路由器无状态、多副本容易得到一致结果。缺点是它只记住“按规则应该去哪”，不知道缓存是否仍在，也不知道该节点是否排队。生产实现通常会加入虚拟节点，也就是让一台真实机器在哈希空间中拥有多个落点，并结合节点权重、健康过滤和限制单节点压力的有界负载机制；节点身份还应稳定，不能直接依赖频繁变化的临时地址。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=服务端会话映射>服务端会话映射<a href=#服务端会话映射 class=hash-link aria-label="Direct link to 服务端会话映射" title="Direct link to 服务端会话映射">​</a></h3>
+<p>路由器也可以维护<code>session_id → endpoint</code>映射，其中<code>endpoint</code>就是某个可接收请求的后端地址。首次请求按正常策略选节点，成功后建立绑定，后续请求优先或强制使用该节点。映射可放在路由进程内，也可放在<code>Redis</code>等外部存储。</p>
+<!-- -->
+<p>服务端映射能明确设置过期时间，也就是<code>TTL</code>，并实现重绑定和软硬两种模式：</p>
+<ul>
+<li><strong>请求路由硬亲和</strong>：目标健康时只选绑定节点。命中概率高，但热点和尾延迟风险大。</li>
+<li><strong>请求路由软亲和</strong>：把绑定节点当作加分项，仍允许负载策略选择其他节点。命中率略低，故障和突发流量下更稳。</li>
+</ul>
+<p>也可以由服务端在响应中返回一个不透明、带签名的会话令牌，令牌内编码节点身份，客户端后续回传。这样可减少服务端查表，但需要密钥轮换、过期和防篡改设计。直接用<code>Base64</code>把<code>IP:Port</code>转换成另一串字符只是在编码，既不是加密，也不能证明内容没有被篡改，还可能暴露内部网络地址。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=近似前缀感知路由>近似前缀感知路由<a href=#近似前缀感知路由 class=hash-link aria-label="Direct link to 近似前缀感知路由" title="Direct link to 近似前缀感知路由">​</a></h3>
+<p>会话粘滞只能回答“这个会话上一次去了哪里”，却无法发现不同会话之间的公共内容。例如，公司里的多个用户都使用相同的系统提示、工具定义和产品手册，只是最后提出的问题不同。即使他们的<code>session_id</code>完全不同，前面那一大段输入仍然可能共用缓存。</p>
+<p>前缀感知路由要回答的问题是：<strong>哪个<code>Pod</code>最可能已经处理过这次输入的开头部分</strong>？如果路由器不能直接读取推理引擎的缓存目录，它就根据过去的转发记录维护一本“路线笔记”：某段前缀之前被发往<code>Pod-A</code>，那么<code>Pod-A</code>现在可能仍保留着对应的<code>KV Cache</code>。新请求带着相同前缀到来时，路由器优先考虑<code>Pod-A</code>，同时还要检查它是否健康、是否过载。</p>
+<p>这里最容易误解的一点是：<strong>“近似”修饰的是缓存位置，不是文本内容</strong>。两句话意思相近但实际<code>Token</code>不同，不能复用同一份<code>KV Cache</code>；只有从开头开始连续一致的内容才可能命中。“近似”是说路由器只能推测“缓存大概还在<code>Pod-A</code>”，无法保证缓存没有被淘汰。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=为什么要把前缀切块>为什么要把前缀切块<a href=#为什么要把前缀切块 class=hash-link aria-label="Direct link to 为什么要把前缀切块" title="Direct link to 为什么要把前缀切块">​</a></h4>
+<p>如果为整段输入只计算一个指纹，末尾哪怕只增加一个问题，整段指纹也会改变，路由器便无法知道前面有多少内容相同。因此，常见做法是把输入切成固定大小的块，再从前向后计算一条哈希链。</p>
+<p>下面用每块<code>16 Token</code>举例。真实项目的块大小可以不同，有的网关为了避免加载模型分词器，还会按字符或消息切块。</p>
+<!-- -->
+<p>可以按从左到右的顺序阅读这张图：</p>
+<ol>
+<li><code>块1</code>包含第<code>1</code>至<code>16</code>个<code>Token</code>。路由器把块内容与模型、租户等缓存身份一起计算，得到短指纹<code>H1</code>。</li>
+<li>计算<code>H2</code>时，不仅使用<code>块2</code>，还把<code>H1</code>放进去。因此，<code>H2</code>代表的不是孤立的<code>块2</code>，而是“从开头经过块1，再到块2”的完整路径。</li>
+<li><code>H3</code>同样由<code>H2</code>和<code>块3</code>得到，所以它代表从输入开头一直到第<code>48</code>个<code>Token</code>的路径。</li>
+<li>右侧三个“索引记录”不是<code>KV Cache</code>本身，只是路由器记下的对应关系：这些前缀指纹之前被送到过<code>Pod-A</code>。</li>
+</ol>
+<p>父块哈希参与下一块哈希非常重要。假设两份文档的中间都出现“退款规则”四个字，但此前内容不同；如果只比较当前块，路由器可能误以为它们能够复用。加入父块哈希后，只要前面的任意块不同，后面生成的哈希也会不同，从而确保匹配的是“从开头连续相同”，而不是“中间偶然出现相同片段”。</p>
+<p>再看一个具体例子。第一次请求有<code>48 Token</code>，并被送到<code>Pod-A</code>，路由器记下<code>H1</code>、<code>H2</code>和<code>H3</code>可能位于<code>Pod-A</code>。第二次请求的前<code>32 Token</code>与第一次完全相同，但从第<code>33</code>个<code>Token</code>开始变成了新问题。它计算出的<code>H1</code>和<code>H2</code>仍然相同，新的<code>H3</code>却不同。路由器由此估算：<code>Pod-A</code>可能命中前两个块，也就是前<code>32 Token</code>。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=从第一次请求到后续命中的完整过程>从第一次请求到后续命中的完整过程<a href=#从第一次请求到后续命中的完整过程 class=hash-link aria-label="Direct link to 从第一次请求到后续命中的完整过程" title="Direct link to 从第一次请求到后续命中的完整过程">​</a></h4>
+<p>下面这张图把“学习位置”和“利用位置”放在同一条时间线上。不同项目写入索引的时机并不完全相同：有的在成功选定目标后记录，有的等后端接收请求或正常响应后再记录。图中采用确认请求正常处理后再记录的方式，并省略了鉴权、限流和失败重试等普通网关步骤。</p>
+<!-- -->
+<p>图中的流程分成两个阶段：</p>
+<ul>
+<li><strong>第一次请求是学习阶段</strong>。索引里没有记录，路由器只能按普通负载均衡选择<code>Pod-A</code>。图中的示例在请求被正常处理后把三个前缀指纹与<code>Pod-A</code>关联起来；具体实现也可能在成功选定目标或确认后端接收请求时记录。</li>
+<li><strong>第二次请求是利用阶段</strong>。索引发现前两个块曾被发往<code>Pod-A</code>，于是把它列为缓存候选。不过，如果<code>Pod-A</code>正在严重排队，路由器仍可选择其他节点，避免为了命中制造热点。</li>
+<li><strong>最终检查发生在推理引擎内部</strong>。即使索引指向<code>Pod-A</code>，引擎仍会根据自己的块规则和真实缓存状态判断能否复用。路由器不能替引擎宣布命中。</li>
+</ul>
+<p>真正的推理引擎通常按模型给每个<code>Token</code>分配的数字编号，也就是<code>Token ID</code>，建立缓存身份。网关若采用同一个分词器，就能更接近引擎的分块结果；如果为了降低接入成本而按整理成统一格式的消息或字符切块，计算出的匹配长度就只是估算值。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=为什么记录可能不准确>为什么记录可能不准确<a href=#为什么记录可能不准确 class=hash-link aria-label="Direct link to ��为什么记录可能不准确" title="Direct link to 为什么记录可能不准确">​</a></h4>
+<p>路由器记下的是“请求曾经去过哪里”，而不是“缓存此刻一定在哪里”。两者会因为以下情况逐渐偏离：</p>
+<ul>
+<li>请求虽然被分配到<code>Pod-A</code>，但在完成缓存写入前就失败了；</li>
+<li><code>Pod-A</code>后来因为显存不足淘汰了旧块，路由器却还没删除记录；</li>
+<li><code>Pod-A</code>重启或缩容退出，原来的缓存随之消失；</li>
+<li>多个路由器副本各自只看到一部分请求，得到的索引并不完整；</li>
+<li>网关与推理引擎使用不同的分词器、块大小或缓存身份，双方认为“相同”的范围不一致。</li>
+</ul>
+<p>因此，近似索引通常还要设置容量和过期时间，并在目标失效时删除旧记录。它的优势是不必修改推理引擎，能够兼容多种后端，而且不同会话也可以共享公共前缀；缺点是需要不断学习和纠正，路由器重启后可能要重新积累记录。可以把它理解为商场里的导购图：它能指引你去最可能有货的柜台，但真正有没有货，仍要由柜台库存确认。</p>
+<p>这种方案适合多轮对话、共享系统提示、多人围绕同一份长文档提问，以及暂时无法接入引擎缓存事件的场景。如果业务要求准确知道每一个缓存块位于哪里，就需要下一节介绍的<code>KV Events</code>精确路由。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=基于缓存变更通知也就是kv-events的精确路由>基于缓存变更通知，也就是<code>KV Events</code>的精确路由<a href=#基于缓存变更通知也就是kv-events的精确路由 class=hash-link aria-label="Direct link to 基于缓存变更通知也就是kv-events的精确路由" title="Direct link to 基于缓存变更通知也就是kv-events的精确路由">​</a></h3>
+<p>近似索引只根据历史请求猜测缓存位置。更精确的办法是让推理引擎在创建或删除缓存块时主动发出一条通知，这种通知称为<code>KV Events</code>。这些通知通常经过一个负责传递消息的事件通道，再交给索引器处理。路由器持续查询这个索引，就能获得更接近真实状态的“前缀块到节点集合”目录。<code>vLLM</code>的<code>KV Events</code>、<code>llm-d Router</code>精确前缀索引和<code>NVIDIA Dynamo</code>的索引器都采用了这类思路。</p>
+<!-- -->
+<p>精确是相对近似索引而言，不代表永不出错。事件系统仍需面对：</p>
+<ul>
+<li>事件丢失和乱序，需要序列号、缺口检测与重放；</li>
+<li>路由器启动时需要快照或从健康节点重建；</li>
+<li>引擎版本、块大小、哈希算法和多模态身份必须一致；</li>
+<li>高频块事件会消耗网络、内存和服务器通用处理器<code>CPU</code>；</li>
+<li>请求到达与事件可见之间存在短暂窗口。</li>
+</ul>
+<p>适用场景是副本多、前缀价值高、引擎支持事件协议，并且团队能运维事件消息通道和恢复流程的集群。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=分布式与分层kv-cache>分布式与分层<code>KV Cache</code><a href=#分布式与分层kv-cache class=hash-link aria-label="Direct link to 分布式与分层kv-cache" title="Direct link to 分布式与分层kv-cache">​</a></h3>
+<p>前面的方案都在努力把请求送到缓存所在位置。另一个方向是让缓存能够移动或从共享存储加载，从而降低严格粘滞的必要性。</p>
+<p>图中的高带宽显存<code>GPU HBM</code>是<code>GPU</code>自带的高速内存，速度最快但容量小、价格高；动态随机存取内存<code>CPU DRAM</code>是服务器主内存，速度较慢但容量通常更大；<code>NVMe</code>则是常见的高速固态硬盘接口。缓存越往右移动，通常容量越大、单位成本越低，但取回也越慢。</p>
+<!-- -->
+<p>可将它分为两种工作模式：</p>
+<ul>
+<li><strong>存储模式</strong>：把低频<code>KV</code>从<code>GPU</code>卸载到<code>CPU</code>、本地盘或远端存储，后续请求按需加载，扩大缓存容量并支持跨请求、跨进程复用。</li>
+<li><strong>传输模式</strong>：当负责通读输入的<code>Prefill</code>实例和负责生成答案的<code>Decode</code>实例分开部署时，需要把已有<code>KV</code>直接送到目标实例。这种架构常简称为<code>PD</code>分离。<code>P2P</code>表示节点之间点对点传输；<code>RDMA</code>可以让机器通过高速网络直接访问对方内存；<code>NVLink</code>是<code>NVIDIA GPU</code>之间的高速连接；<code>TCP</code>则是普通网络广泛使用的传输协议。</li>
+</ul>
+<p>分布式缓存不是免费的“全局显存”。一次远端命中仍要做索引查询、把数据整理成适合传输的格式，也就是序列化，再经过网络传输并装入<code>GPU</code>。如果加载耗时高于重新计算，命中反而更慢。工程上应建立盈亏阈值：短前缀直接重算，长前缀或高复用前缀才值得远端加载。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=托管模型服务的提示词缓存>托管模型服务的提示词缓存<a href=#托管模型服务的提示词缓存 class=hash-link aria-label="Direct link to 托管模型服务的提示词缓存" title="Direct link to 托管模型服务的提示词缓存">​</a></h3>
+<p>使用托管<code>API</code>时，用户无法指定具体机器，服务提供方负责缓存和路由。例如<code>OpenAI Prompt Caching</code>会复用匹配的提示词前缀，并在响应的<code>usage.input_tokens_details.cached_tokens</code>中报告命中量。当前文档明确指出缓存状态位于单机，请求只有到达保存匹配条目的机器且条目未过期才能复用；<code>prompt_cache_key</code>在部分模型上可帮助相关请求路由，但不会固定机器，也不保证命中。不同模型代际的断点、最低可缓存长度、保留策略和计费规则存在差异，应以所用模型的实时文档为准。</p>
+<p>对于调用方，能做的主要是保持稳定前缀、合理设置服务方提供的缓存键、监控<code>cached_tokens</code>，以及避免把所有高并发流量塞进同一个路由键。不能把自建集群的<code>Pod</code>粘滞语义直接套在托管服务上。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=如何在缓存局部性与负载之间做决策>如何在缓存局部性与负载之间做决策<a href=#如何在缓存局部性与负载之间做决策 class=hash-link aria-label="Direct link to 如何在缓存局部性与负载之间做决策" title="Direct link to 如何在缓存局部性与负载之间做决策">​</a></h2>
+<p><img decoding=async loading=lazy alt=有缓存也可能排队，软亲和优先但仍可换人 src=/assets/images/image-5-73ea36256f66d9e7e57b63fdce1f818f.webp width=1280 height=720 class=img_ev3q></p>
+<p>缓存局部性可以理解为“需要的笔记就在当前<code>Pod</code>手边”。局部性越好，需要重新执行的<code>Prefill</code>越少。但是，手里有笔记的<code>Pod</code>不一定最空闲。如果它前面已经排了很多请求，等待时间可能比重新计算还长。</p>
+<p>继续使用图书管理员的类比：管理员甲保存着这份资料的笔记，但前面排着<code>8</code>个人；管理员乙没有笔记，却几乎不用排队。选择甲可以少读资料，选择乙可以少等队伍。路由器真正要比较的不是“谁有笔记”，而是“去谁那里更可能更早拿到答案”。</p>
+<p>下面的数字只用于说明思路，并不是任何模型的实测结果：</p>
+<!-- -->
+<p>如果<code>Pod-A</code>只排队<code>0.2</code>秒，而复用缓存能节省<code>3</code>秒，它就更值得选择。可见，正确目标不是让每次请求都命中缓存，而是在缓存收益、排队时间、实例健康和故障风险之间找到更合适的平衡。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=先分清本文的软亲和是什么>先分清本文的“软亲和”是什么<a href=#先分清本文的软亲和是什么 class=hash-link aria-label="Direct link to 先分清本文的“软亲和”是什么" title="Direct link to 先分清本文的“软亲和”是什么">​</a></h3>
+<p>“亲和”只表示“倾向让两个对象靠在一起”。具体是哪两个对象、在哪个阶段靠在一起，要看上下文。本文讨论的<strong>请求路由软亲和</strong>易于和<code>Kubernetes</code>调度器里的软亲和搞混淆。</p>
+<table><thead><tr><th>容易混淆的概念<th>在什么时候做决定<th>决定什么<th>关键含义<tbody><tr><td><code>Kubernetes</code>调度软亲和<td>创建或重新调度<code>Pod</code>时<td><code>Pod</code>部署到哪台服务器节点<td>尽量满足部署位置偏好，条件不允许时仍可放到其他节点<tr><td><code>Kubernetes Service</code>会话亲和<td>网络请求进入<code>Service</code>时<td>相同<code>Client IP</code>的流量发往哪个后端<td>它通常按固定规则保持流量，不理解提示词缓存，也不是本文的动态加分策略<tr><td>本文的请求路由软亲和<td>每次模型请求到达时<td>这次请求交给哪个推理<code>Pod</code><td>缓存或会话关联的<code>Pod</code>会获得优先分，但过载或故障时可以改选其他<code>Pod</code></table>
+<p><code>Kubernetes</code>调度软亲和关注的是<strong>工作负载放在哪里运行</strong>。例如，尽量把某个应用<code>Pod</code>放到带<code>GPU</code>的节点，或者尽量不要让两个副本挤在同一台机器上。它发生在<code>Pod</code>部署阶段。</p>
+<p>本文的请求路由软亲和关注的是<strong>已经运行的多个推理<code>Pod</code>中，这一次请求发给谁</strong>。它发生在请求转发阶段，并且每次请求都可以重新判断。这里的“软亲和”是推理路由策略的通俗名称，不是一个统一的<code>Kubernetes API</code>字段；<code>llm-d Router</code>、<code>NVIDIA Dynamo</code>等项目的具体配置和评分方式也不完全相同。</p>
+<p>对应的请求路由硬亲和则是：只要绑定节点还被认为可用，就必须把请求发给它，不再比较其他节点。两者可以简单记成：</p>
+<ul>
+<li><strong>请求路由硬亲和</strong>：绑定节点是唯一答案。</li>
+<li><strong>请求路由软亲和</strong>：绑定节点是优先答案，但不是唯一答案。</li>
+</ul>
+<p>还要注意，“硬过滤”与“硬亲和”也不是一回事。硬过滤只是先排除不健康、模型不匹配或已经超过负载上限的节点；硬亲和则是用会话绑定把候选范围限制为某一个节点。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=一次路由决策到底经过哪些步骤>一次路由决策到底经过哪些步骤<a href=#一次路由决策到底经过哪些步骤 class=hash-link aria-label="Direct link to 一次路由决策到底经过哪些步骤" title="Direct link to 一次路由决策到底经过哪些步骤">​</a></h3>
+<p>成熟的路由器通常先解析请求，再经过筛选、统一尺度、评分、选择和反馈五个步骤：</p>
+<!-- -->
+<p>可以按下面的方式理解图中的每一步：</p>
+<ol>
+<li><strong>硬过滤</strong>：先删除一定不能选的节点。例如节点已经宕机、没有加载请求所需的模型，或者队列已经超过保护上限。即使这些节点缓存再多，也不能继续参与评分。</li>
+<li><strong>统一尺度</strong>：队列长度可能是<code>12</code>个请求，缓存占用可能是<code>80%</code>，前缀匹配可能是<code>6000 Token</code>，这些数字不能直接相加。路由器需要把它们换算成相近的范围，例如都变成<code>0</code>至<code>1</code>的分数。</li>
+<li><strong>综合评分</strong>：缓存匹配越多就加分，队列越长、正在运行的请求越多或近期失败越多就减分。会话绑定也可以作为一个加分项，这正是请求路由软亲和。</li>
+<li><strong>选择目标</strong>：选择综合分数最合适的节点，并保留次优节点。首选节点在真正发送前失效时，可以快速改用备用节点。</li>
+<li><strong>结果反馈</strong>：请求开始后增加正在处理的请求数，结束后再减少；发生失败时记录故障；近似前缀路由还会更新“前缀可能在哪个<code>Pod</code>”的索引。下一次决策由此获得较新的信息。</li>
+</ol>
+<p>这个顺序体现了一个重要边界：<strong>先保证节点能正确、稳定地处理请求，再考虑缓存收益</strong>。缓存只是性能优化，不能让错误模型、故障节点或严重过载节点重新进入候选列表。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=把评分公式翻译成自然语言>把评分公式翻译成自然语言<a href=#把评分公式翻译成自然语言 class=hash-link aria-label="Direct link to 把评分公式翻译成自然语言" title="Direct link to 把评分公式翻译成自然语言">​</a></h3>
+<p>实现中经常会看到类似下面的公式。公式中的<code>endpoint</code>就是一个候选后端，整条公式想表达的只有一句话：<strong>前缀命中多、排队少、缓存空间较空、正在处理的请求少且近期没有失败的节点，得分更高</strong>。</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style=--prism-color:#f8f8f2;--prism-background-color:#272822><div class=codeBlockContent_biex><pre tabindex=0 class="prism-code language-text codeBlock_bY9V thin-scrollbar" style=color:#f8f8f2;background-color:#272822><code class=codeBlockLines_e6Vv><span class=token-line style=color:#f8f8f2><span class="token plain">score(endpoint) = 3 × prefix_score</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">                + 2 × (1 - queue_normalized)</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">                + 2 × (1 - kv_usage)</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">                + 1 × (1 - inflight_normalized)</span><br></span><span class=token-line style=color:#f8f8f2><span class="token plain">                - failure_penalty</span><br></span></code></pre><div class=buttonGroup__atx><button type=button aria-label="Copy code to clipboard" title=Copy class=clean-btn><span class=copyButtonIcons_eSgA aria-hidden=true><svg viewBox="0 0 24 24" class=copyButtonIcon_y97N><path fill=currentColor d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/></svg><svg viewBox="0 0 24 24" class=copyButtonSuccessIcon_LjdS><path fill=currentColor d=M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z /></svg></span></button></div></div></div>
+<p>每一项的含义如下：</p>
+<table><thead><tr><th>公式项<th>通俗含义<th>为什么这样计算<tbody><tr><td><code>prefix_score</code><td>前缀缓存匹配分<td>匹配越多越好，所以直接加分<tr><td><code>1 - queue_normalized</code><td>队列空闲分<td>队列越长，原始值越大；用<code>1</code>减去它后，队列越短得分越高<tr><td><code>1 - kv_usage</code><td>缓存余量分<td>缓存越满，继续接收请求和保留新缓存的空间越少<tr><td><code>1 - inflight_normalized</code><td>当前处理能力余量<td>正在处理的请求越少，得分越高<tr><td><code>failure_penalty</code><td>近期故障惩罚<td>最近超时或失败越多，减掉的分数越多</table>
+<p>名称中的<code>normalized</code>表示“已经统一尺度”。例如，某项变成<code>0.8</code>并不表示有<code>0.8</code>个请求，而是表示它在统一后的<code>0</code>至<code>1</code>范围内已经比较高。公式前面的<code>3</code>、<code>2</code>、<code>1</code>叫作权重：<code>3 × prefix_score</code>表示这个示例最重视前缀缓存，<code>1 × (1 - inflight_normalized)</code>表示对正在运行请求数的重视程度相对较低。</p>
+<p>假设<code>Pod-A</code>前缀匹配很好，但队列和缓存占用都接近上限；<code>Pod-B</code>只匹配少量前缀，却非常空闲。软亲和不会因为<code>Pod-A</code>“曾经绑定过”就直接结束判断，而是让两台机器都完成评分。最终<code>Pod-B</code>仍可能胜出，这正是前面示意图中“宁可重新<code>Prefill</code>，也不等待拥塞节点”的情况。</p>
+<p>这些权重只是解释原理的示例，不能直接复制到所有集群。<code>Higress ai-endpoint-picker</code>当前默认权重大致采用<code>queue=2</code>、<code>kvCache=2</code>、<code>prefixCache=3</code>、<code>inflight=1</code>，并将每项转换到<code>0</code>至<code>1</code>的范围；其前缀分还同时考虑匹配比例和绝对匹配长度。一个<code>500 Token</code>的请求全部命中，与一个<code>20000 Token</code>的请求只命中<code>500 Token</code>，虽然都命中了<code>500 Token</code>，但节省比例和总体价值并不相同。</p>
+<p>生产环境还需要根据实际观测调整权重和保护上限。例如，长文档问答通常更重视前缀缓存；短问短答的重新计算成本较低，可以更重视队列；节点经常发生瞬时故障时，则应提高故障惩罚。最终应以<code>TTFT</code>、吞吐和尾延迟是否改善为准，而不是只看评分或命中率。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=为什么通常推荐请求路由软亲和>为什么通常推荐请求路由软亲和<a href=#为什么通常推荐请求路由软亲和 class=hash-link aria-label="Direct link to 为什么通常推荐请求路由软亲和" title="Direct link to 为什么通常推荐请求路由软亲和">​</a></h3>
+<p>对标准的<code>OpenAI</code>兼容推理接口来说，只要应用在请求中带上完整上下文，换一个没有缓存的<code>Pod</code>通常只会触发重新计算，不会改变答案的正确性。因此，<code>KV Cache</code>更像一项性能优化，而不是必须依赖的业务状态。</p>
+<p>请求路由软亲和通常更适合作为默认值，原因有四点：</p>
+<ul>
+<li>缓存节点过载时可以改选空闲节点，避免形成热点；</li>
+<li>绑定节点故障或缩容后可以立即重新选择，不会无限重试旧节点；</li>
+<li>近似前缀索引可能已经过期，软亲和允许负载和健康信息纠正错误判断；</li>
+<li>扩容产生新节点时，新节点仍有机会接收流量并逐渐建立自己的缓存。</li>
+</ul>
+<p>只有后端保存了无法在请求中重建、也无法迁移的真实会话状态时，才可能需要请求路由硬亲和。例如，某种专用接口只保存了服务端会话句柄，客户端没有携带完整上下文。即便如此，也必须明确绑定节点失效后的报错、重建或恢复方式。</p>
+<p>可以把这一节浓缩成一句话：请求路由软亲和不是“尽量把<code>Pod</code>部署在一起”，而是“每次请求优先去有用缓存所在的推理<code>Pod</code>，但健康和负载不合适时允许换人”。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=开源技术方案调研>开源技术方案调研<a href=#开源技术方案调研 class=hash-link aria-label="Direct link to 开源技术方案调研" title="Direct link to 开源技术方案调研">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=higress-ai-endpoint-picker多信号端点选择><code>Higress ai-endpoint-picker</code>：多信号端点选择<a href=#higress-ai-endpoint-picker多信号端点选择 class=hash-link aria-label="Direct link to higress-ai-endpoint-picker多信号端点选择" title="Direct link to higress-ai-endpoint-picker多信号端点选择">​</a></h3>
+<p>项目地址：<a href=https://github.com/higress-group/higress target=_blank rel="noopener noreferrer">Higress项目仓库</a>。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案设计>方案设计<a href=#方案设计 class=hash-link aria-label="Direct link to 方案设计" title="Direct link to 方案设计">​</a></h4>
+<p><code>Higress</code>是一个可以接收请求、执行插件并把请求转发到后端服务的<code>API</code>网关。本节只介绍当前的<code>ai-endpoint-picker</code>插件。它以<code>WASM</code>形式运行在网关内部；<code>WASM</code>可以先理解为一种体积较小、与网关主程序隔离的插件运行方式。</p>
+<p>插件直接在一个后端实例组中执行前面介绍的“筛选→统一尺度→评分→选择→反馈”流程。源码将这个后端组称为上游集群<code>upstream cluster</code>。它使用<code>Higress</code>提供的逐节点指标，并通过指定后端<code>override host</code>能力明确选择最终节点，不需要再部署一个独立的端点选择器<code>Endpoint Picker</code>，简称<code>EPP</code>。</p>
+<p>一次请求的处理过程如下：</p>
+<!-- -->
+<p>图中最关键的是“多种信号”而不是单独追求前缀命中：</p>
+<ul>
+<li>队列长度反映目标<code>Pod</code>前面还有多少请求在等待；</li>
+<li><code>KV Cache</code>利用率反映缓存空间是否接近用满；</li>
+<li>近似前缀分反映该<code>Pod</code>可能复用多少已有输入；</li>
+<li>本地并发表示插件观察到该节点正在处理多少请求；</li>
+<li><code>LoRA</code>、节点故障等信息用于排除不匹配或风险较高的节点。</li>
+</ul>
+<p>这些信号经过统一尺度和加权后，插件选择综合得分更合适的<code>Pod</code>。因此，缓存较多但已经拥塞的节点不一定胜出，缓存较少但明显更空闲的节点仍可能被选中。最后，<code>override host</code>能力把路由结果交给<code>Higress</code>，由网关将请求发到指定后端。</p>
+<p>插件维护一个有容量上限的本地近似前缀索引，并按加权<code>LRU</code>清理价值较低或较久未使用的记录。只有成功设置目标后，它才记录本次请求的前缀位置。不能解析或超过处理预算的请求会跳过前缀评分，队列等其他负载信号仍可继续工作。</p>
+<p>插件还采用<code>fail-open</code>设计，也就是缓存感知优化出错时不拦截正常请求，而是交给<code>Higress</code>底层网络代理<code>Envoy</code>的默认负载均衡继续处理。这保证了智能路由是可降级的性能优化，而不是推理服务的必经故障点。</p>
+<div class="theme-admonition theme-admonition-warning admonition_xJq3 alert alert--warning"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>需要特别注意</div><div class=admonitionContent_BuS1><p>前缀索引位于当前<code>WASM</code>插件实例内，既不是推理引擎的真实缓存目录，也不会天然在多个网关副本之间共享。如果部署多个<code>Higress</code>副本，每个插件实例可能根据自己看到的请求形成不同索引；插件重启后也需要重新积累记录。因此，它更适合单个路由视图或能够接受近似效果的场景，不能被当作全局强一致的缓存目录。</div></div>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案优点>方案优点<a href=#方案优点 class=hash-link aria-label="Direct link to 方案优点" title="Direct link to 方案优点">​</a></h4>
+<ul>
+<li><strong>接入链路短</strong>：选择逻辑直接运行在<code>Higress</code>网关插件中，不需要再部署独立<code>EPP</code>，少了一次跨进程的决策调用。</li>
+<li><strong>不会只顾缓存命中</strong>：队列、<code>KV Cache</code>利用率、近似前缀、本地并发和<code>LoRA</code>兼容性共同参与选择，能够避开“缓存很多但已经堵住”的节点。</li>
+<li><strong>优化失败时仍可服务</strong>：插件采用<code>fail-open</code>设计。请求解析失败、前缀计算超出预算或插件无法完成智能选择时，仍可交给<code>Envoy</code>默认负载均衡。</li>
+<li><strong>部署改动相对集中</strong>：已经使用<code>Higress</code>的团队主要调整网关插件配置，不必为了缓存感知另外维护一整套调度控制面。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案缺点>方案缺点<a href=#方案缺点 class=hash-link aria-label="Direct link to 方案缺点" title="Direct link to 方案缺点">​</a></h4>
+<ul>
+<li><strong>前缀位置只是预测</strong>：插件根据成功路由的历史推测缓存在哪个<code>Pod</code>，并不知道推理引擎是否已经淘汰对应<code>KV</code>块。</li>
+<li><strong>多个网关副本看不到同一份索引</strong>：每个<code>WASM</code>实例维护自己的本地状态，副本之间可能给同一个请求算出不同结果，重启后还需要重新预热。</li>
+<li><strong>效果依赖指标质量和权重</strong>：队列、缓存占用等指标如果延迟或缺失，综合得分就会偏离真实状态；权重也需要结合业务流量验证。</li>
+<li><strong>不能代替共享缓存</strong>：它只负责尽量选对后端，不会把一个<code>Pod</code>上的真实<code>KV Cache</code>搬到另一个<code>Pod</code>。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=适用场景>适用场景<a href=#适用场景 class=hash-link aria-label="Direct link to 适用场景" title="Direct link to 适用场景">​</a></h4>
+<p>更适合已经使用<code>Higress</code>、希望以较低接入成本获得缓存与负载联合路由，并且能够接受近似索引和网关本地状态的集群。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=gateway-api-inference-extension标准化选择接口><code>Gateway API Inference Extension</code>：标准化选择接口<a href=#gateway-api-inference-extension标准化选择接口 class=hash-link aria-label="Direct link to gateway-api-inference-extension标准化选择接口" title="Direct link to gateway-api-inference-extension标准化选择接口">​</a></h3>
+<p>项目地址：<a href=https://github.com/kubernetes-sigs/gateway-api-inference-extension target=_blank rel="noopener noreferrer">项目仓库</a>、<a href=https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/4e9bfc7833f241663e9a9e9fc0090ef9ae549311/docs/proposals/004-endpoint-picker-protocol/README.md target=_blank rel="noopener noreferrer">端点选择协议</a>、<a href=https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/4e9bfc7833f241663e9a9e9fc0090ef9ae549311/docs/proposals/0602-prefix-cache-aware-routing-proposal/README.md target=_blank rel="noopener noreferrer">前缀缓存感知提案</a>。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案设计-1>方案设计<a href=#方案设计-1 class=hash-link aria-label="Direct link to 方案设计" title="Direct link to 方案设计">​</a></h4>
+<p>先不要把它理解成一个具体的负载均衡器。<code>Gateway API Inference Extension</code>更像一套统一的“网关和智能选择器如何交接工作”的规则。它为容器与服务编排平台<code>Kubernetes</code>补充了两个重要角色：</p>
+<ul>
+<li><code>InferencePool</code>是一份候选名单，表示一组可以处理某类模型请求的推理端点；</li>
+<li>端点选择器<code>Endpoint Picker</code>，简称<code>EPP</code>，是负责从候选名单中挑选端点的决策组件。</li>
+</ul>
+<p>真正转发网络请求的仍然是网关数据面，例如<code>Envoy</code>；<code>EPP</code>只负责做选择。二者通过<code>Envoy</code>的外部处理协议<code>ext_proc</code>通信。可以把<code>ext_proc</code>理解为一条“请求先交给外部助手看一眼，助手给出修改或选择结果，再由网关继续执行”的标准通道。</p>
+<p>一次请求会经历下面的过程：</p>
+<!-- -->
+<p>图中“返回有顺序的端点列表”很重要。<code>EPP</code>不只能回答“选<code>Pod-A</code>”，还可以回答“优先<code>Pod-A</code>，失败后依次尝试<code>Pod-B</code>和<code>Pod-C</code>”。网关负责真正执行转发和重试，并把最后实际处理请求的端点反馈给<code>EPP</code>。如果没有任何可用端点，协议规定可以返回<code>503 Service Unavailable</code>；如果系统已经过载并决定主动拒绝一个可丢弃请求，可以返回<code>429 Too Many Requests</code>。</p>
+<p>不过，这套协议只规定<strong>怎样问和怎样回答</strong>，并没有强制<code>EPP</code>必须使用哪一种算法。一个简单实现可以只看队列长度，另一个实现可以同时使用前缀命中、<code>LoRA</code>适配器、<code>KV Cache</code>占用和负载，<code>llm-d Router</code>等项目也可以把自己的调度逻辑接到这个位置。</p>
+<p>官方前缀缓存感知提案给出了一种参考算法。它不要求修改推理引擎，而是在<code>EPP</code>内维护近似索引：先把请求内容切成固定大小的字符块，再用“当前块内容＋前一个块的哈希”形成哈希链。当某次请求被分配给<code>Pod-A</code>时，索引暂时记下“这些前缀块可能在<code>Pod-A</code>上”；相似请求到来时，再寻找拥有最长连续前缀记录的端点。这里按字符切块是为了减少引入分词器的依赖，并不表示推理引擎内部也按相同字符块保存缓存。</p>
+<p>这个参考算法的状态来自<strong>历史调度记录</strong>，不是推理引擎报告的真实显存内容。因此，缓存被引擎淘汰后，<code>EPP</code>可能仍然以为它存在；<code>EPP</code>重启后，记录又需要重新积累；部署多个<code>EPP</code>副本时，每个副本只看到自己处理的请求，也会失去全局视图。提案建议把前缀命中率与队列长度、<code>KV Cache</code>利用率、模型和<code>LoRA</code>兼容性一起判断，不能让“可能命中”压过明显的过载信号。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案优点-1>方案优点<a href=#方案优点-1 class=hash-link aria-label="Direct link to 方案优点" title="Direct link to 方案优点">​</a></h4>
+<ul>
+<li><strong>网关与算法可以分别演进</strong>：网关负责转发，<code>EPP</code>负责选择。只要双方遵循协议，就可以更换网关实现或调度算法，而不必把两者写在同一个进程里。</li>
+<li><strong>返回的是有顺序的候选列表</strong>：网关不仅拿到首选节点，还能在首选失败时按顺序重试后续端点，比只返回单个地址更利于故障恢复。</li>
+<li><strong>能够承载不同复杂度的策略</strong>：同一接口既可以接简单的最小队列算法，也可以接入前缀、<code>LoRA</code>、会话和负载联合评分。</li>
+<li><strong>适合形成生态共用接口</strong>：<code>llm-d Router</code>等实现可以站在<code>EPP</code>位置提供决策，平台不必为每个路由器重新定义网关对接方式。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案缺点-1>方案缺点<a href=#方案缺点-1 class=hash-link aria-label="Direct link to 方案缺点" title="Direct link to 方案缺点">​</a></h4>
+<ul>
+<li><strong>标准本身不等于现成算法</strong>：它主要规定“网关怎样询问、选择器怎样回答”，最终路由效果仍取决于所部署的<code>EPP</code>实现和配置。</li>
+<li><strong>官方参考前缀算法仍是近似索引</strong>：它根据历史调度记录推测缓存位置，无法及时知道引擎已经淘汰了哪些<code>KV</code>块。</li>
+<li><strong>多<code>EPP</code>副本存在视图分裂</strong>：每个副本只看到自己处理的请求时，本地索引会不完整；重启后也需要重新积累状态。</li>
+<li><strong>组件数量增加</strong>：数据面之外还需要运行和观测<code>EPP</code>，并保证<code>ext_proc</code>交互正常。对固定且简单的单网关部署，这层标准化可能得不偿失。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=适用场景-1>适用场景<a href=#适用场景-1 class=hash-link aria-label="Direct link to 适用场景" title="Direct link to 适用场景">​</a></h4>
+<p>适合已经使用<code>Kubernetes Gateway API</code>，希望把网络转发与推理调度解耦，并计划接入或更换不同智能调度器的平台。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=llm-d-router近似精确和会话亲和的可组合管线><code>llm-d Router</code>：近似、精确和会话亲和的可组合管线<a href=#llm-d-router近似精确和会话亲和的可组合管线 class=hash-link aria-label="Direct link to llm-d-router近似精确和会话亲和的可组合管线" title="Direct link to llm-d-router近似精确和会话亲和的可组合管线">​</a></h3>
+<p>项目地址：<a href=https://github.com/llm-d/llm-d-router target=_blank rel="noopener noreferrer">项目仓库</a>、<a href=https://github.com/llm-d/llm-d-router/blob/d5ff9100312b4a39d7ba050638e149d37ff46b4a/docs/architecture.md target=_blank rel="noopener noreferrer">路由架构说明</a>、<a href=https://github.com/llm-d/llm-d-router/blob/d5ff9100312b4a39d7ba050638e149d37ff46b4a/pkg/epp/framework/plugins/requestcontrol/dataproducer/preciseprefixcache/README.md target=_blank rel="noopener noreferrer">精确前缀插件说明</a>。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案设计-2>方案设计<a href=#方案设计-2 class=hash-link aria-label="Direct link to 方案设计" title="Direct link to 方案设计">​</a></h4>
+<p><code>llm-d Router</code>实现了前一节介绍的<code>EPP</code>角色。它最有特点的地方，不是内置了某一个“最好”的算法，而是把选择过程拆成可以组合的插件流水线。可以把它想成招聘流程：先准备候选人的资料，再淘汰不合格者，然后分别打分，最后从最高分中选一个。</p>
+<!-- -->
+<p>“准备数据”阶段称为数据生产<code>DataProducer</code>。它不会直接选择<code>Pod</code>，而是为后面的过滤器和评分器准备事实。例如，分词插件把文字转换成<code>Token ID</code>，前缀插件计算每个端点匹配了多少块，会话插件读取请求头或<code>Cookie</code>中的会话编号，数据层则定期从端点采集负载和模型信息。这样一来，前缀评分器只需要回答“这个端点的前缀分是多少”，不必自己处理请求解析、指标抓取和节点发现。</p>
+<p><code>llm-d Router</code>提供两种前缀位置来源：</p>
+<ul>
+<li><strong>近似模式</strong>把<code>Token ID</code>切成固定大小的块，查询哪些端点最近处理过相同前缀。完成选择后，它把所选端点写入本地索引，相当于预测“请求发过去以后，这些块很可能会被缓存”。索引按端点限制容量并采用<code>LRU</code>思路淘汰旧记录。它不需要引擎发事件，但后端失败、缓存主动淘汰或路由器重启都会让预测与现实出现偏差。</li>
+<li><strong>精确模式</strong>订阅每个<code>vLLM</code>或<code>SGLang</code>端点发出的<code>KV Events</code>。<code>ZMQ</code>是一种轻量消息通信方式，端点通过它报告缓存块的创建和删除；索引器据此更新“块→端点”的关系。收到新请求后，插件使用请求的<code>Token</code>、模型、多模态标识和缓存隔离盐等信息重新生成可比较的块键，再查询连续前缀匹配。它还可以短暂加入带过期时间的预测记录，填补“请求刚分配，但引擎还没来得及发创建事件”的时间窗口。</li>
+</ul>
+<p>所谓精确，是指位置来源更接近引擎的真实缓存生命周期，并不表示永远不会出错。事件丢失、事件中缺少影响哈希的字段、分词结果不一致或索引恢复不完整，仍然会降低准确性。没有可用的<code>TokenizedPrompt</code>时，精确前缀插件不会凭空猜测，而是跳过这项数据，让其他评分器继续决策。</p>
+<p>会话保持同样被拆成两种插件：</p>
+<ul>
+<li><code>session-affinity-filter</code>是<strong>硬亲和</strong>。绑定端点仍在候选集中时，它把候选集合缩小到这一个端点；端点消失时，它不会返回空集合，而是重新放开全部候选，让后续插件选择并建立新绑定。</li>
+<li><code>session-affinity-scorer</code>是<strong>软亲和</strong>。它只给原端点增加分数，前缀、负载等其他评分仍有机会让另一个端点胜出。</li>
+</ul>
+<p>绑定信息也有两种携带方法。默认方法把<code>Kubernetes</code>中的<code>namespace/name</code>编码到响应头<code>x-session-token</code>，客户端下次原样带回，路由器不需要保存会话表。另一种方法由客户端提供不透明的<code>x-session-id</code>，路由器在内存中保存带空闲过期时间<code>TTL</code>的“会话→Pod”映射。前者把目标信息交给客户端保存，后者让客户端只持有普通会话编号，但路由器需要管理状态。</p>
+<p>在<code>Prefill/Decode</code>分离部署中，一次请求可能要分别选择负责读输入的<code>Prefill Pod</code>和负责生成答案的<code>Decode Pod</code>。<code>llm-d Router</code>可以为两个阶段配置不同调度流水线，也可以分别保存两个会话绑定，避免把“上次的<code>Prefill</code>节点”和“上次的<code>Decode</code>节点”误当成同一个目标。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案优点-2>方案优点<a href=#方案优点-2 class=hash-link aria-label="Direct link to 方案优点" title="Direct link to ��方案优点">​</a></h4>
+<ul>
+<li><strong>调度能力可以组合</strong>：模型兼容性、前缀、会话、负载和优先级分别由插件处理，团队可以按场景替换过滤器、评分器和权重。</li>
+<li><strong>可以逐步提高索引精度</strong>：接入初期可以使用部署简单的近似模式，条件成熟后再切换到基于<code>KV Events</code>的精确模式。</li>
+<li><strong>硬亲和与软亲和都能表达</strong>：必须回到原节点时使用过滤器，只想优先原节点时使用评分器，不必把所有会话采用同一种强制策略。</li>
+<li><strong>支持<code>PD</code>分离的双阶段选择</strong>：<code>Prefill</code>与<code>Decode</code>可以配置不同流水线和会话绑定，适合分离式推理架构。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案缺点-2>方案缺点<a href=#方案缺点-2 class=hash-link aria-label="Direct link to 方案缺点" title="Direct link to 方案缺点">​</a></h4>
+<ul>
+<li><strong>配置和排障门槛较高</strong>：数据生产、过滤、评分、权重和不同调度配置互相影响，结果不符合预期时需要逐层检查。</li>
+<li><strong>精确模式依赖完整事件链</strong>：推理引擎、<code>ZMQ</code>传输、分词结果或缓存隔离字段任一环节不一致，都可能造成漏记或错记。</li>
+<li><strong>精确并不等于强一致</strong>：事件可能延迟或丢失，索引恢复也需要时间；路由器仍要准备缓存信息不可用时的降级策略。</li>
+<li><strong>部分会话状态仍在内存中</strong>：使用<code>x-session-id</code>映射时，路由器需要维护带<code>TTL</code>的会话表，多副本部署必须考虑请求落点和状态恢复。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=适用场景-2>适用场景<a href=#适用场景-2 class=hash-link aria-label="Direct link to 适用场景" title="Direct link to 适用场景">​</a></h4>
+<p>适合采用<code>Kubernetes Gateway API</code>，需要把模型兼容性、前缀、会话和负载组合起来，并希望逐步从近似索引升级到事件索引的中大型推理平台。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=aibrix会话键与有界负载前缀路由><code>AIBrix</code>：会话键与有界负载前缀路由<a href=#aibrix会话键与有界负载前缀路由 class=hash-link aria-label="Direct link to aibrix会话键与有界负载前缀路由" title="Direct link to aibrix会话键与有界负载前缀路由">​</a></h3>
+<p>项目地址：<a href=https://github.com/vllm-project/aibrix target=_blank rel="noopener noreferrer">项目仓库</a>、<a href=https://github.com/vllm-project/aibrix/blob/72726f5eaeaab8b6f0a1f4b62c588e4ec9903e86/docs/source/designs/aibrix-router.rst target=_blank rel="noopener noreferrer">路由架构说明</a>、<a href=https://github.com/vllm-project/aibrix/blob/72726f5eaeaab8b6f0a1f4b62c588e4ec9903e86/docs/source/features/kv-event-sync.rst target=_blank rel="noopener noreferrer"><code>KV Event Sync</code>说明</a>、<a href=https://github.com/vllm-project/aibrix/tree/72726f5eaeaab8b6f0a1f4b62c588e4ec9903e86/samples/ai-gateway-integration target=_blank rel="noopener noreferrer">与<code>Gateway API Inference Extension</code>的集成示例</a>。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案设计-3>方案设计<a href=#方案设计-3 class=hash-link aria-label="Direct link to 方案设计" title="Direct link to 方案设计">​</a></h4>
+<p><code>AIBrix</code>提供的是一套面向<code>Kubernetes</code>的大模型服务基础设施，智能网关只是其中一部分。它的网关插件接在<code>Envoy Gateway</code>外部处理接口上，并在本地缓存高频更新的<code>Pod</code>指标。这样每次请求不必临时访问所有后端询问“你现在忙不忙”，而是直接读取最近一次收集到的快照，缩短路由热路径。</p>
+<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class=admonitionHeading_Gvgb><span class=admonitionIcon_Rf37><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>它与<code>Gateway API Inference Extension</code>是什么关系</div><div class=admonitionContent_BuS1><p><code>AIBrix</code>原生路由器<strong>不是</strong><code>Gateway API Inference Extension</code>的<code>EPP</code>实现。两者都可以通过<code>Envoy ext_proc</code>参与请求处理，但使用了不同的资源和路由逻辑。可以先把<code>ext_proc</code>理解为一条通用的“网关向外部程序咨询”通道：两个方案走了同一类通道，不代表咨询的问题和返回结果遵循同一套方案。<ul>
+<li><code>AIBrix</code>原生路径是“<code>Envoy Gateway</code>→<code>AIBrix Gateway Plugin</code>→选择<code>Pod</code>→返回<code>target-pod</code>请求头”。候选节点、负载快照和路由算法由<code>AIBrix</code>自己管理，不要求创建<code>InferencePool</code>。</li>
+<li><code>AIBrix</code>仓库也提供了一个可选集成示例。该示例关闭<code>AIBrix</code>内置网关，另外创建<code>InferencePool</code>，并部署<code>Gateway API Inference Extension</code>官方<code>EPP</code>镜像。此时执行端点选择的是官方<code>EPP</code>，不是<code>AIBrix Gateway Plugin</code>。</li>
+</ul><p>因此，二者的准确关系是“<code>AIBrix</code>可以与<code>InferencePool + EPP</code>组合部署”，而不是“<code>AIBrix</code>原生路由器基于<code>Gateway API Inference Extension</code>实现”。</div></div>
+<p>请求首先按模型、<code>LoRA</code>和健康状态得到可用<code>Pod</code>列表，然后再执行选定的路由策略。策略可以通过全局配置指定，也可以通过请求头选择。以本文最关心的会话和前缀策略为例，流程如下：</p>
+<!-- -->
+<p>会话亲和有两条路径。第一条适合客户端愿意保存服务端返回值的场景：</p>
+<ol>
+<li>第一次请求没有<code>x-session-id</code>，网关从可用<code>Pod</code>中选择一个目标；</li>
+<li>网关把目标的<code>IP:Port</code>做<code>Base64</code>编码，放进响应头<code>x-session-id</code>；</li>
+<li>客户端后续带回该值，网关解码后在当前健康列表中查找相同地址；</li>
+<li>如果原<code>Pod</code>已缩容或故障，网关选择新的可用<code>Pod</code>并签发新的值。</li>
+</ol>
+<p><code>Base64</code>只是一种便于传输的编码，不是加密，也不能证明请求者身份。这个响应头因此只能用于路由，不能用于认证和授权。</p>
+<p>第二条路径适合调用方已经有稳定会话编号的场景。客户端发送<code>x-aibrix-session-key</code>后，网关对“会话键＋候选<code>Pod</code>地址”计算<code>Rendezvous Hash</code>得分，并选择得分最高的<code>Pod</code>。网关不需要保存会话表；只要候选集合不变，同一个键就会得到同一个结果。节点增减时，只有一部分会话需要迁移，比简单取模更稳定。</p>
+<p><code>prefix-cache</code>策略也有两种状态来源：</p>
+<ul>
+<li>默认本地模式先把输入转换为字符或<code>Token</code>序列，再生成前缀哈希并查询本地<code>PrefixHashTable</code>。找不到命中时选择当前请求较少的<code>Pod</code>，随后把“这些前缀已分配给该<code>Pod</code>”写入索引。它部署简单，但本质仍是根据路由历史做预测。</li>
+<li>开启<code>KV Event Sync</code>后，<code>vLLM</code>通过<code>ZMQ</code>发布<code>BlockStoredEvent</code>和<code>BlockRemovedEvent</code>。前者表示哪些缓存块刚被保存，后者表示哪些块已被删除。<code>KV Event Manager</code>消费事件，<code>Sync Prefix Cache Indexer</code>更新位置表，网关再查询这份事件驱动的索引。该模式要求使用远程分词器，目的是让网关与模型实例对同一段输入得到一致的<code>Token</code>结果。</li>
+</ul>
+<p>有了匹配结果以后，<code>AIBrix</code>并不是直接选择“命中最多”的节点。它先按前缀匹配百分比从高到低排序；匹配比例相同，再优先当前运行请求较少的节点。随后用全体节点请求数的平均值和标准差划出一个负载范围，超过范围的缓存节点会被跳过；如果没有任何命中节点满足条件，就回退到全局请求数最少的节点。当前实现还会在多数非独占策略后自动混合容量感知负载分，进一步避免单一策略持续把流量推向热点。</p>
+<p>这套实现直观展示了“缓存亲和必须有负载护栏”：<code>Pod-A</code>即使保存了完整前缀，如果队列已经很长，也可能不如让较空闲的<code>Pod-B</code>重新计算。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案优点-3>方案优点<a href=#方案优点-3 class=hash-link aria-label="Direct link to 方案优点" title="Direct link to 方案优点">​</a></h4>
+<ul>
+<li><strong>会话保持有两种实用选择</strong>：调用方既可以回传网关签发的目标令牌，也可以提供稳定会话键并使用<code>Rendezvous Hash</code>，后者不需要服务端会话表。</li>
+<li><strong>同一网关可以切换多种策略</strong>：会话、前缀、最少请求和<code>PD</code>分离等能力可以根据全局配置或请求头选择。</li>
+<li><strong>缓存选择带有负载边界</strong>：标准差护栏和容量感知混合会阻止流量持续压向某个热缓存节点。</li>
+<li><strong>前缀索引可以从预测升级为事件驱动</strong>：简单环境可先用本地<code>PrefixHashTable</code>，需要更准确状态时再启用<code>KV Event Sync</code>。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案缺点-3>方案缺点<a href=#方案缺点-3 class=hash-link aria-label="Direct link to 方案缺点" title="Direct link to 方案缺点">​</a></h4>
+<ul>
+<li><strong>地址令牌不是安全凭证</strong>：<code>Base64 IP:Port</code>只是编码，既不加密也不认证，只能用于路由，不能直接承担身份校验。</li>
+<li><strong>本地预测表会失真</strong>：网关重启会丢失索引，引擎淘汰缓存后，本地历史记录也可能暂时仍认为缓存存在。</li>
+<li><strong>事件模式引入额外依赖</strong>：需要<code>ZMQ</code>事件、远程分词器和事件恢复机制，链路比本地预测模式更复杂。</li>
+<li><strong>多网关副本仍需核对状态覆盖</strong>：如果各副本收到的缓存事件或负载快照不完整，就可能形成不同的路由判断。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=适用场景-3>适用场景<a href=#适用场景-3 class=hash-link aria-label="Direct link to 适用场景" title="Direct link to 适用场景">​</a></h4>
+<p>适合希望在同一套<code>Kubernetes</code>网关中组合会话键、前缀、负载和<code>PD</code>分离策略，并愿意按精度需求选择本地索引或事件索引的团队。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=nvidia-dynamo把缓存层级纳入成本函数><code>NVIDIA Dynamo</code>：把缓存层级纳入成本函数<a href=#nvidia-dynamo把缓存层级纳入成本函数 class=hash-link aria-label="Direct link to nvidia-dynamo把缓存层级纳入成本函数" title="Direct link to nvidia-dynamo把缓存层级纳入成本函数">​</a></h3>
+<p>项目地址：<a href=https://github.com/ai-dynamo/dynamo target=_blank rel="noopener noreferrer">项目仓库</a>、<a href=https://docs.nvidia.com/dynamo/components/router target=_blank rel="noopener noreferrer">路由器官方文档</a>、<a href=https://github.com/ai-dynamo/dynamo/blob/d481e51e3f5360b0a1de4e467f74adaaaa1c97b3/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/kv-aware-routing.md target=_blank rel="noopener noreferrer">缓存感知路由原理</a>。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案设计-4>方案设计<a href=#方案设计-4 class=hash-link aria-label="Direct link to 方案设计" title="Direct link to 方案设计">​</a></h4>
+<p><code>NVIDIA Dynamo</code>位于推理引擎之上，用于把多个<code>vLLM</code>、<code>SGLang</code>或<code>TensorRT-LLM</code>实例协调成一套分布式推理服务。它的路由器不把问题简化为“命中了多少块”，而是尝试回答一个更接近用户体验的问题：<strong>如果把这次请求交给某个节点，从现在到开始生成答案，还需要付出多少工作量</strong>？</p>
+<p>一次请求进入后，请求入口先按模型使用的分词规则把文字转换为<code>Token</code>并规范化请求。路由器去掉模型不兼容、显式禁止或已经超过忙碌阈值的节点，再为剩余节点查询两类状态：</p>
+<ul>
+<li>缓存索引回答“这个请求的连续前缀在该节点的<code>GPU</code>、主机内存、磁盘或共享缓存中各有多少块”；</li>
+<li>活动负载跟踪器回答“该节点已经接下了多少未完成的<code>Prefill</code>工作、<code>Decode</code>缓存块和活动请求”。</li>
+</ul>
+<p>这些状态进入同一个成本模型：</p>
+<!-- -->
+<p>图里的“抵扣”不是说不同层级速度相同。<code>GPU</code>显存中的缓存通常可以直接参与计算，主机内存、磁盘或共享层中的缓存还需要搬运，所以每层可以配置不同权重。原始<code>Prefill</code>成本等于节点已有的<code>Prefill</code>积压加上新请求的输入块，再减去多层缓存带来的抵扣；结果不会小于零。然后再加上节点当前与本次请求预计占用的<code>Decode</code>块，以及可选的活动请求成本。最终选择总成本最低的节点。</p>
+<p>举个简化的例子：<code>Pod-A</code>能复用<code>80</code>块，但前面还有<code>100</code>块工作；<code>Pod-B</code>只能复用<code>20</code>块，却几乎没有排队。只看命中量会选<code>Pod-A</code>，成本模型则可能发现<code>Pod-B</code>更早完成剩余的<code>Prefill</code>。反过来，如果两者负载接近，<code>Pod-A</code>的大量缓存抵扣就会让它胜出。</p>
+<p>缓存状态默认来自推理引擎发布的缓存块创建和删除事件。路由器据此维护前缀索引；如果引擎不能可靠发布事件，可以使用<code>--no-router-kv-events</code>，让路由器根据自己的分配结果预测缓存位置，并通过<code>TTL</code>或实验性的容量受限<code>LRU</code>清理记录。事件模式更接近事实，预测模式更容易接入但会产生误差。活动负载则来自请求生命周期：请求分配时增加负载，首个输出<code>Token</code>到来时标记<code>Prefill</code>结束，请求完成后释放对应记录。</p>
+<p><code>X-Dynamo-Session-ID</code>首先只是一个会话身份。只有显式设置<code>--router-session-affinity-ttl-secs</code>后，路由亲和才会启用；仅发送请求头不会自动改变请求去向。启用后，第一条成功分派的请求建立“会话→目标”的内存绑定：</p>
+<ul>
+<li><code>hard</code>硬模式直接发往绑定目标；目标已经失效时，删除绑定并执行一次正常选择；</li>
+<li><code>soft</code>软模式把绑定目标作为建议交给正常选择流程。默认选择器会尽量保留它，但自定义策略仍可选择其他节点，并在成功分派后更新绑定。</li>
+</ul>
+<p>多个路由副本会通过事件平面尽力同步会话绑定，但这是允许丢失、延迟和乱序的尽力同步，不是权威数据库。路由器重启会清空绑定，各副本的空闲过期计时也可能暂时不同。严格亲和仍应在入口层保证同一会话落到同一路由副本，或者使用外部权威映射。会话亲和只决定发给谁，不会替后端创建会话，也不会保存聊天消息。</p>
+<p>在<code>Prefill/Decode</code>分离模式下，路由器分别选择两个阶段的工作节点，真正搬运<code>KV Cache</code>则由<code>NIXL</code>等传输机制完成。<code>NIXL</code>全称为<code>NVIDIA Inference Xfer Library</code>，其中<code>Xfer</code>是<code>Transfer</code>，也就是“传输”的缩写。选择与传输是两个职责：路由器知道“应该从哪里到哪里”，传输库负责“怎样把数据搬过去”。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案优点-4>方案优点<a href=#方案优点-4 class=hash-link aria-label="Direct link to 方案优点" title="Direct link to 方案优点">​</a></h4>
+<ul>
+<li><strong>比较的是预计工作量，不只是命中块数</strong>：成本函数同时考虑未命中的<code>Prefill</code>、已有排队、<code>Decode</code>占用和活动请求，更接近用户实际等待时间。</li>
+<li><strong>能够区分缓存所在层级</strong>：<code>GPU</code>、主机内存、磁盘和共享层可以设置不同抵扣权重，不会把“直接可用”和“还要跨网络搬运”视为同样便宜。</li>
+<li><strong>事件模式与预测模式可以取舍</strong>：引擎能发可靠事件时使用真实生命周期索引，不能发事件时仍可通过带<code>TTL</code>或容量限制的预测索引运行。</li>
+<li><strong>会话亲和与<code>PD</code>分离能力完整</strong>：支持<code>hard</code>和<code>soft</code>会话模式，并能分别选择<code>Prefill</code>与<code>Decode</code>节点。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案缺点-4>方案缺点<a href=#方案缺点-4 class=hash-link aria-label="Direct link to 方案缺点" title="Direct link to 方案缺点">​</a></h4>
+<ul>
+<li><strong>控制面和调参复杂</strong>：缓存层权重、<code>Prefill</code>与<code>Decode</code>成本、忙碌阈值等参数都会影响结果，需要结合真实工作负载校准。</li>
+<li><strong>依赖事件和请求生命周期追踪</strong>：事件遗漏、首<code>Token</code>状态更新不及时或请求结束记录未释放，都会让成本估算偏离现实。</li>
+<li><strong>会话同步不是强一致数据库</strong>：多路由副本之间允许事件丢失、延迟和乱序，严格会话亲和仍需要入口粘滞或外部权威映射。</li>
+<li><strong>小规模部署收益有限</strong>：单机或单模型节点较少时，多层索引、事件平面和活动负载跟踪可能比简单负载均衡更重。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=适用场景-4>适用场景<a href=#适用场景-4 class=hash-link aria-label="Direct link to 适用场景" title="Direct link to 适用场景">​</a></h4>
+<p>适合多节点、存在多级缓存、需要精细估算剩余工作量，或者采用<code>Prefill/Decode</code>分离的推理集群。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=sglang-router实验性的缓存感知与进程内粘滞><code>SGLang Router</code>：实验性的缓存感知与进程内粘滞<a href=#sglang-router实验性的缓存感知与进程内粘滞 class=hash-link aria-label="Direct link to sglang-router实验性的缓存感知与进程内粘滞" title="Direct link to sglang-router实验性的缓存感知与进程内粘滞">​</a></h3>
+<p>项目地址：<a href=https://github.com/sgl-project/sglang target=_blank rel="noopener noreferrer">SGLang项目仓库</a>、<a href=https://github.com/sgl-project/sglang/tree/06992c92ad4494fe9f9636e75be3e35040512447/experimental/sgl-router target=_blank rel="noopener noreferrer">SGLang Router源码目录</a>、<a href=https://github.com/sgl-project/sglang/blob/06992c92ad4494fe9f9636e75be3e35040512447/experimental/sgl-router/sgl-kv-indexer/README.md target=_blank rel="noopener noreferrer">外部<code>KV Indexer</code>说明</a>。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案设计-5>方案设计<a href=#方案设计-5 class=hash-link aria-label="Direct link to 方案设计" title="Direct link to 方案设计">​</a></h4>
+<p>当前仓库把<code>sgl-router</code>放在<code>experimental</code>实验目录中，因此应把它看成快速演进中的路由实现，而不是已经固定不变的长期接口。它服务单个模型，可以从静态地址或<code>Kubernetes EndpointSlice</code>发现后端；<code>EndpointSlice</code>是<code>Kubernetes</code>用来记录一组服务端点的资源。路由器在这些端点上执行缓存感知<code>cache_aware</code>和会话粘滞<code>sticky</code>等策略。</p>
+<p><code>cache_aware</code>策略先使用与模型一致的分词器得到<code>Token</code>，再查询前缀位置。当前实现有两种位置来源：</p>
+<ul>
+<li>本地<code>Radix Tree</code>。<code>Radix Tree</code>可以理解为一棵把共同开头合并保存的前缀树。路由器消费<code>SGLang</code>工作节点的缓存事件，把块的创建、删除和所在存储层更新到树中，然后沿着新请求的块序列向下查找，得到每个节点连续匹配到的深度。</li>
+<li>外部<code>KV Indexer</code>。每个工作节点通过<code>ZMQ</code>发布<code>BlockStored</code>、<code>BlockRemoved</code>和全量清除事件，一个桥接进程再通过适合服务间通信的<code>gRPC</code>接口，把事件集中写入独立索引服务。路由器查询该服务获得“每个健康节点连续拥有多少前缀块”，外部索引结果会替代本地树作为缓存信号。</li>
+</ul>
+<p>得到前缀匹配后，请求仍不会无条件发往命中最多的节点：</p>
+<!-- -->
+<p>图中的“最低门槛”可以按匹配<code>Token</code>数或匹配比例设置，防止只有很短公共开头的节点也被当成高价值候选。候选先按命中长度和<code>Prefill</code>压力排序，再限制数量，避免在大集群中比较所有节点。最终决策主要看还需重新计算多少<code>Token</code>；如果两个候选的剩余工作相差不大，压力护栏可以选择排队更少的节点。没有有效缓存候选时，使用<code>Power of Two Choices</code>，简称<code>P2C</code>：随机抽取两个节点，再选择其中负载较低的一个，以较低开销获得通常优于纯随机的均衡效果。</p>
+<p>外部<code>KV Indexer</code>是软状态服务。当前实现明确要求一个部署只运行一个索引服务：索引在内存中，没有持久化和主从复制；重启后为空，桥接断线期间的事件也不会重放，工作节点死亡后留下的位置还可能继续存在。查询超时、连接失败或索引过载时，路由器会牺牲缓存亲和，回退到最小活动负载；如果双方请求格式不一致，则返回<code>503</code>，因为这不是可以忽略的“没有命中”，而是接口契约错误。</p>
+<p><code>sticky</code>策略则不检查请求内容。它从指定请求头读取路由键，在当前路由进程内维护“路由键→工作节点<code>URL</code>”映射：新键用后备策略选择一个节点，已知键直接复用，目标离开健康集合后重新选择，长时间未访问的映射由后台任务清理。两个并发的首请求可能短暂选到不同节点，后写入的映射会成为后续请求的目标。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案优点-5>方案优点<a href=#方案优点-5 class=hash-link aria-label="Direct link to 方案优点" title="Direct link to 方案优点">​</a></h4>
+<ul>
+<li><strong>与<code>SGLang</code>缓存事件直接衔接</strong>：本地<code>Radix Tree</code>可以根据缓存块创建和删除事件更新，比只看历史路由记录更接近引擎状态。</li>
+<li><strong>本地与外部索引可以选择</strong>：小规模部署可以直接在路由器进程内查询，大一些的部署可以把事件集中到外部<code>KV Indexer</code>。</li>
+<li><strong>缓存命中带有压力护栏</strong>：命中必须达到最低门槛，节点容量或排队压力过高时还可以改选更空闲节点。</li>
+<li><strong>索引故障有明确回退路径</strong>：查询超时或服务过载时可以放弃缓存信号，回退到最小活动负载，而不是让全部请求失败。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案缺点-5>方案缺点<a href=#方案缺点-5 class=hash-link aria-label="Direct link to 方案缺点" title="Direct link to 方案缺点">​</a></h4>
+<ul>
+<li><strong>当前仍属于实验性组件</strong>：代码位于<code>experimental</code>目录，接口、配置和行为可能继续快速变化，升级前需要重新验证。</li>
+<li><strong>外部索引当前存在单点限制</strong>：索引只保存在单实例内存中，没有持久化、主从复制和断线事件重放。</li>
+<li><strong>陈旧位置可能残留</strong>：桥接中断或工作节点死亡后，索引中的旧记录不一定立即删除，路由结果可能暂时失真。</li>
+<li><strong><code>sticky</code>状态只在当前进程有效</strong>：多个路由副本不会同步映射，进程重启后也会丢失，不适合直接承担严格的全局会话绑定。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=适用场景-5>适用场景<a href=#适用场景-5 class=hash-link aria-label="Direct link to 适用场景" title="Direct link to 适用场景">​</a></h4>
+<p>更适合<code>SGLang</code>生态内的实验、单路由器部署和算法验证。采用外部索引进入生产前，还需要补齐高可用、事件重放和陈旧节点清理能力。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=lmcache把短命的显存缓存变成独立缓存服务><code>LMCache</code>：把短命的显存缓存变成独立缓存服务<a href=#lmcache把短命的显存缓存变成独立缓存服务 class=hash-link aria-label="Direct link to lmcache把短命的显存缓存变成独立缓存服务" title="Direct link to lmcache把短命的显存缓存变成独立缓存服务">​</a></h3>
+<p>项目地址：<a href=https://github.com/LMCache/LMCache target=_blank rel="noopener noreferrer">项目仓库</a>、<a href=https://docs.lmcache.ai/ target=_blank rel="noopener noreferrer">官方文档</a>、<a href=https://github.com/LMCache/LMCache/blob/5001a52cd9ec315f4a7ce1cc7ca9e02cde1f7fb0/docs/source/developer_guide/architecture.rst target=_blank rel="noopener noreferrer">架构说明</a>。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案设计-6>方案设计<a href=#方案设计-6 class=hash-link aria-label="Direct link to 方案设计" title="Direct link to 方案设计">​</a></h4>
+<p>前面的方案都在努力把请求送到“可能已经有缓存”的节点。<code>LMCache</code>换了一个思路：即使请求没有回到原来的推理进程，也可以把缓存从引擎之外的缓存服务加载回来。它不是网关或负载均衡器，而是连接推理引擎与多级存储的<code>KV Cache</code>管理层。</p>
+<p>在推荐的多进程模式<code>MP mode</code>中，<code>LMCache</code>作为独立服务运行，<code>vLLM</code>等推理实例通过连接器与它通信。同一节点上的多个推理实例可以共享一个缓存服务，并分别扩缩容。<code>L0</code>可以理解为推理引擎正在使用的<code>GPU</code>显存缓存，<code>L1</code>通常是<code>LMCache</code>管理的服务器内存，<code>L2</code>则可以是本地磁盘、<code>Redis/Valkey</code>、<code>S3</code>兼容对象存储、<code>Mooncake Store</code>或<code>NIXL</code>存储后端。</p>
+<p>一次重复前缀请求的流程如下：</p>
+<!-- -->
+<p>连接器先按<code>Token</code>序列切块并计算键，查询最长可复用前缀。如果<code>L1</code>命中，缓存从主机内存搬回<code>GPU</code>；如果只在<code>L2</code>命中，<code>LMCache</code>先把数据预取到<code>L1</code>，再交给引擎；如果完全未命中，模型照常执行<code>Prefill</code>，连接器把新产生的<code>KV</code>块保存到<code>L1</code>，存储控制器再按策略异步写入<code>L2</code>。异步写入的目标是尽量不让磁盘或远端网络阻塞模型主计算线程。</p>
+<p>这里真正复用的是可加载的<code>KV</code>数字数据，不只是“某个节点可能有缓存”的目录记录。因此，它能跨请求、会话和引擎进程复用，也能让部分缓存熬过推理进程重启。代价是数据体积很大，加载前还要执行查询、锁定、传输和显存写入；如果搬运时间比重新<code>Prefill</code>更长，命中反而没有价值。</p>
+<p><code>LMCache</code>还支持两类跨节点路径：</p>
+<ul>
+<li>在<code>Prefill/Decode</code>分离中，<code>Prefill</code>实例计算当前请求的缓存，<code>NIXL</code>等传输连接器把它交给<code>Decode</code>实例，这是当前请求的一次性交接；</li>
+<li>在<code>P2P</code>共享中，每个节点的<code>LMCache</code>服务贡献本地<code>L1</code>内存。请求节点本地未命中时，协调器只帮助发现存活节点，真正的数据由请求节点通过<code>RDMA</code>等通道直接从缓存拥有者读到自己的<code>L1</code>，协调器不经过数据流。</li>
+</ul>
+<p>这两条路径和长期存储不是一回事：一次性交接解决<code>PD</code>阶段衔接，<code>P2P</code>解决节点间热缓存共享，<code>L2</code>后端解决容量与持久性。生产环境应优先评估独立运行的<code>MP mode</code>；旧的进程内跨实例模式已经在官方文档中标为旧路径。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案优点-6>方案优点<a href=#方案优点-6 class=hash-link aria-label="Direct link to 方案优点" title="Direct link to 方案优点">​</a></h4>
+<ul>
+<li><strong>复用的是真实<code>KV</code>数据</strong>：它不仅记录“缓存可能在哪里”，还可以把命中的<code>KV</code>块重新加载到推理引擎，降低请求必须回到原进程的限制。</li>
+<li><strong>缓存生命周期可以脱离推理进程</strong>：独立<code>MP mode</code>让多个推理实例共享缓存服务，实例重启或独立扩缩容时，外部层中的缓存不一定随之消失。</li>
+<li><strong>存储层次丰富</strong>：可以在主机内存、本地磁盘和多种远端后端之间安排容量、速度与成本，并异步把新缓存写入较慢层。</li>
+<li><strong>同时覆盖<code>PD</code>交接和跨节点共享</strong>：传输连接器可完成当前请求的<code>Prefill/Decode</code>交接，<code>P2P</code>或<code>L2</code>后端则用于跨请求复用。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案缺点-6>方案缺点<a href=#方案缺点-6 class=hash-link aria-label="Direct link to 方案缺点" title="Direct link to 方案缺点">​</a></h4>
+<ul>
+<li><strong>命中不代表一定更快</strong>：查询、锁定、跨网络传输和写回<code>GPU</code>都需要时间；短前缀或慢网络下，重新<code>Prefill</code>可能反而更便宜。</li>
+<li><strong>需要管理大体积缓存数据</strong>：容量、淘汰、带宽、远端存储和故障恢复都会成为新的运维对象，不再只是维护一张轻量位置表。</li>
+<li><strong>不能替代请求路由器</strong>：<code>LMCache</code>负责查找和搬运缓存，不负责在多个推理节点之间完成模型兼容性与负载选择。</li>
+<li><strong>不同路径解决的问题不同</strong>：<code>PD</code>一次性交接、<code>P2P</code>热缓存共享和<code>L2</code>长期容量不能混为一谈，部署时需要分别规划。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=适用场景-6>适用场景<a href=#适用场景-6 class=hash-link aria-label="Direct link to 适用场景" title="Direct link to 适用场景">​</a></h4>
+<p>适合长上下文、多轮智能体、重复文档和跨实例复用率高，并且缓存搬运成本明显低于重新<code>Prefill</code>的场景。</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=mooncake元数据走控制面缓存数据走高速直达路径><code>Mooncake</code>：元数据走控制面，缓存数据走高速直达路径<a href=#mooncake元数据走控制面缓存数据走高速直达路径 class=hash-link aria-label="Direct link to mooncake元数据走控制面缓存数据走高速直达路径" title="Direct link to mooncake元数据走控制面缓存数据走高速直达路径">​</a></h3>
+<p>项目地址：<a href=https://github.com/kvcache-ai/Mooncake target=_blank rel="noopener noreferrer">项目仓库</a>、<a href=https://kvcache-ai.github.io/Mooncake/ target=_blank rel="noopener noreferrer">官方文档</a>、<a href=https://github.com/kvcache-ai/Mooncake/blob/1a0c0a44214ff61a8a4b2e9d90dfb023dd4703ed/docs/source/design/store/mooncake-store.md target=_blank rel="noopener noreferrer"><code>Mooncake Store</code>设计</a>。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案设计-7>方案设计<a href=#方案设计-7 class=hash-link aria-label="Direct link to 方案设计" title="Direct link to 方案设计">​</a></h4>
+<p><code>Mooncake</code>主要提供两块能力：<code>Transfer Engine</code>负责高速搬运数据，<code>Mooncake Store</code>负责把多台机器的内存和<code>SSD/NVMe</code>组织成分布式对象缓存。它本身不是会话路由器；<code>vLLM</code>、<code>SGLang</code>或<code>LMCache</code>等上层组件决定何时保存、查询和加载<code>KV Cache</code>，<code>Mooncake</code>负责放在哪里以及怎样高效搬运。</p>
+<p><code>Transfer Engine</code>先把各节点可以访问的内存、显存或存储区域注册成“段”，并把网络地址、设备和可访问缓冲区等元数据登记到<code>etcd</code>、<code>Redis</code>或<code>HTTP</code>元数据服务。传输发起方找到目标段后，可以批量提交读写任务。引擎根据数据所在位置和机器拓扑选择<code>TCP</code>、<code>RDMA</code>、<code>NVLink</code>、<code>NVMe-oF</code>等可用通道，也可以聚合多张网卡带宽；某条路径临时失败时尝试其他可达路径。</p>
+<p><code>Mooncake Store</code>在这条传输能力之上增加对象目录、空间分配、副本和淘汰。最容易混淆的是<code>Master Service</code>与数据节点的关系：<code>Master Service</code>只管理“对象在哪里”的元数据，不搬运大块<code>KV</code>数据。客户端既可以发起<code>Put/Get</code>，也可以贡献一段本机内存作为存储空间，实际数据在客户端与存储客户端之间直接传输。</p>
+<!-- -->
+<p>写入时，<code>PutStart</code>先让<code>Master Service</code>分配空间和副本位置；调用方再通过<code>Transfer Engine</code>直接把对象写到相应存储段；全部写完后用<code>PutEnd</code>把副本标记为可用。读取时，调用方先查询可用副本，再选择一个完整副本并直接读取。大对象可以切片放到不同段并行传输，同一对象也可以保存多个副本来分散热点。</p>
+<p>控制面和数据面分离带来两个好处：<code>Master Service</code>不需要吞吐巨大的<code>KV</code>字节流；存储节点可以独立扩缩容，推理引擎重启也不会天然清空共享缓存。但这并不意味着没有运维成本：默认单<code>Master</code>模式有单点故障，高可用模式需要多<code>Master</code>与<code>etcd</code>选主；传输引擎还依赖正确的内存注册、网卡拓扑和网络权限。缓存数据是否值得跨网络读取，也必须与重新计算成本比较。</p>
+<p>在<code>PD</code>分离场景中，<code>MooncakeConnector</code>可以把当前请求的<code>KV</code>从<code>Prefill</code>节点传给<code>Decode</code>节点；在跨请求共享场景中，<code>MooncakeStoreConnector</code>按块哈希把缓存写入共享池，其他实例再按相同哈希读取。前者强调实时传输，后者强调对象的保存、查找和复用，二者可以同时存在。</p>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案优点-7>方案优点<a href=#方案优点-7 class=hash-link aria-label="Direct link to 方案优点" title="Direct link to 方案优点">​</a></h4>
+<ul>
+<li><strong>大块数据不经过<code>Master Service</code></strong>：控制面只返回对象位置，真实<code>KV</code>数据在客户端与存储节点之间直传，避免中心元数据服务成为数据带宽瓶颈。</li>
+<li><strong>能够利用多种高速通道</strong>：传输引擎可根据设备和拓扑选择<code>TCP</code>、<code>RDMA</code>、<code>NVLink</code>或<code>NVMe-oF</code>，也可以聚合多张网卡带宽。</li>
+<li><strong>存储节点可以独立扩展</strong>：多台机器的内存和<code>SSD/NVMe</code>可以组成共享池，对象还可以切片、保存多副本并从不同位置读取。</li>
+<li><strong>既支持实时<code>PD</code>传输，也支持跨请求复用</strong>：<code>MooncakeConnector</code>负责阶段间交接，<code>MooncakeStoreConnector</code>负责将缓存对象放入共享池。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=方案缺点-7>方案缺点<a href=#方案缺点-7 class=hash-link aria-label="Direct link to 方案缺点" title="Direct link to 方案缺点">​</a></h4>
+<ul>
+<li><strong>它不是会话或缓存感知路由器</strong>：上层仍需决定请求发给谁，以及什么时候值得查询和搬运远端缓存。</li>
+<li><strong>高速能力依赖基础设施</strong>：内存注册、网卡拓扑、网络权限和传输通道必须正确配置，普通网络环境未必能获得同等收益。</li>
+<li><strong><code>Master Service</code>需要单独保证高可用</strong>：默认单<code>Master</code>存在单点故障，多<code>Master</code>部署还需要<code>etcd</code>选主和相应运维。</li>
+<li><strong>远端命中仍有搬运成本</strong>：对象即使存在，也可能因为距离远、网络拥塞或对象过小而不如本地重新计算。</li>
+</ul>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id=适用场景-7>适用场景<a href=#适用场景-7 class=hash-link aria-label="Direct link to 适用场景" title="Direct link to 适用场景">​</a></h4>
+<p>适合缓存对象较大、跨节点复用价值高，并且具备高速网络、可观测性和分布式存储运维能力的集群。它可以作为<code>LMCache</code>的远端后端，也可以直接接入<code>vLLM</code>或<code>SGLang</code>；上层仍应优先争取便宜的本地命中。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=开源方案对比>开源方案对比<a href=#开源方案对比 class=hash-link aria-label="Direct link to 开源方案对比" title="Direct link to 开源方案对比">​</a></h2>
+<table><thead><tr><th>项目<th>主要状态来源<th>跨路由副本<th>负载联合决策<th>更适合的场景<tbody><tr><td><code>Higress ai-endpoint-picker</code><td>本地近似索引＋后端指标<td>本地索引不共享<td>是，多信号加权<td>单集群内轻量、低延迟端点选择<tr><td><code>Gateway API EPP</code>参考算法<td><code>EPP</code>本地近似索引<td>多副本视图会退化<td>提案建议联合评分<td>需要标准接口和可替换调度器<tr><td><code>llm-d Router</code><td>近似索引或引擎<code>KV Events</code><td>取决于索引与部署<td>是，可组合插件<td><code>Kubernetes</code>大规模推理与<code>PD</code>分离<tr><td><code>AIBrix</code><td>本地预测表或<code>KV Event Sync</code><td>取决于事件覆盖和负载存储<td>是，有界负载<td>需要会话键、前缀和负载多策略组合<tr><td><code>NVIDIA Dynamo</code><td>多层缓存索引＋活动负载<td>缓存事件可广播，活动与会话状态尽力同步<td>是，成本函数<td>多节点、多缓存层和分离式推理<tr><td><code>SGLang Router</code><td>本地事件前缀树或外部事件索引<td>本地粘滞不共享；外部索引当前单实例<td>是，前缀收益受压力护栏约束<td><code>SGLang</code>生态内的实验和算法验证<tr><td><code>LMCache</code><td>可加载的<code>L1/L2 KV</code>对象<td>缓存可跨引擎与节点<td>依赖上层路由<td>长上下文、跨进程复用和多级缓存<tr><td><code>Mooncake</code><td>对象元数据＋分布式缓存数据<td>存储池可跨实例<td>依赖上层路由<td>高速传输、共享缓存池和<code>PD</code>分离</table>
+<p>没有一个项目能同时做到零侵入、精确目录、无状态、多副本强一致、无网络开销和绝对负载均衡。选型本质上是在命中收益、状态复杂度、引擎耦合与故障恢复之间取舍。</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id=推荐的生产架构>推荐的生产架构<a href=#推荐的生产架构 class=hash-link aria-label="Direct link to 推荐的生产架构" title="Direct link to 推荐的生产架构">​</a></h2>
+<p>对于同时包含多轮会话、共享系统提示和长文档问答的自建集群，可以采用下面的分层设计。它不是要求一次性上齐所有组件，而是明确每层职责。</p>
+<p><img decoding=async loading=lazy alt=先打前缀缓存基线，再上软亲和，长前缀才上精确索引 src=/assets/images/image-6-3e326ae0c2e49b4fcbaa8f14939a5f7b.webp width=1280 height=720 class=img_ev3q></p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=基本架构>基本架构<a href=#基本架构 class=hash-link aria-label="Direct link to 基本架构" title="Direct link to 基本架构">​</a></h3>
+<!-- -->
+<p>建议按三个阶段建设：</p>
+<ol>
+<li><strong>先建立基线</strong>。确保推理引擎真正开启前缀缓存；固定模板和工具顺序；采集<code>Token</code>命中率、<code>TTFT</code>、队列和<code>KV</code>利用率。</li>
+<li><strong>再加入请求路由软亲和或近似前缀路由</strong>。对拥塞节点设置硬上限，未命中或解析失败时回退最少请求，验证命中率提升是否真的转化为<code>TTFT</code>下降。</li>
+<li><strong>最后评估精确索引和共享缓存</strong>。只有长前缀重算成本足以覆盖事件、存储和传输开销时，才引入<code>KV Events</code>、点对点缓存传输或远端存储。</li>
+</ol>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id=故障降级顺序>故障降级顺序<a href=#故障降级顺序 class=hash-link aria-label="Direct link to 故障降级顺序" title="Direct link to 故障降级顺序">​</a></h3>
+<p>生产实现应让优化失效时仍能正确推理：</p>
+<!-- -->
+<p>只有在后端确认接收或响应流成功建立后，再写入新的会话绑定和近似缓存位置，能减少“请求没有成功，索引却错误地记录了缓存位置”的情况。流式响应是服务端一边生成、一边把内容发给客户端；如果客户端已经收到一部分内容，再次重试可能得到两段回答，因此必须谨慎处理。</div></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href=/ai/llm-api-evaluation-guide><div class=pagination-nav__sublabel>Previous</div><div class=pagination-nav__label>大模型API服务评测指南：指标、方法与工具</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/ai/pd-separation><div class=pagination-nav__sublabel>Next</div><div class=pagination-nav__label>PD(Prefill&Decode)分离</div></a></nav><div class=docusaurus-mt-lg></div></div></div><div class="col col--3 tocCol_heTC"><nav class=panel_B5On aria-label=本页目录><button type=button class="clean-btn collapseButton_ziji" title=收起本页目录 aria-label=收起本页目录 aria-expanded=true><svg width=16 height=16 viewBox="0 0 24 24" fill=none stroke=currentColor stroke-width=2 stroke-linecap=round stroke-linejoin=round class="lucide lucide-chevrons-right" aria-hidden=true><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg></button><div class="body_e9AV thin-scrollbar"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#引言 class="table-of-contents__link toc-highlight" title=引言>引言</a><ul><li><a href=#一个简单的生活类比 class="table-of-contents__link toc-highlight" title=一个简单的生活类比>一个简单的生活类比</a><li><a href=#文中出现的一些术语 class="table-of-contents__link toc-highlight" title=文中出现的一些术语>文中出现的一些术语</a><li><a href=#先分清三种会话状态 class="table-of-contents__link toc-highlight" title=先分清三种“会话状态”>先分清三种“会话状态”</a></ul><li><a href=#kv-cache为什么决定多轮会话的性能 class="table-of-contents__link toc-highlight" title="KV Cache为什么决定多轮会话的性能"><code>KV Cache</code>为什么决定多轮会话的性能</a><ul><li><a href=#prefill与decode分别在做什么 class="table-of-contents__link toc-highlight" title=Prefill与Decode分别在做什么><code>Prefill</code>与<code>Decode</code>分别在做什么</a><li><a href=#多轮对话为什么天然适合前缀复用 class="table-of-contents__link toc-highlight" title=多轮对话为什么天然适合前缀复用>多轮对话为什么天然适合前缀复用</a><li><a href=#命中到底需要哪些条件 class="table-of-contents__link toc-highlight" title=命中到底需要哪些条件>命中到底需要哪些条件</a></ul><li><a href=#缓存命中率的真正痛点 class="table-of-contents__link toc-highlight" title=缓存命中率的真正痛点>缓存命中率的真正痛点</a><ul><li><a href=#请求命中率容易掩盖问题 class="table-of-contents__link toc-highlight" title=请求命中率容易掩盖问题>请求命中率容易掩盖问题</a><li><a href=#多副本把一份热前缀切成多份冷缓存 class="table-of-contents__link toc-highlight" title=多副本把一份热前缀切成多份冷缓存>多副本把一份热前缀切成多份冷缓存</a><li><a href=#热点排队与命中率互相拉扯 class="table-of-contents__link toc-highlight" title=热点、排队与命中率互相拉扯>热点、排队与命中率互相拉扯</a><li><a href=#缓存索引会变旧 class="table-of-contents__link toc-highlight" title=缓存索引会变旧>缓存索引会变旧</a><li><a href=#扩缩容和故障是正常路径 class="table-of-contents__link toc-highlight" title=扩缩容和故障是正常路径>扩缩容和故障是正常路径</a></ul><li><a href=#常见会话保持技术方案 class="table-of-contents__link toc-highlight" title=常见会话保持技术方案>常见会话保持技术方案</a><ul><li><a href=#基于client-ipcookie或header的粘滞 class="table-of-contents__link toc-highlight" title="基于Client IP、Cookie或Header的粘滞">基于<code>Client IP</code>、<code>Cookie</code>或<code>Header</code>的粘滞</a><li><a href=#一致性哈希与rendezvous-hash class="table-of-contents__link toc-highlight" title="一致性哈希与Rendezvous Hash">一致性哈希与<code>Rendezvous Hash</code></a><li><a href=#服务端会话映射 class="table-of-contents__link toc-highlight" title=服务端会话映射>服务端会话映射</a><li><a href=#近似前缀感知路由 class="table-of-contents__link toc-highlight" title=近似前缀感知路由>近似前缀感知路由</a><li><a href=#基于缓存变更通知也就是kv-events的精确路由 class="table-of-contents__link toc-highlight" title="基于缓存变更通知，也就是KV Events的精确路由">基于缓存变更通知，也就是<code>KV Events</code>的精确路由</a><li><a href=#分布式与分层kv-cache class="table-of-contents__link toc-highlight" title="分布式与分层KV Cache">分布式与分层<code>KV Cache</code></a><li><a href=#托管模型服务的提示词缓存 class="table-of-contents__link toc-highlight" title=托管模型服务��的提示词缓存>托管模型服务的提示词缓存</a></ul><li><a href=#如何在缓存局部性与负载之间做决策 class="table-of-contents__link toc-highlight" title=如何在缓存局部性与负载之间做决策>如何在缓存局部性与负载之间做决策</a><ul><li><a href=#先分清本文的软亲和是什么 class="table-of-contents__link toc-highlight" title=先分清本文的“软亲和”是什么>先分清本文的“软亲和”是什么</a><li><a href=#一次路由决策到底经过哪些步骤 class="table-of-contents__link toc-highlight" title=一次路由决策到底经过哪些步骤>一次路由决策到底经过哪些步骤</a><li><a href=#把评分公式翻译成自然语言 class="table-of-contents__link toc-highlight" title=把评分公式翻译成自然语言>把评分公式翻译成自然语言</a><li><a href=#为什么通常推荐请求路由软亲和 class="table-of-contents__link toc-highlight" title=为什么通常推荐请求路由软亲和>为什么通常推荐请求路由软亲和</a></ul><li><a href=#开源技术方案调研 class="table-of-contents__link toc-highlight" title=开源技术方案调研>开源技术方案调研</a><ul><li><a href=#higress-ai-endpoint-picker多信号端点选择 class="table-of-contents__link toc-highlight" title="Higress ai-endpoint-picker：多信号端点选择"><code>Higress ai-endpoint-picker</code>：多信号端点选择</a><li><a href=#gateway-api-inference-extension标准化选择接口 class="table-of-contents__link toc-highlight" title="Gateway API Inference Extension：标准化选择接口"><code>Gateway API Inference Extension</code>：标准化选择接口</a><li><a href=#llm-d-router近似精确和会话亲和的可组合管线 class="table-of-contents__link toc-highlight" title="llm-d Router：近似、精确和会话亲和的可组合管线"><code>llm-d Router</code>：近似、精确和会话亲和的可组合管线</a><li><a href=#aibrix会话键与有界负载前缀路由 class="table-of-contents__link toc-highlight" title=AIBrix：会话键与有界负载前缀路由><code>AIBrix</code>：会话键与有界负载前缀路由</a><li><a href=#nvidia-dynamo把缓存层级纳入成本函数 class="table-of-contents__link toc-highlight" title="NVIDIA Dynamo：把缓存层级纳入成本函数"><code>NVIDIA Dynamo</code>：把缓存层级纳入成本函数</a><li><a href=#sglang-router实验性的缓存感知与进程内粘滞 class="table-of-contents__link toc-highlight" title="SGLang Router：实验性的缓存感知与进程内粘滞"><code>SGLang Router</code>：实验性的缓存感知与进程内粘滞</a><li><a href=#lmcache把短命的显存缓存变成独立缓存服务 class="table-of-contents__link toc-highlight" title=LMCache：把短命的显存缓存变成独立缓存服务><code>LMCache</code>：把短命的显存缓存变成独立缓存服务</a><li><a href=#mooncake元数据走控制面缓存数据走高速直达路径 class="table-of-contents__link toc-highlight" title=Mooncake：元数据走控制面，缓存数据走高速直达路径><code>Mooncake</code>：元数据走控制面，缓存数据走高速直达路径</a></ul><li><a href=#开源方案对比 class="table-of-contents__link toc-highlight" title=开源方案对比>开源方案对比</a><li><a href=#推荐的生产架构 class="table-of-contents__link toc-highlight" title=推荐的生产架构>推荐的生产架构</a><ul><li><a href=#基本架构 class="table-of-contents__link toc-highlight" title=基本架构>基本架构</a><li><a href=#故障降级顺序 class="table-of-contents__link toc-highlight" title=故障降级顺序>故障降级顺序</a></ul></ul></div></div></nav></div></div></div></main></div></div></div><footer class=footer><div class="container container-fluid"><div class="footer__bottom text--center"><div class=footer__copyright>Copyright 2026 johng.cn<br><a class=footer__beian href=https://beian.miit.gov.cn/ target=_blank rel="noopener noreferrer">蜀ICP备2026020342号-2</a></div></div></div></footer></div>
