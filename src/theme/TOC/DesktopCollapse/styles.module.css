@@ -1,0 +1,144 @@
+.panel {
+  position: sticky;
+  top: calc(var(--ifm-navbar-height) + 1rem);
+  max-height: calc(100vh - (var(--ifm-navbar-height) + 2rem));
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid var(--ifm-toc-border-color);
+}
+
+.collapseButton {
+  position: absolute;
+  top: 0.05rem;
+  right: 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border-radius: 6px;
+  color: var(--ifm-color-emphasis-700);
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.collapseButton:hover {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-primary);
+}
+
+.collapseButton:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 1.6rem;
+}
+
+.body > :global(*) {
+  position: static !important;
+  top: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.body :global(.table-of-contents__left-border) {
+  border-left: none;
+}
+
+.reopenAnchor {
+  position: sticky;
+  top: calc(var(--ifm-navbar-height) + 0.85rem);
+  z-index: 20;
+  display: flex;
+  justify-content: flex-end;
+  height: 0;
+  pointer-events: none;
+}
+
+.reopenButton {
+  appearance: none;
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  margin: 0;
+  padding: 0 12px 0 10px;
+  border: 1px solid rgba(23, 43, 77, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  color: #3d4f6f;
+  box-shadow: 0 1px 2px rgba(23, 43, 77, 0.05);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  animation: tocReopenIn 180ms ease;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.reopenButton:hover {
+  background: rgba(47, 128, 237, 0.05);
+  border-color: rgba(47, 128, 237, 0.4);
+  color: var(--ifm-color-primary);
+  box-shadow: 0 1px 2px rgba(47, 128, 237, 0.08);
+}
+
+.reopenButton:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+.reopenButton svg {
+  flex: 0 0 auto;
+  opacity: 0.72;
+}
+
+.reopenButton:hover svg {
+  opacity: 1;
+}
+
+@keyframes tocReopenIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 996px) {
+  .tocCol,
+  .reopenAnchor,
+  .panel {
+    display: none;
+  }
+}
+
+@media print {
+  .tocCol,
+  .reopenAnchor,
+  .collapseButton {
+    display: none !important;
+  }
+}

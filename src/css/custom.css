@@ -1,0 +1,372 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* 避免在edge浏览器下，文章主页面出现横向滚动条 */
+#__docusaurus {
+  overflow-x: clip;
+}
+
+.navbar__logo img {
+  border-radius: 5px;
+}
+
+.logo-container {
+  text-align: center;
+}
+
+.logo-container .logo {
+  width: 400px;
+  margin-top: 10px;
+}
+
+.logo-container .logo-badges img {
+  padding: 0 2px 0 2px;
+}
+
+:root {
+  --ifm-color-primary: #2F80ED;
+  --ifm-color-primary-dark: #1366d6;
+  --ifm-color-primary-darker: #1366d6;
+  --ifm-color-primary-darkest: #1366d6;
+  --ifm-color-primary-light: #33925d;
+  --ifm-color-primary-lighter: #359962;
+  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-color-secondary-dark: #d4d5d8;
+  --ifm-button-border-color: #d4d5d8;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-font-size-base: 16px;
+  --ifm-font-family-base: "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Helvetica,
+    Arial,
+    sans-serif;
+  --ifm-font-color-base: #172b4d;
+  --ifm-font-color-subtle: #777E90;
+  --ifm-button-font-weight: 500;
+  --ifm-background-surface-color: #f9f9f9;
+  --ifm-breadcrumb-spacing: 2px;
+  --ifm-footer-background-color: #f9f9f9;
+  --ifm-spacing-horizontal: 2rem;
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+  --ifm-color-primary: #25c2a0;
+  --ifm-color-primary-dark: #21af90;
+  --ifm-color-primary-darker: #1fa588;
+  --ifm-color-primary-darkest: #1a8870;
+  --ifm-color-primary-light: #29d5b0;
+  --ifm-color-primary-lighter: #32d8b4;
+  --ifm-color-primary-lightest: #4fddbf;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-footer-background-color: #161618;
+  --ifm-footer-color: #8b93a7;
+}
+
+body .button {
+  display: inline-block;
+  border-radius: 5px;
+  padding: 14px 22px;
+  color: #fff;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+  text-align: center;
+  vertical-align: top;
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  letter-spacing: normal !important;
+  position: relative;
+  white-space: nowrap;
+  transform: translate3d(0, 0, 0);
+  -webkit-appearance: none;
+  transition: 0.3s;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+body .button--secondary {
+  border: 1px solid rgba(0, 0, 0, 0.11);
+  padding-top: 13px;
+  padding-bottom: 13px;
+  background: #fff;
+  color: #161616;
+}
+
+@import "./output.css";
+
+.markdown {
+  --ifm-h2-vertical-rhythm-top: 1;
+}
+
+.markdown>*:first-child {
+  margin-top: 20px;
+}
+
+code {
+  padding: 0.2em 0.4em;
+  background-color: rgba(27, 31, 35, 0.03);
+  border-radius: 3px;
+  border: 0px;
+  color: #c7254e;
+  font-size: 90%;
+}
+
+pre {
+  font-size: 90%;
+}
+
+
+
+
+/* GitHub */
+.header-links-dropdown+.dropdown__menu {
+  min-width: 176px;
+  padding: 8px 0;
+}
+
+.dropdown__link.header-github-link,
+.dropdown__link.header-linapro-link,
+.dropdown__link.header-goframe-link {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+}
+
+.dropdown__link.header-github-link>svg,
+.dropdown__link.header-linapro-link>svg,
+.dropdown__link.header-goframe-link>svg {
+  display: inline-block;
+  flex: 0 0 12px;
+  margin-left: auto;
+}
+
+.header-github-link:hover:before {
+  opacity: 0.6;
+}
+
+.header-github-link:before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  flex: 0 0 24px;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E") no-repeat;
+  background-size: contain;
+}
+
+html[data-theme='dark'] .header-github-link:before {
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='white' d='M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12'/%3E%3C/svg%3E") no-repeat;
+  background-size: contain;
+}
+
+/* GoFrame */
+.header-goframe-link:hover:before {
+  opacity: 0.8;
+}
+
+.header-goframe-link:before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  flex: 0 0 24px;
+  background: url("/img/goframe.svg") no-repeat;
+  background-size: contain;
+}
+
+html[data-theme='dark'] .header-goframe-link:before {
+  background: url("/img/goframe.svg") no-repeat;
+  background-size: contain;
+}
+
+/* LinaPro */
+.header-linapro-link:hover:before {
+  opacity: 0.8;
+}
+
+.header-linapro-link:before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  flex: 0 0 24px;
+  background: url("/img/linapro.svg") no-repeat;
+  background-size: contain;
+}
+
+html[data-theme='dark'] .header-linapro-link:before {
+  background: url("/img/linapro.svg") no-repeat;
+  background-size: contain;
+}
+
+/* TODO: 加这个可以防止toml表头换行，但不知道有没有副作用，需要深入研究
+   https://github.com/PrismJS/prism/issues/2443 */
+.token.table.class-name {
+  display: initial;
+}
+
+.menu__link {
+  font-size: 98%;
+}
+
+table th,
+table td {
+  padding: 0.88rem;
+  font-size: 96%;
+}
+
+.markdown li>p {
+  margin: 0 0 6px 0;
+}
+
+.screen-reader-only {
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: polygon(0 0, 0 0, 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  white-space: nowrap;
+}
+
+.showcase-reset {
+  padding: 8px 20px 8px 20px !important;
+  font-size: 14px !important;
+}
+
+.showcase-title-mobile,
+.showcase-description-mobile {
+  display: none;
+}
+
+/* too avoid too many navbar items when in short window size */
+@media only screen and (max-width: 1360px) {
+  .navbar__items {
+    white-space: nowrap;
+  }
+
+  .navbar__items--right>a {
+    display: none;
+  }
+}
+
+
+@media only screen and (max-width: 680px) {
+
+  .showcase-title,
+  .showcase-description {
+    display: none;
+  }
+
+  .showcase-title-mobile,
+  .showcase-description-mobile {
+    display: block;
+  }
+}
+
+@media only screen and (max-width: 420px) {
+  .showcase-result-cases {
+    display: none;
+  }
+}
+
+
+@media only screen and (max-width: 500px) {
+  .petercat-lui-assistant {
+    display: none;
+  }
+}
+
+.footer__copyright {
+  color: #656b7e;
+}
+
+.footer__beian,
+.beian a {
+  display: inline-block;
+  margin-top: 0.2em;
+  color: var(--ifm-font-color-subtle);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.footer__beian:hover,
+.beian a:hover {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+pre {
+  tab-size: 4;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+}
+
+/* 禁用博客页面的自动序号功能 - 针对博客列表页、文章页等所有博客相关页面 */
+html.blog-wrapper h2::before,
+html.blog-wrapper h3::before,
+html.blog-wrapper h4::before,
+html.blog-wrapper h5::before {
+  content: none !important;
+}
+
+/* 禁用博客文章详情页 TOC (目录) 中的自动序号 */
+html.blog-wrapper ul.table-of-contents > li::before,
+html.blog-wrapper ul.table-of-contents > li > ul > li::before,
+html.blog-wrapper ul.table-of-contents > li > ul > li > ul > li::before,
+html.blog-wrapper ul.table-of-contents > li > ul > li > ul > li > ul > li::before {
+  content: none !important;
+}
+
+/*
+ * TOC 标题过长时单行省略。
+ * docusaurus-numbered-headings 会把链接设为 display:inline !important
+ * （为了让 li::before 序号与标题同一行），inline 元素无法应用 text-overflow，
+ * 因此用 flex 排布序号 + 链接，并为链接开启省略。
+ *
+ * 注意：li 设为 flex 后会禁用垂直 margin 折叠。Infima 默认给每个 li
+ * margin: var(--ifm-toc-padding-vertical)（0.5rem），折叠时一级分类间距≈0.5rem；
+ * 不折叠时会变成「末级子项 margin-bottom + 下一项 margin-top」≈1rem。
+ * 对嵌套 ul 使用等量负 margin，抵消多出来的那一段间距。
+ */
+.table-of-contents li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.table-of-contents li > a.table-of-contents__link {
+  display: block !important;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-of-contents li > ul {
+  flex: 1 0 100%;
+  min-width: 0;
+  width: 100%;
+  margin-bottom: calc(-1 * var(--ifm-toc-padding-vertical));
+}

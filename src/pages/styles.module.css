@@ -1,0 +1,36 @@
+.aboutSection {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border-radius: 8px;
+    background-color: var(--ifm-background-surface-color);
+    box-shadow: var(--ifm-global-shadow-lw);
+}
+
+.aboutSection h2 {
+    color: var(--ifm-color-primary);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.aboutSection p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.aboutSection ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.aboutSection li {
+    margin: 0.5rem 0;
+    padding: 0.5rem 1rem;
+    border-left: 3px solid var(--ifm-color-primary);
+    background-color: var(--ifm-background-color);
+    transition: all 0.3s ease;
+}
+
+.aboutSection li:hover {
+    transform: translateX(5px);
+    background-color: var(--ifm-hover-overlay);
+}

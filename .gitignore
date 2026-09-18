@@ -1,0 +1,51 @@
+.buildpath
+.hgignore.swp
+.project
+.orig
+.swp
+.idea/
+.settings/
+.vscode/
+vendor/
+!static/jiufengshan-map/vendor/
+pkg/
+bin/
+**/.DS_Store
+.test/
+cmd/gf/main
+cmd/gf/gf
+temp/
+example/log
+go.work
+go.work.sum
+!cmd/gf/go.work
+.aiprompt.zh.md
+.codex/
+
+# Ignore for docs
+node_modules
+.docusaurus
+output
+**/docs/changelog.md
+
+# Dependencies
+/node_modules
+
+# Production
+/build
+
+# Generated files
+.docusaurus
+.cache-loader
+.obsidian
+
+# Misc
+.DS_Store
+output
+
+go.work
+go.work.sum
+.vscode
+.scripts/ai-trans/config.yaml
+.scripts/gen-seo/config.yaml
+localdocs/

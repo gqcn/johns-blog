@@ -1,0 +1,22 @@
+.docItemContainer header + *,
+.docItemContainer article > *:first-child {
+  margin-top: 0;
+}
+
+@media (min-width: 997px) {
+  .docItemCol {
+    max-width: 75% !important;
+    transition: max-width 0.28s ease;
+  }
+
+  /* No TOC column in the row: don't keep a 25% empty gutter. */
+  .docItemCol:only-child,
+  .docItemColFull {
+    max-width: 100% !important;
+    transition: max-width 0.28s ease;
+  }
+
+  .docItemColFull :global(.theme-doc-breadcrumbs) {
+    padding-right: 5.75rem;
+  }
+}

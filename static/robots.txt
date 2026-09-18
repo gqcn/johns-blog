@@ -1,0 +1,20 @@
+# robots.txt for johng.cn
+# This file controls how search engines crawl and index the site
+
+User-agent: *
+
+# Allow crawling of all public content
+Allow: /
+
+# Block hidden/private content
+Disallow: /hidden/
+
+# Block utility pages that don't need indexing
+Disallow: /search
+Disallow: /tags/
+Disallow: /blog/tags/
+Disallow: /blog/authors
+Disallow: /blog/archive
+
+# Sitemap location
+Sitemap: https://johng.cn/sitemap.xml

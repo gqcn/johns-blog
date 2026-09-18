@@ -1,0 +1,24 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: volcano-job-test
+spec:
+  minAvailable: 2
+  schedulerName: volcano
+  queue: default
+  tasks:
+    - replicas: 2
+      name: worker
+      template:
+        spec:
+          containers:
+            - name: busybox
+              image: busybox:latest
+              command: ["sh", "-c", "sleep 3600"]
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "100m"
+                  memory: "128Mi"

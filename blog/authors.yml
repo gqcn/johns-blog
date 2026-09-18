@@ -1,0 +1,8 @@
+John:
+  name: John
+  # title: John
+  url: https://github.com/gqcn
+  image_url: https://github.com/gqcn.png
+  email: john@johng.cn
+  socials:
+    github: gqcn

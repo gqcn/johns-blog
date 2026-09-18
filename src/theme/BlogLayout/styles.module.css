@@ -1,0 +1,5 @@
+@media (min-width: 997px) {
+  .mainWithReopen :global(article > header) {
+    padding-right: 5.75rem;
+  }
+}
