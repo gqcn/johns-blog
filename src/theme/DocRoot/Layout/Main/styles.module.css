@@ -1,0 +1,27 @@
+.docMainContainer {
+  display: flex;
+  width: 100%;
+}
+
+@media (min-width: 997px) {
+  .docMainContainer {
+    flex-grow: 1;
+    max-width: calc(100% - var(--doc-sidebar-width));
+  }
+
+  .docMainContainerEnhanced {
+    max-width: calc(100% - var(--doc-sidebar-hidden-width));
+  }
+
+  .docItemWrapper {
+    transition: max-width 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Open-state container is already xl (1320px); reclaim the full sidebar
+     width plus a modest extra instead of 1140px + 300px (~120px gain). */
+  .docItemWrapperEnhanced {
+    max-width: calc(
+      var(--ifm-container-width-xl) + var(--doc-sidebar-width) + 4rem
+    ) !important;
+  }
+}
