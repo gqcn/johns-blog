@@ -50,6 +50,9 @@ Sketch lines, rough strokes, cartoon simplicity
 No realism, no photorealistic shading, no 3D rendering
 Think: doodle / crayon / marker / pastel look
 Canvas format: landscape 16:9.
+Canvas background MUST be clean pure white or cool light gray (#FFFFFF or #F7F8FA).
+Do NOT use yellow, cream, beige, ivory, parchment, kraft paper, or any warm-tinted paper background.
+Colored sticky notes and characters may use yellow; the canvas itself must stay white.
 Use nano banana pro mode to render the illustration.
 Use minimal but expressive cartoon elements to enhance memorability:
 small icons, symbols, cute characters
@@ -77,6 +80,7 @@ Do NOT generate copyrighted characters directly.
 Do NOT turn the infographic into an essay.
 Do NOT fill the canvas fully; always keep meaningful whitespace.
 Do NOT output long paragraphs.
+Do NOT use a yellow, cream, beige, or warm paper background. The canvas background must be white.
 
 TASK
 Create a cartoon-style hand-drawn infographic with the rules above, using nano banana pro, based on the following content:
