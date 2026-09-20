@@ -131,6 +131,11 @@ const config: Config = {
           label: '可观测性',
           to: '/observability',
         },
+        {
+          position: 'left',
+          label: '生活笔记',
+          to: '/life',
+        },
 
         {
           position: 'right',
