@@ -370,3 +370,16 @@ html.blog-wrapper ul.table-of-contents > li > ul > li > ul > li > ul > li::befor
   width: 100%;
   margin-bottom: calc(-1 * var(--ifm-toc-padding-vertical));
 }
+
+/*
+ * medium-zoom's overlay/image have no z-index. Positioned page chrome with
+ * z-index >= 1 (Mermaid expand control, navbar, sidebar toggle) would otherwise
+ * paint on top of the zoomed image.
+ */
+.medium-zoom-overlay {
+  z-index: 1000;
+}
+
+.medium-zoom-image--opened {
+  z-index: 1001;
+}

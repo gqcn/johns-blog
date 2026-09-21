@@ -5,8 +5,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-import React, {useEffect, useRef, useState} from 'react';
-import type {MouseEvent, ReactNode} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {MouseEvent, PointerEvent, ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import ErrorBoundary from '@docusaurus/ErrorBoundary';
 import {ErrorBoundaryErrorMessageFallback} from '@docusaurus/theme-common';
@@ -27,6 +27,19 @@ import type {RenderResult} from 'mermaid';
 import {TransformComponent, TransformWrapper} from 'react-zoom-pan-pinch';
 
 import styles from './styles.module.css';
+
+/** Match medium-zoom: a short tap/click closes; pan and pinch do not. */
+const TAP_CLOSE_MAX_MS = 400;
+const TAP_CLOSE_MAX_MOVE_PX = 12;
+
+type TapGesture = {
+  pointerId: number;
+  x: number;
+  y: number;
+  t: number;
+  moved: boolean;
+  extraPointers: boolean;
+};
 
 function MermaidRenderResult({
   renderResult,
@@ -61,6 +74,7 @@ function MermaidViewer({
 }): JSX.Element {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const gestureRef = useRef<TapGesture | null>(null);
   const renderResult = useMermaidRenderResult({text: value});
 
   useEffect(() => {
@@ -79,6 +93,66 @@ function MermaidViewer({
     };
   }, []);
 
+  const onCanvasPointerDown = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return;
+    }
+    if (gestureRef.current) {
+      gestureRef.current.extraPointers = true;
+      return;
+    }
+    gestureRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      t: Date.now(),
+      moved: false,
+      extraPointers: false,
+    };
+  }, []);
+
+  const onCanvasPointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
+    const gesture = gestureRef.current;
+    if (!gesture || event.pointerId !== gesture.pointerId || gesture.moved) {
+      return;
+    }
+    if (
+      Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) >
+      TAP_CLOSE_MAX_MOVE_PX
+    ) {
+      gesture.moved = true;
+    }
+  }, []);
+
+  const onCanvasPointerEnd = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      const gesture = gestureRef.current;
+      if (!gesture) {
+        return;
+      }
+      if (event.pointerId !== gesture.pointerId) {
+        gesture.extraPointers = true;
+        return;
+      }
+      gestureRef.current = null;
+      if (event.type === 'pointercancel') {
+        return;
+      }
+      if (gesture.moved || gesture.extraPointers) {
+        return;
+      }
+      if (Date.now() - gesture.t > TAP_CLOSE_MAX_MS) {
+        return;
+      }
+      const target = event.target;
+      if (target instanceof Element && target.closest('a, button')) {
+        return;
+      }
+      onClose();
+    },
+    [onClose],
+  );
+
   return createPortal(
     <dialog
       ref={dialogRef}
@@ -96,7 +170,7 @@ function MermaidViewer({
         centerZoomedOut
         limitToBounds={false}
         wheel={{step: 0.12}}
-        doubleClick={{mode: 'zoomIn', step: 0.7}}>
+        doubleClick={{disabled: true}}>
         {({zoomIn, zoomOut, resetTransform}) => (
           <div className={styles.viewerLayout}>
             <div className={styles.toolbar}>
@@ -136,7 +210,12 @@ function MermaidViewer({
               </button>
             </div>
 
-            <div className={styles.canvas}>
+            <div
+              className={styles.canvas}
+              onPointerDown={onCanvasPointerDown}
+              onPointerMove={onCanvasPointerMove}
+              onPointerUp={onCanvasPointerEnd}
+              onPointerCancel={onCanvasPointerEnd}>
               {renderResult === null ? (
                 <div className={styles.loading} role="status" aria-label="正在加载图表">
                   <LoaderCircle aria-hidden="true" />
@@ -179,7 +258,21 @@ function MermaidRenderer({value}: Props): ReactNode {
 
   const closeViewer = () => {
     setViewerOpen(false);
-    requestAnimationFrame(() => expandButtonRef.current?.focus());
+    requestAnimationFrame(() => {
+      const button = expandButtonRef.current;
+      if (!button) {
+        return;
+      }
+      // Touch: don't leave the expand control focused, or it stays visible.
+      const canHover = window.matchMedia(
+        '(hover: hover) and (pointer: fine)',
+      ).matches;
+      if (canHover) {
+        button.focus();
+      } else {
+        button.blur();
+      }
+    });
   };
 
   return (
