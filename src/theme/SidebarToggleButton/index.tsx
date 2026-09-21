@@ -7,9 +7,11 @@ import styles from './styles.module.css';
 export default function SidebarToggleButton({
   collapsed,
   onClick,
+  ariaControls,
 }: {
   collapsed: boolean;
   onClick: () => void;
+  ariaControls: string;
 }): JSX.Element {
   const label = collapsed
     ? translate({
@@ -32,7 +34,7 @@ export default function SidebarToggleButton({
       onClick={onClick}
       title={label}
       aria-label={label}
-      aria-controls="docs-sidebar"
+      aria-controls={ariaControls}
       aria-expanded={!collapsed}>
       <ChevronsLeft size={15} strokeWidth={2} aria-hidden="true" />
     </button>

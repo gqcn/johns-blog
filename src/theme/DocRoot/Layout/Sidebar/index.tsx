@@ -6,7 +6,7 @@ import {useLocation} from '@docusaurus/router';
 import DocSidebar from '@theme/DocSidebar';
 import type {Props} from '@theme/DocRoot/Layout/Sidebar';
 
-import SidebarToggleButton from './ToggleButton';
+import SidebarToggleButton from '../../../SidebarToggleButton';
 import styles from './styles.module.css';
 
 function ResetOnSidebarChange({children}: {children: ReactNode}) {
@@ -42,6 +42,7 @@ export default function DocRootLayoutSidebar({
         <SidebarToggleButton
           collapsed={hiddenSidebarContainer}
           onClick={toggleSidebar}
+          ariaControls="docs-sidebar"
         />
       </div>
       <aside
