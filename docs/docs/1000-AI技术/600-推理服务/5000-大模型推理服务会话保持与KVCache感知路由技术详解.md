@@ -29,7 +29,7 @@ keywords:
     "一致性哈希",
     "多轮对话"
   ]
-description: "本文以循序渐进的方式，从一次图书馆借阅咨询的示例出发，用统一的图书管理场景讲清Token、Prefill、Decode与KV Cache，再解释为何普通轮询、扩缩容和模板变化会破坏缓存命中。文章比较客户端粘滞、一致性哈希、会话映射、近似前缀路由、KV事件精确索引和分层共享缓存，并结合Higress、AIBrix、llm-d Router、NVIDIA Dynamo、SGLang Router、LMCache与Mooncake给出原理、边界、选型和观测方法。"
+description: "本文以循序渐进的方式，以一次图书馆借阅咨询的简单示例，讲清Token、Prefill、Decode与KV Cache，再解释为何普通轮询、扩缩容和模板变化会破坏缓存命中。文章比较客户端粘滞、一致性哈希、会话映射、近似前缀路由、KV事件精确索引和分层共享缓存，并结合Higress、AIBrix、llm-d Router、NVIDIA Dynamo、SGLang Router、LMCache与Mooncake给出原理、边界、选型和观测方法。"
 ---
 
 ## 引言
