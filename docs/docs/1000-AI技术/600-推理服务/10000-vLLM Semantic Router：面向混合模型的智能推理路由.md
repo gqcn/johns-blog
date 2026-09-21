@@ -41,6 +41,8 @@ toc_max_heading_level: 4
 
 `vLLM Semantic Router`正是为这个问题而设计的。它不是另一个推理引擎，而是位于客户端、网关与模型后端之间的**语义路由和控制层**。
 
+![vLLM Semantic Router 作为语义路由控制层，按请求语义选择模型](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image.webp>)
+
 ### 一个在线客服的例子
 
 假设一家电商同时运行四种模型：
@@ -55,6 +57,8 @@ toc_max_heading_level: 4
 如果客服应用永远调用大模型，简单问题也会付出较高成本；永远调用小模型，又可能答不好复杂问题。更麻烦的是，包含个人信息的请求不能随意发往云端，图片请求也不能交给只懂文字的模型。
 
 可以把`vLLM Semantic Router`想成客服中心的“智能分诊台”：它先看请求有什么特征，再检查公司政策，最后把请求交给合适的处理通道。应用仍然只调用一个统一地址，不需要知道每个模型的真实地址。
+
+![客服智能分诊：按简单问、复杂单、隐私和破损图分流到不同模型](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-1.webp>)
 
 这个例子展示了语义路由的基本思路：先识别请求的内容和特征，再根据成本、能力与安全要求筛选可用模型，最后把请求送往合适的处理通道。后文会沿着这条主线，逐步说明系统如何完成这些工作。
 
@@ -73,6 +77,8 @@ toc_max_heading_level: 4
 | **语义路由** | 不只看服务器负载，还根据请求含义和策略选择处理路径 |
 
 ## 从推理服务的痛点说起
+
+![推理服务痛点：没有万能模型、约束冲突、负载均衡不懂语义](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-2.webp>)
 
 ### 不存在适合所有请求的唯一模型
 
@@ -153,6 +159,8 @@ else:
 
 ### 核心特点
 
+![核心设计特点：语义策略驱动、先约束后优化、选择与编排统一](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-3.webp>)
+
 1. **语义与策略共同驱动**：既支持关键词、上下文长度和元数据等显式规则，也支持领域、复杂度、偏好、`PII`和越狱检测等模型或相似度信号。
 2. **先约束、后优化**：通过`Decision`表达路由资格，再由`Algorithm`在合法候选中按静态顺序、语义匹配、延迟或多目标策略选模型。
 3. **一个接口连接异构模型池**：后端可以是自建`vLLM`、`Ollama`、`Kubernetes`中的模型服务或兼容协议的云端提供商。
@@ -164,6 +172,8 @@ else:
 ## 架构设计
 
 ### 数据面与控制面
+
+![数据面求快求稳，控制面可管可审，Router 选模、Envoy 转发](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-5.webp>)
 
 [官方系统概览](https://vllm-sr.ai/docs/overview/semantic-router-overview/)把整个系统分成数据面和控制面。初学者可以这样理解：
 
@@ -215,6 +225,8 @@ flowchart LR
 如果环境中已经有`Envoy Gateway`，只需在现有网关中配置`ExtProc`过滤器，使它指向`Semantic Router`的`gRPC`服务，并保证网关能够识别路由器写入的模型名称。不同网关集成中的鉴权、限流和后端管理职责，可参考[官方网关集成说明](https://vllm-sr.ai/docs/installation/k8s/gateways/)。
 
 ### 核心组件
+
+![核心组件各管一事：Entrypoint、Signal、Decision、Algorithm、Plugin、Provider](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-6.webp>)
 
 `vLLM Semantic Router`包含以下组件：
 
@@ -323,6 +335,9 @@ flowchart LR
 
 ### 一次请求的处理流程
 
+![请求处理六步：Entrypoint、Signal、Decision、Algorithm、Plugin、Provider](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-4.webp>)
+
+
 ```mermaid
 flowchart TD
     A["客户端请求<br/>model = vllm-sr/auto"] --> B["Envoy接收请求"]
@@ -341,6 +356,7 @@ flowchart TD
 以“分析损坏商品照片”为例：`Entrypoint`先找到客服`Recipe`，`Signal`识别图片和售后意图，`Decision`只保留支持图像的模型，`Algorithm`从中选出一个，`Plugin`补充商品资料，最后由`Provider Model`找到真实地址并交给`Envoy`调用。
 
 初次阅读时，记住这条缩短后的链路即可：**公开模型名找到处理方案，信号描述事实，决策生成合格名单，算法选择模型，插件完成附加处理。**
+
 
 
 ## 安装与启动
