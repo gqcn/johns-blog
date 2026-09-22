@@ -226,7 +226,7 @@ flowchart LR
 
 ### 核心组件
 
-![核心组件各管一事：Entrypoint、Signal、Decision、Algorithm、Plugin、Provider](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-6.webp>)
+![核心组件各管一事：Signal 提取图、售后、隐私，Projection 汇总成复杂](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-6.webp>)
 
 `vLLM Semantic Router`包含以下组件：
 
@@ -335,9 +335,6 @@ flowchart LR
 
 ### 一次请求的处理流程
 
-![请求处理六步：Entrypoint、Signal、Decision、Algorithm、Plugin、Provider](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-4.webp>)
-
-
 ```mermaid
 flowchart TD
     A["客户端请求<br/>model = vllm-sr/auto"] --> B["Envoy接收请求"]
@@ -357,7 +354,7 @@ flowchart TD
 
 初次阅读时，记住这条缩短后的链路即可：**公开模型名找到处理方案，信号描述事实，决策生成合格名单，算法选择模型，插件完成附加处理。**
 
-
+![请求处理六步：Entrypoint、Signal、Decision、Algorithm、Plugin、Provider](<assets/vLLM Semantic Router：面向混合模型的智能推理路由/image-4.webp>)
 
 ## 安装与启动
 
