@@ -663,10 +663,15 @@ score(endpoint) = 3 × prefix_score
 
 ## 开源技术方案调研
 
+下面每节都会说明该方案和`Envoy ext_proc`的关系。能接上的前提，是网关数据面实现了这条外部处理协议，并能按该方案规定的方式使用回复。只把服务放在网关后面做普通反向代理，并不等于接上了`ext_proc`。
 
 ### `Higress ai-endpoint-picker`：多信号端点选择
 
 项目地址：[Higress项目仓库](https://github.com/higress-group/higress)。
+
+:::info 与`Envoy ext_proc`的关系
+这个插件不通过`ext_proc`集成。它以`WASM`形式跑在`Higress`自带的`Envoy`进程内，选中节点后用`override host`交给网关转发。`Higress`若按`Gateway API Inference Extension`部署，数据面可以另外用`ext_proc`调用外部`EPP`；那条路径不经过本插件。
+:::
 
 #### 方案设计
 
@@ -730,14 +735,20 @@ flowchart TB
 
 项目地址：[项目仓库](https://github.com/kubernetes-sigs/gateway-api-inference-extension)、[端点选择协议](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/4e9bfc7833f241663e9a9e9fc0090ef9ae549311/docs/proposals/004-endpoint-picker-protocol/README.md)、[前缀缓存感知提案](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/4e9bfc7833f241663e9a9e9fc0090ef9ae549311/docs/proposals/0602-prefix-cache-aware-routing-proposal/README.md)。
 
+:::info 与`Envoy ext_proc`的关系
+支持，而且`ext_proc`就是它规定的接入方式。`EPP`实现`ExternalProcessor`，网关必须能发起这种调用，并按端点选择协议执行回复。不能发起`ext_proc`的网关接不上`EPP`。
+:::
+
 #### 方案设计
 
-先不要把它理解成一个具体的负载均衡器。`Gateway API Inference Extension`更像一套统一的“网关和智能选择器如何交接工作”的规则。它为容器与服务编排平台`Kubernetes`补充了两个重要角色：
+先不要把它理解成一个具体的负载均衡器。`Gateway API Inference Extension`标准化的是`Kubernetes`上「谁来挑选推理端点，以及挑选结果怎样交回网关」。它在其中补充了两个角色：
 
 - `InferencePool`是一份候选名单，表示一组可以处理某类模型请求的推理端点；
 - 端点选择器`Endpoint Picker`，简称`EPP`，是负责从候选名单中挑选端点的决策组件。
 
-真正转发网络请求的仍然是网关数据面，例如`Envoy`；`EPP`只负责做选择。二者通过`Envoy`的外部处理协议`ext_proc`通信。仍用图书馆来理解，可以把`ext_proc`看成咨询前台与外部分单员之间的标准通道：前台先把咨询请求交给分单员，分单员给出管理员的优先顺序，再由前台完成转交。
+真正转发网络请求的仍然是网关数据面，例如`Envoy`；`EPP`只负责做选择。网关把请求交给`EPP`时，走的是`Envoy`自身的外部处理协议`ext_proc`。这是一条双向`gRPC`流：`Envoy`把请求头、请求体、响应头和响应体交给外部程序，再按外部程序的回复继续转发、修改内容或直接返回。这份协议由`Envoy`定义和维护。`Gateway API Inference Extension`借用它来传送咨询内容，自己要统一的是端点选择协议和`InferencePool`这些资源。后文的`AIBrix`网关插件也使用同一条通道，交回的是它自己的`Pod`选择结果。
+
+在这条通道之上，项目文档把问答格式称为端点选择协议（`Endpoint Picker Protocol`）。仍用图书馆来理解：`ext_proc`像咨询前台已经装好的对讲机，外部分单员都可以接听；端点选择协议则是这次通话必须填写的表格。前台可以在通话里附上允许挑选的管理员名单；分单员按表格交回有优先顺序的管理员，再由前台完成转交。更换分单算法时，对讲机保持不变。别的外部程序接听同一部对讲机时，填写的是自己的表格，例如只返回一个模型名称。
 
 一次请求会经历下面的过程：
 
@@ -750,9 +761,9 @@ sequenceDiagram
     participant M as 模型服务Pod
 
     C->>G: 发送推理请求
-    G->>E: 通过ext_proc传递请求头和请求体
+    G->>E: 经Envoy ext_proc送出请求头和请求体
     E->>P: 读取可用端点及调度状态
-    E-->>G: 返回有顺序的端点列表
+    E-->>G: 按端点选择协议返回有序端点列表
     G->>M: 先尝试列表中的第一个端点
     alt 第一个端点失败且网关允许重试
         G->>M: 按列表顺序尝试下一个端点
@@ -762,9 +773,9 @@ sequenceDiagram
     G-->>C: 流式或一次性返回结果
 ```
 
-图中“返回有顺序的端点列表”很重要。`EPP`不只能回答“选`Pod-A`”，还可以回答“优先`Pod-A`，失败后依次尝试`Pod-B`和`Pod-C`”。网关负责真正执行转发和重试，并把最后实际处理请求的端点反馈给`EPP`。如果没有任何可用端点，协议规定可以返回`503 Service Unavailable`；如果系统已经过载并决定主动拒绝一个可丢弃请求，可以返回`429 Too Many Requests`。
+图中“按端点选择协议返回有序端点列表”很重要。`EPP`把结果同时写进请求头`x-gateway-destination-endpoint`，以及`ext_proc`回复中的`envoy.lb`元数据。它可以只回答“选`Pod-A`”，也可以回答“优先`Pod-A`，失败后依次尝试`Pod-B`和`Pod-C`”。网关负责真正执行转发和重试，并把最后实际处理请求的端点反馈给`EPP`。如果没有任何可用端点，端点选择协议规定可以返回`503 Service Unavailable`；如果系统已经过载并决定主动拒绝一个可丢弃请求，可以返回`429 Too Many Requests`。这些头名称、地址顺序和状态码都属于端点选择协议；`ext_proc`负责把这次请求和回复送出去。
 
-不过，这套协议只规定**怎样问和怎样回答**，并没有强制`EPP`必须使用哪一种算法。一个简单实现可以只看队列长度，另一个实现可以同时使用前缀命中、`LoRA`适配器、`KV Cache`占用和负载，`llm-d Router`等项目也可以把自己的调度逻辑接到这个位置。
+端点选择协议只规定**怎样限定候选、怎样交回端点顺序**，并没有强制`EPP`必须使用哪一种算法。一个简单实现可以只看队列长度，另一个实现可以同时使用前缀命中、`LoRA`适配器、`KV Cache`占用和负载，`llm-d Router`等项目也可以把自己的调度逻辑接到这个位置。
 
 官方前缀缓存感知提案给出了一种参考算法。它不要求修改推理引擎，而是在`EPP`内维护近似索引：先把请求内容切成固定大小的字符块，再用“当前块内容＋前一个块的哈希”形成哈希链。当某次请求被分配给`Pod-A`时，索引暂时记下“这些前缀块可能在`Pod-A`上”；相似请求到来时，再寻找拥有最长连续前缀记录的端点。这里按字符切块是为了减少引入分词器的依赖，并不表示推理引擎内部也按相同字符块保存缓存。
 
@@ -772,17 +783,17 @@ sequenceDiagram
 
 #### 方案优点
 
-- **网关与算法可以分别演进**：网关负责转发，`EPP`负责选择。只要双方遵循协议，就可以更换网关实现或调度算法，而不必把两者写在同一个进程里。
+- **网关与算法可以分别演进**：网关负责转发，`EPP`负责选择。双方用`Envoy ext_proc`传送消息，并遵守同一份端点选择协议，就可以更换网关实现或调度算法，而不必把两者写在同一个进程里。
 - **返回的是有顺序的候选列表**：网关不仅拿到首选节点，还能在首选失败时按顺序重试后续端点，比只返回单个地址更利于故障恢复。
-- **能够承载不同复杂度的策略**：同一接口既可以接简单的最小队列算法，也可以接入前缀、`LoRA`、会话和负载联合评分。
-- **适合形成生态共用接口**：`llm-d Router`等实现可以站在`EPP`位置提供决策，平台不必为每个路由器重新定义网关对接方式。
+- **能够承载不同复杂度的策略**：同一份端点选择协议既可以接简单的最小队列算法，也可以接入前缀、`LoRA`、会话和负载联合评分。
+- **适合形成生态共用接口**：`llm-d Router`等实现可以站在`EPP`位置提供决策，平台不必为每个路由器重新定义端点选择协议。它们共同借用的传输通道仍是`Envoy`的`ext_proc`。
 
 #### 方案缺点
 
-- **标准本身不等于现成算法**：它主要规定“网关怎样询问、选择器怎样回答”，最终路由效果仍取决于所部署的`EPP`实现和配置。
+- **端点选择协议不等于现成算法**：它主要规定“网关怎样询问、选择器怎样回答”，最终路由效果仍取决于所部署的`EPP`实现和配置。
 - **官方参考前缀算法仍是近似索引**：它根据历史调度记录推测缓存位置，无法及时知道引擎已经淘汰了哪些`KV`块。
 - **多`EPP`副本存在视图分裂**：每个副本只看到自己处理的请求时，本地索引会不完整；重启后也需要重新积累状态。
-- **组件数量增加**：数据面之外还需要运行和观测`EPP`，并保证`ext_proc`交互正常。对固定且简单的单网关部署，这层标准化可能得不偿失。
+- **组件数量增加**：数据面之外还需要运行和观测`EPP`，并保证`ext_proc`调用和端点选择协议都对接正常。对固定且简单的单网关部署，维护这套标准化选择接口可能得不偿失。
 
 #### 适用场景
 
@@ -791,6 +802,10 @@ sequenceDiagram
 ### `llm-d Router`：近似、精确和会话亲和的可组合管线
 
 项目地址：[项目仓库](https://github.com/llm-d/llm-d-router)、[路由架构说明](https://github.com/llm-d/llm-d-router/blob/d5ff9100312b4a39d7ba050638e149d37ff46b4a/docs/architecture.md)、[精确前缀插件说明](https://github.com/llm-d/llm-d-router/blob/d5ff9100312b4a39d7ba050638e149d37ff46b4a/pkg/epp/framework/plugins/requestcontrol/dataproducer/preciseprefixcache/README.md)。
+
+:::info 与`Envoy ext_proc`的关系
+支持。这里的`EPP`实现`ExternalProcessor`，由`Envoy`或兼容网关通过`ext_proc`把请求交过来，再按端点选择协议交回目标端点。独立部署时它会自带一个`Envoy`；接到已有网关时，网关需要同时支持`Gateway API`和`ext_proc`，例如`Istio`、`agentgateway`、`Envoy AI Gateway`或`GKE Gateway`。
+:::
 
 #### 方案设计
 
@@ -848,12 +863,16 @@ flowchart TB
 
 项目地址：[项目仓库](https://github.com/vllm-project/aibrix)、[路由架构说明](https://github.com/vllm-project/aibrix/blob/72726f5eaeaab8b6f0a1f4b62c588e4ec9903e86/docs/source/designs/aibrix-router.rst)、[`KV Event Sync`说明](https://github.com/vllm-project/aibrix/blob/72726f5eaeaab8b6f0a1f4b62c588e4ec9903e86/docs/source/features/kv-event-sync.rst)、[与`Gateway API Inference Extension`的集成示例](https://github.com/vllm-project/aibrix/tree/72726f5eaeaab8b6f0a1f4b62c588e4ec9903e86/samples/ai-gateway-integration)。
 
+:::info 与`Envoy ext_proc`的关系
+支持。原生网关插件实现`ExternalProcessor`，由`Envoy Gateway`通过`ext_proc`调用，并用响应头`target-pod`指定最终`Pod`。不能发起`ext_proc`的网关接不上这条原生路径。可选的`InferencePool`集成改用官方`EPP`，同样走`ext_proc`，执行选择的是官方`EPP`。
+:::
+
 #### 方案设计
 
 `AIBrix`提供的是一套面向`Kubernetes`的大模型服务基础设施，智能网关只是其中一部分。它的网关插件接在`Envoy Gateway`外部处理接口上，并在本地缓存高频更新的`Pod`指标。这样每次请求不必临时访问所有后端询问“你现在忙不忙”，而是直接读取最近一次收集到的快照，缩短路由热路径。
 
 :::info 它与`Gateway API Inference Extension`是什么关系
-`AIBrix`原生路由器**不是**`Gateway API Inference Extension`的`EPP`实现。两者都可以通过`Envoy ext_proc`参与请求处理，但使用了不同的资源和路由逻辑。可以先把`ext_proc`理解为一条通用的“网关向外部程序咨询”通道：两个方案走了同一类通道，不代表咨询的问题和返回结果遵循同一套方案。
+`AIBrix`原生路由器**不是**`Gateway API Inference Extension`的`EPP`实现。两者都可以通过`Envoy ext_proc`参与请求处理，但使用了不同的资源和路由逻辑。`ext_proc`是上一节所说的`Envoy`通用咨询通道。两个方案走了同一条通道，咨询的问题和返回结果遵循各自的约定。
 
 - `AIBrix`原生路径是“`Envoy Gateway`→`AIBrix Gateway Plugin`→选择`Pod`→返回`target-pod`请求头”。候选节点、负载快照和路由算法由`AIBrix`自己管理，不要求创建`InferencePool`。
 - `AIBrix`仓库也提供了一个可选集成示例。该示例关闭`AIBrix`内置网关，另外创建`InferencePool`，并部署`Gateway API Inference Extension`官方`EPP`镜像。此时执行端点选择的是官方`EPP`，不是`AIBrix Gateway Plugin`。
@@ -921,6 +940,10 @@ flowchart TB
 
 项目地址：[项目仓库](https://github.com/ai-dynamo/dynamo)、[路由器官方文档](https://docs.nvidia.com/dynamo/components/router)、[缓存感知路由原理](https://github.com/ai-dynamo/dynamo/blob/d481e51e3f5360b0a1de4e467f74adaaaa1c97b3/docs/fern/pages/developer-guide/knowledge-base/concepts/system-architecture/kv-aware-routing.md)。
 
+:::info 与`Envoy ext_proc`的关系
+默认入口不使用`ext_proc`。请求进入`Dynamo Frontend`，由内置路由器直接选择工作节点。另有一条可选的`Gateway API Inference Extension`路径：`Dynamo`提供端点选择插件，支持`ext_proc`的网关在转发前调用它，再把请求送到被选中工作节点上的`Frontend`。本节的成本函数属于路由器本身，两条入口都可以使用这套选择逻辑。
+:::
+
 #### 方案设计
 
 `NVIDIA Dynamo`位于推理引擎之上，用于把多个`vLLM`、`SGLang`或`TensorRT-LLM`实例协调成一套分布式推理服务。它的路由器不把问题简化为“命中了多少块”，而是尝试回答一个更接近用户体验的问题：**如果把这次请求交给某个节点，从现在到开始生成答案，还需要付出多少工作量**？
@@ -981,6 +1004,10 @@ flowchart TB
 
 项目地址：[SGLang项目仓库](https://github.com/sgl-project/sglang)、[SGLang Router源码目录](https://github.com/sgl-project/sglang/tree/06992c92ad4494fe9f9636e75be3e35040512447/experimental/sgl-router)、[外部`KV Indexer`说明](https://github.com/sgl-project/sglang/blob/06992c92ad4494fe9f9636e75be3e35040512447/experimental/sgl-router/sgl-kv-indexer/README.md)。
 
+:::info 与`Envoy ext_proc`的关系
+不支持接到`Envoy ext_proc`。本路由器自己监听`HTTP`，直接把请求转发到`SGLang`工作节点。前面的网关如果只把它当作普通上游，那是反向代理，不是`ext_proc`集成。
+:::
+
 #### 方案设计
 
 当前仓库把`sgl-router`放在`experimental`实验目录中，因此应把它看成快速演进中的路由实现，而不是已经固定不变的长期接口。它服务单个模型，可以从静态地址或`Kubernetes EndpointSlice`发现后端；`EndpointSlice`是`Kubernetes`用来记录一组服务端点的资源。路由器在这些端点上执行缓存感知`cache_aware`和会话粘滞`sticky`等策略。
@@ -1032,6 +1059,10 @@ flowchart TB
 ### `LMCache`：把短命的显存缓存变成独立缓存服务
 
 项目地址：[项目仓库](https://github.com/LMCache/LMCache)、[官方文档](https://docs.lmcache.ai/)、[架构说明](https://github.com/LMCache/LMCache/blob/5001a52cd9ec315f4a7ce1cc7ca9e02cde1f7fb0/docs/source/developer_guide/architecture.rst)。
+
+:::info 与`Envoy ext_proc`的关系
+不参与`ext_proc`。它接在推理引擎旁边，负责查找和加载`KV Cache`，不实现`ExternalProcessor`，也不替网关选择端点。请求该发给哪台机器，仍由前面的路由器决定。
+:::
 
 #### 方案设计
 
@@ -1099,6 +1130,10 @@ sequenceDiagram
 
 项目地址：[项目仓库](https://github.com/kvcache-ai/Mooncake)、[官方文档](https://kvcache-ai.github.io/Mooncake/)、[`Mooncake Store`设计](https://github.com/kvcache-ai/Mooncake/blob/1a0c0a44214ff61a8a4b2e9d90dfb023dd4703ed/docs/source/design/store/mooncake-store.md)。
 
+:::info 与`Envoy ext_proc`的关系
+不参与`ext_proc`。`Transfer Engine`和`Mooncake Store`负责搬运和存放缓存，接入点在推理引擎或`LMCache`一类的缓存层，不实现`ExternalProcessor`。
+:::
+
 #### 方案设计
 
 `Mooncake`主要提供两块能力：`Transfer Engine`负责高速搬运数据，`Mooncake Store`负责把多台机器的内存和`SSD/NVMe`组织成分布式对象缓存。它本身不是会话路由器；`vLLM`、`SGLang`或`LMCache`等上层组件决定何时保存、查询和加载`KV Cache`，`Mooncake`负责放在哪里以及怎样高效搬运。
@@ -1150,16 +1185,16 @@ sequenceDiagram
 
 ## 开源方案对比
 
-| 项目 | 主要状态来源 | 跨路由副本 | 负载联合决策 | 更适合的场景 |
-| --- | --- | --- | --- | --- |
-| `Higress ai-endpoint-picker` | 本地近似索引＋后端指标 | 本地索引不共享 | 是，多信号加权 | 单集群内轻量、低延迟端点选择 |
-| `Gateway API EPP`参考算法 | `EPP`本地近似索引 | 多副本视图会退化 | 提案建议联合评分 | 需要标准接口和可替换调度器 |
-| `llm-d Router` | 近似索引或引擎`KV Events` | 取决于索引与部署 | 是，可组合插件 | `Kubernetes`大规模推理与`PD`分离 |
-| `AIBrix` | 本地预测表或`KV Event Sync` | 取决于事件覆盖和负载存储 | 是，有界负载 | 需要会话键、前缀和负载多策略组合 |
-| `NVIDIA Dynamo` | 多层缓存索引＋活动负载 | 缓存事件可广播，活动与会话状态尽力同步 | 是，成本函数 | 多节点、多缓存层和分离式推理 |
-| `SGLang Router` | 本地事件前缀树或外部事件索引 | 本地粘滞不共享；外部索引当前单实例 | 是，前缀收益受压力护栏约束 | `SGLang`生态内的实验和算法验证 |
-| `LMCache` | 可加载的`L1/L2 KV`对象 | 缓存可跨引擎与节点 | 依赖上层路由 | 长上下文、跨进程复用和多级缓存 |
-| `Mooncake` | 对象元数据＋分布式缓存数据 | 存储池可跨实例 | 依赖上层路由 | 高速传输、共享缓存池和`PD`分离 |
+| 项目 | 主要状态来源 | 跨路由副本 | 负载联合决策 | `Envoy ext_proc` | 更适合的场景 |
+| --- | --- | --- | --- | --- | --- |
+| `Higress ai-endpoint-picker` | 本地近似索引＋后端指标 | 本地索引不共享 | 是，多信号加权 | 插件本身不使用；网关另可调用外部`EPP` | 单集群内轻量、低延迟端点选择 |
+| `Gateway API EPP`参考算法 | `EPP`本地近似索引 | 多副本视图会退化 | 提案建议联合评分 | 接入方式就是`ext_proc` | 需要标准接口和可替换调度器 |
+| `llm-d Router` | 近似索引或引擎`KV Events` | 取决于索引与部署 | 是，可组合插件 | `EPP`通过`ext_proc`接入 | `Kubernetes`大规模推理与`PD`分离 |
+| `AIBrix` | 本地预测表或`KV Event Sync` | 取决于事件覆盖和负载存储 | 是，有界负载 | 原生插件通过`ext_proc`接入 | 需要会话键、前缀和负载多策略组合 |
+| `NVIDIA Dynamo` | 多层缓存索引＋活动负载 | 缓存事件可广播，活动与会话状态尽力同步 | 是，成本函数 | 原生入口不使用；可选`EPP`使用 | 多节点、多缓存层和分离式推理 |
+| `SGLang Router` | 本地事件前缀树或外部事件索引 | 本地粘滞不共享；外部索引当前单实例 | 是，前缀收益受压力护栏约束 | 不支持，自带`HTTP`入口 | `SGLang`生态内的实验和算法验证 |
+| `LMCache` | 可加载的`L1/L2 KV`对象 | 缓存可跨引擎与节点 | 依赖上层路由 | 不参与选路 | 长上下文、跨进程复用和多级缓存 |
+| `Mooncake` | 对象元数据＋分布式缓存数据 | 存储池可跨实例 | 依赖上层路由 | 不参与选路 | 高速传输、共享缓存池和`PD`分离 |
 
 没有一个项目能同时做到零侵入、精确目录、无状态、多副本强一致、无网络开销和绝对负载均衡。选型本质上是在命中收益、状态复杂度、引擎耦合与故障恢复之间取舍。
 
