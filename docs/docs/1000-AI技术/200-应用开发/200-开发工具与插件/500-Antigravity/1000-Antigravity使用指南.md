@@ -44,6 +44,7 @@ toc_max_heading_level: 4
 
 `Antigravity`（简称`AGY`，https://antigravity.google/ ）是`Google`推出的`Agent-First`开发平台。与传统代码补全插件不同，它让`Agent`直接使用编辑器、终端、浏览器和外部工具，完成规划、实现和验证等多步骤任务。
 
+![Google Antigravity 核心全景](assets/Antigravity使用指南/image.webp)
 
 本文聚焦三种主要交互方式：
 
