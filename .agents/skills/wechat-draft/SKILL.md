@@ -30,7 +30,7 @@ argument-hint: "[文章路径]"
 node localdocs/wechat-preview/generate.mjs <文章.md>
 ```
 
-输出目录是 `localdocs/wechat-preview/<slug>/`。
+输出目录是 `localdocs/wechat-preview/<slug>/`。生成结果必须符合下方「排版与保存」，不要手改 `wechat-body.html` 绕过生成器。
 
 4. 把生成图裁成 2.35:1 封面并叠上精确标题：
 
@@ -47,9 +47,27 @@ node localdocs/wechat-preview/compose-cover.mjs \
 .agents/skills/wechat-draft/scripts/publish.sh localdocs/wechat-preview/<slug>
 ```
 
-6. 把终端里的 `DRAFT_OK`、`create`/`update` 和编辑链接发给用户。不要调用群发接口。
+6. 把终端里的 `DRAFT_OK`、`create`/`update` 和编辑链接发给用户。没有 `DRAFT_OK` 或进程不是成功退出时，不要说草稿已保存。不要调用群发接口。
 
 会话失效时停下来，让用户用 Chrome 打开 https://mp.weixin.qq.com 重新登录后再跑第 5 步。不要改用 AppID/AppSecret。
+
+## 排版与保存
+
+微信编辑器会改写提交的 HTML。这些行为由 `localdocs/wechat-preview/generate.mjs` 和 `publish-draft.py` 实现。修改这两个文件时保持下列结果，不要改回浏览器里常见、但微信会拆坏的标签。
+
+正文：
+
+- 文首不放目录，也不要「本页目录」。
+- 标签之间的换行在提交前去掉。Markdown 软换行收成一个空格，只有硬换行才写成 `<br>`。源码里的换行会被画成空行；出现在列表里就是只有序号、没有内容的空行。
+- 列表和标题用块级 `section` 或 `p`，序号与正文写在同一行。
+- 代码块的每一行是一个左对齐的 `section`（`text-align:left`，`text-indent:0`），行首空格写成 `&#160;`。高亮用行内 `color`：已知语言走 Prism，纯文本公式区分数字、标识符和运算符。
+- 行内代码用 `span`。表格单元格以文本节点开头。单元格若以 `code` 开头，微信会把后面的文字放进块级 `section`，词语后面就会多出一行。
+- 表格外框只画一条线。单元格先写 `border:0`，再只给非末列加右边线、非末行加下边线。外框、单元格四边和微信默认边框叠在一起就会变成双线。
+
+草稿：
+
+- 记下的 `appMsgId` 已不在当前草稿列表中时，新建草稿，不要再去更新那条已删除的记录。
+- 是否保存成功同时看响应顶层的 `ret` 和 `msg`。顶层 `ret` 非 0 就是失败，即使 `base_resp.ret` 为 0。`320002`（「此草稿已被删除，无法保存」）属于这种情况，脚本必须失败退出。
 
 ## COVER_PROMPT
 

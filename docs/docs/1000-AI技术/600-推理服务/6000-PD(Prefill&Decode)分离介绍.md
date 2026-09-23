@@ -1,6 +1,6 @@
 ---
 slug: "/ai/pd-separation"
-title: "PD(Prefill&Decode)分离"
+title: "PD分离详解：Prefill与Decode解耦如何兼顾低延迟与高吞吐"
 hide_title: true
 keywords:
   [

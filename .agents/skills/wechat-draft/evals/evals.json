@@ -18,6 +18,12 @@
       "prompt": "用 /wechat-draft 把当前这篇文章同步到已登录的公众号，记住要原创和封面。",
       "expected_output": "走 wechat-draft 流程：封面、排版、upsert 原创草稿。",
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "公众号草稿里的文章有空序号行、代码没有左对齐和高亮、表格边框是双线，行内代码后面还多了一行，文首还有目录。按 wechat-draft 改排版并更新草稿。",
+      "expected_output": "按技能「排版与保存」改生成逻辑并更新草稿；只有 DRAFT_OK 且成功退出才报告已保存。",
+      "files": []
     }
   ]
 }
