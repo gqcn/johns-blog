@@ -49,6 +49,8 @@ toc_max_heading_level: 4
 
 本文将围绕“日常主要使用`Grok CLI`”这一场景，说明`Grok`是什么、它与网页/`App`端`Grok`的差异，并展开安装更新、命令用法、`Grok 4.5`与`Composer 2.5`的模型选型、`Grok 4.5`的文本+图像多模态能力、配置体系、斜杠指令、`Skills`与记忆系统，最后与`Claude Code`做配置与记忆文件层面的对照，便于在两套工具之间切换或并行使用。
 
+![Grok CLI 终端编程智能体：终端闭环开发、双模型协同、Plan 与子智能体、兼容 Claude 生态、跨会话混合记忆](assets/Grok-CLI使用指南/image.webp)
+
 ## 什么是Grok
 
 ### Grok产品谱系
