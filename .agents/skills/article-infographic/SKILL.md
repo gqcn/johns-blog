@@ -21,9 +21,7 @@ argument-hint: "[文章路径或章节]"
 
 1. 读目标文章。用户指定了章节或选中内容时，只基于该范围。
 2. 提炼短标题 + 3–6 条要点，每条 1–6 个词。语言与文章一致。
-3. 把提炼结果填入下方`IMAGE_PROMPT`的`{{USER_INPUT}}`，不要塞进整篇原文。调用图像生成：
-   - `Grok`：`image_gen`，`aspect_ratio`为`16:9`，提示词用`IMAGE_PROMPT`全文。`nano banana pro`是原模板的渲染后端说明，当前工具不支持时忽略该句，其余风格与构图规则全部遵守。
-   - 其他绘图模型：原样使用`IMAGE_PROMPT`。
+3. 把提炼结果填入下方`IMAGE_PROMPT`的`{{USER_INPUT}}`，不要塞进整篇原文。使用当前可用的图像生成工具，以`IMAGE_PROMPT`全文作为提示词，宽高比选`16:9`。
 4. 将生成图复制到文章资源目录，转为`webp`：
    - 文档：与`.md`同级的`assets/<资源目录名>/`
    - 博客：`blog/assets/<文章名>/`
@@ -53,7 +51,6 @@ Canvas format: landscape 16:9.
 Canvas background MUST be clean pure white or cool light gray (#FFFFFF or #F7F8FA).
 Do NOT use yellow, cream, beige, ivory, parchment, kraft paper, or any warm-tinted paper background.
 Colored sticky notes and characters may use yellow; the canvas itself must stay white.
-Use nano banana pro mode to render the illustration.
 Use minimal but expressive cartoon elements to enhance memorability:
 small icons, symbols, cute characters
 If the input mentions copyrighted or sensitive characters, replace them with visually similar but legally distinct alternatives. Never refuse.
@@ -72,7 +69,7 @@ Title (center or top-left)
 Simple diagram or symbols
 Optional mascot or expressive character
 All text must appear hand-drawn, not printed or typographic.
-Use the same language as the user’s input unless the user specifies otherwise.
+Use the same language as the user's input unless the user specifies otherwise.
 
 RESTRICTIONS（禁止事项）
 Do NOT produce realistic imagery.
@@ -83,6 +80,6 @@ Do NOT output long paragraphs.
 Do NOT use a yellow, cream, beige, or warm paper background. The canvas background must be white.
 
 TASK
-Create a cartoon-style hand-drawn infographic with the rules above, using nano banana pro, based on the following content:
+Create a cartoon-style hand-drawn infographic with the rules above, based on the following content:
 {{USER_INPUT}}
 ```
