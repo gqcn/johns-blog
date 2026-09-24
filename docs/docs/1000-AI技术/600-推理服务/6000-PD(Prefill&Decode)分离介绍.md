@@ -25,6 +25,8 @@ description: "深入探讨LLM推理中的PD(Prefill&Decode)分离技术，分析
 
 `PD（Prefill & Decode）`分离技术作为一种创新的架构设计，通过将`LLM`推理过程分解为两个独立的阶段，并针对每个阶段的特性进行专门优化，显著提升了推理效率和用户体验。本文将深入探讨`PD`分离技术的原理、实现方案以及带来的优势。
 
+![PD分离核心全景：阶段解耦、特性差异、消除竞争、异构部署与高速互联](<assets/PD(Prefill&Decode)分离介绍/image-3.webp>)
+
 ## LLM推理基础：认识Prefill和Decode
 
 ### 推理过程概述
@@ -116,7 +118,7 @@ description: "深入探讨LLM推理中的PD(Prefill&Decode)分离技术，分析
 
 - **Prefill集群**：部署在高算力`GPU`（如`A100`、`H100`）上，充分利用其强大的并行计算能力，专注于快速处理输入序列
 - **Decode集群**：部署在大显存、高内存带宽的`GPU`（如大内存的`L40`等）上，专注于高效的`token`生成和`KV Cache`管理
-- **网络互连**：两个集群通过高速网络（如`NVLink`或`RDMA`）传输中间状态，主要是`KV Cache`数据
+- **网络互连**：两个集群通过高速网络传输中间状态，主要是`KV Cache`数据。同一厂商且硬件支持时可以使用`NVLink`/`NVSwitch`；跨厂商场景通常使用`RDMA`、高速以太网或`PCIe`等通道，具体取决于硬件和推理运行时的支持情况
 
 ### 关键技术挑战
 
@@ -129,7 +131,7 @@ description: "深入探讨LLM推理中的PD(Prefill&Decode)分离技术，分析
 
 ### 技术发展现状
 
-现代`PD`分离系统（如`DistServe`、`Mooncake`等）通过以下创新技术已经成功解决了这些挑战：
+现代`PD`分离系统（如[DistServe](https://arxiv.org/abs/2401.09670)、[Mooncake](https://arxiv.org/abs/2407.00079)等）通过以下创新技术已经成功解决了这些挑战：
 
 - **压缩传输算法**：减少`KV Cache`传输开销
 - **预测调度策略**：基于负载预测的智能任务分配
@@ -236,6 +238,21 @@ sequenceDiagram
 
 通过这些全方位的优势，`PD`分离架构不仅解决了传统`LLM`推理系统的性能瓶颈问题，还为大模型的高效部署和应用提供了一个更加灵活、可扩展的技术方案。
 
+## 常见问题
+
+### `Prefill`（P）和`Decode`（D）可以使用不同厂商的加速卡吗？
+
+可以，但不能简单地把两种卡直接接在一起就投入使用。`P`节点生成的`KV Cache`必须由`D`节点正确解析和继续使用，因此两端至少需要满足以下条件：
+
+- 支持相同的模型结构、`tokenizer`、权重格式，以及兼容的算子、精度和量化配置
+- 对`KV Cache`的`dtype`、内存布局、层数、`head`维度、位置编码信息和张量并行切分方式达成一致，并提供跨设备的序列化、重排或转换适配
+- 使用双方推理运行时都支持的通信链路。跨厂商时通常不能依赖`NVLink`，需要通过`RDMA`、高速以太网或主机内存中转等方式传输数据
+- 完成端到端的正确性、故障恢复和性能验证，确保额外的数据拷贝、格式转换和网络传输不会抵消`PD`分离带来的收益
+
+如果运行时没有兼容的`KV Cache`交换协议或适配层，`P`和`D`通常无法直接协作，只能改用同一厂商的设备、增加转换服务，或让`D`重新计算状态。异厂商组合适合在已有适配和基准测试结果的前提下使用；对于追求低延迟和稳定性的生产系统，同一软件生态通常更容易落地。
+
 ## 参考资料
 
-- https://www.eet-china.com/mp/a412848.html
+- [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving](https://arxiv.org/abs/2401.09670)
+- [Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving](https://arxiv.org/abs/2407.00079)
+- [EET-China 相关资料](https://www.eet-china.com/mp/a412848.html)
