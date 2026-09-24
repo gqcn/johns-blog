@@ -47,6 +47,8 @@ toc_max_heading_level: 4
 
 本文将系统介绍`Codex CLI`的安装配置、核心功能、详细配置、`Skills`技能系统、记忆机制，并与目前同样广受欢迎的`Claude Code`进行对比，帮助开发者做出工具选择并掌握最佳实践。
 
+![Codex CLI 核心全景：本地终端代码智能体、沙箱隔离、多模型接入、两阶段自动记忆、Skills与MCP扩展](assets/Codex-CLI使用指南/image.webp)
+
 ## 什么是Codex
 
 ### Codex项目概述
