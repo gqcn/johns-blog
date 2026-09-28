@@ -231,6 +231,66 @@ table td {
   font-size: 96%;
 }
 
+/*
+ * 通用宽表格容器：保留每列的可读宽度，超出页面时在容器内横向滚动。
+ * Markdown/MDX 用法：用以下容器包裹表格，并在表格前后保留空行：
+ * <div className="table-scroll" role="region" aria-label="表格主题" tabIndex={0}>
+ * 需要固定首列时，追加 table-scroll--sticky-first-column 类。
+ * 可在容器上覆盖 --table-scroll-cell-min-width 和
+ * --table-scroll-first-column-width，适配不同内容；列数无需配置。
+ */
+.table-scroll {
+  --table-scroll-cell-min-width: 13.5rem;
+  --table-scroll-first-column-width: 9rem;
+  max-width: 100%;
+  overflow-x: auto;
+  margin-bottom: var(--ifm-spacing-vertical);
+}
+
+.table-scroll:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* 将滚动交给外层容器，覆盖主题默认的表格内部滚动。 */
+.table-scroll > table {
+  display: table;
+  width: 100%;
+  table-layout: auto;
+  margin-bottom: 0;
+  overflow: visible;
+}
+
+.table-scroll > table th,
+.table-scroll > table td {
+  min-width: var(--table-scroll-cell-min-width);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+/* 固定首列使用不透明背景，避免横向滚动时与后方内容叠字。 */
+.table-scroll--sticky-first-column > table tr > :first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  width: var(--table-scroll-first-column-width);
+  min-width: var(--table-scroll-first-column-width);
+  background-color: var(--ifm-background-surface-color);
+  box-shadow: 1px 0 var(--ifm-table-border-color);
+}
+
+@media (max-width: 600px) {
+  .table-scroll {
+    --table-scroll-cell-min-width: 11.25rem;
+    --table-scroll-first-column-width: 5.5rem;
+  }
+
+  .table-scroll > table th,
+  .table-scroll > table td {
+    padding: 0.65rem;
+  }
+}
+
 .markdown li>p {
   margin: 0 0 6px 0;
 }
