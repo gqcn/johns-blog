@@ -1,6 +1,6 @@
 ---
 slug: "/life/meteoblue-weather-guide"
-title: "Meteoblue户外天气使用指南"
+title: "Meteoblue户外天气应用使用指南"
 hide_title: true
 keywords:
   [
