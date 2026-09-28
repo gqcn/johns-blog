@@ -2,6 +2,7 @@
 name: article-infographic
 description: >
   为 johns-blog 的文档/博客文章生成手绘卡通风格信息图配图，写入文章 assets 并插入 Markdown。
+  在独立的后台 Chrome 中打开 Gemini 页面生成并下载，不操作用户正在使用的浏览器窗口。
   用户要求生成配图、文章配图、脑图、信息图、插图、手绘/卡通 infographic，或使用 /article-infographic 时必须使用本 skill。
   写新文章或给现有文章补图时同样使用。
 argument-hint: "[文章路径或章节]"
@@ -21,7 +22,7 @@ argument-hint: "[文章路径或章节]"
 
 1. 读目标文章。用户指定了章节或选中内容时，只基于该范围。
 2. 提炼短标题 + 3–6 条要点，每条 1–6 个词。语言与文章一致。
-3. 把提炼结果填入下方`IMAGE_PROMPT`的`{{USER_INPUT}}`，不要塞进整篇原文。使用当前可用的图像生成工具，以`IMAGE_PROMPT`全文作为提示词，宽高比选`16:9`。
+3. 把提炼结果填入下方`IMAGE_PROMPT`的`{{USER_INPUT}}`，不要塞进整篇原文。按「在 Gemini 页面生成」用`IMAGE_PROMPT`全文出图，宽高比`16:9`。
 4. 将生成图复制到文章资源目录，转为`webp`：
    - 文档：与`.md`同级的`assets/<资源目录名>/`
    - 博客：`blog/assets/<文章名>/`
@@ -35,6 +36,27 @@ argument-hint: "[文章路径或章节]"
 ```
 
 6. 图里只保留短标题与要点。不要为了配图改写原文论点。
+
+## 在 Gemini 页面生成
+
+用一个独立的 Chrome 进程打开 Gemini 并下载图片。用户正在使用的 Chrome 窗口、标签和焦点保持不动。
+
+- 配置目录固定为`~/Library/Application Support/johns-blog-gemini`。不要把`--user-data-dir`指到`~/Library/Application Support/Google/Chrome`。日常 Chrome 运行时会锁住自己的配置，另一个进程无法复用其中的登录状态。
+- 后台启动，使新窗口不来到前台。`9333`被占用时换一个空闲端口，并且只连接这次启动的进程：
+
+```bash
+open -g -n -a "Google Chrome" --args \
+  --user-data-dir="$HOME/Library/Application Support/johns-blog-gemini" \
+  --remote-debugging-port=9333 \
+  --no-first-run \
+  --no-default-browser-check \
+  --window-size=1280,900 \
+  "https://gemini.google.com/app"
+```
+
+- 只通过该进程的远程调试端口操作页面、点击和下载。不要`activate` Google Chrome，不要向日常窗口新增标签，不要把按键发给日常窗口。
+- 该配置尚未登录 Gemini，或页面出现验证码时，停下来请用户在这个后台窗口里完成。登录保存在该配置目录中，之后沿用。不要自动识别或绕过验证码。
+- 已登录时：选择「制作图片」，宽高比选`16:9`，把填好的`IMAGE_PROMPT`全文放入输入框并发送。图片完成后点击「下载完整尺寸的图片」。下载目录指到临时目录，确认是本次新文件后，再进入下一步写入文章资源。
 
 ## IMAGE_PROMPT
 
