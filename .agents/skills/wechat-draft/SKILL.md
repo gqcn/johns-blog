@@ -25,15 +25,15 @@ argument-hint: "[文章路径]"
 2. 转公众号 HTML，并同时做成封面：
 
 ```bash
-node localdocs/wechat-preview/generate.mjs <文章.md>
+node .agents/skills/wechat-draft/scripts/generate.mjs <文章.md>
 ```
 
-跑这条命令之前，先按「封面」确认源图已经是 2.35:1。输出目录是 `localdocs/wechat-preview/<slug>/`。生成结果必须符合下方「封面」和「排版与保存」，不要手改 `wechat-body.html` 绕过生成器。
+跑这条命令之前，先按「封面」确认源图已经是 2.35:1。输出目录是 `.agents/skills/wechat-draft/preview/<slug>/`。生成结果必须符合下方「封面」和「排版与保存」，不要手改 `wechat-body.html` 绕过生成器。
 
 3. 写入草稿（脚本会读 Chrome 的 `mp.weixin.qq.com` Cookie，按标题查找草稿，声明原创后创建或更新）：
 
 ```bash
-.agents/skills/wechat-draft/scripts/publish.sh localdocs/wechat-preview/<slug>
+.agents/skills/wechat-draft/scripts/publish.sh .agents/skills/wechat-draft/preview/<slug>
 ```
 
 4. 把终端里的 `DRAFT_OK`、`create`/`update` 和编辑链接发给用户。没有 `DRAFT_OK` 或进程不是成功退出时，不要说草稿已保存。不要调用群发接口。
@@ -57,7 +57,7 @@ node localdocs/wechat-preview/generate.mjs <文章.md>
 
 ## 排版与保存
 
-微信编辑器会改写提交的 HTML。这些行为由 `localdocs/wechat-preview/generate.mjs` 和 `publish-draft.py` 实现。修改这两个文件时保持下列结果，不要改回浏览器里常见、但微信会拆坏的标签。
+微信编辑器会改写提交的 HTML。这些行为由本技能 `scripts/generate.mjs` 和 `scripts/publish-draft.py` 实现。修改这两个文件时保持下列结果，不要改回浏览器里常见、但微信会拆坏的标签。
 
 正文：
 
