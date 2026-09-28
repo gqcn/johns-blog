@@ -2,7 +2,29 @@
 import type { Options as IdealImageOptions } from '@docusaurus/plugin-ideal-image';
 import type * as Preset from '@docusaurus/preset-classic';
 import type { Config } from '@docusaurus/types';
-import { themes as prismThemes } from 'prism-react-renderer';
+import { themes as prismThemes, type PrismTheme } from 'prism-react-renderer';
+
+// Bundled okaidia/dracula omit token types Prism's own CSS colors.
+// YAML keys are `atrule`; booleans, null, and anchors are `important`.
+// Dracula also omits `number` and `boolean`, so those values stay plain text.
+const prismOkaidia: PrismTheme = {
+  ...prismThemes.okaidia,
+  styles: [
+    ...prismThemes.okaidia.styles,
+    { types: ['atrule'], style: { color: '#e6db74' } },
+    { types: ['important'], style: { color: '#fd971f', fontWeight: 'bold' } },
+  ],
+};
+
+const prismDracula: PrismTheme = {
+  ...prismThemes.dracula,
+  styles: [
+    ...prismThemes.dracula.styles,
+    { types: ['atrule'], style: { color: '#f1fa8c' } },
+    { types: ['number', 'boolean'], style: { color: '#bd93f9' } },
+    { types: ['important'], style: { color: '#ffb86c', fontWeight: 'bold' } },
+  ],
+};
 
 // https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-docs#markdown-front-matter
 // https://docusaurus.io/zh-CN/docs/api/docusaurus-config
@@ -183,8 +205,8 @@ const config: Config = {
     },
     // 代码块配置
     prism: {
-      theme: prismThemes.okaidia,
-      darkTheme: prismThemes.dracula,
+      theme: prismOkaidia,
+      darkTheme: prismDracula,
       defaultLanguage: 'go',
       additionalLanguages: ['python', 'bash', 'javascript', 'toml', 'ini', 'yaml', 'makefile', 'java', 'c'], // 添加语言
       // 默认支持的语言 https://github.com/FormidableLabs/prism-react-renderer/blob/master/packages/generate-prism-languages/index.ts#L9-L23
