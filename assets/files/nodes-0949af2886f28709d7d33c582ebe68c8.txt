@@ -1,0 +1,520 @@
+# HELP node_boot_time_seconds Unix time of last boot, including microseconds.
+# TYPE node_boot_time_seconds gauge
+node_boot_time_seconds 1.694397454492499e+09
+# HELP node_cpu_seconds_total Seconds the CPUs spent in each mode.
+# TYPE node_cpu_seconds_total counter
+node_cpu_seconds_total{cpu="0",mode="idle"} 820444.26
+node_cpu_seconds_total{cpu="0",mode="nice"} 0
+node_cpu_seconds_total{cpu="0",mode="system"} 95576.51
+node_cpu_seconds_total{cpu="0",mode="user"} 134162.39
+node_cpu_seconds_total{cpu="1",mode="idle"} 1.04225228e+06
+node_cpu_seconds_total{cpu="1",mode="nice"} 0
+node_cpu_seconds_total{cpu="1",mode="system"} 5190.34
+node_cpu_seconds_total{cpu="1",mode="user"} 8598.55
+node_cpu_seconds_total{cpu="10",mode="idle"} 954478.19
+node_cpu_seconds_total{cpu="10",mode="nice"} 0
+node_cpu_seconds_total{cpu="10",mode="system"} 36509.09
+node_cpu_seconds_total{cpu="10",mode="user"} 63220
+node_cpu_seconds_total{cpu="11",mode="idle"} 1.04163362e+06
+node_cpu_seconds_total{cpu="11",mode="nice"} 0
+node_cpu_seconds_total{cpu="11",mode="system"} 4646.91
+node_cpu_seconds_total{cpu="11",mode="user"} 9978.13
+node_cpu_seconds_total{cpu="2",mode="idle"} 862127.46
+node_cpu_seconds_total{cpu="2",mode="nice"} 0
+node_cpu_seconds_total{cpu="2",mode="system"} 72571.86
+node_cpu_seconds_total{cpu="2",mode="user"} 115997.78
+node_cpu_seconds_total{cpu="3",mode="idle"} 1.0420503e+06
+node_cpu_seconds_total{cpu="3",mode="nice"} 0
+node_cpu_seconds_total{cpu="3",mode="system"} 5087.82
+node_cpu_seconds_total{cpu="3",mode="user"} 8917.2
+node_cpu_seconds_total{cpu="4",mode="idle"} 891403.33
+node_cpu_seconds_total{cpu="4",mode="nice"} 0
+node_cpu_seconds_total{cpu="4",mode="system"} 61673.22
+node_cpu_seconds_total{cpu="4",mode="user"} 98702.61
+node_cpu_seconds_total{cpu="5",mode="idle"} 1.04197795e+06
+node_cpu_seconds_total{cpu="5",mode="nice"} 0
+node_cpu_seconds_total{cpu="5",mode="system"} 4940.05
+node_cpu_seconds_total{cpu="5",mode="user"} 9221.99
+node_cpu_seconds_total{cpu="6",mode="idle"} 911878.73
+node_cpu_seconds_total{cpu="6",mode="nice"} 0
+node_cpu_seconds_total{cpu="6",mode="system"} 53806.47
+node_cpu_seconds_total{cpu="6",mode="user"} 87034.71
+node_cpu_seconds_total{cpu="7",mode="idle"} 1.04187863e+06
+node_cpu_seconds_total{cpu="7",mode="nice"} 0
+node_cpu_seconds_total{cpu="7",mode="system"} 4822.41
+node_cpu_seconds_total{cpu="7",mode="user"} 9495.24
+node_cpu_seconds_total{cpu="8",mode="idle"} 939407.76
+node_cpu_seconds_total{cpu="8",mode="nice"} 0
+node_cpu_seconds_total{cpu="8",mode="system"} 42734.89
+node_cpu_seconds_total{cpu="8",mode="user"} 71445.77
+node_cpu_seconds_total{cpu="9",mode="idle"} 1.04157514e+06
+node_cpu_seconds_total{cpu="9",mode="nice"} 0
+node_cpu_seconds_total{cpu="9",mode="system"} 4827.8
+node_cpu_seconds_total{cpu="9",mode="user"} 9793.45
+# HELP node_disk_read_bytes_total The total number of bytes read successfully.
+# TYPE node_disk_read_bytes_total counter
+node_disk_read_bytes_total{device="disk0"} 6.636074729472e+12
+node_disk_read_bytes_total{device="disk2"} 2.697300992e+09
+# HELP node_disk_read_errors_total The total number of read errors.
+# TYPE node_disk_read_errors_total counter
+node_disk_read_errors_total{device="disk0"} 0
+node_disk_read_errors_total{device="disk2"} 0
+# HELP node_disk_read_retries_total The total number of read retries.
+# TYPE node_disk_read_retries_total counter
+node_disk_read_retries_total{device="disk0"} 0
+node_disk_read_retries_total{device="disk2"} 0
+# HELP node_disk_read_sectors_total The total number of sectors read successfully.
+# TYPE node_disk_read_sectors_total counter
+node_disk_read_sectors_total{device="disk0"} 34188.75830078125
+node_disk_read_sectors_total{device="disk2"} 4.580078125
+# HELP node_disk_read_time_seconds_total The total number of seconds spent by all reads.
+# TYPE node_disk_read_time_seconds_total counter
+node_disk_read_time_seconds_total{device="disk0"} 60005.51563516
+node_disk_read_time_seconds_total{device="disk2"} 49.235240007
+# HELP node_disk_reads_completed_total The total number of reads completed successfully.
+# TYPE node_disk_reads_completed_total counter
+node_disk_reads_completed_total{device="disk0"} 1.40037154e+08
+node_disk_reads_completed_total{device="disk2"} 2345
+# HELP node_disk_write_errors_total The total number of write errors.
+# TYPE node_disk_write_errors_total counter
+node_disk_write_errors_total{device="disk0"} 0
+node_disk_write_errors_total{device="disk2"} 0
+# HELP node_disk_write_retries_total The total number of write retries.
+# TYPE node_disk_write_retries_total counter
+node_disk_write_retries_total{device="disk0"} 0
+node_disk_write_retries_total{device="disk2"} 0
+# HELP node_disk_write_time_seconds_total This is the total number of seconds spent by all writes.
+# TYPE node_disk_write_time_seconds_total counter
+node_disk_write_time_seconds_total{device="disk0"} 52521.833313008
+node_disk_write_time_seconds_total{device="disk2"} 0
+# HELP node_disk_writes_completed_total The total number of writes completed successfully.
+# TYPE node_disk_writes_completed_total counter
+node_disk_writes_completed_total{device="disk0"} 2.02930144e+08
+node_disk_writes_completed_total{device="disk2"} 0
+# HELP node_disk_written_bytes_total The total number of bytes written successfully.
+# TYPE node_disk_written_bytes_total counter
+node_disk_written_bytes_total{device="disk0"} 7.286069092352e+12
+node_disk_written_bytes_total{device="disk2"} 0
+# HELP node_disk_written_sectors_total The total number of sectors written successfully.
+# TYPE node_disk_written_sectors_total counter
+node_disk_written_sectors_total{device="disk0"} 49543.4921875
+node_disk_written_sectors_total{device="disk2"} 0
+# HELP node_exporter_build_info A metric with a constant '1' value labeled by version, revision, branch, goversion from which node_exporter was built, and the goos and goarch for the build.
+# TYPE node_exporter_build_info gauge
+node_exporter_build_info{branch="",goarch="amd64",goos="darwin",goversion="go1.20.3",revision="76ad633a98081c8386f2d6fc56309d78f3bbc1db-modified",tags="unknown",version=""} 1
+# HELP node_filesystem_avail_bytes Filesystem space available to non-root users in bytes.
+# TYPE node_filesystem_avail_bytes gauge
+node_filesystem_avail_bytes{device="/dev/disk1s1",fstype="apfs",mountpoint="/System/Volumes/Data"} 2.66275078144e+11
+node_filesystem_avail_bytes{device="/dev/disk1s2",fstype="apfs",mountpoint="/System/Volumes/Preboot"} 2.6520776704e+11
+node_filesystem_avail_bytes{device="/dev/disk1s4",fstype="apfs",mountpoint="/System/Volumes/Update/mnt1"} 2.66299068416e+11
+node_filesystem_avail_bytes{device="/dev/disk1s4s1",fstype="apfs",mountpoint="/"} 2.66275065856e+11
+node_filesystem_avail_bytes{device="/dev/disk1s5",fstype="apfs",mountpoint="/System/Volumes/Update"} 2.66299068416e+11
+node_filesystem_avail_bytes{device="/dev/disk1s6",fstype="apfs",mountpoint="/System/Volumes/VM"} 2.66299068416e+11
+node_filesystem_avail_bytes{device="/dev/disk2s1",fstype="hfs",mountpoint="/Volumes/draw.io 21.7.5"} 4.4621824e+07
+node_filesystem_avail_bytes{device="map auto_home",fstype="autofs",mountpoint="/System/Volumes/Data/home"} 0
+# HELP node_filesystem_device_error Whether an error occurred while getting statistics for the given device.
+# TYPE node_filesystem_device_error gauge
+node_filesystem_device_error{device="/dev/disk1s1",fstype="apfs",mountpoint="/System/Volumes/Data"} 0
+node_filesystem_device_error{device="/dev/disk1s2",fstype="apfs",mountpoint="/System/Volumes/Preboot"} 0
+node_filesystem_device_error{device="/dev/disk1s4",fstype="apfs",mountpoint="/System/Volumes/Update/mnt1"} 0
+node_filesystem_device_error{device="/dev/disk1s4s1",fstype="apfs",mountpoint="/"} 0
+node_filesystem_device_error{device="/dev/disk1s5",fstype="apfs",mountpoint="/System/Volumes/Update"} 0
+node_filesystem_device_error{device="/dev/disk1s6",fstype="apfs",mountpoint="/System/Volumes/VM"} 0
+node_filesystem_device_error{device="/dev/disk2s1",fstype="hfs",mountpoint="/Volumes/draw.io 21.7.5"} 0
+node_filesystem_device_error{device="map auto_home",fstype="autofs",mountpoint="/System/Volumes/Data/home"} 0
+# HELP node_filesystem_files Filesystem total file nodes.
+# TYPE node_filesystem_files gauge
+node_filesystem_files{device="/dev/disk1s1",fstype="apfs",mountpoint="/System/Volumes/Data"} 2.602902474e+09
+node_filesystem_files{device="/dev/disk1s2",fstype="apfs",mountpoint="/System/Volumes/Preboot"} 2.589920873e+09
+node_filesystem_files{device="/dev/disk1s4",fstype="apfs",mountpoint="/System/Volumes/Update/mnt1"} 2.600932892e+09
+node_filesystem_files{device="/dev/disk1s4s1",fstype="apfs",mountpoint="/"} 2.600698488e+09
+node_filesystem_files{device="/dev/disk1s5",fstype="apfs",mountpoint="/System/Volumes/Update"} 2.600577592e+09
+node_filesystem_files{device="/dev/disk1s6",fstype="apfs",mountpoint="/System/Volumes/VM"} 2.600576853e+09
+node_filesystem_files{device="/dev/disk2s1",fstype="hfs",mountpoint="/Volumes/draw.io 21.7.5"} 4.294967279e+09
+node_filesystem_files{device="map auto_home",fstype="autofs",mountpoint="/System/Volumes/Data/home"} 0
+# HELP node_filesystem_files_free Filesystem total free file nodes.
+# TYPE node_filesystem_files_free gauge
+node_filesystem_files_free{device="/dev/disk1s1",fstype="apfs",mountpoint="/System/Volumes/Data"} 2.60034256e+09
+node_filesystem_files_free{device="/dev/disk1s2",fstype="apfs",mountpoint="/System/Volumes/Preboot"} 2.5899196e+09
+node_filesystem_files_free{device="/dev/disk1s4",fstype="apfs",mountpoint="/System/Volumes/Update/mnt1"} 2.60057684e+09
+node_filesystem_files_free{device="/dev/disk1s4s1",fstype="apfs",mountpoint="/"} 2.60034244e+09
+node_filesystem_files_free{device="/dev/disk1s5",fstype="apfs",mountpoint="/System/Volumes/Update"} 2.60057684e+09
+node_filesystem_files_free{device="/dev/disk1s6",fstype="apfs",mountpoint="/System/Volumes/VM"} 2.60057684e+09
+node_filesystem_files_free{device="/dev/disk2s1",fstype="hfs",mountpoint="/Volumes/draw.io 21.7.5"} 4.294966996e+09
+node_filesystem_files_free{device="map auto_home",fstype="autofs",mountpoint="/System/Volumes/Data/home"} 0
+# HELP node_filesystem_free_bytes Filesystem free space in bytes.
+# TYPE node_filesystem_free_bytes gauge
+node_filesystem_free_bytes{device="/dev/disk1s1",fstype="apfs",mountpoint="/System/Volumes/Data"} 2.66275078144e+11
+node_filesystem_free_bytes{device="/dev/disk1s2",fstype="apfs",mountpoint="/System/Volumes/Preboot"} 2.6520776704e+11
+node_filesystem_free_bytes{device="/dev/disk1s4",fstype="apfs",mountpoint="/System/Volumes/Update/mnt1"} 2.66299068416e+11
+node_filesystem_free_bytes{device="/dev/disk1s4s1",fstype="apfs",mountpoint="/"} 2.66275065856e+11
+node_filesystem_free_bytes{device="/dev/disk1s5",fstype="apfs",mountpoint="/System/Volumes/Update"} 2.66299068416e+11
+node_filesystem_free_bytes{device="/dev/disk1s6",fstype="apfs",mountpoint="/System/Volumes/VM"} 2.66299068416e+11
+node_filesystem_free_bytes{device="/dev/disk2s1",fstype="hfs",mountpoint="/Volumes/draw.io 21.7.5"} 4.4621824e+07
+node_filesystem_free_bytes{device="map auto_home",fstype="autofs",mountpoint="/System/Volumes/Data/home"} 0
+# HELP node_filesystem_readonly Filesystem read-only status.
+# TYPE node_filesystem_readonly gauge
+node_filesystem_readonly{device="/dev/disk1s1",fstype="apfs",mountpoint="/System/Volumes/Data"} 0
+node_filesystem_readonly{device="/dev/disk1s2",fstype="apfs",mountpoint="/System/Volumes/Preboot"} 0
+node_filesystem_readonly{device="/dev/disk1s4",fstype="apfs",mountpoint="/System/Volumes/Update/mnt1"} 0
+node_filesystem_readonly{device="/dev/disk1s4s1",fstype="apfs",mountpoint="/"} 1
+node_filesystem_readonly{device="/dev/disk1s5",fstype="apfs",mountpoint="/System/Volumes/Update"} 0
+node_filesystem_readonly{device="/dev/disk1s6",fstype="apfs",mountpoint="/System/Volumes/VM"} 0
+node_filesystem_readonly{device="/dev/disk2s1",fstype="hfs",mountpoint="/Volumes/draw.io 21.7.5"} 1
+node_filesystem_readonly{device="map auto_home",fstype="autofs",mountpoint="/System/Volumes/Data/home"} 0
+# HELP node_filesystem_size_bytes Filesystem size in bytes.
+# TYPE node_filesystem_size_bytes gauge
+node_filesystem_size_bytes{device="/dev/disk1s1",fstype="apfs",mountpoint="/System/Volumes/Data"} 4.99963174912e+11
+node_filesystem_size_bytes{device="/dev/disk1s2",fstype="apfs",mountpoint="/System/Volumes/Preboot"} 4.99963174912e+11
+node_filesystem_size_bytes{device="/dev/disk1s4",fstype="apfs",mountpoint="/System/Volumes/Update/mnt1"} 4.99963174912e+11
+node_filesystem_size_bytes{device="/dev/disk1s4s1",fstype="apfs",mountpoint="/"} 4.99963174912e+11
+node_filesystem_size_bytes{device="/dev/disk1s5",fstype="apfs",mountpoint="/System/Volumes/Update"} 4.99963174912e+11
+node_filesystem_size_bytes{device="/dev/disk1s6",fstype="apfs",mountpoint="/System/Volumes/VM"} 4.99963174912e+11
+node_filesystem_size_bytes{device="/dev/disk2s1",fstype="hfs",mountpoint="/Volumes/draw.io 21.7.5"} 4.55237632e+08
+node_filesystem_size_bytes{device="map auto_home",fstype="autofs",mountpoint="/System/Volumes/Data/home"} 0
+# HELP node_load1 1m load average.
+# TYPE node_load1 gauge
+node_load1 3.8876953125
+# HELP node_load15 15m load average.
+# TYPE node_load15 gauge
+node_load15 3.9208984375
+# HELP node_load5 5m load average.
+# TYPE node_load5 gauge
+node_load5 3.4169921875
+# HELP node_memory_active_bytes Memory information field active_bytes.
+# TYPE node_memory_active_bytes gauge
+node_memory_active_bytes 5.912850432e+09
+# HELP node_memory_compressed_bytes Memory information field compressed_bytes.
+# TYPE node_memory_compressed_bytes gauge
+node_memory_compressed_bytes 1.317281792e+09
+# HELP node_memory_free_bytes Memory information field free_bytes.
+# TYPE node_memory_free_bytes gauge
+node_memory_free_bytes 1.56127232e+08
+# HELP node_memory_inactive_bytes Memory information field inactive_bytes.
+# TYPE node_memory_inactive_bytes gauge
+node_memory_inactive_bytes 5.795786752e+09
+# HELP node_memory_internal_bytes Memory information field internal_bytes.
+# TYPE node_memory_internal_bytes gauge
+node_memory_internal_bytes 8.48924672e+09
+# HELP node_memory_purgeable_bytes Memory information field purgeable_bytes.
+# TYPE node_memory_purgeable_bytes gauge
+node_memory_purgeable_bytes 7.3863168e+07
+# HELP node_memory_swap_total_bytes Memory information field swap_total_bytes.
+# TYPE node_memory_swap_total_bytes gauge
+node_memory_swap_total_bytes 1.3958643712e+10
+# HELP node_memory_swap_used_bytes Memory information field swap_used_bytes.
+# TYPE node_memory_swap_used_bytes gauge
+node_memory_swap_used_bytes 1.2876775424e+10
+# HELP node_memory_swapped_in_bytes_total Memory information field swapped_in_bytes_total.
+# TYPE node_memory_swapped_in_bytes_total counter
+node_memory_swapped_in_bytes_total 1.055332360192e+12
+# HELP node_memory_swapped_out_bytes_total Memory information field swapped_out_bytes_total.
+# TYPE node_memory_swapped_out_bytes_total counter
+node_memory_swapped_out_bytes_total 3.076960256e+10
+# HELP node_memory_total_bytes Memory information field total_bytes.
+# TYPE node_memory_total_bytes gauge
+node_memory_total_bytes 1.7179869184e+10
+# HELP node_memory_wired_bytes Memory information field wired_bytes.
+# TYPE node_memory_wired_bytes gauge
+node_memory_wired_bytes 3.995119616e+09
+# HELP node_network_noproto_total Network device statistic noproto.
+# TYPE node_network_noproto_total counter
+node_network_noproto_total{device="ap1"} 0
+node_network_noproto_total{device="awdl0"} 0
+node_network_noproto_total{device="bridge0"} 0
+node_network_noproto_total{device="en0"} 0
+node_network_noproto_total{device="en1"} 0
+node_network_noproto_total{device="en2"} 0
+node_network_noproto_total{device="en3"} 0
+node_network_noproto_total{device="en4"} 0
+node_network_noproto_total{device="en5"} 0
+node_network_noproto_total{device="gif0"} 0
+node_network_noproto_total{device="llw0"} 0
+node_network_noproto_total{device="lo0"} 0
+node_network_noproto_total{device="stf0"} 0
+node_network_noproto_total{device="utun0"} 0
+node_network_noproto_total{device="utun1"} 0
+node_network_noproto_total{device="utun2"} 0
+node_network_noproto_total{device="utun3"} 0
+# HELP node_network_receive_bytes_total Network device statistic receive_bytes.
+# TYPE node_network_receive_bytes_total counter
+node_network_receive_bytes_total{device="ap1"} 0
+node_network_receive_bytes_total{device="awdl0"} 4.78442496e+08
+node_network_receive_bytes_total{device="bridge0"} 0
+node_network_receive_bytes_total{device="en0"} 3.221047296e+09
+node_network_receive_bytes_total{device="en1"} 0
+node_network_receive_bytes_total{device="en2"} 0
+node_network_receive_bytes_total{device="en3"} 0
+node_network_receive_bytes_total{device="en4"} 0
+node_network_receive_bytes_total{device="en5"} 6.5492992e+07
+node_network_receive_bytes_total{device="gif0"} 0
+node_network_receive_bytes_total{device="llw0"} 0
+node_network_receive_bytes_total{device="lo0"} 3.08475904e+08
+node_network_receive_bytes_total{device="stf0"} 0
+node_network_receive_bytes_total{device="utun0"} 0
+node_network_receive_bytes_total{device="utun1"} 0
+node_network_receive_bytes_total{device="utun2"} 0
+node_network_receive_bytes_total{device="utun3"} 7.84961536e+08
+# HELP node_network_receive_drop_total Network device statistic receive_drop.
+# TYPE node_network_receive_drop_total counter
+node_network_receive_drop_total{device="ap1"} 0
+node_network_receive_drop_total{device="awdl0"} 0
+node_network_receive_drop_total{device="bridge0"} 0
+node_network_receive_drop_total{device="en0"} 0
+node_network_receive_drop_total{device="en1"} 0
+node_network_receive_drop_total{device="en2"} 0
+node_network_receive_drop_total{device="en3"} 0
+node_network_receive_drop_total{device="en4"} 0
+node_network_receive_drop_total{device="en5"} 1.507879981233628e+15
+node_network_receive_drop_total{device="gif0"} 0
+node_network_receive_drop_total{device="llw0"} 0
+node_network_receive_drop_total{device="lo0"} 0
+node_network_receive_drop_total{device="stf0"} 0
+node_network_receive_drop_total{device="utun0"} 0
+node_network_receive_drop_total{device="utun1"} 0
+node_network_receive_drop_total{device="utun2"} 0
+node_network_receive_drop_total{device="utun3"} 0
+# HELP node_network_receive_errs_total Network device statistic receive_errs.
+# TYPE node_network_receive_errs_total counter
+node_network_receive_errs_total{device="ap1"} 0
+node_network_receive_errs_total{device="awdl0"} 0
+node_network_receive_errs_total{device="bridge0"} 0
+node_network_receive_errs_total{device="en0"} 0
+node_network_receive_errs_total{device="en1"} 0
+node_network_receive_errs_total{device="en2"} 0
+node_network_receive_errs_total{device="en3"} 0
+node_network_receive_errs_total{device="en4"} 0
+node_network_receive_errs_total{device="en5"} 0
+node_network_receive_errs_total{device="gif0"} 0
+node_network_receive_errs_total{device="llw0"} 0
+node_network_receive_errs_total{device="lo0"} 0
+node_network_receive_errs_total{device="stf0"} 0
+node_network_receive_errs_total{device="utun0"} 0
+node_network_receive_errs_total{device="utun1"} 0
+node_network_receive_errs_total{device="utun2"} 0
+node_network_receive_errs_total{device="utun3"} 0
+# HELP node_network_receive_multicast_total Network device statistic receive_multicast.
+# TYPE node_network_receive_multicast_total counter
+node_network_receive_multicast_total{device="ap1"} 0
+node_network_receive_multicast_total{device="awdl0"} 1.464869e+06
+node_network_receive_multicast_total{device="bridge0"} 0
+node_network_receive_multicast_total{device="en0"} 10985
+node_network_receive_multicast_total{device="en1"} 0
+node_network_receive_multicast_total{device="en2"} 0
+node_network_receive_multicast_total{device="en3"} 0
+node_network_receive_multicast_total{device="en4"} 0
+node_network_receive_multicast_total{device="en5"} 13
+node_network_receive_multicast_total{device="gif0"} 0
+node_network_receive_multicast_total{device="llw0"} 0
+node_network_receive_multicast_total{device="lo0"} 448176
+node_network_receive_multicast_total{device="stf0"} 0
+node_network_receive_multicast_total{device="utun0"} 0
+node_network_receive_multicast_total{device="utun1"} 0
+node_network_receive_multicast_total{device="utun2"} 0
+node_network_receive_multicast_total{device="utun3"} 0
+# HELP node_network_receive_packets_total Network device statistic receive_packets.
+# TYPE node_network_receive_packets_total counter
+node_network_receive_packets_total{device="ap1"} 0
+node_network_receive_packets_total{device="awdl0"} 1.464869e+06
+node_network_receive_packets_total{device="bridge0"} 0
+node_network_receive_packets_total{device="en0"} 6.3611313e+07
+node_network_receive_packets_total{device="en1"} 0
+node_network_receive_packets_total{device="en2"} 0
+node_network_receive_packets_total{device="en3"} 0
+node_network_receive_packets_total{device="en4"} 0
+node_network_receive_packets_total{device="en5"} 536374
+node_network_receive_packets_total{device="gif0"} 0
+node_network_receive_packets_total{device="llw0"} 0
+node_network_receive_packets_total{device="lo0"} 1.0602471e+07
+node_network_receive_packets_total{device="stf0"} 0
+node_network_receive_packets_total{device="utun0"} 0
+node_network_receive_packets_total{device="utun1"} 0
+node_network_receive_packets_total{device="utun2"} 0
+node_network_receive_packets_total{device="utun3"} 1.224636e+07
+# HELP node_network_transmit_bytes_total Network device statistic transmit_bytes.
+# TYPE node_network_transmit_bytes_total counter
+node_network_transmit_bytes_total{device="ap1"} 5.0886656e+07
+node_network_transmit_bytes_total{device="awdl0"} 2.324992e+07
+node_network_transmit_bytes_total{device="bridge0"} 0
+node_network_transmit_bytes_total{device="en0"} 4.209850368e+09
+node_network_transmit_bytes_total{device="en1"} 0
+node_network_transmit_bytes_total{device="en2"} 0
+node_network_transmit_bytes_total{device="en3"} 0
+node_network_transmit_bytes_total{device="en4"} 0
+node_network_transmit_bytes_total{device="en5"} 6.6628608e+07
+node_network_transmit_bytes_total{device="gif0"} 0
+node_network_transmit_bytes_total{device="llw0"} 0
+node_network_transmit_bytes_total{device="lo0"} 3.08475904e+08
+node_network_transmit_bytes_total{device="stf0"} 0
+node_network_transmit_bytes_total{device="utun0"} 9216
+node_network_transmit_bytes_total{device="utun1"} 9216
+node_network_transmit_bytes_total{device="utun2"} 9216
+node_network_transmit_bytes_total{device="utun3"} 8.195072e+07
+# HELP node_network_transmit_colls_total Network device statistic transmit_colls.
+# TYPE node_network_transmit_colls_total counter
+node_network_transmit_colls_total{device="ap1"} 0
+node_network_transmit_colls_total{device="awdl0"} 0
+node_network_transmit_colls_total{device="bridge0"} 0
+node_network_transmit_colls_total{device="en0"} 0
+node_network_transmit_colls_total{device="en1"} 0
+node_network_transmit_colls_total{device="en2"} 0
+node_network_transmit_colls_total{device="en3"} 0
+node_network_transmit_colls_total{device="en4"} 0
+node_network_transmit_colls_total{device="en5"} 0
+node_network_transmit_colls_total{device="gif0"} 0
+node_network_transmit_colls_total{device="llw0"} 0
+node_network_transmit_colls_total{device="lo0"} 0
+node_network_transmit_colls_total{device="stf0"} 0
+node_network_transmit_colls_total{device="utun0"} 0
+node_network_transmit_colls_total{device="utun1"} 0
+node_network_transmit_colls_total{device="utun2"} 0
+node_network_transmit_colls_total{device="utun3"} 0
+# HELP node_network_transmit_errs_total Network device statistic transmit_errs.
+# TYPE node_network_transmit_errs_total counter
+node_network_transmit_errs_total{device="ap1"} 0
+node_network_transmit_errs_total{device="awdl0"} 0
+node_network_transmit_errs_total{device="bridge0"} 0
+node_network_transmit_errs_total{device="en0"} 0
+node_network_transmit_errs_total{device="en1"} 0
+node_network_transmit_errs_total{device="en2"} 0
+node_network_transmit_errs_total{device="en3"} 0
+node_network_transmit_errs_total{device="en4"} 0
+node_network_transmit_errs_total{device="en5"} 5142
+node_network_transmit_errs_total{device="gif0"} 0
+node_network_transmit_errs_total{device="llw0"} 0
+node_network_transmit_errs_total{device="lo0"} 0
+node_network_transmit_errs_total{device="stf0"} 0
+node_network_transmit_errs_total{device="utun0"} 0
+node_network_transmit_errs_total{device="utun1"} 0
+node_network_transmit_errs_total{device="utun2"} 0
+node_network_transmit_errs_total{device="utun3"} 0
+# HELP node_network_transmit_multicast_total Network device statistic transmit_multicast.
+# TYPE node_network_transmit_multicast_total counter
+node_network_transmit_multicast_total{device="ap1"} 0
+node_network_transmit_multicast_total{device="awdl0"} 0
+node_network_transmit_multicast_total{device="bridge0"} 0
+node_network_transmit_multicast_total{device="en0"} 0
+node_network_transmit_multicast_total{device="en1"} 0
+node_network_transmit_multicast_total{device="en2"} 0
+node_network_transmit_multicast_total{device="en3"} 0
+node_network_transmit_multicast_total{device="en4"} 0
+node_network_transmit_multicast_total{device="en5"} 0
+node_network_transmit_multicast_total{device="gif0"} 0
+node_network_transmit_multicast_total{device="llw0"} 0
+node_network_transmit_multicast_total{device="lo0"} 0
+node_network_transmit_multicast_total{device="stf0"} 0
+node_network_transmit_multicast_total{device="utun0"} 0
+node_network_transmit_multicast_total{device="utun1"} 0
+node_network_transmit_multicast_total{device="utun2"} 0
+node_network_transmit_multicast_total{device="utun3"} 0
+# HELP node_network_transmit_packets_total Network device statistic transmit_packets.
+# TYPE node_network_transmit_packets_total counter
+node_network_transmit_packets_total{device="ap1"} 76361
+node_network_transmit_packets_total{device="awdl0"} 86182
+node_network_transmit_packets_total{device="bridge0"} 0
+node_network_transmit_packets_total{device="en0"} 4.2026974e+07
+node_network_transmit_packets_total{device="en1"} 0
+node_network_transmit_packets_total{device="en2"} 0
+node_network_transmit_packets_total{device="en3"} 0
+node_network_transmit_packets_total{device="en4"} 0
+node_network_transmit_packets_total{device="en5"} 529756
+node_network_transmit_packets_total{device="gif0"} 0
+node_network_transmit_packets_total{device="llw0"} 0
+node_network_transmit_packets_total{device="lo0"} 1.0602471e+07
+node_network_transmit_packets_total{device="stf0"} 0
+node_network_transmit_packets_total{device="utun0"} 55
+node_network_transmit_packets_total{device="utun1"} 55
+node_network_transmit_packets_total{device="utun2"} 54
+node_network_transmit_packets_total{device="utun3"} 4.714214e+06
+# HELP node_power_supply_battery_health IOKit Power Source information field battery_health for <power_supply>.
+# TYPE node_power_supply_battery_health gauge
+node_power_supply_battery_health{power_supply="InternalBattery-0",state="Fair"} 0
+node_power_supply_battery_health{power_supply="InternalBattery-0",state="Good"} 1
+node_power_supply_battery_health{power_supply="InternalBattery-0",state="Poor"} 0
+# HELP node_power_supply_charged IOKit Power Source information field charged for <power_supply>.
+# TYPE node_power_supply_charged gauge
+node_power_supply_charged{power_supply="InternalBattery-0"} 1
+# HELP node_power_supply_charging IOKit Power Source information field charging for <power_supply>.
+# TYPE node_power_supply_charging gauge
+node_power_supply_charging{power_supply="InternalBattery-0"} 0
+# HELP node_power_supply_current_ampere IOKit Power Source information field current_ampere for <power_supply>.
+# TYPE node_power_supply_current_ampere gauge
+node_power_supply_current_ampere{power_supply="InternalBattery-0"} -0.002
+# HELP node_power_supply_current_capacity IOKit Power Source information field current_capacity for <power_supply>.
+# TYPE node_power_supply_current_capacity gauge
+node_power_supply_current_capacity{power_supply="InternalBattery-0"} 100
+# HELP node_power_supply_info IOKit Power Source information for <power_supply>.
+# TYPE node_power_supply_info gauge
+node_power_supply_info{id="6553699",power_supply="InternalBattery-0",serial_number="D860275A3WCK7LNBP",transport_type="Internal",type="InternalBattery"} 1
+# HELP node_power_supply_max_capacity IOKit Power Source information field max_capacity for <power_supply>.
+# TYPE node_power_supply_max_capacity gauge
+node_power_supply_max_capacity{power_supply="InternalBattery-0"} 100
+# HELP node_power_supply_power_source_state IOKit Power Source information field power_source_state for <power_supply>.
+# TYPE node_power_supply_power_source_state gauge
+node_power_supply_power_source_state{power_supply="InternalBattery-0",state="AC Power"} 1
+node_power_supply_power_source_state{power_supply="InternalBattery-0",state="Battery Power"} 0
+node_power_supply_power_source_state{power_supply="InternalBattery-0",state="Off Line"} 0
+# HELP node_power_supply_present IOKit Power Source information field present for <power_supply>.
+# TYPE node_power_supply_present gauge
+node_power_supply_present{power_supply="InternalBattery-0"} 1
+# HELP node_power_supply_time_to_empty_seconds IOKit Power Source information field time_to_empty_seconds for <power_supply>.
+# TYPE node_power_supply_time_to_empty_seconds gauge
+node_power_supply_time_to_empty_seconds{power_supply="InternalBattery-0"} 0
+# HELP node_power_supply_time_to_full_seconds IOKit Power Source information field time_to_full_seconds for <power_supply>.
+# TYPE node_power_supply_time_to_full_seconds gauge
+node_power_supply_time_to_full_seconds{power_supply="InternalBattery-0"} 0
+# HELP node_scrape_collector_duration_seconds node_exporter: Duration of a collector scrape.
+# TYPE node_scrape_collector_duration_seconds gauge
+node_scrape_collector_duration_seconds{collector="boottime"} 0.000145126
+node_scrape_collector_duration_seconds{collector="cpu"} 0.00030215
+node_scrape_collector_duration_seconds{collector="diskstats"} 0.001377287
+node_scrape_collector_duration_seconds{collector="filesystem"} 0.000372429
+node_scrape_collector_duration_seconds{collector="loadavg"} 8.1381e-05
+node_scrape_collector_duration_seconds{collector="meminfo"} 0.000111328
+node_scrape_collector_duration_seconds{collector="netdev"} 0.001013643
+node_scrape_collector_duration_seconds{collector="os"} 0.000381006
+node_scrape_collector_duration_seconds{collector="powersupplyclass"} 0.001958914
+node_scrape_collector_duration_seconds{collector="textfile"} 7.275e-05
+node_scrape_collector_duration_seconds{collector="thermal"} 0.00548095
+node_scrape_collector_duration_seconds{collector="time"} 0.000271835
+node_scrape_collector_duration_seconds{collector="uname"} 0.000249465
+# HELP node_scrape_collector_success node_exporter: Whether a collector succeeded.
+# TYPE node_scrape_collector_success gauge
+node_scrape_collector_success{collector="boottime"} 1
+node_scrape_collector_success{collector="cpu"} 1
+node_scrape_collector_success{collector="diskstats"} 1
+node_scrape_collector_success{collector="filesystem"} 1
+node_scrape_collector_success{collector="loadavg"} 1
+node_scrape_collector_success{collector="meminfo"} 1
+node_scrape_collector_success{collector="netdev"} 1
+node_scrape_collector_success{collector="os"} 0
+node_scrape_collector_success{collector="powersupplyclass"} 1
+node_scrape_collector_success{collector="textfile"} 1
+node_scrape_collector_success{collector="thermal"} 1
+node_scrape_collector_success{collector="time"} 1
+node_scrape_collector_success{collector="uname"} 1
+# HELP node_textfile_scrape_error 1 if there was an error opening or reading a file, 0 otherwise
+# TYPE node_textfile_scrape_error gauge
+node_textfile_scrape_error 0
+# HELP node_thermal_cpu_available_cpu Reflects how many, if any, CPUs have been taken offline. Represented as an integer number of CPUs (0 - Max CPUs).
+# TYPE node_thermal_cpu_available_cpu gauge
+node_thermal_cpu_available_cpu 12
+# HELP node_thermal_cpu_scheduler_limit_ratio Represents the percentage (0-100) of CPU time available. 100% at normal operation. The OS may limit this time for a percentage less than 100%.
+# TYPE node_thermal_cpu_scheduler_limit_ratio gauge
+node_thermal_cpu_scheduler_limit_ratio 1
+# HELP node_thermal_cpu_speed_limit_ratio Defines the speed & voltage limits placed on the CPU. Represented as a percentage (0-100) of maximum CPU speed.
+# TYPE node_thermal_cpu_speed_limit_ratio gauge
+node_thermal_cpu_speed_limit_ratio 1
+# HELP node_time_seconds System time in seconds since epoch (1970).
+# TYPE node_time_seconds gauge
+node_time_seconds 1.696845564265831e+09
+# HELP node_time_zone_offset_seconds System time zone offset in seconds.
+# TYPE node_time_zone_offset_seconds gauge
+node_time_zone_offset_seconds{time_zone="CST"} 28800
+# HELP node_uname_info Labeled system information as provided by the uname system call.
+# TYPE node_uname_info gauge
+node_uname_info{domainname="(none)",machine="x86_64",nodename="TXQIANGGUO-MB2",release="22.6.0",sysname="Darwin",version="Darwin Kernel Version 22.6.0: Wed Jul  5 22:21:56 PDT 2023; root:xnu-8796.141.3~6/RELEASE_X86_64"} 1
+# HELP promhttp_metric_handler_errors_total Total number of internal errors encountered by the promhttp metric handler.
+# TYPE promhttp_metric_handler_errors_total counter
+promhttp_metric_handler_errors_total{cause="encoding"} 0
+promhttp_metric_handler_errors_total{cause="gathering"} 0

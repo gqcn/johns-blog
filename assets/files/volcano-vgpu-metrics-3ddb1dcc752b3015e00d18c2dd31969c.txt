@@ -1,0 +1,82 @@
+# HELP volcano_vgpu_device_allocated_cores The percentage of gpu compute cores allocated in this card
+# TYPE volcano_vgpu_device_allocated_cores gauge
+volcano_vgpu_device_allocated_cores{NodeName="dev-app-2-150-master-1",devID="GPU-3c8ce108-117a-aeae-a3e8-1c0c5dafebe7"} 0
+volcano_vgpu_device_allocated_cores{NodeName="dev-app-2-150-master-1",devID="GPU-41c5e13c-b480-c473-7a14-dd05a7c4cd43"} 0
+volcano_vgpu_device_allocated_cores{NodeName="dev-app-2-150-master-1",devID="GPU-4e9cd184-671c-7b17-8fc2-e9bedbc3d604"} 0
+volcano_vgpu_device_allocated_cores{NodeName="dev-app-2-150-master-1",devID="GPU-4ff93432-c6b5-7330-30e7-9c0c9a1c648b"} 0
+volcano_vgpu_device_allocated_cores{NodeName="dev-app-2-150-master-1",devID="GPU-5beec879-79c9-6252-3aaa-9f5e146ba220"} 0
+volcano_vgpu_device_allocated_cores{NodeName="dev-app-2-150-master-1",devID="GPU-aa336186-301a-bc80-5121-a9a2e430811a"} 0
+volcano_vgpu_device_allocated_cores{NodeName="dev-app-2-150-master-1",devID="GPU-bc47d475-3538-d3eb-f4ba-e46e2639c54c"} 0
+volcano_vgpu_device_allocated_cores{NodeName="dev-app-2-150-master-1",devID="GPU-bc94e532-1820-8ee8-ceaa-704166369c7c"} 0
+volcano_vgpu_device_allocated_cores{NodeName="test-app-64-46-msxf",devID="GPU-07df9e74-a474-9fdd-248e-23e553ef2269"} 0
+volcano_vgpu_device_allocated_cores{NodeName="test-app-64-46-msxf",devID="GPU-0af50c42-326c-bbff-7a49-a49afa433d3d"} 0
+volcano_vgpu_device_allocated_cores{NodeName="test-app-64-46-msxf",devID="GPU-1bc8fc24-c939-545a-e272-2229d066d048"} 0
+volcano_vgpu_device_allocated_cores{NodeName="test-app-64-46-msxf",devID="GPU-50baa64a-6476-a970-1013-121dff41ec78"} 0
+volcano_vgpu_device_allocated_cores{NodeName="test-app-64-46-msxf",devID="GPU-7050631b-6524-21e3-41cf-6e08fc89220d"} 0
+volcano_vgpu_device_allocated_cores{NodeName="test-app-64-46-msxf",devID="GPU-7299e30f-ccc4-a274-3e1a-77546d96a448"} 0
+volcano_vgpu_device_allocated_cores{NodeName="test-app-64-46-msxf",devID="GPU-8cae1965-8e72-af03-1f8c-2e64646392bf"} 0
+volcano_vgpu_device_allocated_cores{NodeName="test-app-64-46-msxf",devID="GPU-f7219cd7-e3ef-3b1b-4fa2-e84e8d5d4ce5"} 0
+# HELP volcano_vgpu_device_allocated_memory The number of vgpu memory allocated in this card
+# TYPE volcano_vgpu_device_allocated_memory gauge
+volcano_vgpu_device_allocated_memory{NodeName="dev-app-2-150-master-1",devID="GPU-3c8ce108-117a-aeae-a3e8-1c0c5dafebe7"} 0
+volcano_vgpu_device_allocated_memory{NodeName="dev-app-2-150-master-1",devID="GPU-41c5e13c-b480-c473-7a14-dd05a7c4cd43"} 0
+volcano_vgpu_device_allocated_memory{NodeName="dev-app-2-150-master-1",devID="GPU-4e9cd184-671c-7b17-8fc2-e9bedbc3d604"} 0
+volcano_vgpu_device_allocated_memory{NodeName="dev-app-2-150-master-1",devID="GPU-4ff93432-c6b5-7330-30e7-9c0c9a1c648b"} 0
+volcano_vgpu_device_allocated_memory{NodeName="dev-app-2-150-master-1",devID="GPU-5beec879-79c9-6252-3aaa-9f5e146ba220"} 24564
+volcano_vgpu_device_allocated_memory{NodeName="dev-app-2-150-master-1",devID="GPU-aa336186-301a-bc80-5121-a9a2e430811a"} 0
+volcano_vgpu_device_allocated_memory{NodeName="dev-app-2-150-master-1",devID="GPU-bc47d475-3538-d3eb-f4ba-e46e2639c54c"} 0
+volcano_vgpu_device_allocated_memory{NodeName="dev-app-2-150-master-1",devID="GPU-bc94e532-1820-8ee8-ceaa-704166369c7c"} 24564
+volcano_vgpu_device_allocated_memory{NodeName="test-app-64-46-msxf",devID="GPU-07df9e74-a474-9fdd-248e-23e553ef2269"} 0
+volcano_vgpu_device_allocated_memory{NodeName="test-app-64-46-msxf",devID="GPU-0af50c42-326c-bbff-7a49-a49afa433d3d"} 0
+volcano_vgpu_device_allocated_memory{NodeName="test-app-64-46-msxf",devID="GPU-1bc8fc24-c939-545a-e272-2229d066d048"} 0
+volcano_vgpu_device_allocated_memory{NodeName="test-app-64-46-msxf",devID="GPU-50baa64a-6476-a970-1013-121dff41ec78"} 0
+volcano_vgpu_device_allocated_memory{NodeName="test-app-64-46-msxf",devID="GPU-7050631b-6524-21e3-41cf-6e08fc89220d"} 0
+volcano_vgpu_device_allocated_memory{NodeName="test-app-64-46-msxf",devID="GPU-7299e30f-ccc4-a274-3e1a-77546d96a448"} 0
+volcano_vgpu_device_allocated_memory{NodeName="test-app-64-46-msxf",devID="GPU-8cae1965-8e72-af03-1f8c-2e64646392bf"} 0
+volcano_vgpu_device_allocated_memory{NodeName="test-app-64-46-msxf",devID="GPU-f7219cd7-e3ef-3b1b-4fa2-e84e8d5d4ce5"} 0
+# HELP volcano_vgpu_device_core_allocation_for_a_certain_pod The vgpu device core allocated for a certain pod
+# TYPE volcano_vgpu_device_core_allocation_for_a_certain_pod gauge
+volcano_vgpu_device_core_allocation_for_a_certain_pod{NodeName="dev-app-2-150-master-1",devID="GPU-5beec879-79c9-6252-3aaa-9f5e146ba220",podName="test-vgpu-compatible"} 0
+volcano_vgpu_device_core_allocation_for_a_certain_pod{NodeName="dev-app-2-150-master-1",devID="GPU-bc94e532-1820-8ee8-ceaa-704166369c7c",podName="test-vgpu-compatible"} 0
+# HELP volcano_vgpu_device_memory_allocation_for_a_certain_pod The vgpu device memory allocated for a certain pod
+# TYPE volcano_vgpu_device_memory_allocation_for_a_certain_pod gauge
+volcano_vgpu_device_memory_allocation_for_a_certain_pod{NodeName="dev-app-2-150-master-1",devID="GPU-5beec879-79c9-6252-3aaa-9f5e146ba220",podName="test-vgpu-compatible"} 24564
+volcano_vgpu_device_memory_allocation_for_a_certain_pod{NodeName="dev-app-2-150-master-1",devID="GPU-bc94e532-1820-8ee8-ceaa-704166369c7c",podName="test-vgpu-compatible"} 24564
+# HELP volcano_vgpu_device_memory_limit The number of total device memory in this card
+# TYPE volcano_vgpu_device_memory_limit gauge
+volcano_vgpu_device_memory_limit{NodeName="dev-app-2-150-master-1",devID="GPU-3c8ce108-117a-aeae-a3e8-1c0c5dafebe7"} 24564
+volcano_vgpu_device_memory_limit{NodeName="dev-app-2-150-master-1",devID="GPU-41c5e13c-b480-c473-7a14-dd05a7c4cd43"} 24564
+volcano_vgpu_device_memory_limit{NodeName="dev-app-2-150-master-1",devID="GPU-4e9cd184-671c-7b17-8fc2-e9bedbc3d604"} 24564
+volcano_vgpu_device_memory_limit{NodeName="dev-app-2-150-master-1",devID="GPU-4ff93432-c6b5-7330-30e7-9c0c9a1c648b"} 24564
+volcano_vgpu_device_memory_limit{NodeName="dev-app-2-150-master-1",devID="GPU-5beec879-79c9-6252-3aaa-9f5e146ba220"} 24564
+volcano_vgpu_device_memory_limit{NodeName="dev-app-2-150-master-1",devID="GPU-aa336186-301a-bc80-5121-a9a2e430811a"} 24564
+volcano_vgpu_device_memory_limit{NodeName="dev-app-2-150-master-1",devID="GPU-bc47d475-3538-d3eb-f4ba-e46e2639c54c"} 24564
+volcano_vgpu_device_memory_limit{NodeName="dev-app-2-150-master-1",devID="GPU-bc94e532-1820-8ee8-ceaa-704166369c7c"} 24564
+volcano_vgpu_device_memory_limit{NodeName="test-app-64-46-msxf",devID="GPU-07df9e74-a474-9fdd-248e-23e553ef2269"} 32607
+volcano_vgpu_device_memory_limit{NodeName="test-app-64-46-msxf",devID="GPU-0af50c42-326c-bbff-7a49-a49afa433d3d"} 32607
+volcano_vgpu_device_memory_limit{NodeName="test-app-64-46-msxf",devID="GPU-1bc8fc24-c939-545a-e272-2229d066d048"} 32607
+volcano_vgpu_device_memory_limit{NodeName="test-app-64-46-msxf",devID="GPU-50baa64a-6476-a970-1013-121dff41ec78"} 32607
+volcano_vgpu_device_memory_limit{NodeName="test-app-64-46-msxf",devID="GPU-7050631b-6524-21e3-41cf-6e08fc89220d"} 32607
+volcano_vgpu_device_memory_limit{NodeName="test-app-64-46-msxf",devID="GPU-7299e30f-ccc4-a274-3e1a-77546d96a448"} 32607
+volcano_vgpu_device_memory_limit{NodeName="test-app-64-46-msxf",devID="GPU-8cae1965-8e72-af03-1f8c-2e64646392bf"} 32607
+volcano_vgpu_device_memory_limit{NodeName="test-app-64-46-msxf",devID="GPU-f7219cd7-e3ef-3b1b-4fa2-e84e8d5d4ce5"} 32607
+# HELP volcano_vgpu_device_shared_number The number of vgpu tasks sharing this card
+# TYPE volcano_vgpu_device_shared_number gauge
+volcano_vgpu_device_shared_number{NodeName="dev-app-2-150-master-1",devID="GPU-3c8ce108-117a-aeae-a3e8-1c0c5dafebe7"} 0
+volcano_vgpu_device_shared_number{NodeName="dev-app-2-150-master-1",devID="GPU-41c5e13c-b480-c473-7a14-dd05a7c4cd43"} 0
+volcano_vgpu_device_shared_number{NodeName="dev-app-2-150-master-1",devID="GPU-4e9cd184-671c-7b17-8fc2-e9bedbc3d604"} 0
+volcano_vgpu_device_shared_number{NodeName="dev-app-2-150-master-1",devID="GPU-4ff93432-c6b5-7330-30e7-9c0c9a1c648b"} 0
+volcano_vgpu_device_shared_number{NodeName="dev-app-2-150-master-1",devID="GPU-5beec879-79c9-6252-3aaa-9f5e146ba220"} 1
+volcano_vgpu_device_shared_number{NodeName="dev-app-2-150-master-1",devID="GPU-aa336186-301a-bc80-5121-a9a2e430811a"} 0
+volcano_vgpu_device_shared_number{NodeName="dev-app-2-150-master-1",devID="GPU-bc47d475-3538-d3eb-f4ba-e46e2639c54c"} 0
+volcano_vgpu_device_shared_number{NodeName="dev-app-2-150-master-1",devID="GPU-bc94e532-1820-8ee8-ceaa-704166369c7c"} 1
+volcano_vgpu_device_shared_number{NodeName="test-app-64-46-msxf",devID="GPU-07df9e74-a474-9fdd-248e-23e553ef2269"} 0
+volcano_vgpu_device_shared_number{NodeName="test-app-64-46-msxf",devID="GPU-0af50c42-326c-bbff-7a49-a49afa433d3d"} 0
+volcano_vgpu_device_shared_number{NodeName="test-app-64-46-msxf",devID="GPU-1bc8fc24-c939-545a-e272-2229d066d048"} 0
+volcano_vgpu_device_shared_number{NodeName="test-app-64-46-msxf",devID="GPU-50baa64a-6476-a970-1013-121dff41ec78"} 0
+volcano_vgpu_device_shared_number{NodeName="test-app-64-46-msxf",devID="GPU-7050631b-6524-21e3-41cf-6e08fc89220d"} 0
+volcano_vgpu_device_shared_number{NodeName="test-app-64-46-msxf",devID="GPU-7299e30f-ccc4-a274-3e1a-77546d96a448"} 0
+volcano_vgpu_device_shared_number{NodeName="test-app-64-46-msxf",devID="GPU-8cae1965-8e72-af03-1f8c-2e64646392bf"} 0
+volcano_vgpu_device_shared_number{NodeName="test-app-64-46-msxf",devID="GPU-f7219cd7-e3ef-3b1b-4fa2-e84e8d5d4ce5"} 0
+
+
