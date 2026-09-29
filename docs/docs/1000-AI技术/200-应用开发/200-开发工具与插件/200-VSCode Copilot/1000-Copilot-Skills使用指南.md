@@ -37,6 +37,8 @@ toc_max_heading_level: 3
 
 与`Copilot Instructions`注重编码规范不同，`Skills`专注于赋予`AI`新的专业能力，让它能够胜任`Web`应用测试、数据分析、文档生成、`CI/CD`调试等各种领域特定任务。本文将深入介绍`Copilot Skills`的功能特性、使用方法、应用场景和最佳实践。
 
+![Copilot Skills 连着开放标准、SKILL.md、脚本与模板、三级加载、自动激活和跨工具复用](assets/1000-Copilot-Skills使用指南/image-1.webp)
+
 ## Copilot/Agent Skills是什么
 
 `Copilot Skills`（也称为`Agent Skills`）是一种开放标准的技能定义格式，它允许开发者通过包含指令、脚本和资源的文件夹来扩展`AI`代理的专业能力。每个技能就是一个独立的目录，其中必须包含一个`SKILL.md`文件来定义技能的元数据和使用指南。

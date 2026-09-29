@@ -34,3 +34,20 @@
     transform: translateX(5px);
     background-color: var(--ifm-hover-overlay);
 }
+
+.wechatQr {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem 1.25rem;
+    margin-top: 1.25rem;
+}
+
+.wechatQr img {
+    width: 200px;
+    height: 200px;
+    flex: none;
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--ifm-color-emphasis-300);
+}

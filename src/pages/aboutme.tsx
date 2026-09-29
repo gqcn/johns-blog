@@ -13,10 +13,10 @@ export default function AboutMe(): JSX.Element {
                             <p>
                                 从<code>2011</code>年入行，对技术有着浓厚的执着与热情。
                                 对<code>Go</code>语言有着深入研究，擅长<code>AI</code>基础架构、云原生、微服务技术。
-                                是 <a href="https://goframe.org" target="_blank" rel="noreferrer"><code>GoFrame</code></a> 
-                                和 
+                                是 <a href="https://goframe.org" target="_blank" rel="noreferrer"><code>GoFrame</code></a>
+                                和
                                 <a href="https://linapro.ai" target="_blank" rel="noreferrer"><code>LinaPro</code></a> 开源项目发起人，
-                                在大中小厂都工作过，体会过职场的不易，感受过创业的艰辛。 
+                                在大中小厂都工作过，体会过职场的不易，感受过创业的艰辛。
                                 始终坚持在技术方向学习与深耕，不给自己设限。
                             </p>
                         </div>
@@ -45,7 +45,21 @@ export default function AboutMe(): JSX.Element {
                             <ul>
                                 <li>在文章下方评论区留言</li>
                                 <li>个人微信号：<code>389961817</code></li>
+                                <li>微信公众号：
+
+                                    <div className={styles.wechatQr}>
+                                        <img
+                                            src="/img/wechat-qrcode.jpg"
+                                            alt="微信公众号二维码"
+                                            width={200}
+                                            height={200}
+                                            loading="lazy"
+                                            decoding="async"
+                                        />
+                                    </div>
+                                </li>
                             </ul>
+
                         </div>
                     </div>
                 </div>

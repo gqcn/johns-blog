@@ -39,8 +39,8 @@ keywords:
     "AI Agent",
     "自动化开发"
   ]
-description: "Grok Build（Grok CLI）是xAI推出的终端编程智能体，面向SuperGrok与X Premium Plus用户，支持交互式TUI、无头脚本与ACP编辑器集成。本文系统介绍Grok与Grok CLI的产品边界，详细讲解安装更新、常用命令、Grok 4.5与Composer 2.5模型选型、Grok 4.5文本+图像多模态能力、图片识别与图片生成入口、config.toml配置、斜杠指令、Skills技能、跨会话记忆系统，以及与Claude Code在配置项、记忆文件、Skills路径上的差异，帮助开发者快速上手并完成从Claude Code到Grok的兼容迁移。"
-toc_max_heading_level: 4
+description: "Grok Build（Grok CLI）是xAI推出的终端编程智能体，面向SuperGrok与X Premium Plus用户，支持交互式TUI、无头脚本与ACP编辑器集成。本文系统介绍Grok与Grok CLI的产品边界，详细讲解安装更新、常用命令、Grok 4.5文本+图像多模态能力、图片识别与图片生成入口、config.toml配置、斜杠指令、Skills技能、跨会话记忆系统，以及与Claude Code在配置项、记忆文件、Skills路径上的差异，帮助开发者快速上手并完成从Claude Code到Grok的兼容迁移。"
+toc_max_heading_level: 3
 ---
 
 ## 前言
@@ -61,8 +61,8 @@ toc_max_heading_level: 4
 |------|------|
 | **Grok（对话助手）** | 在`grok.com`、`X`应用等处使用的通用对话`AI`，偏聊天、搜索与内容生成 |
 | **Grok模型（API）** | 通过`xAI API`调用的模型族（如`grok-4.5`），可嵌入自研`Agent`、`IDE`或业务系统；`grok-4.5`支持文本+图像输入，可用于图片识别、截图理解、设计稿分析等多模态任务 |
-| **Grok Build / Grok CLI** | 面向软件工程的终端编程智能体，本文重点介绍；可执行文件名通常为`grok` |
-| **Grok Desktop 等客户端** | 桌面侧体验入口，与终端`CLI`是不同的交互面 |
+| <span style={{whiteSpace: 'nowrap'}}><strong>Grok Build / Grok CLI</strong></span> | 面向软件工程的终端编程智能体，本文重点介绍；可执行文件名通常为`grok` |
+| <span style={{whiteSpace: 'nowrap'}}><strong>Grok Desktop 等客户端</strong></span> | 桌面侧体验入口，与终端`CLI`是不同的交互面 |
 
 官方文档将编程侧产品正式命名为**Grok Build**：一个可扩展的编程`Agent`，既可交互式`TUI`使用，也可无头模式接入脚本/`CI`，还可通过`ACP`（`Agent Client Protocol`）被编辑器或其他应用托管。
 
@@ -328,52 +328,6 @@ grok completions zsh
 | `todo_write` | 任务列表 |
 | `spawn_subagent` | 并行子智能体 |
 | `memory_search` / `memory_get` | 记忆检索（需开启记忆） |
-
-## 模型选型：Grok 4.5与Composer 2.5
-
-当前`Grok CLI`会话中，登录`grok.com`账号后常见可选模型为：
-
-| 显示名 | 模型`ID`（`grok models`） | 角色定位 |
-|--------|---------------------------|----------|
-| **Grok 4.5** | `grok-4.5` | 当前默认模型；`xAI`面向编程与`Agent`任务的旗舰智能模型，同时支持文本+图像多模态输入 |
-| **Composer 2.5** | `grok-composer-2.5-fast` | 集成在`Grok Build`中的高速编程模型，强调长任务执行与复杂指令遵循 |
-
-可用`grok models`查看本机实际列表（订阅、区域与版本会影响可见模型）。官方说明：`Grok 4.5`是`Grok Build`的默认模型；`Composer 2.5`可通过`/model`菜单切换使用。涉及图片识别、截图分析、视觉稿评审时，应优先选择`Grok 4.5`；图片生成则通常通过`/imagine`或产品侧`Grok Imagine`能力完成，可先让`Grok 4.5`辅助整理提示词、约束与验收标准。
-
-### 二者差异概览
-
-二者不是“同一模型的两个别名”，而是不同体量与训练侧重的编程`Agent`模型：
-
-| 维度 | Grok 4.5 | Composer 2.5 |
-|------|----------|--------------|
-| <span style={{whiteSpace: 'nowrap'}}><strong>来源定位</strong></span> | `xAI`最新旗舰，面向真实工程与`Agent`任务；与`Cursor`联合训练叙事相关 | 原`Cursor`生态中的高速编程模型，已接入`Grok Build` |
-| **官方强调** | 复杂编码、`Agent`工作流、知识工作；工程评测与端到端交付能力强 | 速度快、适合长时运行任务，善于遵循复杂指令 |
-| **多模态能力** | 支持文本+图像输入，适合图片识别、报错截图理解、`UI`截图审查、设计稿转需求等任务；图片生成可结合`/imagine`入口 | 主要定位高速编程执行，图片理解/生成任务优先交给`Grok 4.5`或专用生成入口 |
-| **默认策略** | `Grok Build`默认模型（`default = "grok-4.5"`） | 需手动切换，适合作为“执行/冲刺”档 |
-| **速度体感** | 官方称可达约`80 TPS`量级的快速服务，同时偏高质量推理 | 产品名中的`Fast`侧更突出低延迟、高吞吐交互 |
-| **质量侧重** | 架构取舍、跨文件重构、疑难排障、长链推理通常更稳 | 机械性实现、按既定计划改代码、重复性工具循环更轻快 |
-| **典型代价** | 单任务质量与步骤效率更高，但若滥用在琐碎改动上可能“过重” | 更省时、更适合高频小任务；复杂边界场景偶发需人审或回退到`Grok 4.5` |
-
-> 说明：公开基准与社区体感会随版本变化；选型应以本仓库真实任务验收为准，而不是只看榜单。
-
-### 如何选择
-
-可按任务类型快速决策：
-
-| 场景 | 更推荐 | 原因 |
-|------|--------|------|
-| **默认日常开发** | `Grok 4.5` | 官方默认；综合质量与工程能力更均衡 |
-| **架构设计、跨模块重构、疑难`Bug`** | `Grok 4.5` | 需要更强推理与全局判断 |
-| **`/plan`规划、代码评审、方案对比** | `Grok 4.5` | 规划质量直接影响后续改动成本 |
-| **带图片的需求分析、报错截图、`UI`截图、设计稿理解** | `Grok 4.5` | 支持图像输入与视觉上下文理解，可把图片内容转成可执行的工程任务 |
-| **图片生成、素材草图、封面图提示词迭代** | `Grok 4.5` + `/imagine` | `Grok 4.5`负责理解需求和生成提示词，`/imagine`或`Grok Imagine`负责出图 |
-| **按已有计划批量改文件、补测试、修小问题** | `Composer 2.5` | 更快，适合执行向循环 |
-| **长会话多轮工具调用（探索→改→跑测）** | `Composer 2.5`优先试，卡壳再切`Grok 4.5` | 官方强调长任务与指令遵循；失败时用旗舰兜底 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>`CI`/脚本化短任务、格式化、生成样板代码</strong></span> | `Composer 2.5` | 延迟与吞吐通常更友好 |
-| **需要联网调研后综合决策再改代码** | `Grok 4.5` | 知识工作与工程判断更稳 |
-| **子智能体`explore`大规模只读搜索** | 可用`Composer 2.5`或为`explore`单独指定轻模型 | 探索任务更吃速度与广度，主会话仍可用`Grok 4.5` |
-
-
 
 ## 配置文件详解
 
@@ -797,58 +751,3 @@ grok memory clear --all --yes
 | `memory.dream.min_hours` | `4` | 两次整理最小间隔小时 |
 | `memory.dream.min_sessions` | `3` | 整理所需最少会话数 |
 
-## 与Claude Code的对比
-
-二者同属“终端编程`Agent`”范式，但厂商、默认文件约定与生态重心不同。以下从产品层与配置/记忆层对比。
-
-### 产品与能力对照
-
-| 维度 | Grok CLI（Grok Build） | Claude Code |
-|------|------------------------|-------------|
-| <span style={{whiteSpace: 'nowrap'}}><strong>厂商</strong></span> | `xAI` | `Anthropic` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>默认模型生态</strong></span> | 默认`grok-4.5`，支持文本+图像多模态输入；另有`Composer 2.5`（`grok-composer-2.5-fast`）等；可配自定义端点 | `Claude`系列（`Sonnet`/`Opus`等） |
-| <span style={{whiteSpace: 'nowrap'}}><strong>订阅/计费入口</strong></span> | `SuperGrok` / `X Premium Plus` / `XAI_API_KEY` | `Claude`订阅或`API` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>项目指令主文件</strong></span> | `AGENTS.md`（兼容`CLAUDE.md`） | `CLAUDE.md` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>用户配置根目录</strong></span> | `~/.grok/` | `~/.claude/` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>主配置格式</strong></span> | `config.toml`（+`pager.toml`） | 多为`settings.json`等`JSON`系 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>Skills路径</strong></span> | `.grok/skills/`、`~/.grok/skills/`；兼容`.claude`/`.cursor`/`.agents` | `.claude/skills/`、`~/.claude/skills/` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>MCP配置</strong></span> | `config.toml`的`[mcp_servers.*]` | `~/.claude.json` / 项目设置等 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>Hooks</strong></span> | 支持；`/hooks`与`.grok/hooks/` | 成熟的`Hooks`体系 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>记忆</strong></span> | 实验性，默认关；`~/.grok/memory/` | `Auto Memory` + `CLAUDE.md`；`~/.claude/projects/.../memory/` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>并行子智能体</strong></span> | 一等公民`spawn_subagent` + 类型/人格 | `Subagents` / `Agent Teams`等 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>Plan模式</strong></span> | `/plan` | Plan Mode |
-| <span style={{whiteSpace: 'nowrap'}}><strong>无头模式</strong></span> | `grok -p` | `claude -p`等 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>兼容策略</strong></span> | 主动读取`~/.claude`与`~/.cursor`（可关） | 以自身格式为主 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>迁移辅助</strong></span> | `/import-claude` | — |
-
-### 记忆与规则文件对照
-
-| 用途 | Grok CLI | Claude Code |
-|------|----------|-------------|
-| <span style={{whiteSpace: 'nowrap'}}><strong>项目级手写规则</strong></span> | `AGENTS.md`、`.grok/rules/*.md` | `CLAUDE.md`、`.claude/CLAUDE.md`、`.claude/rules/` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>用户级手写规则</strong></span> | `~/.grok/AGENTS.md` | `~/.claude/CLAUDE.md` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>本地不入库覆盖</strong></span> | 可用`CLAUDE.local.md`等（被`Grok`识别） | `CLAUDE.local.md` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>自动/跨会话记忆</strong></span> | `~/.grok/memory/**`（含`MEMORY.md`与会话日志） | `~/.claude/projects/<project>/memory/`等 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>首轮加载策略</strong></span> | 规则全量注入 + 可选记忆检索注入 | 规则加载 + `Auto Memory`前缀行数限制等 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>手动记一条</strong></span> | `/remember`、自然语言 remember | 依赖对话中“请记住”等与自动机制 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>整理压缩记忆</strong></span> | `/dream`、自动 dream | 产品内记忆整理策略（命名与交互不同） |
-
-### 配置项与路径速查
-
-| 类别 | Grok CLI | Claude Code |
-|------|----------|-------------|
-| <span style={{whiteSpace: 'nowrap'}}><strong>配置根</strong></span> | `~/.grok/` | `~/.claude/` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>主配置</strong></span> | `~/.grok/config.toml` | `~/.claude/settings.json`等 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>项目配置目录</strong></span> | `.grok/` | `.claude/` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>项目`MCP`</strong></span> | `.grok/config.toml` → `[mcp_servers]` | 项目/用户`MCP`设置 |
-| <span style={{whiteSpace: 'nowrap'}}><strong>全局`Skills`</strong></span> | `~/.grok/skills/` | `~/.claude/skills/` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>项目`Skills`</strong></span> | `.grok/skills/` | `.claude/skills/` |
-| <span style={{whiteSpace: 'nowrap'}}><strong>插件</strong></span> | `~/.grok/plugins/`、市场 | Plugins 体系（路径与市场不同） |
-| <span style={{whiteSpace: 'nowrap'}}><strong>会话数据</strong></span> | `~/.grok/sessions/` | 项目下会话存储（布局不同） |
-| <span style={{whiteSpace: 'nowrap'}}><strong>检查解析结果</strong></span> | `grok inspect` | 各`/status`、`/memory`等内置命令 |
-
-## 总结
-
-`Grok CLI`（官方产品名`Grok Build`）是`xAI`面向软件工程的终端编程智能体：它不是网页聊天机器人的简单套壳，而是具备工具循环、`Plan`、并行子智能体、`MCP`/`Skills`/插件扩展、无头自动化与`ACP`集成的完整`Agent`运行时。安装一条命令即可，配置中心在`~/.grok/config.toml`，项目约定以`AGENTS.md`为主并兼容`CLAUDE.md`。内置模型侧，默认以支持文本+图像多模态输入的`Grok 4.5`为旗舰，可处理图片识别、截图理解、视觉稿评审等任务；图片生成则可结合`/imagine`或`Grok Imagine`入口完成。`Composer 2.5`补齐高速执行场景，二者按任务切换通常比“锁死一个模型”更高效。
-
-对已经使用`Claude Code`的开发者，最大的落地成本往往不在“会不会用`Agent`”，而在**文件约定与记忆存储的差异**：`CLAUDE.md`与`AGENTS.md`、`.claude/`与`.grok/`、两套`MEMORY`目录。好在`Grok CLI`默认兼容层与`/import-claude`降低了迁移摩擦。结合官方文档（[Grok Build Overview](https://docs.x.ai/build/overview)）与本地`~/.grok/docs/user-guide/`，即可按本文路径完成从安装到深度配置的完整上手。

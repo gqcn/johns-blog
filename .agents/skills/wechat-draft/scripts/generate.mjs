@@ -615,6 +615,9 @@ function buildRenderer(ctx) {
 
   renderer.link = function ({ href, title, tokens }) {
     const text = this.parser.parseInline(tokens);
+    // In-page anchors are not http links. WeChat does not strip them and
+    // rejects the draft with 64562 (non-mp.weixin.qq.com link).
+    if (!href || href.startsWith('#') || href.startsWith('mailto:')) return text;
     const t = title ? ` title="${escapeHtml(title)}"` : '';
     return `<a href="${escapeHtml(href)}"${t} style="color:${C.primary};text-decoration:none;border-bottom:1px solid rgba(47,128,237,0.35)">${text}</a>`;
   };
