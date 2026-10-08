@@ -68,6 +68,18 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+// WeChat rejects a non-http href with 64562. Keep real web links, and turn
+// site-root paths into the public site URL. Anchors and mailto stay empty
+// so the caller can keep only the link text.
+function wechatHref(href) {
+  const value = String(href || '').trim();
+  if (!value || value.startsWith('#') || value.toLowerCase().startsWith('mailto:')) return '';
+  if (value.startsWith('/') && !value.startsWith('//')) return `https://johng.cn${value}`;
+  if (value.startsWith('//')) return `https:${value}`;
+  if (/^https?:\/\//i.test(value)) return value;
+  return '';
+}
+
 // WeChat's editor turns source newlines into visible breaks and empty list items.
 function compactForWechat(html) {
   return String(html)
@@ -615,11 +627,13 @@ function buildRenderer(ctx) {
 
   renderer.link = function ({ href, title, tokens }) {
     const text = this.parser.parseInline(tokens);
-    // In-page anchors are not http links. WeChat does not strip them and
-    // rejects the draft with 64562 (non-mp.weixin.qq.com link).
-    if (!href || href.startsWith('#') || href.startsWith('mailto:')) return text;
+    const absolute = wechatHref(href);
+    // In-page anchors, mailto, and other non-http hrefs are not links WeChat
+    // will keep. Submitting them returns 64562. Site-root paths become the
+    // public johng.cn URL; anything else that is not http(s) stays as text.
+    if (!absolute) return text;
     const t = title ? ` title="${escapeHtml(title)}"` : '';
-    return `<a href="${escapeHtml(href)}"${t} style="color:${C.primary};text-decoration:none;border-bottom:1px solid rgba(47,128,237,0.35)">${text}</a>`;
+    return `<a href="${escapeHtml(absolute)}"${t} style="color:${C.primary};text-decoration:none;border-bottom:1px solid rgba(47,128,237,0.35)">${text}</a>`;
   };
 
   renderer.image = function ({ href, title, text }) {
