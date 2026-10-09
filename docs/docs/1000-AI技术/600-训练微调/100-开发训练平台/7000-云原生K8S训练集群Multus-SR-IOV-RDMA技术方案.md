@@ -36,6 +36,8 @@ description: "本文面向云原生大模型训练集群的网络技术选型，
 
 这套方案主要面向裸金属多节点训练集群。它解决的是训练数据面的带宽、时延和设备编排问题，不会加速模型计算、数据预处理、存储读取或普通`HTTP/gRPC`通信。
 
+![信息图标题是云原生K8S训练集群：Multus + SR-IOV + RDMA，安全帽机器人连接 eth0 管理网与 net1 高速 RDMA 网，两侧卡片为双平面解耦、Multus、SR-IOV、RDMA 零拷贝、GPUDirect 与 NCCL](assets/云原生K8S训练集群Multus-SR-IOV-RDMA技术方案/image.webp)
+
 ## 基本概念
 
 ### Multus
