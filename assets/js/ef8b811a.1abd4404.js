@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkjohnsblog=self.webpackChunkjohnsblog||[]).push([["2134"],{96007:function(n){n.exports=JSON.parse('{"authors":[{"name":"John","url":"https://github.com/gqcn","email":"john@johng.cn","socials":{"github":"https://github.com/gqcn"},"imageURL":"https://github.com/gqcn.png","key":"John","page":null,"count":0}]}')}}]);
