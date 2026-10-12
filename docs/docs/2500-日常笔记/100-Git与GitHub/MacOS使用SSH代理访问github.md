@@ -10,7 +10,7 @@ description: "解决MacOS环境下通过SSH代理访问GitHub超时问题的完�
 ## 背景
 
 - 由于`github`的安全限制，只能通过`SSH`方式推送代码，并且在`github`的`Profile Settings`中已经配置好`SSH`秘钥。
-- 某一天，通过`ssh`方式拉取和推送`github`的代码超时失败。DDDD。
+- 某一天，通过`ssh`方式拉取和推送`github`的代码超时失败。
 
 ## 解决方案
 
