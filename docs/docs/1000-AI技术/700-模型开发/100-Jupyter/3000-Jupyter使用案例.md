@@ -61,6 +61,13 @@ spec:
     path: /hpc
 ```
 
+在集群外的`Linux`服务器上做同样的验证时，按上面`PV`的`server`、`path`和`mountOptions`手动挂载。挂载点用`/data/hpc`，与后面`Pod`的`mountPath`一致。执行前先装好`NFS`客户端（`Ubuntu`是`nfs-common`，`RHEL`系是`nfs-utils`），并建好挂载点：
+
+```bash
+sudo mkdir -p /data/hpc
+sudo mount -t nfs -o vers=3,rsize=1048576,wsize=1048576,hard,nolock,proto=tcp aixsky.msxf.local:/hpc /data/hpc
+```
+
 ### PVC
 
 创建`PersistentVolumeClaim`以便使用到`Pod`中，需要注意的是该PVC可以被多个`Pod`共享挂载：
