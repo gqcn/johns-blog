@@ -139,6 +139,7 @@ flowchart TB
 > `Volcano`决定任务在哪些节点运行，`kubelet`让这些节点准备好容器和设备，`torchrun`再把容器里的训练进程组织起来，`NCCL`负责进程之间的数据交换。
 
 ## 了解`Kubernetes`中的几个基本对象
+![Kubernetes 基本对象关系：集群 → Node → Pod → 容器，Volcano Job 管理一组训练 Pod，按期望状态对账](assets/Kubernetes训练平台容器资源与分布式通信原理/image-3.webp)
 
 ### 集群、节点、`Pod`和容器
 
@@ -179,6 +180,7 @@ flowchart TB
 这种不断比较“希望是什么样”和“现在是什么样”的过程称为**对账**。机器、网络或控制组件发生变化后，系统仍能根据任务策略继续处理期望状态，而不依赖一次性的远程命令。训练是否重启或中止，则取决于任务本身的运行策略。
 
 ## 一次训练任务如何从提交走到运行
+![训练任务从提交到运行：已提交 → 排队中（Gang Scheduling）→ 启动中 → 运行中，资源形状决定能否调度](assets/Kubernetes训练平台容器资源与分布式通信原理/image-4.webp)
 
 ### 算法同学提交了什么
 
@@ -287,6 +289,7 @@ spec:
 因此，即使集群总共空闲`32`张卡，如果每台机器最多只剩`4`张，这个任务仍然无法启动。节点数和每节点卡数描述的是资源形状，不只是资源总量。
 
 ## 训练镜像如何构建和运行
+![训练镜像构建与运行：OCI 分层结构，Dockerfile → Harbor 仓库，镜像含 PyTorch/CUDA 用户态库，驱动由节点提供](assets/Kubernetes训练平台容器资源与分布式通信原理/image-5.webp)
 
 ### 镜像可以理解成可重复使用的训练环境包
 
@@ -415,6 +418,7 @@ docker buildx imagetools inspect \
 `ENTRYPOINT`和`CMD`定义镜像的默认启动方式。训练任务规格中的`command`和`args`可以覆盖它们，所以同一个镜像既可以按默认方式运行，也可以由任务指定新的训练命令。
 
 ## 节点怎样启动容器并限制资源
+![节点启动容器流程：kubelet 依次协调镜像/网络/存储/设备，namespace 隔离视图，cgroup 限制用量，requests/limits 区别](assets/Kubernetes训练平台容器资源与分布式通信原理/image-6.webp)
 
 ### `Pod`分到节点后发生了什么
 
@@ -471,6 +475,8 @@ sequenceDiagram
 
 ## `GPU`如何分配给训练容器
 
+![GPU 从物理卡到容器的完整链路：物理GPU → 驱动 → Device Plugin → Scheduler → kubelet → Container Toolkit → 容器内 CUDA](assets/Kubernetes训练平台容器资源与分布式通信原理/image-1.webp)
+
 ### `Kubernetes`为什么需要设备插件
 
 `CPU`和内存是通用资源，`kubelet`原生就知道如何管理。不同厂商和型号的加速卡有自己的驱动、设备文件和健康状态，因此`Kubernetes`使用设备插件（`Device Plugin`）扩展来管理这类资源。
@@ -498,7 +504,7 @@ flowchart TB
     toolkit --> container["容器内CUDA看到8张GPU"]
 ```
 
-![GPU 从物理卡到容器的完整链路：物理GPU → 驱动 → Device Plugin → Scheduler → kubelet → Container Toolkit → 容器内 CUDA](assets/Kubernetes训练平台容器资源与分布式通信原理/image-1.webp)
+
 
 这里有一个重要分工：调度器主要决定“哪个节点还有`8`张卡”，并不直接选择物理编号。`Pod`到达节点后，`kubelet Device Manager`从设备插件上报的健康设备中选择具体`GPU ID`；如果插件实现了偏好分配接口，`kubelet`还可以参考插件给出的设备组合建议。
 
@@ -544,6 +550,7 @@ flowchart TB
 这并不保证拓扑一定最优。`NCCL`只能在已分配的硬件范围内选择路径，不能改变`Pod`所在节点、`CPU NUMA`位置、网卡分配和物理连线，也不能消除跨节点网络拥塞。调度器仍然需要结合节点标签、硬件拓扑信息和拓扑感知策略改善放置结果。
 
 ## `IB/RDMA`如何提供多节点高速通信
+![IB/RDMA 高速网络进入容器：HCA 提供 RDMA 能力，Device Plugin 分配字符设备，CNI 接入网卡接口，缺一不可](assets/Kubernetes训练平台容器资源与分布式通信原理/image-7.webp)
 
 ### `IB`和`RDMA`分别是什么
 
@@ -637,6 +644,7 @@ flowchart LR
 基础设施管理层可以用节点标签记录是否具备`IB`以及所在拓扑域，调度器用标签和`RDMA`扩展资源筛选节点，`kubelet`与设备插件再完成实际设备分配。因此，“节点带有`IB`标签”和“容器已经获得`RDMA`设备”是两个不同概念；前者描述节点能力，后者才表示任务获得了可使用的设备。
 
 ## 共享存储和网络如何进入容器
+![共享存储和网络进入容器：镜像只读层+临时可写层，NFS/CephFS 预挂节点再 hostPath 映射，UID/GID 需一致](assets/Kubernetes训练平台容器资源与分布式通信原理/image-8.webp)
 
 ### 镜像负责环境，存储负责数据
 
@@ -741,6 +749,8 @@ containers:
 **服务发现主要帮助进程完成初始化。训练开始后，`NCCL`数据通常由各`rank`之间直接传输，并不会全部经过进程组初始化端点或`Kubernetes API Server`。**
 
 ## 多机多卡训练进程如何通信
+
+![多机多卡训练进程通信原理：torchrun 组进程 → rendezvous 签到 → NCCL AllReduce 汇总梯度 → 参数同步](assets/Kubernetes训练平台容器资源与分布式通信原理/image-2.webp)
 
 ### 节点、`Pod`、进程和`rank`的关系
 
@@ -847,7 +857,7 @@ flowchart LR
     allreduce --> update["各rank得到一致结果并更新参数"]
 ```
 
-![多机多卡训练进程通信原理：torchrun 组进程 → rendezvous 签到 → NCCL AllReduce 汇总梯度 → 参数同步](assets/Kubernetes训练平台容器资源与分布式通信原理/image-2.webp)
+
 
 集合通信要求同一通信组中的成员以一致顺序参加相同操作。如果一个`rank`提前退出或一直没有进入下一次`AllReduce`，其他成员就会等待。因此，多机训练中的一个进程失败，常常会影响整个任务，而不是只损失一张卡的计算。
 
@@ -863,6 +873,7 @@ flowchart LR
 这说明“都使用`32`张卡”并不代表网络需求相同。张量并行和专家并行通常比纯数据并行更依赖低延迟、高带宽和良好的硬件拓扑。
 
 ## 算法同学使用平台时需要理解的边界
+![算法同学与平台的职责边界：用户提供镜像/资源/路径，平台负责调度和容器环境，checkpoint 必须写入共享持久目录](assets/Kubernetes训练平台容器资源与分布式通信原理/image-9.webp)
 
 ### 用户负责描述任务，集群组件负责实现运行环境
 
