@@ -914,6 +914,8 @@ flowchart LR
 
 ## 如果你使用过`Slurm`
 
+![Slurm 与 Kubernetes + Volcano 概念对比：批任务、排队规则、GPU 扩展资源、镜像与服务发现，显式声明让环境更易复现与自动管理](assets/Kubernetes训练平台容器资源与分布式通信原理/image-10.webp)
+
 `Slurm`也是训练和科学计算中常见的高性能计算调度框架。它常与`Singularity`或`Apptainer`配合：`Slurm`分配节点和资源，容器工具提供软件环境。
 
 在采用`Kubernetes + Volcano`的训练平台中，熟悉`Slurm`的读者可以用下面的小表建立对应关系，不需要把两套系统理解成完全相同的实现。
