@@ -1,6 +1,6 @@
 ---
 slug: "/ai/k8s-training-container-resources-distributed-communication"
-title: "Kubernetes训练平台容器、资源与分布式通信原理"
+title: "基于云原生的训练平台容器、资源与分布式通信原理"
 hide_title: true
 keywords:
   [
