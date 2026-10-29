@@ -47,6 +47,18 @@ flowchart LR
 
 > 说明：`label`会随`dcgm-exporter`版本和部署方式变化。当前上游渲染器对`GPU`实体会输出`gpu`、`UUID`、`pci_bus_id`、`device`、`modelName`、`hostname`等基础标签；`MIG`、`Kubernetes`、`HPC Job Mapping`、自定义`label`字段会追加额外标签。旧版本或历史样例中可能看到`Hostname`大写标签，当前上游源码使用`hostname`。
 
+### Kubernetes标签与`exported_pod`
+
+`DCGM-Exporter`原始指标中的`pod`表示关联到`GPU`的业务`Pod`。若抓取目标也带有`pod`标签，且`honor_labels: false`（默认值），`Prometheus`会将原始`pod`重命名为`exported_pod`，保留目标侧的`pod`。例如：
+
+```prometheus
+DCGM_FI_DEV_GPU_UTIL{gpu="0",pod="dcgm-exporter-xyz",exported_pod="training-job-abc"} 85
+```
+
+这里`pod`是采集器`Pod`，`exported_pod`才是业务`Pod`。`namespace`、`container`发生同名冲突时，也会变成`exported_namespace`、`exported_container`。
+
+没有同名冲突时，原始标签保持不变；设置`honor_labels: true`则保留原始标签、忽略冲突的目标标签。因此，`exported_*`并非固定存在，查询时应以实际标签为准。详见[官方配置说明](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config)。
+
 ### 指标概览
 
 本文只打平展示当前上游默认配置、上游配置模板或当前`DCGM`字段文档中可查的指标。标记为`可选`的字段需要通过自定义`CSV`或`YAML`采集配置启用；标记为`已废弃`的字段不建议新建监控面板继续使用。
@@ -392,6 +404,8 @@ DCGM_FI_PROF_PCIE_RX_BYTES{gpu="7",UUID="GPU-4e75c9ab-0ed7-8a57-75f5-23761b9f053
 
 
 ## 指标详情
+
+以下`Label`表使用原始标签名，抓取后的`exported_*`标签见前文说明。
 
 ### `DCGM_FI_DEV_SM_CLOCK`
 
@@ -1689,6 +1703,8 @@ scrape_configs:
         action: keep
         regex: metrics
 ```
+
+此配置未附加目标侧的`pod`、`namespace`、`container`标签，不会触发这些标签的`exported_*`重命名。
 
 ### 告警规则配置
 
