@@ -7,12 +7,14 @@ import { themes as prismThemes, type PrismTheme } from 'prism-react-renderer';
 // Bundled okaidia/dracula omit token types Prism's own CSS colors.
 // YAML keys are `atrule`; booleans, null, and anchors are `important`.
 // Dracula also omits `number` and `boolean`, so those values stay plain text.
+// Dockerfile flags are `property`. Okaidia paints `variable` the same as plain text.
 const prismOkaidia: PrismTheme = {
   ...prismThemes.okaidia,
   styles: [
     ...prismThemes.okaidia.styles,
     { types: ['atrule'], style: { color: '#e6db74' } },
     { types: ['important'], style: { color: '#fd971f', fontWeight: 'bold' } },
+    { types: ['variable'], style: { color: '#ae81ff' } },
   ],
 };
 
@@ -20,7 +22,7 @@ const prismDracula: PrismTheme = {
   ...prismThemes.dracula,
   styles: [
     ...prismThemes.dracula.styles,
-    { types: ['atrule'], style: { color: '#f1fa8c' } },
+    { types: ['atrule', 'property'], style: { color: '#f1fa8c' } },
     { types: ['number', 'boolean'], style: { color: '#bd93f9' } },
     { types: ['important'], style: { color: '#ffb86c', fontWeight: 'bold' } },
   ],
@@ -208,7 +210,7 @@ const config: Config = {
       theme: prismOkaidia,
       darkTheme: prismDracula,
       defaultLanguage: 'go',
-      additionalLanguages: ['python', 'bash', 'javascript', 'toml', 'ini', 'yaml', 'makefile', 'java', 'c'], // 添加语言
+      additionalLanguages: ['python', 'bash', 'javascript', 'toml', 'ini', 'yaml', 'makefile', 'java', 'c', 'docker', 'sql', 'powershell'], // 添加语言
       // 默认支持的语言 https://github.com/FormidableLabs/prism-react-renderer/blob/master/packages/generate-prism-languages/index.ts#L9-L23
       // 默认支持的语言 "markup","jsx","tsx","swift","kotlin","objectivec","js-extras","reason","rust","graphql","yaml","go","cpp","markdown","python","json"
     },
