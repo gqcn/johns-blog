@@ -68,6 +68,19 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+// Alt text often names how the figure was produced. Readers need what it says.
+// 「四个核心问题的手绘思维导图：为何精细分工」→「四个核心问题：为何精细分工」
+function imageDescription(text) {
+  const processNote =
+    /(?:这张|一张)?\s*(?:的\s*)?(?:手绘(?:卡通)?(?:风格)?|卡通风格)\s*(?:思维导图|信息图|脑图|插图|配图)|(?:的\s*)?信息图标题\s*(?:是|为|:|：)\s*|hand[-\s]?drawn\s+(?:mind[-\s]?maps?|infographics?)(?:\s+of)?/gi;
+  let value = String(text || '').replace(processNote, '');
+  value = value.replace(/的\s*(?=：|:)/g, '');
+  value = value.replace(/\s+/g, ' ').trim();
+  value = value.replace(/^[：:，,、；;\s]+/, '').replace(/[：:，,、；;\s]+$/, '');
+  value = value.replace(/\s*：\s*/g, '：').replace(/：{2,}/g, '：');
+  return value.trim();
+}
+
 // WeChat rejects a non-http href with 64562. Keep real web links, and turn
 // site-root paths into the public site URL. Anchors and mailto stay empty
 // so the caller can keep only the link text.
@@ -639,18 +652,20 @@ function buildRenderer(ctx) {
   renderer.image = function ({ href, title, text }) {
     const src = ctx.images.get(href) || href;
     const mermaid = href.startsWith('__MERMAID_');
-    const alt = escapeHtml(mermaid ? '示意图' : text || '');
+    const description = mermaid ? '示意图' : imageDescription(text);
+    const titleText = mermaid ? '' : imageDescription(title || text || '');
+    const alt = escapeHtml(description);
     const cap =
-      !mermaid && text
+      !mermaid && description
         ? `<p style="${S({
             margin: '6px 0 0',
             fontSize: '13px',
             lineHeight: '1.5',
             color: C.subtle,
             textAlign: 'center',
-          })}">${escapeHtml(text)}</p>`
+          })}">${escapeHtml(description)}</p>`
         : '';
-    return `<section style="margin:16px 0 20px;text-align:center"><img src="${escapeHtml(src)}" alt="${alt}" title="${escapeHtml(title || text || '')}" style="display:block;width:100%;max-width:100%;height:auto;border-radius:6px;margin:0 auto"/>${cap}</section>`;
+    return `<section style="margin:16px 0 20px;text-align:center"><img src="${escapeHtml(src)}" alt="${alt}" title="${escapeHtml(titleText)}" style="display:block;width:100%;max-width:100%;height:auto;border-radius:6px;margin:0 auto"/>${cap}</section>`;
   };
 
   renderer.hr = function () {
