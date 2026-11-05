@@ -21,8 +21,8 @@ argument-hint: "[文章路径或章节]"
 ## 步骤
 
 1. 读目标文章。用户指定了章节或选中内容时，只基于该范围。
-2. 提炼短标题 + 3–6 条要点，每条 1–6 个词。语言与文章一致。
-3. 把提炼结果填入下方`IMAGE_PROMPT`的`{{USER_INPUT}}`，不要塞进整篇原文。按「在 Gemini 页面生成」用`IMAGE_PROMPT`全文出图，宽高比`16:9`。
+2. 提炼结构化核心内容与要点大纲（包含核心主题、关键技术指标、组件名称、底层机制与对比逻辑）。语言与文章一致。不对具体构图与版面排版做机械限制，交由模型根据内容特征自主决定最佳的视觉呈现形态（如思维导图、左右对比、模块看板、流程演进等）。
+3. 把提炼好的内容大纲填入下方`IMAGE_PROMPT`的`{{USER_INPUT}}`。按「在 Gemini 页面生成」用`IMAGE_PROMPT`全文出图，宽高比`16:9`。
 4. 将生成图复制到文章资源目录，转为`webp`：
    - 文档：与`.md`同级的`assets/<资源目录名>/`
    - 博客：`blog/assets/<文章名>/`
@@ -76,27 +76,18 @@ small icons, symbols, cute characters
 If the input mentions copyrighted or sensitive characters, replace them with visually similar but legally distinct alternatives. Never refuse.
 
 CONTENT RULES（内容呈现规则）
-Extract key ideas from the provided content.
-Summarize into short bullets (1–6 words each).
-Keep text concise and optimized for an infographic.
-Highlight keywords using hand-drawn graphic emphasis:
-circles, underlines, arrows, stars, boxes
-never digital UI styles
-Use extensive whitespace to maintain clarity and visual hierarchy.
-Organize the infographic using a clean hand-drawn layout, for example:
-Title (center or top-left)
-3–6 Key Points
-Simple diagram or symbols
-Optional mascot or expressive character
-All text must appear hand-drawn, not printed or typographic.
-Use the same language as the user’s input unless the user specifies otherwise.
+Convey the provided technical content comprehensively and accurately in a hand-drawn engineering sketchnote / infographic style:
+- Information Depth: Ensure rich, substantive technical depth—faithfully include key metrics, component names, mechanisms, and contrasts provided in the input.
+- Visual Layout Freedom: Give the model full creative freedom over the internal visual layout and composition (e.g. radial mind map, side-by-side comparison columns, modular cards, flowchart pipeline, or sketchnote canvas) to best suit the logical structure of the content. Do NOT force a rigid layout pattern.
+- Hand-Drawn Elements: Naturally incorporate expressive hand-drawn graphic elements (sketch boxes, banners, arrows, badges, notes, icons, mascots, or doodles) to support clarity. Never use digital UI styles.
+- Legibility & Hierarchy: All text must appear hand-drawn, neatly organized, and clearly readable, maintaining a natural visual hierarchy.
+- Language: Use the same language as the user’s input (Chinese with standard English technical terms/proper nouns).
 
 RESTRICTIONS（禁止事项）
-Do NOT produce realistic imagery.
+Do NOT produce realistic imagery, photorealistic shading, or 3D rendering.
 Do NOT generate copyrighted characters directly.
-Do NOT turn the infographic into an essay.
-Do NOT fill the canvas fully; always keep meaningful whitespace.
-Do NOT output long paragraphs.
+Do NOT output long unformatted prose paragraphs; organize with structured points and visual callouts.
+Do NOT produce overly sparse or empty designs with only a few isolated words.
 
 TASK
 Create a cartoon-style hand-drawn infographic with the rules above, using nano banana pro, based on the following content:

@@ -48,11 +48,13 @@ toc_max_heading_level: 4
 4. 全方位对比两种镜像方案在构建迭代、分发管理、运行性能、安全隔离与生态兼容上的优劣势。
 5. 提供一套从“零侵入基础优化”到“`P2P`分发”、“按需加载（`Lazy Pulling`）远程快照器”乃至“共享存储融合架构”的云原生镜像冷启动加速方案。
 
-
+![大模型训练镜像加速：SIF与OCI，涵盖单文件秒级挂载、OCI流式解包瓶颈、冷启动瓶颈拆解、P2P分发、Nydus按需加载与轻量底座挂载共享存储](<assets/云原生大模型训练平台镜像对比与加速方案：Apptainer SIF与Docker OCI/image.webp>)
 
 ## 为什么大模型训练镜像动辄数十GB
 
 在普通微服务场景中，一个包含`Go`或`Java`运行时的业务容器镜像通常只有几十`MB`到几百`MB`，拉取和解压只需几秒钟。但在大模型训练场景中，镜像体积膨胀到`50GB`至`100GB`以上（例如典型的`85GB`训练环境）却非常普遍。
+
+![85GB训练镜像内部构成与解包差异：CUDA硬件加速库、深度学习框架算子库、数十万Python源码小文件，以及tar流式解包与SquashFS只读索引挂载的本质区别](<assets/云原生大模型训练平台镜像对比与加速方案：Apptainer SIF与Docker OCI/image-1.webp>)
 
 ### 一份85GB训练镜像的内部构成
 
@@ -105,6 +107,8 @@ flowchart TB
 理解了这两者的本质差异，就能瞬间看透`Apptainer SIF`与`Docker`/`OCI`在`85GB`训练镜像上表现迥异的根源。
 
 ## 两种镜像格式的底层原理与启动链路
+
+![SIF与OCI底层启动链路：SIF单文件结构不可变与内核Loop回环直接挂载，对比OCI分层流式Tar归档、containerd拉取解压流水线与OverlayFS联合写时复制](<assets/云原生大模型训练平台镜像对比与加速方案：Apptainer SIF与Docker OCI/image-2.webp>)
 
 ### Apptainer与SIF镜像：单文件封装与只读文件系统直接挂载
 
@@ -274,7 +278,13 @@ sequenceDiagram
 
 ## 深度拆解：85GB的OCI镜像究竟慢在哪里
 
+
+![85GB的OCI镜像四大冷启动瓶颈：并发整组调度打满出口、单核gzip串行解压依赖、本地磁盘双倍写放大与元数据风暴、全量下载但实际只读6%的错配](<assets/云原生大模型训练平台镜像对比与加速方案：Apptainer SIF与Docker OCI/image-3.webp>)
+
+
 在生产环境中，当算法工程师反馈“提交了一个`85GB`镜像的训练任务，卡在`ContainerCreating`状态`25`分钟还没跑起来”时，如果把这`25`分钟拆解到 **网络**、**存储**、**`CPU`** 和 **文件系统** 四个维度，会发现时间被消耗在以下四个环环相扣的瓶颈上：
+
+
 
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 420, "subGraphTitleMargin": {"top": 5, "bottom": 4}}}}%%
@@ -349,6 +359,8 @@ flowchart TB
 
 理解了两种镜像格式的底层机制与瓶颈后，我们对`Apptainer SIF`与`Docker`/`OCI`进行一次系统性的对比。
 
+![SIF与OCI全景技术维度对比：秒级冷启动与构建分层权衡、HPC并行存储与云原生生态对比、安全特权隔离机制与超算/云原生编排融合](<assets/云原生大模型训练平台镜像对比与加速方案：Apptainer SIF与Docker OCI/image-4.webp>)
+
 ### 核心技术维度全景对比
 
 | 对比维度 | `Apptainer`（`SIF`镜像） | `Docker` / 标准`OCI`镜像 |
@@ -403,6 +415,8 @@ flowchart TB
 既然问题的根源已经清晰——`Apptainer SIF`之所以快，是因为它具备 **“文件块索引 + 内核直接挂载 + 按需读取 + 共享存储协同”** 四大特性；而默认`OCI`镜像之所以慢，是因为它受困于 **“星型网络拉取 + 单核流式解压 + 全量小文件落盘 + 100%就绪门控”** 。
 
 那么，在建设云原生大模型训练平台时，我们完全不需要放弃`Kubernetes`与`Docker`/`OCI`的标准化生态，而是可以通过一套由浅入深、可组合演进的工程方案，逐一击破上述四大瓶颈，让`85GB`的`OCI`训练镜像同样实现**秒级冷启动**。
+
+![云原生大镜像冷启动加速方案全景：三层标准底座与Zstd压缩、Dragonfly集群P2P分发与智能预热、Nydus与EROFS按需秒启、薄底座挂载共享存储融合方案](<assets/云原生大模型训练平台镜像对比与加速方案：Apptainer SIF与Docker OCI/image-5.webp>)
 
 ```mermaid
 %%{init: {"flowchart": {"wrappingWidth": 480, "subGraphTitleMargin": {"top": 5, "bottom": 8}}}}%%
@@ -687,6 +701,8 @@ flowchart TB
 此外，`Kubernetes`社区自`v1.31`（`Alpha`）及`v1.33+`（`Beta`）起原生引入了 **`ImageVolume`（`KEP-4639`）** 特性，允许将符合`OCI`规范的只读镜像或环境制品直接作为`Volume`挂载到`Pod`指定路径，未来这类“基础容器与大型只读软件环境包解耦挂载”的模式将进一步成为云原生标准能力。
 
 ## 生产落地选型建议
+
+![大模型训练镜像生产落地选型建议：存量超算优先保留SIF、大规模K8s采用P2P与Nydus按需加载、过渡期轻量底座挂载共享存储，综合权衡研发与运维改造成本](<assets/云原生大模型训练平台镜像对比与加速方案：Apptainer SIF与Docker OCI/image-6.webp>)
 
 | 平台所处阶段与场景特征 | 推荐核心方案组合 | 实施复杂度 | `85GB`镜像冷启动耗时 |
 | :--- | :--- | :--- | :--- |
