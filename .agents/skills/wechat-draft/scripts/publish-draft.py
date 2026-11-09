@@ -2,7 +2,9 @@
 """Upsert a WeChat MP draft from a skill preview directory.
 
 Uses the already-logged-in Chrome session for mp.weixin.qq.com.
-Always declares the article as original. Does not publish / mass-send.
+Declares the article as original, turns on 赞赏, and sets 创作来源 to
+个人观点，仅供参考. Puts the article in an existing 合集 when the source
+path matches. Does not publish / mass-send.
 """
 from __future__ import annotations
 
@@ -61,6 +63,17 @@ TITLE_MAX = 64
 DIGEST_MAX = 120
 AUTHOR_MAX = 16
 APPMSG_TYPE = 77
+# Editor claim_source_list: 4 is 「个人观点，仅供参考」.
+CLAIM_SOURCE_PERSONAL = 4
+# Longer prefixes first. Titles must already exist on the account.
+ALBUM_BY_PREFIX = (
+    ("docs/docs/1000-AI技术/200-应用开发/200-开发工具与插件/", "AI技术-开发工具"),
+    ("docs/docs/1000-AI技术/200-应用开发/", "AI技术-应用开发"),
+    ("docs/docs/1000-AI技术/600-训练微调/", "AI技术-训练微调"),
+    ("docs/docs/1000-AI技术/600-推理服务/", "AI技术-推理服务"),
+    ("docs/docs/8000-生活笔记/100-户外/", "户外运动"),
+    ("blog/", "碎言碎语"),
+)
 
 
 def chrome_cookies() -> dict[str, str]:
@@ -310,6 +323,101 @@ def original_article_type(source_markdown: str) -> int:
     return 8
 
 
+def album_title_for_source(source_markdown: str) -> str | None:
+    """Match a repo-relative article path to an existing 合集 title."""
+    p = source_markdown.replace("\\", "/").lstrip("/")
+    for prefix, title in ALBUM_BY_PREFIX:
+        if p.startswith(prefix) or f"/{prefix}" in f"/{p}":
+            return title
+    return None
+
+
+def list_albums(sess, token) -> list[dict]:
+    items: list[dict] = []
+    begin = 0
+    page = 20
+    while True:
+        r = sess.get(
+            "https://mp.weixin.qq.com/cgi-bin/appmsgalbummgr",
+            params={
+                "action": "list",
+                "begin": begin,
+                "count": page,
+                "type": 0,
+                "token": token,
+                "lang": "zh_CN",
+                "f": "json",
+                "ajax": 1,
+            },
+            timeout=20,
+        )
+        data = r.json()
+        ret = data.get("base_resp", {}).get("ret")
+        if ret not in (0, "0", None):
+            raise RuntimeError(f"list albums failed: {data.get('base_resp')}")
+        batch = (data.get("list_resp") or {}).get("items") or []
+        if not batch:
+            break
+        items.extend(batch)
+        if len(batch) < page:
+            break
+        begin += page
+        time.sleep(0.2)
+    return items
+
+
+def resolve_album(sess, token, source_markdown: str) -> dict | None:
+    """Return the account album for this article, or None when no rule matches.
+
+    A matched title that is missing from the account is an error. Omitting the
+    field on save leaves an existing album in place; sending an empty list
+    would clear it.
+    """
+    title = album_title_for_source(source_markdown)
+    if not title:
+        return None
+    for album in list_albums(sess, token):
+        if (album.get("title") or "").strip() == title and album.get("id"):
+            return album
+    raise RuntimeError(f"合集「{title}」不在公众号里，请先在后台建好同名合集")
+
+
+def album_form_value(album: dict) -> str:
+    album_id = str(album["id"])
+    # id stays a string. These ids are longer than 2^53, so a JS number
+    # would round them. Python's JSON encoder writes the full decimal.
+    info = {
+        "id": album_id,
+        "title": album.get("title") or "",
+        "album_id": int(album_id) if album_id.isdigit() else album_id,
+        "tagSource": 0,
+    }
+    return json.dumps({"appmsg_album_infos": [info]}, ensure_ascii=False)
+
+
+def reward_writer_id(sess, token) -> str:
+    r = sess.get(
+        "https://mp.weixin.qq.com/acct/writermgr",
+        params={
+            "action": "get_writer_list",
+            "token": token,
+            "lang": "zh_CN",
+            "f": "json",
+            "ajax": 1,
+        },
+        timeout=20,
+    )
+    data = r.json()
+    ret = data.get("base_resp", {}).get("ret")
+    if ret not in (0, "0", None):
+        raise RuntimeError(f"reward writers failed: {data.get('base_resp')}")
+    writers = (data.get("pageinfo") or {}).get("writerlist") or []
+    enabled = [w for w in writers if w.get("can_reward") in (1, "1", True) and w.get("writerid")]
+    if not enabled:
+        raise RuntimeError("公众号没有可开启赞赏的作者，请先在后台开通赞赏")
+    return str(enabled[0]["writerid"])
+
+
 def save_draft(
     sess,
     token,
@@ -326,6 +434,8 @@ def save_draft(
     cdn_11: str,
     source_url: str,
     article_type: int,
+    writer_id: str,
+    album: dict | None,
 ) -> dict:
     boxes = crop_boxes(fileid)
     crop_payload = json.dumps({"crop_list": boxes, "crop_list_percent": boxes}, ensure_ascii=False)
@@ -362,7 +472,8 @@ def save_draft(
         "sourceurl0": source_url,
         "fee0": 0,
         "is_cartoon_copyright0": 0,
-        "can_reward0": 0,
+        "can_reward0": 1,
+        "writerid0": writer_id,
         "pay_gifts_count0": 0,
         "auto_elect_comment0": 0,
         "auto_elect_reply0": 0,
@@ -381,7 +492,11 @@ def save_draft(
         "guide_words0": "",
         "is_share_copyright0": 0,
         "share_copyright_url0": "",
+        "claim_source_type0": CLAIM_SOURCE_PERSONAL,
+        "is_user_no_claim_source0": 0,
     }
+    if album:
+        data["appmsg_album_info0"] = album_form_value(album)
     sub = "update" if updating else "create"
     url = (
         "https://mp.weixin.qq.com/cgi-bin/operate_appmsg"
@@ -495,6 +610,14 @@ def publish(preview: Path, *, cover: Path | None, dry_run: bool) -> None:
         sess, token, title, (meta.get("draft") or {}).get("appMsgId")
     )
     print("existing draft", existing or "(none)", "data_seq", data_seq)
+    album = resolve_album(sess, token, source_md)
+    writer_id = reward_writer_id(sess, token)
+    print("reward 1 writer", writer_id)
+    print("claim_source", CLAIM_SOURCE_PERSONAL, "个人观点，仅供参考")
+    if album:
+        print("album", album.get("title"), album.get("id"))
+    else:
+        print("album (none)")
     if dry_run:
         print("DRY_RUN title", title)
         print("DRY_RUN cover", cover_path)
@@ -543,6 +666,8 @@ def publish(preview: Path, *, cover: Path | None, dry_run: bool) -> None:
         cdn_11=cdn_11,
         source_url=source_url,
         article_type=article_type,
+        writer_id=writer_id,
+        album=album,
     )
     err = save_error(result)
     if err and existing and "320002" in err:
@@ -563,6 +688,8 @@ def publish(preview: Path, *, cover: Path | None, dry_run: bool) -> None:
             cdn_11=cdn_11,
             source_url=source_url,
             article_type=article_type,
+            writer_id=writer_id,
+            album=album,
         )
         err = save_error(result)
     (preview / "draft-result.json").write_text(
@@ -581,6 +708,9 @@ def publish(preview: Path, *, cover: Path | None, dry_run: bool) -> None:
         "account": slave_user,
         "original": True,
         "updated": bool(existing),
+        "reward": True,
+        "claimSourceType": CLAIM_SOURCE_PERSONAL,
+        "album": (album.get("title") if album else None),
     }
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print("DRAFT_OK", app_msg_id, "update" if existing else "create")

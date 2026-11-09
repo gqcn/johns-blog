@@ -9,11 +9,11 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { deflateSync } from 'node:zlib';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { marked, Renderer } from 'marked';
 import sharp from 'sharp';
 import { composeCover } from './compose-cover.mjs';
@@ -122,34 +122,43 @@ function stripMdxNowrapSpans(md) {
     .join('');
 }
 
-const TOKEN_COLOR = {
-  keyword: '#f92672',
-  'class-name': '#a6e22e',
-  function: '#a6e22e',
-  string: '#e6db74',
-  number: '#ae81ff',
-  comment: '#75715e',
-  operator: '#f92672',
-  punctuation: '#f8f8f2',
-  boolean: '#ae81ff',
-  constant: '#ae81ff',
-  builtin: '#66d9ef',
-  property: '#a6e22e',
-  tag: '#f92672',
-  'attr-name': '#a6e22e',
-  'attr-value': '#e6db74',
-  regex: '#e6db74',
-  important: '#f92672',
-  variable: '#f8f8f2',
-  symbol: '#ae81ff',
-  selector: '#a6e22e',
-  atrule: '#f92672',
-  inserted: '#a6e22e',
-  deleted: '#f92672',
-  char: '#e6db74',
-  url: '#66d9ef',
-  entity: '#66d9ef',
-};
+// Same cascade as the site okaidia theme (prism-react-renderer plus the
+// atrule / important / variable patches in docusaurus.config.ts). Later rows
+// win, matching CSS. Colors equal to the code foreground are omitted: a span
+// of that color wraps inner tokens, and WeChat then paints the whole line
+// with the outer color.
+const TOKEN_STYLES = [
+  ['changed', '#a2bffc'],
+  ['deleted', '#f92672'],
+  ['inserted', '#addb67'],
+  ['comment', '#8292a2'],
+  ['prolog', '#8292a2'],
+  ['cdata', '#8292a2'],
+  ['string', '#a6e22e'],
+  ['url', '#a6e22e'],
+  ['regex', '#a6e22e'],
+  ['number', '#ae81ff'],
+  ['boolean', '#ae81ff'],
+  ['builtin', '#e6db74'],
+  ['char', '#e6db74'],
+  ['constant', '#e6db74'],
+  ['function', '#e6db74'],
+  ['class-name', '#e6db74'],
+  ['selector', '#a6e22e'],
+  ['keyword', '#66d9ef'],
+  ['operator', '#66d9ef'],
+  ['property', '#f92672'],
+  ['tag', '#f92672'],
+  ['attr-name', '#a6e22e'],
+  ['attr-value', '#e6db74'],
+  ['symbol', '#f92672'],
+  ['doctype', '#8292a2'],
+  ['rule', '#e6db74'],
+  ['atrule', '#e6db74'],
+  ['important', '#fd971f'],
+  ['variable', '#ae81ff'],
+];
+const TOKEN_COLOR = Object.fromEntries(TOKEN_STYLES);
 
 const LANG_ALIAS = {
   yml: 'yaml',
@@ -184,14 +193,79 @@ function loadPrismLang(id) {
   return Prism.languages[id] || null;
 }
 
+function tokenColor(cls) {
+  const names = new Set(cls.split(/\s+/));
+  let color = '';
+  for (const [name, value] of TOKEN_STYLES) {
+    if (names.has(name) && value.toLowerCase() !== C.preFg.toLowerCase()) color = value;
+  }
+  return color;
+}
+
+function unwrapPlainSpans(html) {
+  const open = '<span data-plain="1">';
+  const close = '</span>';
+  let result = '';
+  let i = 0;
+  while (i < html.length) {
+    if (html.startsWith(open, i)) {
+      let depth = 1;
+      let j = i + open.length;
+      const innerStart = j;
+      while (j < html.length && depth > 0) {
+        if (html.startsWith('<span', j)) {
+          depth += 1;
+          j = html.indexOf('>', j) + 1;
+        } else if (html.startsWith(close, j)) {
+          depth -= 1;
+          if (depth === 0) break;
+          j += close.length;
+        } else {
+          j += 1;
+        }
+      }
+      result += unwrapPlainSpans(html.slice(innerStart, j));
+      i = j + close.length;
+    } else {
+      result += html[i];
+      i += 1;
+    }
+  }
+  return result;
+}
+
 function colorizePrism(html) {
-  return html.replace(/<span class="token ([^"]+)">/g, (_, cls) => {
-    const color = cls
-      .split(/\s+/)
-      .map((name) => TOKEN_COLOR[name])
-      .find(Boolean);
-    return `<span style="color:${color || C.preFg}">`;
+  const replaced = html.replace(/<span class="token ([^"]+)">/g, (_, cls) => {
+    const color = tokenColor(cls);
+    return color ? `<span style="color:${color}">` : '<span data-plain="1">';
   });
+  return unwrapPlainSpans(replaced);
+}
+
+function splitHighlightedLines(html) {
+  const re = /<span style="color:[^"]+">|<\/span>|\n|[^<\n]+/g;
+  const parts = html.match(re);
+  if (!parts || parts.join('') !== html) return null;
+  const lines = [];
+  const stack = [];
+  let buf = '';
+  for (const tok of parts) {
+    if (tok === '\n') {
+      for (let k = stack.length - 1; k >= 0; k -= 1) buf += '</span>';
+      lines.push(buf);
+      buf = stack.join('');
+    } else if (tok.startsWith('<span')) {
+      stack.push(tok);
+      buf += tok;
+    } else if (tok === '</span>') {
+      stack.pop();
+      buf += tok;
+    } else {
+      buf += tok;
+    }
+  }
+  lines.push(buf);
+  return lines;
 }
 
 function highlightFormulaLine(line) {
@@ -223,6 +297,9 @@ function highlightCodeLines(text, lang) {
   try {
     const grammar = loadPrismLang(id);
     if (!grammar) return lines.map(highlightFormulaLine);
+    const html = colorizePrism(Prism.highlight(source, grammar, id));
+    const split = splitHighlightedLines(html);
+    if (split && split.length === lines.length) return split;
     return lines.map((line) => colorizePrism(Prism.highlight(line, grammar, id)));
   } catch (err) {
     console.warn('highlight', id, err.message);
@@ -255,43 +332,80 @@ function parseFrontmatter(raw) {
   return { meta, body };
 }
 
-function encodeMermaidInk(code) {
-  const state = {
-    code,
-    mermaid: {
-      theme: 'base',
-      themeVariables: {
-        fontFamily: 'PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif',
-        fontSize: '16px',
-        primaryColor: '#EAF2FD',
-        primaryTextColor: C.text,
-        primaryBorderColor: C.primary,
-        lineColor: '#4C5A6B',
-        secondaryColor: '#F4F6F8',
-        tertiaryColor: '#FFFFFF',
-        noteBkgColor: '#FFF7E6',
-        noteTextColor: C.text,
-        actorBkg: '#EAF2FD',
-        actorBorder: C.primary,
-        actorTextColor: C.text,
-        signalColor: C.text,
-        signalTextColor: C.text,
-        activationBkgColor: '#D6E8FB',
-        activationBorderColor: C.primary,
-        labelBoxBkgColor: '#F4F6F8',
-        labelTextColor: C.text,
-        clusterBkg: '#F7F9FC',
-        clusterBorder: '#C5D4E8',
-      },
-    },
-    updateEditor: false,
+// Bump when the renderer or theme changes so cached mermaid.ink PNGs are redrawn.
+const MERMAID_RENDERER = 'mermaid-11.5.0-chrome';
+
+function chromeBinary() {
+  const candidates = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+  ];
+  const found = candidates.find((item) => existsSync(item));
+  if (!found) throw new Error('找不到 Chrome，无法按站点同一版 Mermaid 渲染示意图');
+  return found;
+}
+
+function mermaidHtml(code) {
+  const theme = {
+    fontFamily: "PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif",
+    fontSize: '16px',
+    primaryColor: '#EAF2FD',
+    primaryTextColor: C.text,
+    primaryBorderColor: C.primary,
+    lineColor: '#4C5A6B',
+    secondaryColor: '#F4F6F8',
+    tertiaryColor: '#FFFFFF',
+    noteBkgColor: '#FFF7E6',
+    noteTextColor: C.text,
+    actorBkg: '#EAF2FD',
+    actorBorder: C.primary,
+    actorTextColor: C.text,
+    signalColor: C.text,
+    signalTextColor: C.text,
+    activationBkgColor: '#D6E8FB',
+    activationBorderColor: C.primary,
+    labelBoxBkgColor: '#F4F6F8',
+    labelTextColor: C.text,
+    clusterBkg: '#F7F9FC',
+    clusterBorder: '#C5D4E8',
   };
-  const compressed = deflateSync(Buffer.from(JSON.stringify(state), 'utf8'), { level: 9 });
-  return `pako:${compressed.toString('base64url')}`;
+  const script = path.join(ROOT, 'node_modules/mermaid/dist/mermaid.min.js');
+  return `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#fff}</style></head>
+<body><div id="host"></div>
+<script src="${pathToFileURL(script).href}"></script>
+<script>
+mermaid.initialize({startOnLoad:false,securityLevel:"loose",theme:"base",themeVariables:${JSON.stringify(theme)}});
+mermaid.render("d1", ${JSON.stringify(code)}).then(({svg}) => {
+  const host = document.getElementById("host");
+  host.innerHTML = svg;
+  const el = host.querySelector("svg");
+  const vb = el.viewBox.baseVal;
+  const w = Math.ceil(vb.width + vb.x);
+  const h = Math.ceil(vb.height + vb.y);
+  el.setAttribute("width", w);
+  el.setAttribute("height", h);
+  el.style.maxWidth = "none";
+  el.style.width = w + "px";
+  el.style.height = h + "px";
+  document.documentElement.setAttribute("data-size", w + "x" + h);
+});
+</script></body></html>`;
+}
+
+function runChrome(args) {
+  return execFileSync(chromeBinary(), args, {
+    encoding: 'utf8',
+    maxBuffer: 32 * 1024 * 1024,
+    timeout: 60000,
+    stdio: ['ignore', 'pipe', 'ignore'],
+  });
 }
 
 async function mermaidToPng(code, outPath) {
-  const hash = createHash('sha1').update(code).digest('hex');
+  // mermaid.ink stretches a short subgraph that links to a taller one, so the
+  // first panel keeps a large blank at the bottom. Render with the site's
+  // Mermaid 11.5.0 instead.
+  const hash = createHash('sha1').update(`${MERMAID_RENDERER}\n${code}`).digest('hex');
   const cacheFile = path.join(path.dirname(outPath), '..', 'mermaid-cache.json');
   let cache = {};
   if (existsSync(cacheFile)) {
@@ -303,22 +417,34 @@ async function mermaidToPng(code, outPath) {
   }
   const key = path.basename(outPath);
   if (existsSync(outPath) && cache[key] === hash) return 'cached';
-  if (existsSync(outPath) && !cache[key]) {
-    cache[key] = hash;
-    await writeFile(cacheFile, JSON.stringify(cache));
-    return 'cached';
-  }
-  const encoded = encodeMermaidInk(code);
-  const url = `https://mermaid.ink/img/${encoded}?type=png&width=1400&bgColor=FFFFFF`;
-  const res = await fetch(url, {
-    headers: { 'User-Agent': 'johns-blog-wechat-preview/1.0' },
-  });
-  if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`mermaid.ink ${res.status}: ${t.slice(0, 200)}`);
-  }
-  const buf = Buffer.from(await res.arrayBuffer());
-  await writeFile(outPath, buf);
+  const htmlPath = path.join(tmpdir(), `wechat-mermaid-${hash}.html`);
+  const shotPath = path.join(tmpdir(), `wechat-mermaid-${hash}.png`);
+  await writeFile(htmlPath, mermaidHtml(code));
+  const page = pathToFileURL(htmlPath).href;
+  const common = [
+    '--headless',
+    '--disable-gpu',
+    '--no-sandbox',
+    '--allow-file-access-from-files',
+    '--hide-scrollbars',
+    '--force-device-scale-factor=1',
+    '--default-background-color=FFFFFFFF',
+    '--virtual-time-budget=20000',
+  ];
+  const dom = runChrome([...common, '--window-size=800,600', '--dump-dom', page]);
+  const size = dom.match(/data-size="(\d+)x(\d+)"/);
+  if (!size) throw new Error('Mermaid 没有渲染出尺寸');
+  const width = Number(size[1]);
+  const height = Number(size[2]);
+  runChrome([
+    ...common,
+    `--window-size=${width},${height}`,
+    `--screenshot=${shotPath}`,
+    page,
+  ]);
+  await sharp(shotPath).png().toFile(outPath);
+  await rm(htmlPath, { force: true });
+  await rm(shotPath, { force: true });
   cache[key] = hash;
   await writeFile(cacheFile, JSON.stringify(cache));
   return 'ok';
@@ -898,9 +1024,26 @@ async function main() {
   await composeCover(coverSrc, coverPath);
 
   const ctx = { images };
+  // GFM treats a leading run of ` or ~ as plain text. In `甲`~`乙` the second
+  // opener is swallowed, later backticks pair with the wrong closer, and the
+  // leftovers show up as ` in the article. Split that ~ off before codespan.
+  const tildeBeforeCode = {
+    name: 'tildeBeforeCode',
+    level: 'inline',
+    start(src) {
+      const index = src.search(/~+(?=`)/);
+      return index === -1 ? undefined : index;
+    },
+    tokenizer(src) {
+      const match = /^~+(?=`)/.exec(src);
+      if (!match) return;
+      return { type: 'text', raw: match[0], text: match[0] };
+    },
+  };
   marked.use({
     gfm: true,
     breaks: false,
+    extensions: [tildeBeforeCode],
     renderer: buildRenderer(ctx),
   });
   let html = marked.parse(body);

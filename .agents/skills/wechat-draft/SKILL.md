@@ -1,8 +1,9 @@
 ---
 name: wechat-draft
 description: >
-  将 johns-blog 的指定 Markdown 文章同步到已登录的微信公众号草稿箱：用文章首图做封面、排版正文、声明原创；
-  同标题草稿已存在则更新，不群发。用户要求发到公众号、创建/更新微信草稿、公众号草稿、封面图，
+  将 johns-blog 的指定 Markdown 文章同步到已登录的微信公众号草稿箱：用文章首图做封面、排版正文、声明原创、
+  开启赞赏，创作来源选「个人观点，仅供参考」，并按栏目放入已有合集。
+  同标题草稿已存在则更新，不群发。用户要求发到公众号、创建/更新微信草稿、公众号草稿、封面图、合集、赞赏、创作来源，
   或使用 /wechat-draft 时必须使用本 skill。
 argument-hint: "[文章路径]"
 ---
@@ -16,6 +17,8 @@ argument-hint: "[文章路径]"
 - 输入是仓库里的 Markdown 文章（`docs/` 或 `blog/`）。用户指定路径或当前正在写的文章。
 - 已有同标题草稿则更新，没有则新建。
 - 每篇都声明原创（不允许转载）。
+- 每篇开启赞赏，创作来源选「个人观点，仅供参考」。
+- 合集按 `scripts/publish-draft.py` 里的路径前缀匹配公众号里已有的合集。匹配不到就不提交合集字段，避免清掉草稿里已经选好的合集；也不要新建合集。匹配到的名称如果后台没有，停下来。
 - 封面用正文第一张图（含它前面的 Mermaid 图）。没有图片时停下来，不要另画一张无关封面。
 - 封面比例、留白和什么时候重排，见下方「封面」。不在封面上加标题或「原创」字样；图里原有的文字保留。
 
@@ -30,7 +33,7 @@ node .agents/skills/wechat-draft/scripts/generate.mjs <文章.md>
 
 跑这条命令之前，先按「封面」确认源图已经是 2.35:1。输出目录是 `.agents/skills/wechat-draft/preview/<slug>/`。生成结果必须符合下方「封面」和「排版与保存」，不要手改 `wechat-body.html` 绕过生成器。
 
-3. 写入草稿（脚本会读 Chrome 的 `mp.weixin.qq.com` Cookie，按标题查找草稿，声明原创后创建或更新）：
+3. 写入草稿（脚本会读 Chrome 的 `mp.weixin.qq.com` Cookie，按标题查找草稿，声明原创、开启赞赏、标注创作来源，并按栏目放入已有合集后创建或更新）：
 
 ```bash
 .agents/skills/wechat-draft/scripts/publish.sh .agents/skills/wechat-draft/preview/<slug>
@@ -65,8 +68,9 @@ node .agents/skills/wechat-draft/scripts/generate.mjs <文章.md>
 - 文首不放目录，也不要「本页目录」。
 - 标签之间的换行在提交前去掉。Markdown 软换行收成一个空格，只有硬换行才写成 `<br>`。源码里的换行会被画成空行；出现在列表里就是只有序号、没有内容的空行。
 - 列表和标题用块级 `section` 或 `p`，序号与正文写在同一行。
-- 代码块的每一行是一个左对齐的 `section`（`text-align:left`，`text-indent:0`），行首空格写成 `&#160;`。高亮用行内 `color`：已知语言走 Prism，纯文本公式区分数字、标识符和运算符。
-- 行内代码用 `span`。表格单元格以文本节点开头。单元格若以 `code` 开头，微信会把后面的文字放进块级 `section`，词语后面就会多出一行。
+- 代码块的每一行是一个左对齐的 `section`（`text-align:left`，`text-indent:0`），行首空格写成 `&#160;`。高亮用行内 `color`：已知语言整段走 Prism，再按行拆开，配色与站点 okaidia 一致。和代码正文同色的 token 不包 `span`，避免外层颜色盖住关键字。纯文本公式区分数字、标识符和运算符。
+- 行内代码用 `span`。`` `甲`~`乙` `` 这种中间的 `~` 紧贴两边反引号时，先把 `~` 拆成普通文本再解析行内代码。否则 GFM 会吞掉后一个开头反引号，后面的反引号错位，正文里留下 `` ` ``。表格单元格以文本节点开头。单元格若以 `code` 开头，微信会把后面的文字放进块级 `section`，词语后面就会多出一行。
+- Mermaid 图用本机 Chrome 和仓库里的 Mermaid 11.5.0 渲染，与站点同一版。不要改回 mermaid.ink。它会把连向更高板块的短板块拉高，板块底部留出大片空白。
 - 表格外框只画一条线。单元格先写 `border:0`，再只给非末列加右边线、非末行加下边线。外框、单元格四边和微信默认边框叠在一起就会变成双线。
 - 去掉 MDX 防换行标签 `<span style={{whiteSpace: 'nowrap'}}>…</span>`，只保留内部文字。这段 JSX 不能当 HTML 提交，否则会在正文里显示成标签文本。围栏代码块里的原文保持不动。
 - 页内锚点（`#...`）和 `mailto:` 只保留链接文字，不要写成 `<a href>`。以 `/` 开头的站内路径改成 `https://johng.cn/...`。其它不是 `http(s)` 的地址也只保留文字。这些写法提交后会报 `64562`（请勿插入非 `mp.weixin.qq.com` 域名的链接）。
@@ -74,5 +78,6 @@ node .agents/skills/wechat-draft/scripts/generate.mjs <文章.md>
 
 草稿：
 
+- 保存时带上赞赏（`can_reward0=1`，作者用账号里可赞赏的 `writerid`）、创作来源「个人观点，仅供参考」（`claim_source_type0=4`），以及匹配到的合集（`appmsg_album_info0`）。这些字段由 `publish-draft.py` 提交，不要手改。
 - 记下的 `appMsgId` 已不在当前草稿列表中时，新建草稿，不要再去更新那条已删除的记录。
 - 是否保存成功同时看响应顶层的 `ret` 和 `msg`。顶层 `ret` 非 0 就是失败，即使 `base_resp.ret` 为 0。`320002`（「此草稿已被删除，无法保存」）属于这种情况，脚本必须失败退出。
