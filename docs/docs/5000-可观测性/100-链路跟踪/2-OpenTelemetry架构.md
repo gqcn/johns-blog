@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["OpenTelemetry", "架构设计", "组件结构", "数据流", "可观察性", "系统集成"]
 description: "详细解析 OpenTelemetry 的架构设计、核心组件和数据流向，帮助理解其如何实现分布式系统的全方位监控"
+last_update:
+  date: "2026-09-18"
 ---
 
 

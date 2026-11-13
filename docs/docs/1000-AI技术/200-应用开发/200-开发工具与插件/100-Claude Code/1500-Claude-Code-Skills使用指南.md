@@ -35,6 +35,8 @@ keywords:
   ]
 description: "Claude Code Skills是一套基于Agent Skills开放标准的技能扩展机制，通过编写SKILL.md文件让Claude掌握领域专业知识和自定义工作流，既可由用户以斜杠命令手动触发，也可由Claude在对话中自动识别并加载，从而将重复性的最佳实践固化为可复用、可分发的技能单元。本文详细介绍Skills的设计原理、内置技能列表、技能存储位置、SKILL.md格式规范、frontmatter配置项，并通过代码规范检查、自动提交、PR摘要生成等多个实用示例，帮助开发者快速上手编写和使用Skills，显著提升AI辅助开发的效率和一致性。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

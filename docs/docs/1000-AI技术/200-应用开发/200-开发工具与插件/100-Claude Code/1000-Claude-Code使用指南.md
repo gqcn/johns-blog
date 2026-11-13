@@ -31,6 +31,8 @@ keywords:
   ]
 description: "Claude Code是Anthropic推出的目前最强大的AI代码智能体工具，基于先进的智能体循环（Agentic Loop）设计，能够读取代码库、执行命令、修改文件并与开发工具深度集成。本文全面介绍Claude Code的安装配置、核心概念（Memory机制、Agentic Loop）、设计理念、常用命令与工作流、以及Git Worktree并行会话切换功能，帮助开发者快速掌握这款革命性的AI编程助手，显著提升开发效率和代码质量。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

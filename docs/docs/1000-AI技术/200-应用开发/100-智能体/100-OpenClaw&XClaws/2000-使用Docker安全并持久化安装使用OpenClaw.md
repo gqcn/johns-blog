@@ -4,6 +4,8 @@ title: "使用Docker安全并持久化安装使用OpenClaw"
 hide_title: true
 keywords: [OpenClaw, Docker, Ubuntu, 持久化存储, Docker Volume, 智能体, AI Agent, gateway, openclaw.json, 配置文件, 设备配对, 模型配置, NewAPI, 容器化部署, AI工具, 数据卷, 端口映射, 本地化部署]
 description: "本文介绍如何使用Docker容器安全并持久化地安装和使用OpenClaw智能体工具。通过创建Docker数据卷挂载Ubuntu关键目录，实现容器重启后数据不丢失；在容器内完成OpenClaw的安装与初始化配置，修改openclaw.json中gateway的bind配置，使宿主机能够正常访问OpenClaw管理页面；完成设备配对认证流程，并介绍如何对接自定义AI模型服务（如通过NewAPI自建的模型服务），实现个性化的智能体工作流配置。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

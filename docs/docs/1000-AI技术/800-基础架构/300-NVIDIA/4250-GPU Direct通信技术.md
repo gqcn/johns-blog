@@ -28,6 +28,8 @@ keywords:
     "模型训练加速"
   ]
 description: "全面解析NVIDIA GPU Direct通信技术体系，包括GPU Direct Storage（存储直连）、GPU Direct P2P（GPU间点对点通信）、GPU Direct RDMA（远程直接内存访问）三大核心技术。深入讲解NVLink高速互联和NVSwitch全互联交换架构，阐述如何通过绕过CPU实现GPU与存储、网络、GPU间的直接数据传输，显著降低延迟、提升带宽，为大规模AI训练和高性能计算提供关键的通信加速能力。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## GPU Direct技术概述

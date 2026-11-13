@@ -26,6 +26,8 @@ keywords:
     "静态策略"
   ]
 description: "深入探讨AI模型开发训练推理场景下的CPU亲和性与NUMA亲和性调度技术，介绍NUMA架构原理、GPU拓扑分析、Docker和Kubernetes环境下的亲和性配置方案，通过实际案例优化AI工作负载的性能表现"
+last_update:
+  date: "2026-09-18"
 ---
 
 

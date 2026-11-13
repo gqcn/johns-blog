@@ -19,6 +19,8 @@ keywords:
     Gang调度,
   ]
 description: "通过PD分离部署场景，详细演示如何使用Volcano网络拓扑感知调度功能，在IB网络环境下优化大模型推理服务的节点选择，降低网络延迟，提升带宽利用率。包含HyperNode配置、节点标签、Prefill和Decode服务部署的完整示例。"
+last_update:
+  date: "2026-09-18"
 ---
 
 在大规模`GPU`集群中部署大模型推理服务时，网络拓扑对性能的影响至关重要。本文通过 **`PD（Prefill-Decode）`分离部署** 的实战场景案例，详细演示如何使用`Volcano`的网络拓扑感知调度功能，在`IB（InfiniBand）`网络环境下优化节点选择，实现：

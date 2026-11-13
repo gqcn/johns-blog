@@ -26,6 +26,8 @@ keywords:
     "垃圾回收"
   ]
 description: "深入解析Kubernetes中kubelet的Pod驱逐机制，包括驱逐信号、阈值配置、QoS级别分类、驱逐优先级逻辑等。详细说明requests和limits配置对驱逐顺序的影响，以及内存、磁盘、PID等不同资源压力下的驱逐策略。结合源码分析驱逐流程的具体实现。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

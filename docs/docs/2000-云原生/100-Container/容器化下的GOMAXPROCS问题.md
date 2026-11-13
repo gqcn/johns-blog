@@ -4,6 +4,8 @@ title: "容器化下的GOMAXPROCS问题"
 hide_title: true
 keywords: ["Go", "GOMAXPROCS", "容器化", "性能调优", "资源限制", "并发编程"]
 description: "探讨在容器化环境下 Go 程序 GOMAXPROCS 设置的问题及其对性能的影响"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本介绍

@@ -35,6 +35,8 @@ keywords:
   - 长期运行
 description: "golutra 是一款基于 Tauri（Vue 3 + Rust）构建的新一代跨平台多智能体工作空间桌面应用，标语为\"一个人，一个 AI 军团\"。它不要求用户迁移项目或重学命令，而是将现有的 Claude Code、Gemini CLI、Codex CLI、OpenCode、Qwen Code 等 AI CLI 工具统一接入同一编排层，通过 PTY 伪终端实现进程级隔离沙箱，支持无限数量的 Agent 并行执行，内置语义分析、消息派发批次器、Outbox 可靠投递与工作流模板导入导出，彻底替代单线程人工上下文切换的传统 IDE 工作模式，是面向个人、小团队和一人公司的 AI 协作自动化新范式。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是 Golutra

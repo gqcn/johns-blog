@@ -4,6 +4,8 @@ title: GPU Share 常见技术方案
 hide_title: true
 keywords: [GPU Share, CUDA MPS, MIG, vGPU, Time-slicing, GPU虚拟化, GPU共享, NVIDIA GPU, 算力共享]
 description: 详细介绍GPU Share的五种常见技术方案：Single Process、CUDA MPS、Time-slicing、MIG和vGPU，并从隔离性、性能和适用场景等维度进行全面对比分析。
+last_update:
+  date: "2026-09-18"
 ---
 
 

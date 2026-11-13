@@ -12,6 +12,8 @@ keywords:
     "代码实现",
   ]
 description: "深入分析 Argo Workflow 的源代码实现，探讨其核心组件、工作流程和关键功能的技术细节"
+last_update:
+  date: "2026-09-18"
 ---
 
 

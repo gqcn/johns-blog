@@ -5,6 +5,8 @@ hide_title: true
 keywords: [OpenSandbox, 阿里巴巴, 沙箱, Sandbox, AI应用, 代码执行, 安全隔离, Coding Agent, GUI Agent, 代码解释器, 强化学习, Docker, Kubernetes, gVisor, Kata Containers, Firecracker, MCP, Python SDK, Java SDK, Go SDK, TypeScript SDK, 出口控制, Egress, 入口网关, Ingress, execd, 沙箱协议, 生命周期管理, 多语言SDK, 容器安全, 云原生, 智能体评估, CNCF]
 description: "OpenSandbox是阿里巴巴开源的通用AI应用沙箱平台，已被CNCF Landscape收录，专为Coding Agent、GUI Agent、智能体评估、AI代码执行和强化学习训练等场景设计。平台提供Python、Java/Kotlin、TypeScript、C#/.NET、Go五种语言的多端SDK，定义了统一的沙箱生命周期协议和执行协议，内置Docker与Kubernetes两种运行时，集成命令执行、文件系统、代码解释器等能力，并通过Ingress网关和Egress出口控制提供完整的网络安全策略，支持gVisor、Kata Containers、Firecracker等安全容器运行时实现强隔离。本文将从项目背景、解决的问题、核心优势、架构设计、各组件介绍、配置参考及多个实战示例等维度全面介绍OpenSandbox，帮助读者快速掌握该平台的使用方式。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是 OpenSandbox

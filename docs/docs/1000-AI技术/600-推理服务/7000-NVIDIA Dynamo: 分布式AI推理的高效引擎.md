@@ -9,6 +9,8 @@ keywords:
     "分布式KV缓存", "智能路由", "GPU调度", "TensorRT-LLM", "vLLM", "SGLang"
   ]
 description: "介绍NVIDIA Dynamo，一个分布式AI推理的高效引擎，分析其架构设计、组件功能及工作原理，了解如何通过PD分离、智能路由和分布式KV缓存管理等技术提升大模型推理性能"
+last_update:
+  date: "2026-09-18"
 ---
 
 

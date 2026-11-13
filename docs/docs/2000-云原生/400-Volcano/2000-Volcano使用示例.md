@@ -7,6 +7,8 @@ keywords:
     "Volcano", "Kubernetes", "使用示例", "Queue", "Gang调度", "Pod", "Deployment", "Job", "调度器", "队列管理", "资源分配", "批处理", "分布式训练"
   ]
 description: "本文提供了Volcano在Kubernetes中的实际使用示例，包括Pod和Deployment如何使用队列进行调度，以及Gang调度的配置和使用方法，帮助用户快速上手Volcano调度器。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

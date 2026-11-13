@@ -4,6 +4,8 @@ title: GPU PCIe版和SXM版的区别
 hide_title: true
 keywords: [GPU, PCIe, SXM, NVLink, NVSwitch, DGX, HGX, NVIDIA, GPU互联, 大模型训练, AI算力, GPU架构]
 description: 详细介绍NVIDIA GPU的PCIe版和SXM版的区别，包括架构特点、互联方式、性能对比和应用场景，帮助理解如何根据不同的AI工作负载选择合适的GPU版本。
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 术语说明

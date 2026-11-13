@@ -35,6 +35,8 @@ keywords:
   ]
 description: "本文深入介绍大模型推理服务在多机多卡场景下的部署方案选型与落地实践。结合华为昇腾910B NPU、GLM-5 744B参数量级模型的真实背景，分析单节点资源不足的核心痛点，对比LWS、RBG、Kthena、AIBrix、OME五种业界方案的技术特点与取舍，重点讲解Kthena的架构设计、核心组件（ModelServing/ModelRoute/ModelServer/ModelBooster）、与Volcano调度器的深度集成，以及通过kind本地集群运行的完整示例，帮助读者快速掌握企业级多机多卡推理部署能力。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-29"
 ---
 
 ## 背景与痛点

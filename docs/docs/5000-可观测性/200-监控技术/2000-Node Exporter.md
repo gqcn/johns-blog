@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Node Exporter", "Prometheus", "节点监控", "主机指标", "Label", "CPU", "Filesystem", "Network", "InfiniBand", "Ethtool", "Textfile"]
 description: "系统介绍 Node Exporter 常用主机指标，覆盖 CPU、磁盘、文件系统、内存、网络、InfiniBand、Ethtool、Textfile、电源、温控和采集器自身指标，并逐项说明指标 Label。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本简介

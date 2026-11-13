@@ -22,6 +22,8 @@ keywords:
   ]
 description: "Copilot Prompts是VS Code中用于创建可复用开发任务提示的强大功能，允许开发者通过Markdown文件定义标准化的开发工作流，如代码生成、代码审查、项目脚手架等。本文全面介绍Copilot Prompts的核心功能、文件结构、使用方法、配置管理、应用场景和最佳实践，帮助开发者构建高效的开发任务库，提升团队协作效率和代码质量，实现一致性的开发体验。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

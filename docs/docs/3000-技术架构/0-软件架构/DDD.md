@@ -5,6 +5,8 @@ hide_title: true
 unlisted: true
 keywords: ["DDD", "项目结构", "领域驱动设计", "目录结构", "代码组织"]
 description: "展示DDD（领域驱动设计）项目的标准目录结构和代码组织方式，包括领域层、应用层、基础设施层等"
+last_update:
+  date: "2026-09-18"
 ---
 
 ```text

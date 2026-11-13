@@ -127,6 +127,14 @@
   }
 }
 
+@media (min-width: 1728px) {
+  .tocCol {
+    flex: 0 0 var(--doc-toc-width) !important;
+    width: var(--doc-toc-width) !important;
+    max-width: var(--doc-toc-width) !important;
+  }
+}
+
 @media (max-width: 996px) {
   .tocCol,
   .reopenAnchor,

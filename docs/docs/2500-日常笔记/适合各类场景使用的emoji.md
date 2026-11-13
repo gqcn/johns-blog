@@ -4,6 +4,8 @@ title: 适合各类场景使用的Emoji
 hide_title: true
 description: 整理了适用于技术文档、项目管理、开发协作等各类业务场景的Emoji使用指南，包括项目管理、开发流程、状态标识、文档编写等多个维度的Emoji参考
 keywords: [emoji, 技术文档, 项目管理, 开发协作, markdown, 文档规范, 状态标识, 可视化标记]
+last_update:
+  date: "2026-09-18"
 ---
 
 

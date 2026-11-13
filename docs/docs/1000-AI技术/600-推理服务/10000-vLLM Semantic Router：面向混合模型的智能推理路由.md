@@ -29,6 +29,8 @@ keywords:
   ]
 description: "异构大模型共存后，传统负载均衡无法理解请求语义、模型能力和隐私边界，分散在应用代码中的选模、缓存、安全检查与降级逻辑又会造成重复实现和维护困难。vLLM Semantic Router通过Envoy ExtProc提供统一的语义路由与控制层，利用Entrypoint、Recipe、Signal、Projection、Decision、Algorithm、Plugin和Provider Model完成请求识别、策略筛选、模型选择及附加处理，并给出安装配置、双模型路由、请求验证、调试观测和生产落地方法。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-22"
 ---
 
 ## 引言

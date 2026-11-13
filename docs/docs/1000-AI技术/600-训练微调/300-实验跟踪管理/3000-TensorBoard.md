@@ -5,6 +5,8 @@ hide_title: true
 keywords: ["TensorBoard", "机器学习可视化", "实验管理", "TensorFlow", "PyTorch", "Scalars", "Histograms", "HParams", "超参数调优", "模型调试", "损失函数", "准确率", "嵌入向量", "Profiler", "计算图可视化", "训练监控", "深度学习工具", "可观测性", "tf.summary"]
 description: "本文全面介绍TensorBoard机器学习可视化工具，涵盖其核心功能与解决的问题、实验管理中的全部指标体系（Scalars、Histograms、Distributions、HParams等）详细说明与使用方法，以及安装配置和TensorFlow、PyTorch等框架的集成使用示例，帮助AI从业者有效监控、分析和优化机器学习实验过程，提升实验效率与模型性能。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本简介

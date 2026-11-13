@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Linux", "Memory", "cgroup", "内存统计", "进程内存", "容器内存", "系统监控"]
 description: "深入分析 Linux 系统中进程内存和 cgroup 内存统计的差异，帮助用户理解容器环境下的内存管理和监控"
+last_update:
+  date: "2026-09-18"
 ---
 
 

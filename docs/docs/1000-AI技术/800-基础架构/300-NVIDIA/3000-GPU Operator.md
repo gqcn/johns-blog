@@ -8,6 +8,8 @@ keywords:
     "设备插件", "驱动管理", "AI基础设施", "机器学习", "深度学习"
   ]
 description: "本文详细介绍NVIDIA GPU Operator的主要作用、组件构成、与GPU DevicePlugin的区别、Kubernetes兼容性以及部署方法，帮助用户在Kubernetes环境中更轻松地管理GPU资源。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Volcano", "Volcano Job", "VCJob", "Prometheus", "Kubernetes", "调度器指标", "控制器指标", "作业指标", "Gang Scheduling", "DRF", "Queue", "PodGroup", "Histogram", "Gauge", "Counter", "acs", "资源请求", "作业状态", "可观测性"]
 description: "本文基于 Volcano 和 acs 项目源码，系统梳理 Volcano Job 在调度器、控制器和 acs 业务层暴露或封装的指标，包括作业调度耗时、调度起止时间、未调度任务数、作业重试次数、完成和失败计数、作业公平性份额、Pod 创建延迟以及 acs 任务列表中的状态、资源请求和业务归属字段，并说明每个指标的 Label、触发路径和使用注意事项。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本简介

@@ -4,6 +4,8 @@ title: VSCode设置Markdown截图文件存放路径
 hide_title: true
 description: 如何在VSCode中设置Markdown截图文件的自动存放路径，使图片文件更有组织性地保存
 keywords: [VSCode, Markdown, 截图, 图片路径, 文件管理]
+last_update:
+  date: "2026-09-18"
 ---
 
 

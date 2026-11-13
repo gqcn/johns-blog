@@ -41,6 +41,8 @@ keywords:
   ]
 description: "Grok Build（Grok CLI）是xAI推出的终端编程智能体，面向SuperGrok与X Premium Plus用户，支持交互式TUI、无头脚本与ACP编辑器集成。本文系统介绍Grok与Grok CLI的产品边界，详细讲解安装更新、常用命令、Grok 4.5文本+图像多模态能力、图片识别与图片生成入口、config.toml配置、斜杠指令、Skills技能、跨会话记忆系统，以及与Claude Code在配置项、记忆文件、Skills路径上的差异，帮助开发者快速上手并完成从Claude Code到Grok的兼容迁移。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-29"
 ---
 
 ## 前言

@@ -4,6 +4,8 @@ title: "树（Tree）"
 hide_title: true
 keywords: ["数据结构", "树", "二叉树", "搜索树", "平衡树", "遍历算法"]
 description: "深入探讨树（Tree）数据结构的基本概念、类型和实现方法，包括二叉树、搜索树、平衡树等树形结构的特性和应用"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 二叉查找树(BST)

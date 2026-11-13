@@ -32,6 +32,8 @@ keywords:
   ]
 description: "Claude Code Hooks是一套事件驱动的钩子机制，允许开发者在Claude Code智能体生命周期的特定节点自动执行Shell命令、HTTP请求或LLM评估，从而实现权限控制、安全审计、代码质量检查、工作流自动化等高级功能。本文详细介绍Hooks的设计原理、所有支持的事件类型、配置方法、输入输出格式，并提供多个实用示例，帮助开发者充分利用这一强大特性构建安全、可靠的AI辅助开发流程。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

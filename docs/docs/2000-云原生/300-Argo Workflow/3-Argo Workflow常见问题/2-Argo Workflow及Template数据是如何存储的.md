@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Argo Workflow", "模板存储", "数据持久化", "Kubernetes", "etcd", "状态管理"]
 description: "探讨 Argo Workflow 中的模板数据存储机制，包括模板定义的持久化方式和状态数据的管理策略"
+last_update:
+  date: "2026-09-18"
 ---
 
 从之前的源码的梳理我们可以发现，Argo Framework对于Workflow以及其Template数据没有自身的存储逻辑，而是通过KubeClient直接调用Kubernetes的接口处理对象查询、创建、更新、销毁。也就是说，这些数据应该是交给Kubernetes来负责维护的，当然也包括存储。我们都知道Kubernetes底层是使用的etcd服务作为存储，为了验证Workflow/Template数据存储的这一点猜测，我们直接去看Kubernetes中etcd的数据不就行了吗。想不如做，`Let's do it`。

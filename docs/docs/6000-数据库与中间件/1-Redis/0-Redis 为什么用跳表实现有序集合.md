@@ -13,6 +13,8 @@ keywords:
     "时间复杂度",
   ]
 description: "深入分析 Redis 选择跳表实现有序集合的原因，以及跳表在性能和实现上的优势"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 平衡树 vs 跳表

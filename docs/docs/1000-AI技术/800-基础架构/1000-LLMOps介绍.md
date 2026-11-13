@@ -26,6 +26,8 @@ keywords:
     "AI工程化"
   ]
 description: "全面介绍LLMOps技术体系，包括LLMOps的背景与定义、与MLOps的核心区别、关键功能特性、与DevOps的融合实践以及未来发展趋势，为构建企业级AI大模型开发运维平台提供技术指导"
+last_update:
+  date: "2026-09-18"
 ---
 
 

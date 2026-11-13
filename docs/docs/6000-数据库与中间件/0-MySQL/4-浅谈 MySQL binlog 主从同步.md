@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["MySQL", "binlog", "主从同步", "数据复制", "高可用", "数据同步", "主从架构"]
 description: "深入讲解 MySQL binlog 主从同步的原理、配置方法和常见问题处理"
+last_update:
+  date: "2026-09-18"
 ---
 
 

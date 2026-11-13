@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Redis", "缓存", "缓存穿透", "缓存击穿", "缓存雪崩", "性能优化", "问题排查"]
 description: "探讨 Redis 缓存使用中的常见问题及其解决方案，包括缓存穿透、击穿、雪崩等问题的分析和处理"
+last_update:
+  date: "2026-09-18"
 ---
 
 

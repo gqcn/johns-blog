@@ -7,6 +7,8 @@ keywords:
     "helm", "kubernetes", "包管理", "chart", "云原生", "容器编排"
   ]
 description: "详细介绍Helm的背景、用途、安装配置以及常用指令的使用方法和示例"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是Helm？

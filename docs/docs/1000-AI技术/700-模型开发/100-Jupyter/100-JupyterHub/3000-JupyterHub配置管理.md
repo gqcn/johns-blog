@@ -21,6 +21,8 @@ keywords:
     ProfileList
   ]
 description: "JupyterHub生产环境完整配置指南，包括认证配置（OAuth、LDAP等）、资源限制、存储管理、用户环境配置、GPU支持、Ingress配置、自动清理策略和多资源环境选项等，提供可直接使用的配置示例。"
+last_update:
+  date: "2026-09-18"
 ---
 
 部署完成后，我们需要根据实际需求对`JupyterHub`进行配置。所有配置都在`Helm`安装包的`values.yaml`文件中进行，修改后通过 `helm upgrade` 命令应用更新。

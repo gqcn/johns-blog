@@ -21,6 +21,8 @@ keywords:
     "高性能计算"
   ]
 description: "深入解析Volcano Job Plugin的各种插件功能，包括SSH、SVC、Env等基础插件，以及TensorFlow、PyTorch、MPI、Ray等分布式框架插件。详细介绍每个插件的工作原理、配置参数、使用场景和实践示例，帮助用户构建高效的分布式计算和机器学习工作负载。"
+last_update:
+  date: "2026-09-18"
 ---
 
 本文详细介绍`Volcano Job`中的`Plugin`机制及各个插件的配置和使用方法。关于`Job`的基础介绍，请参考 [Volcano Job详解](./3600-Volcano%20Job详解.md)。

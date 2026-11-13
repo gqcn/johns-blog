@@ -26,6 +26,8 @@ keywords:
     "节点选择"
   ]
 description: "深入解析Kubernetes RuntimeClass机制，介绍如何使用RuntimeClass为不同的Pod选择不同的容器运行时。详细讲解containerd、runc、Kata Containers、Firecracker等容器运行时的概念和关系，以及如何配置和使用RuntimeClass实现安全隔离和多租户场景。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

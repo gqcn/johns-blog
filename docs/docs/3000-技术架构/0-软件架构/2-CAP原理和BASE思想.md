@@ -4,6 +4,8 @@ title: "CAP原理和BASE思想"
 hide_title: true
 keywords: ["CAP原理", "BASE思想", "分布式系统", "一致性", "可用性", "分区容错"]
 description: "深入解析分布式系统中的CAP定理和BASE理论，探讨一致性、可用性和分区容错性之间的关系及其实践应用"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 分布式领域CAP理论

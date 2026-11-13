@@ -53,6 +53,11 @@
   --ifm-breadcrumb-spacing: 2px;
   --ifm-footer-background-color: #f9f9f9;
   --ifm-spacing-horizontal: 2rem;
+  /* From 1728px the article block may grow, but never past this cap.
+     3.375rem is the side gap a 1320px container already has on a 1728px laptop. */
+  --doc-toc-width: 340px;
+  --doc-wide-content-max: 1920px;
+  --doc-side-gutter: 3.375rem;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */

@@ -25,6 +25,8 @@ keywords:
     "云原生HPC"
   ]
 description: "深入分析Volcano调度器HPC生态组件，涵盖HPC核心概念与关键能力、MPI/PyTorch/TensorFlow/PaddlePaddle/Horovod/Ray/Spark等Operator对比、Gang调度与队列管理集成方案，为云原生HPC平台选型提供参考"
+last_update:
+  date: "2026-09-18"
 ---
 
 

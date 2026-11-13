@@ -24,6 +24,8 @@ keywords:
     "分布式计算"
   ]
 description: "深入介绍Volcano Job PyTorch Plugin的核心功能和使用方法。Volcano是面向高性能计算场景的Kubernetes批量调度系统，其PyTorch Plugin专为简化PyTorch分布式训练任务而设计。本文详细讲解PyTorch Plugin的工作原理，包括自动配置分布式训练环境变量、端口管理和服务发现等核心机制。介绍如何在Kubernetes集群中安装和配置Volcano系统，包括使用Helm或YAML文件部署Volcano组件。提供完整的PyTorch分布式训练任务示例，展示如何使用Volcano Job定义Master-Worker架构的训练任务，帮助读者快速掌握在Kubernetes上运行大规模PyTorch训练作业的最佳实践。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

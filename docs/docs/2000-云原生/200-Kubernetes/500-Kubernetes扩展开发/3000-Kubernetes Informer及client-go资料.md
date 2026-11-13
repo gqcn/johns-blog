@@ -13,6 +13,8 @@ keywords:
     "源码分析",
   ]
 description: "深入分析 Kubernetes Informer 机制和 client-go 库的实现原理，包括 List-Watch、Reflector 等核心组件的详细解析"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -15,6 +15,8 @@ keywords:
     "Nydus"
   ]
 description: "Dragonfly是一款基于P2P的智能镜像和文件分发工具，旨在提高大规模文件传输的效率和速率，最大限度地利用网络带宽。本文介绍了Dragonfly的架构、工作原理及其在应用分发、缓存分发、日志分发和镜像分发等领域的应用。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

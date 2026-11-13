@@ -18,6 +18,8 @@ keywords:
     分布式调度,
   ]
 description: "通过实际部署Kind集群、创建HyperNode、运行测试任务，真实验证Volcano网络拓扑感知调度能力。包含完整的环境搭建、配置示例、测试用例和结果分析，帮助理解和实践Volcano的网络拓扑调度特性。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

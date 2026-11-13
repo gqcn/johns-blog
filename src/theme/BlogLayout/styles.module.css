@@ -1,14 +1,4 @@
 @media (min-width: 997px) {
-  .container {
-    transition: max-width 280ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .containerEnhanced {
-    max-width: calc(
-      var(--ifm-container-width-xl) + var(--doc-sidebar-width, 300px) + 4rem
-    ) !important;
-  }
-
   .sidebarSlot {
     position: relative;
     flex: 0 0 25%;
@@ -16,29 +6,6 @@
     max-width: 25%;
     padding: 0 var(--ifm-spacing-horizontal);
     width: 100%;
-    transition:
-      flex-basis 280ms cubic-bezier(0.22, 1, 0.36, 1),
-      max-width 280ms cubic-bezier(0.22, 1, 0.36, 1),
-      padding 280ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .sidebarSlotHidden {
-    flex-basis: 0;
-    max-width: 0;
-    padding: 0;
-    overflow: visible;
-    pointer-events: none;
-  }
-
-  .toggleRail {
-    position: sticky;
-    top: var(--ifm-navbar-height);
-    z-index: calc(var(--ifm-z-index-fixed) + 1);
-    height: 0;
-    /* Container uses margin-vert--lg (2rem); sit on the navbar bottom edge. */
-    margin-top: -2rem;
-    overflow: visible;
-    pointer-events: none;
   }
 
   .sidebarViewport {
@@ -64,38 +31,67 @@
     overflow-y: auto;
   }
 
-  .sidebarSlotHidden .sidebarViewport {
-    visibility: hidden;
-  }
-
-  .sidebarSlotHidden + :global(main) {
-    padding-left: 3rem;
-  }
-
   .mainWithReopen :global(article > header) {
     padding-right: 5.75rem;
+  }
+}
+
+/* Article pages follow the docs rule: sidebar stays on the left, the article
+   and TOC grow together up to --doc-wide-content-max, and leftover space is
+   split on both sides of that pair. */
+@media (min-width: 1728px) {
+  .containerWide {
+    max-width: none !important;
+  }
+
+  .containerWide .row {
+    flex-wrap: nowrap;
+  }
+
+  .containerWide .sidebarSlot {
+    flex: 0 0 var(--doc-sidebar-width, 300px);
+    max-width: var(--doc-sidebar-width, 300px);
+    width: var(--doc-sidebar-width, 300px);
+  }
+
+  .containerWide .mainFluid {
+    flex: 0 1
+      min(
+        calc(var(--doc-wide-content-max) - var(--doc-toc-width)),
+        calc(
+          100% - var(--doc-sidebar-width, 300px) - var(--doc-toc-width) - 2 *
+            var(--doc-side-gutter)
+        )
+      ) !important;
+    width: auto !important;
+    max-width: min(
+      calc(var(--doc-wide-content-max) - var(--doc-toc-width)),
+      calc(
+        100% - var(--doc-sidebar-width, 300px) - var(--doc-toc-width) - 2 *
+          var(--doc-side-gutter)
+      )
+    ) !important;
+    min-width: 0;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+  }
+
+  .containerWide .mainTocCollapsed {
+    flex-basis: var(--doc-wide-content-max) !important;
+    max-width: min(
+      var(--doc-wide-content-max),
+      calc(100% - var(--doc-sidebar-width, 300px) - 2 * var(--doc-side-gutter))
+    ) !important;
+    margin-right: auto !important;
+  }
+
+  .containerWide .tocSlot {
+    margin-right: auto;
   }
 }
 
 @media (max-width: 996px) {
   .sidebarSlot {
     display: contents;
-  }
-
-  .toggleRail {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .container,
-  .sidebarSlot {
-    transition: none;
-  }
-}
-
-@media print {
-  .toggleRail {
-    display: none !important;
   }
 }

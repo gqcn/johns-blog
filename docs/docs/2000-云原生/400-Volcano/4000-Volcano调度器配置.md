@@ -7,6 +7,8 @@ keywords:
     "Volcano", "Kubernetes", "Plugins", "调度器", "插件配置", "PluginOption", "Arguments", "volcano-scheduler.conf", "配置格式", "插件参数"
   ]
 description: "本文详细介绍了Volcano调度器的插件配置格式，包括volcano-scheduler.conf的整体结构、PluginOption配置项的作用和使用方法，以及各个插件的Arguments参数配置示例，为Volcano调度器配置提供完整的技术参考。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 配置文件概述

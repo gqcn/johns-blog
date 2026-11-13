@@ -4,6 +4,8 @@ title: "AI提示工程随笔"
 hide_title: true
 keywords: ["AI", "提示工程", "Prompt Engineering", "大语言模型", "LLM", "ChatGPT", "AI效率", "AI交互"]
 description: "探讨AI提示工程在现代工作与生活中的应用场景和重要性，分享提高AI提示效率的实用技巧和经验。"
+last_update:
+  date: "2026-09-18"
 ---
 
 # AI提示工程随笔

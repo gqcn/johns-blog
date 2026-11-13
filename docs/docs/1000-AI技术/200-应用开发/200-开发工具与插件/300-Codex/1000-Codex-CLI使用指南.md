@@ -39,6 +39,8 @@ keywords:
   ]
 description: "Codex CLI是OpenAI推出的本地运行的AI代码智能体，不强制要求使用OpenAI官方账号，支持通过配置第三方模型（DeepSeek、Gemini、Ollama等）或API中转服务灵活使用。本文全面介绍Codex CLI的安装、更新、基础命令、沙箱安全模型、配置文件（config.toml）的详细配置项、斜杠指令、Skills技能系统、记忆（Memories）机制，以及使用CC Switch工具可视化管理和一键切换多个AI工具服务商的方法，并系统对比Codex CLI与Claude Code在设计哲学、配置项和记忆体系上的主要差异，帮助开发者快速上手并深度使用这款强大的终端AI编程工具。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-24"
 ---
 
 ## 前言

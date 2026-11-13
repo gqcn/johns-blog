@@ -32,6 +32,8 @@ keywords:
   ]
 description: "Claude Code Memory机制是解决AI编程助手跨会话上下文丢失问题的核心设计。本文详细介绍Memory的两大组成部分：用户手写指令文件CLAUDE.md（支持项目级、用户级和组织级三种作用域）以及Claude自动积累知识的Auto Memory机制；深入解析.claude/rules/规则目录的组织方式、路径作用域定义和用户级规则；并重点对比CLAUDE.md与Rules的适用场景，帮助开发者构建高效的跨会话知识管理体系，让Claude Code在每次会话中都能快速掌握项目背景、团队规范和个人偏好。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

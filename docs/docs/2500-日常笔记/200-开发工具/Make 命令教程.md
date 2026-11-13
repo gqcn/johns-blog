@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Make", "构建工具", "自动化构建", "编译工具", "开发工具", "命令行工具"]
 description: "详细介绍Make命令的使用方法、规则和最佳实践，帮助开发者更好地理解和使用这个强大的构建工具"
+last_update:
+  date: "2026-09-18"
 ---
 
 

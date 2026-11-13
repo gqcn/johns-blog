@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["OSI模型", "TCP/IP模型", "网络分层", "网络协议", "通信模型", "网络架构"]
 description: "详细介绍并对比OSI七层模型和TCP/IP五层模型的架构设计、层次功能和协议特点，帮助理解现代计算机网络的基础架构"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## OSI参考模型

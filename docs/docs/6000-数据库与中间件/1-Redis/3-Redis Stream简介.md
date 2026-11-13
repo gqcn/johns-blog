@@ -13,6 +13,8 @@ keywords:
     "流处理",
   ]
 description: "介绍 Redis Stream 的基本概念、特性和使用场景，探讨其在消息队列和实时数据处理中的应用"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## Stream 概述

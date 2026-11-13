@@ -7,6 +7,8 @@ keywords:
     "Volcano", "资源抢占", "优先级", "Queue", "Job", "Pod", "PriorityClass", "Kubernetes", "调度器", "云原生"
   ]
 description: "本文详细介绍了Volcano调度系统中Queue、Job和Pod三个层级的资源抢占设计与实现原理，以及它们之间的优先级关系和抢占机制。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

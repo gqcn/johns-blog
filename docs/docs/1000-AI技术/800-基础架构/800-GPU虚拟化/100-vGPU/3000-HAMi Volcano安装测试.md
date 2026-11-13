@@ -4,6 +4,8 @@ title: "HAMi Volcano安装测试"
 hide_title: true
 keywords: [Volcano vGPU, volcano-vgpu-device-plugin, HAMi Core, GPU共享, deviceshare插件, Kubernetes GPU调度, vGPU部署, 资源名称兼容, Prometheus监控, GPU节点配置]
 description: "详细介绍Volcano vGPU的完整部署流程，包括volcano-vgpu-device-plugin组件安装、调度器配置、节点标签污点设置、资源名称兼容性配置、实际测试验证和常见问题排查。基于HAMi Core实现GPU硬隔离，支持与NVIDIA Device Plugin资源名称兼容。"
+last_update:
+  date: "2026-09-18"
 ---
 
 使用`volcano-vgpu`时，不需要 安装`HAMi`，仅使用`Volcano vgpu device-plugin`即可。它可以为由`volcano`管理的`NVIDIA`设备提供设备共享机制。

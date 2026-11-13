@@ -12,6 +12,8 @@ keywords:
     "调试配置",
   ]
 description: "详细介绍如何搭建 Argo Workflow 的本地开发环境，包括必要的工具安装、配置步骤和开发调试指南"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -31,6 +31,8 @@ keywords:
   ]
 description: "全面梳理主流AI Coding工具（Claude Code、Codex CLI、GitHub Copilot、Cursor、Windsurf、Gemini CLI、Aider、Cline、Continue、Roo Code等）的上下文记忆文件路径与Agent Skills文件存放规范，帮助开发者快速掌握各工具的项目级、用户级记忆文件配置方式，以及如何利用vercel-labs/skills实现跨工具的Skills管理与复用，提升AI辅助编程效率。"
 toc_max_heading_level: 2
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 上下文记忆文件对比

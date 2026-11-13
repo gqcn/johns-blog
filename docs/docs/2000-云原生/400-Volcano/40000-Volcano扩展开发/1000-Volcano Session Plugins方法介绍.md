@@ -7,6 +7,8 @@ keywords:
     "Volcano", "Kubernetes", "Session", "Plugins", "调度器", "AddFn", "插件开发", "调度逻辑", "扩展点", "PredicateFn", "NodeOrderFn", "JobOrderFn"
   ]
 description: "本文详细介绍了Volcano调度器框架中Session对象的31个Add*Fn方法，包括排序、调度决策、抢占回收、作业状态检查等各类插件扩展点的作用、使用场景和代码示例，为Volcano插件开发提供完整的技术参考。"
+last_update:
+  date: "2026-09-18"
 ---
 
 `Volcano`调度器框架中的`Session`对象提供了丰富的插件扩展点，通过各种`Add*Fn`方法允许插件注册自定义的调度逻辑。这些方法是`Volcano`调度器插件开发的核心接口，本文档详细介绍每个方法的作用、使用场景和代码示例。

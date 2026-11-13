@@ -24,6 +24,8 @@ keywords:
     "调度器"
   ]
 description: "深入解析Volcano Job的核心特性与使用方法，包括批量调度机制、Job状态管理、重试策略配置、任务依赖关系等高级功能。详细介绍minAvailable参数实现的Gang Scheduling、灵活的重试机制以及基于DAG的任务依赖，帮助用户构建可靠的分布式计算和机器学习工作负载。"
+last_update:
+  date: "2026-09-18"
 ---
 
 本文详细主要介绍`Volcano`中`Job`对象的关键设计以及使用，顺便介绍相关联的`Task`、`PodGroup`、`Pod`与`Task`之间的关系。关于`Job`的基础介绍，请参考`Volcano`基本介绍章节 [Volcano介绍](../1000-Volcano基本介绍.md)。

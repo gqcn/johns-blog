@@ -26,6 +26,8 @@ keywords:
     "弹性训练"
   ]
 description: "深入介绍Kubeflow Trainer在HPC场景中的应用，包括项目背景、核心架构、支持的框架（PyTorch/DeepSpeed/MPI）、训练任务创建流程、与Volcano调度器的集成方案，以及与Volcano Job的对比分析"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## Kubeflow项目简介

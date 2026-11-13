@@ -4,6 +4,8 @@ title: "GODEBUG配置GC跟踪介绍"
 hide_title: true
 keywords: ["GODEBUG", "GC跟踪", "垃圾回收", "性能分析", "内存管理", "调试工具"]
 description: "详细说明如何使用 GODEBUG 环境变量进行 Go 程序的 GC 跟踪和分析，包括 gctrace 输出格式解析"
+last_update:
+  date: "2026-09-18"
 ---
 
 

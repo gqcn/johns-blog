@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Redis", "哨兵", "Sentinel", "高可用", "主从复制", "故障转移", "集群管理"]
 description: "详细介绍 Redis Sentinel 哨兵机制的工作原理、配置方法和高可用性保障"
+last_update:
+  date: "2026-09-18"
 ---
 
 

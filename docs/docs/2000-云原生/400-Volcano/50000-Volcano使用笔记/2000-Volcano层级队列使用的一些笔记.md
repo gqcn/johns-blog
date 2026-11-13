@@ -26,6 +26,8 @@ keywords:
     "调度器配置"
   ]
 description: "基于Volcano源码分析和实践经验总结的层级队列使用笔记，涵盖root队列机制、capacity插件配置、guarantee与capability的区别、层级队列的配置规则、Pod状态与资源计算逻辑、以及常见调度问题的排查方法。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

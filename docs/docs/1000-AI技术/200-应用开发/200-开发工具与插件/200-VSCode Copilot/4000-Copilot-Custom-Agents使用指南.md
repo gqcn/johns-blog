@@ -27,6 +27,8 @@ keywords:
   ]
 description: "Copilot Custom Agents是VS Code中GitHub Copilot的高级定制功能，允许开发者创建针对特定开发角色和任务的专属AI代理。通过自定义代理，可以为不同的开发场景配置专门的行为、工具集和指令，如规划代理、实现代理、代码审查代理等。本文全面介绍Copilot Custom Agents的核心概念、使用方法、配置管理、Handoffs工作流、应用场景和最佳实践，帮助开发者构建高效的AI辅助开发工作流，提升团队协作效率和代码质量。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

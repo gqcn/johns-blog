@@ -4,6 +4,8 @@ title: Goland Debug无法进入断点位置
 hide_title: true
 description: 解决MacOS上Goland Debug功能无法进入断点位置的问题，与XCode缓存有关
 keywords: [Goland, Debug, 断点, MacOS, XCode, Go, dlv]
+last_update:
+  date: "2026-09-18"
 ---
 
 

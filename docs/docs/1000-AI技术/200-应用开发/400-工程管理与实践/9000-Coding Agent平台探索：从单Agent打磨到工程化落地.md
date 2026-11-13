@@ -32,6 +32,8 @@ keywords:
   ]
 description: "本文从实际工程实践出发，探讨Coding Agent平台化落地的核心思路。文章分析了当前主流AI Coding工具价值未被充分发挥的五大根本原因：工具环境不完整、跨平台能力受限、团队环境不一致、传统Coding工具过重，以及缺乏B端部署与排障能力；并给出以平台封装主流Coding Agent为核心思路、优先打磨单Agent能力、构建标准化工具环境的工程化落地建议，帮助团队真正释放AI Coding的生产力红利。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

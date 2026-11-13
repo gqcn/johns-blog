@@ -12,6 +12,8 @@ keywords:
     "认证授权",
   ]
 description: "详细说明 Kubernetes Aggregation APIServer 的原理和实现方法，包括如何创建和配置扩展 API"
+last_update:
+  date: "2026-09-18"
 ---
 
 我们自定义扩展Kubernetes的能力通常有两种方式：CRD及Aggregation Layer。CRD的介绍请参考章节：[Kubernetes CRD, Controller, Operator](https://iwiki.woa.com/display/~txqiangguo/Kubernetes+CRD%2C+Controller%2C+Operator)，本文我们简单介绍一下Aggregation Layer。

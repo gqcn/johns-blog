@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Kubelet", "cAdvisor", "容器监控", "指标采集", "故障排查", "监控问题"]
 description: "分析从 Kubelet 获取 cAdvisor 指标时偶现丢失容器相关指标的原因和解决方案，提供监控数据采集问题的排查思路"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 背景介绍

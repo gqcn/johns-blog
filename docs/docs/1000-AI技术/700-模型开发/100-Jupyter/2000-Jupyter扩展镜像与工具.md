@@ -21,6 +21,8 @@ keywords:
     自定义镜像
   ]
 description: "详细介绍如何构建自定义Jupyter Docker镜像和在Notebook中安装AI/ML工具包，涵盖深度学习框架（PyTorch、TensorFlow）、数据处理工具、NLP和CV库、实验跟踪工具等的安装与配置，以及如何创建和管理conda环境。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

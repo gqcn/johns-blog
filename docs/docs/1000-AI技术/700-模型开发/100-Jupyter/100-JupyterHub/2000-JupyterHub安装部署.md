@@ -18,6 +18,8 @@ keywords:
     Chart安装
   ]
 description: "在Kubernetes集群上使用Helm部署JupyterHub的完整步骤指南，包括前置条件检查、Helm仓库配置、安装流程、部署验证、访问方法和卸载操作，适用于多用户Jupyter环境的生产级部署。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["GPU共享", "MPS", "MIG", "NVIDIA", "GPU虚拟化", "Kubernetes", "GPU Operator", "资源隔离", "多租户", "高性能计算"]
 description: "详细介绍NVIDIA GPU共享技术MPS和MIG的原理、优缺点、适用场景以及在Kubernetes环境中的具体配置和操作步骤，帮助用户实现GPU资源的高效利用" 
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本介绍

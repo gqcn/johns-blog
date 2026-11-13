@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Kubernetes", "常见问题", "namespace", "Terminating", "问题排查", "运维经验"]
 description: "总结和解决 Kubernetes 中的常见问题，包括 namespace 删除失败、Pod 状态异常等问题的解决方案"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 删除`ns`失败，`ns`一直处于`Terminating`状态

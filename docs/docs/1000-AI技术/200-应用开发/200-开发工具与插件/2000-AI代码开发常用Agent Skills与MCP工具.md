@@ -90,6 +90,8 @@ keywords:
   ]
 description: "系统梳理AI代码开发中常用的Agent Skills与MCP（Model Context Protocol）工具，涵盖everything-claude-code项目收录的编码开发、测试评估、安全审查、内容创作等多类Skills，专为GoFrame框架打造的goframe-v2技能，微软官方playwright-cli浏览器自动化CLI工具，以及GitHub、Context7、Supabase、ClickHouse、Memory、Sequential Thinking、Markitdown、Playwright MCP、Chrome DevTools、Figma MCP、Paper MCP等主流MCP服务器配置与使用方式，帮助开发者快速了解、安装并使用这些工具，提升AI辅助开发效率。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

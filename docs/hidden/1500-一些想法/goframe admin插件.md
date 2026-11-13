@@ -4,6 +4,8 @@ title: "GoFrame Admin插件"
 hide_title: true
 keywords: ["GoFrame", "Admin", "插件"]
 description: "GoFrame Admin插件"
+last_update:
+  date: "2026-09-18"
 ---
 
 目前依靠AI编程助手已经可以很好地实现前端开发，因此GoFrame Admin其实很容易实现，至于插件可以参考这个：

@@ -12,6 +12,8 @@ keywords:
   - 集群部署
   - kubectl
 description: "本文介绍如何使用Kind（Kubernetes in Docker）快速创建一个包含1个控制平面节点和4个工作节点的本地K8S测试集群，包括集群配置、创建、验证和删除的完整步骤。"
+last_update:
+  date: "2026-09-18"
 ---
 
 > 该文章的内容，其实主要是笔者自用做的笔记。

@@ -19,6 +19,8 @@ keywords:
   - 多pod日志
   - 节点shell访问
 description: "详细介绍Kubernetes krew插件管理器的安装使用，以及ns、ctx、stern、view-allocations、tree、node-shell、images等常用插件的功能特性和使用示例，提高Kubernetes运维效率的必备工具集合。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 安装krew

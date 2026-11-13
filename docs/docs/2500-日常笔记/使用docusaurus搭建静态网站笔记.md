@@ -4,6 +4,8 @@ title: 使用Docusaurus搭建静态网站笔记
 hide_title: true
 description: 详细记录使用Docusaurus搭建个人博客网站的完整流程，包括GitHub仓库搭建、GitHub Actions自动部署、压缩 gh-pages 历史、Linux服务器配置、SSL证书申请、Nginx配置和定时任务设置等实践经验
 keywords: [docusaurus, 静态网站, github actions, gh-pages, force_orphan, nginx, ssl证书, certbot, 个人博客, 网站部署, 自动化部署, linux服务器]
+last_update:
+  date: "2026-09-18"
 ---
 
 ## docusaurus仓库搭建

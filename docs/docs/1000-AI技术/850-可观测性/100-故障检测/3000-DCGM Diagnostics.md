@@ -8,6 +8,8 @@ keywords:
   ]
 description: "本文系统介绍NVIDIA DCGM Diagnostics的定位、诊断目标、常见故障检测方式、安装部署、命令行使用、配置文件和自动化集成方法，并对比nvidia-smi、DCGM Exporter等常见GPU监控与诊断工具，帮助读者理解它在AI算力集群中的适用场景、优势和监控边界。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 

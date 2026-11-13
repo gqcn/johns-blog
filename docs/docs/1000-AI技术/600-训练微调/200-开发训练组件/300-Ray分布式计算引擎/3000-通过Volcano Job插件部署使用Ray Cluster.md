@@ -26,6 +26,8 @@ keywords:
     "Head节点"
   ]
 description: "深入介绍Volcano Job的插件机制以及Ray插件的配置和使用方法。详细讲解Volcano如何通过插件扩展支持不同的分布式训练框架，重点介绍Ray插件的工作原理、配置参数、使用方法和完整示例。通过实战案例演示如何在Kubernetes集群中使用Volcano Job运行Ray分布式计算任务，包括集群创建、任务提交、服务发现等核心功能，帮助开发者快速掌握在云原生环境下使用Ray进行分布式训练的完整流程。"
+last_update:
+  date: "2026-09-18"
 ---
 
 :::danger 重要说明

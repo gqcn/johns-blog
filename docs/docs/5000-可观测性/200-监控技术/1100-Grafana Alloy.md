@@ -26,6 +26,8 @@ keywords:
     "alloy配置语言",
   ]
 description: "全面介绍 Grafana Alloy 开源遥测数据采集器：涵盖其设计背景与核心优势、基于有向无环图的组件化架构、Alloy 配置语言语法、集群与高可用机制、模块化复用能力，以及在 Docker、Kubernetes 等环境下的安装与配置实践，帮助读者系统理解并快速上手这款统一的可观测性数据采集工具。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 项目简介

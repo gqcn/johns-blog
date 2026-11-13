@@ -18,6 +18,8 @@ keywords:
     Python开发环境
   ]
 description: "深入介绍Jupyter交互式计算平台，包括核心概念、应用场景、使用Docker快速部署JupyterLab、以及在Kubernetes上部署单用户和多用户JupyterHub环境的完整指南。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是Jupyter？

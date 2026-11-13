@@ -21,6 +21,8 @@ keywords:
     "特性检测"
   ]
 description: "深入介绍Kubernetes Node Feature Discovery（NFD）机制，包括其核心概念、工作原理和使用方法。NFD能够自动检测节点的硬件特性和系统配置，并将其转换为节点标签，帮助实现硬件感知的Pod调度。本文详细讲解NFD的架构组件、NodeFeatureRule的配置和使用、应用场景以及最佳实践，助力构建智能化的异构Kubernetes集群。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

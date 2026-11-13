@@ -31,6 +31,8 @@ keywords:
     "AI训练网络"
   ]
 description: "深入对比InfiniBand与RoCE v2两种主流RDMA网络解决方案的技术特性、性能表现和应用场景。详细解析InfiniBand的子网管理器机制、信用流控、自适应路由等核心特性，以及RoCE v2基于以太网的分布式架构、PFC/ECN流控配置。对比两者在业务性能、扩展规模、运维管理和成本方面的差异，为AI训练集群和数据中心网络选型提供决策参考"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -32,6 +32,8 @@ keywords:
   ]
 description: "本文介绍OpenSpec这一轻量级AI工程规范管理框架的背景与核心价值，详细阐述其如何通过「规范先行」的理念解决AI编程中的上下文漂移、随兴编码等痛点，讲解其核心概念（specs、changes、delta specs、artifacts），并通过一个完整的实战示例——从安装初始化到提案、实现、归档——手把手演示如何用OpenSpec进行AI工程管理与实践，帮助开发者构建可预测、可追溯的AI辅助软件开发工作流。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

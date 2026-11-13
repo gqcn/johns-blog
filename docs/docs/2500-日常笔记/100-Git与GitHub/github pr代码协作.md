@@ -4,6 +4,8 @@ title: "Github PR代码多人协作"
 hide_title: true
 keywords: ["github", "pr", "code review", "collaboration", "git"]
 description: "介绍如何在Github上直接修改他人PR分支进行代码协作的技巧"
+last_update:
+  date: "2026-09-18"
 ---
 
 ![GitHub PR代码协作流程示意图](assets/QQ_1741489371029.webp)

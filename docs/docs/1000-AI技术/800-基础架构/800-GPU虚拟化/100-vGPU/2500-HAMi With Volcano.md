@@ -5,6 +5,8 @@ toc_max_heading_level: 4
 hide_title: true
 keywords: [Volcano vGPU, deviceshare插件, HAMi Core, LD_LIBRARY_PATH注入, GPU调度流程, volcano-vgpu-device-plugin, Prometheus监控, binpack调度, CUDA API劫持, NVIDIA Runtime]
 description: "深入解析Volcano vGPU的完整执行流程和技术原理，包括deviceshare插件调度机制、Device Plugin资源分配、HAMi Core库注入方式（LD_LIBRARY_PATH vs LD_PRELOAD）、与独立HAMi部署的架构对比，以及Prometheus监控指标详解。基于源码分析，提供完整的组件交互流程图。"
+last_update:
+  date: "2026-09-18"
 ---
 
 `Volcano`原生支持`HAMi vGPU`，但需要启用对应的`deviceshare` 插件。

@@ -26,6 +26,8 @@ keywords:
     "HPC"
   ]
 description: "详细介绍Kubeflow Trainer的三个核心CRD（TrainJob、TrainingRuntime、ClusterTrainingRuntime）的完整配置格式，包括每个配置项的注释说明、复杂配置项的表格解释、特殊标签和注解的使用，以及最佳实践指南"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 概述

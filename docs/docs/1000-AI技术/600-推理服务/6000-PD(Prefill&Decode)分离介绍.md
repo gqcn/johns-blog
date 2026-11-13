@@ -17,6 +17,8 @@ keywords:
     "大模型部署"
   ]
 description: "深入探讨LLM推理中的PD(Prefill&Decode)分离技术，分析其原理、指标、优势及实现方案，提升大模型推理性能和用户体验"
+last_update:
+  date: "2026-10-09"
 ---
 
 ## 引言

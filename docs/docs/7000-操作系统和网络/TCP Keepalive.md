@@ -13,6 +13,8 @@ keywords:
     "超时检测",
   ]
 description: "详细介绍TCP Keepalive机制的工作原理、配置参数和应用场景，探讨如何利用该机制维护长连接和检测连接状态"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 工作原理

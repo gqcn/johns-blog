@@ -8,6 +8,8 @@ keywords:
   ]
 description: "本文系统调研NVIDIA NCCL Tests的定位、源码实现、性能指标、正确性校验机制、安装构建方式、参数配置、典型使用案例以及与DCGM Diagnostics、NVBandwidth、OSU Micro-Benchmarks、Intel MPI Benchmarks等工具的差异。文章重点说明NCCL Tests如何通过标准NCCL通信操作暴露GPU集群中的网络、拓扑、链路、运行时、数据正确性和性能退化问题，并给出可直接用于单节点、多节点和自动化基线巡检的实践建议。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本简介

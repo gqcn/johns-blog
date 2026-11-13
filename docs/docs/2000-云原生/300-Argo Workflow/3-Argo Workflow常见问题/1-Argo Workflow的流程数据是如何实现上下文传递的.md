@@ -12,6 +12,8 @@ keywords:
     "工作流通信",
   ]
 description: "深入分析 Argo Workflow 中的数据流转机制，包括 Parameters 和 Artifacts 两种主要的上下文传递方式及其实现原理"
+last_update:
+  date: "2026-09-18"
 ---
 
 关于`Argo Workflow`的流程数据传递方式，官方文档上提供的是三种方式：`**Parameters**`、`**Artifacts**`及`**Volume**`。其中，通过共享`Volume`传递数据方式官方只是提了个例子（[https://argoproj.github.io/argo-workflows/examples/#volumes](https://argoproj.github.io/argo-workflows/examples/#volumes)），来自于`Kubernetes`基本功能，并不属于`Argo Workflow`的自有特性。那么`Argo Workflow`的`Parameters`和`Artifacts`功能特性底层又是怎么实现的呢，我们这里着重探究前两种流程数据传递方式的本质。

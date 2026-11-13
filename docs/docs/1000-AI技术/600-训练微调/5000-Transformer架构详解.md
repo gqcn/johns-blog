@@ -36,6 +36,8 @@ keywords:
     "Softmax"
   ]
 description: "大语言模型怎么算出下一个词，对很多人仍是黑盒。从循环网络的串行与遗忘讲起，拆开编码器、解码器、自注意力、多头、位置编码、前馈网络和残差归一化，并写清训练掩码、KV Cache以及RoPE、Pre-LN、SwiGLU等后续改动。"
+last_update:
+  date: "2026-09-28"
 ---
 
 

@@ -13,6 +13,8 @@ keywords:
     "Docker",
   ]
 description: "分析和解决 Kubernetes Pod 卡在 ContainerCreating 或 Terminating 状态的问题，包括问题排查和解决方案"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 问题描述

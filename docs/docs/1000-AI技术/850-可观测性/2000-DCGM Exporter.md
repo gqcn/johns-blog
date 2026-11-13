@@ -8,6 +8,8 @@ keywords:
   ]
 description: "本文详细介绍GPU DCGM-Exporter监控方案，提供完整的监控指标列表和Prometheus配置示例，帮助用户构建高效的GPU监控系统。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-10-29"
 ---
 
 

@@ -33,6 +33,8 @@ keywords:
     "EventHandler"
   ]
 description: "详细介绍Volcano调度器支持智算卡配额管理的改进方案，包括卡维度配额设计、单实例多卡部署配额管控、capacity-card自定义插件实现、节点卡型号自动识别、调度器扩展点设计等核心内容。方案支持GPU、NPU等多种智算卡类型，支持MIG/MPS等GPU Share技术，实现了精确的卡型号级别配额控制，解决了Volcano原生配额管理无法区分不同卡型号的痛点。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 背景介绍

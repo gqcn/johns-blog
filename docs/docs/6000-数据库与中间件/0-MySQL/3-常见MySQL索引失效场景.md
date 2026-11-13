@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["MySQL", "索引", "索引失效", "性能优化", "查询优化", "数据库调优", "SQL优化"]
 description: "详细分析 MySQL 中常见的索引失效场景及其解决方案，帮助开发者优化数据库查询性能"
+last_update:
+  date: "2026-09-18"
 ---
 
 

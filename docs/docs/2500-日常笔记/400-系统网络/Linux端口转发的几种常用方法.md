@@ -4,6 +4,8 @@ title: "Linux端口转发的几种常用方法"
 hide_title: true
 keywords: ["Linux", "网络配置", "端口转发", "SSH隧道", "iptables", "系统管理"]
 description: "详细介绍Linux系统下实现端口转发的多种方法，包括SSH隧道、iptables等常用技术"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## `SSH` 端口转发

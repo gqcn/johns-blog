@@ -32,6 +32,8 @@ keywords:
   - 厂商中立
 description: "Multica 是一款开源的多智能体团队协作平台，致力于将 Claude Code、Codex、OpenCode、OpenClaw、Gemini 等主流 AI 编码智能体接入统一的任务管理和执行体系中，使 AI Agent 像真正的团队成员一样参与项目协作。平台基于 Go 后端与 Next.js 前端构建，采用本地 Daemon + 隔离沙箱执行环境的架构，支持任务生命周期全程管理、实时进度推送、可复用技能系统、多工作区隔离以及多 Agent 协作@mention机制，适合个人、小团队和企业实现从任务分配到代码交付的全流程 AI 自动化。本文将深入解析 Multica 的核心设计理念、架构原理、多智能体协作机制、沙箱技术实现以及使用方式，并与同类开源项目进行横向对比。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是 Multica

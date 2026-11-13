@@ -12,6 +12,8 @@ keywords:
     "指标收集",
   ]
 description: "介绍 OpenTelemetry 项目的背景、发展历程和核心特性，探讨其如何统一链路追踪和指标收集的标准"
+last_update:
+  date: "2026-09-18"
 ---
 
 

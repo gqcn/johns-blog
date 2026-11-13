@@ -23,6 +23,8 @@ keywords:
     "构建驱动",
   ]
 description: "详细介绍如何使用Docker buildx工具在单台机器上构建支持多种CPU架构的容器镜像，包括安装docker-buildx插件、创建并配置docker-container驱动的构建器、执行跨平台构建并将镜像推送至镜像仓库等完整操作流程，适用于需要同时支持amd64与arm64架构的业务场景。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 背景

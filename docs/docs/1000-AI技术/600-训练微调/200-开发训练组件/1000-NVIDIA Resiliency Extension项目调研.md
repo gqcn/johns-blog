@@ -29,6 +29,8 @@ keywords:
   ]
 description: "本文基于NVIDIA Resiliency Extension主分支源码与官方文档，系统分析NVRx面向大规模PyTorch训练提供的故障检测、作业内重启、进程内重启、异步与本地检查点、慢Rank检测、GPU、NVLink及NIC健康检查、故障归因和分布式日志能力。文章同时梳理组件架构、恢复流程、接入代码、适用边界、已知限制与生产落地建议，并特别说明项目仍处于实验和快速迭代阶段，避免将试验性能力误解为成熟的端到端训练平台。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 项目介绍

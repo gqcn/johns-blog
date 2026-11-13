@@ -14,6 +14,8 @@ keywords:
     "开发流程",
   ]
 description: "详细介绍 Git Flow 的分支管理策略、测试流程和自动化工具建设，帮助团队建立规范的代码版本管理体系"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -38,6 +38,8 @@ keywords:
   ]
 description: "本文介绍Google Antigravity的核心特性、多端使用方式（CLI、IDE、Antigravity 2.0）、定制化体系（Rules、Skills、Hooks、MCP、Plugins）和细粒度权限配置，并与Claude Code、Codex等工具进行横向对比。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-23"
 ---
 
 ## 什么是Antigravity

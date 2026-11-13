@@ -32,6 +32,8 @@ keywords:
   ]
 description: "本文深入介绍Harness Engineering（驾驭工程）的概念由来与核心理念，阐述其作为AI Agent开发关键方法论的价值，详细拆解六大工程支柱：上下文架构、架构约束、自验证循环、上下文隔离、熵治理与可拆卸性，并结合实际工具与最佳实践，帮助开发者通过优化模型周围的工程系统而非更换模型本身来显著提升AI Agent的可靠性、稳定性与可维护性。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

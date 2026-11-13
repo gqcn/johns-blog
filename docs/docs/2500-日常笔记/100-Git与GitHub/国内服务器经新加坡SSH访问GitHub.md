@@ -17,6 +17,8 @@ keywords:
     "www",
   ]
 description: "广州腾讯云轻量经新加坡 SSH 动态转发访问 GitHub 的背景、拓扑、落地配置与日常维护说明。只代理 GitHub 相关流量，开机自动拉起。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 背景

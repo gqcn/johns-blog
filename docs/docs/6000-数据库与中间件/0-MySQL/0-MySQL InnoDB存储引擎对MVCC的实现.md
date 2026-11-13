@@ -13,6 +13,8 @@ keywords:
     "并发控制",
   ]
 description: "深入解析 MySQL InnoDB 存储引擎中 MVCC（多版本并发控制）的实现原理和机制"
+last_update:
+  date: "2026-09-18"
 ---
 
 

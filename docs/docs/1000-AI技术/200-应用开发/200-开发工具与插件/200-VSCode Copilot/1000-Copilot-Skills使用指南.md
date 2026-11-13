@@ -27,6 +27,8 @@ keywords:
   ]
 description: "Copilot Skills（Agent Skills）是一种开放标准的技能定义格式，允许开发者通过包含指令、脚本和资源的文件夹来扩展GitHub Copilot的专业能力。本文全面介绍Copilot Skills的核心概念、文件结构、使用方法、配置管理、应用场景和最佳实践，详细说明如何创建和管理技能文件，包括SKILL.md的格式规范、目录结构、命名规则、渐进式披露机制等关键内容，帮助开发者构建可移植的专业技能库，提升AI助手在特定领域任务中的表现和效率。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-29"
 ---
 
 ## 前言

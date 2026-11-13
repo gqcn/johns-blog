@@ -7,6 +7,8 @@ keywords:
     "GPU MIG", "MIG拆卡", "docker", "NVIDIA H200", "子卡指定", "NVIDIA_VISIBLE_DEVICES", "MIG Manager", "GPU虚拟化", "容器GPU调度", "MIG UUID", "MIG索引", "nvidia-container-runtime"
   ]
 description: "详细介绍NVIDIA GPU通过MIG拆卡后，如何在Docker容器中指定特定MIG子卡执行任务的两种方法：通过docker device参数和NVIDIA_VISIBLE_DEVICES环境变量，支持UUID和索引两种方式"
+last_update:
+  date: "2026-09-18"
 ---
 
 

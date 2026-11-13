@@ -30,6 +30,8 @@ keywords:
     "HTTP服务",
   ]
 description: "全面介绍 WebAssembly（WASM）技术的核心概念、设计目标与显著优势，深入讲解 Go 语言对 WASM 的支持历史与现状，包括 js/wasm 和 wasip1 两种编译目标，并通过详细的代码示例演示如何使用 Go 开发 WASM 模块、与 JavaScript 互操作、在服务器端通过 WASI 运行 Go 程序，以及如何在 Go HTTP 服务中通过 Wazero 加载并调用 WASM 模块，同时说明宿主与 WASM 模块之间的内存隔离、类型限制、并发安全及沙箱访问控制等关键约束。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是WebAssembly

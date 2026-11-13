@@ -31,6 +31,8 @@ keywords:
   ]
 description: "Playwright是由微软开发的现代端到端（E2E）测试框架，支持Chromium、Firefox和WebKit三大主流浏览器，能够在Windows、Linux和macOS平台上稳定运行。它内置自动等待、强大的定位器、丰富的断言库和完善的调试工具，能有效解决传统测试框架中常见的测试不稳定（flaky test）问题。本文详细介绍Playwright的核心概念、安装配置、测试编写方法、调试技巧、测试报告生成以及最佳实践，帮助开发者快速掌握这一强大的自动化测试工具，特别适合AI辅助代码开发场景下的E2E测试实践。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是Playwright

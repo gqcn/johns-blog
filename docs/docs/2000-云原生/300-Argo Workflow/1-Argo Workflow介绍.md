@@ -12,6 +12,8 @@ keywords:
     "任务编排",
   ]
 description: "介绍 Argo Workflow 的基本概念、核心特性和使用场景，帮助读者理解这个基于 Kubernetes 的工作流引擎"
+last_update:
+  date: "2026-09-18"
 ---
 
 

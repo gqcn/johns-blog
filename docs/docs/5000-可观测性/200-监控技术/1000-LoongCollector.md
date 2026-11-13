@@ -9,6 +9,8 @@ keywords:
     "Pipeline", "SPL", "阿里云", "高性能", "插件化", "日志处理", "指标采集", "链路追踪"
   ]
 description: "本文详细介绍 LoongCollector——阿里巴巴开源的新一代高性能可观测数据采集器。内容涵盖 LoongCollector 的诞生背景、核心特性、整体架构设计、各类插件（输入、处理、聚合、输出）的功能说明，以及日志采集、容器标准输出、正则解析、Kafka 输出等典型使用示例，帮助读者快速理解并上手这款兼具极致性能与灵活可编程性的 All-in-One 采集 Agent。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是 LoongCollector

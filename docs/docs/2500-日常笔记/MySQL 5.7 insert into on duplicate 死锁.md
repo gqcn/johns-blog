@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["MySQL", "死锁", "insert into", "on duplicate", "数据库", "并发", "性能优化"]
 description: "分析 MySQL 5.7 中使用 insert into on duplicate 语句时可能出现的死锁问题及其解决方案"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -7,6 +7,8 @@ keywords:
     "Volcano", "Kubernetes", "Actions", "调度器", "enqueue", "allocate", "backfill", "preempt", "reclaim", "shuffle", "资源调度", "优先级抢占", "资源回收", "碎片资源", "负载均衡", "调度流程", "predicateErrorCache", "Gang调度"
   ]
 description: "深入解析Volcano调度器的6个核心Actions（enqueue、allocate、backfill、preempt、reclaim、shuffle）的工作原理、执行流程和配置方法，涵盖任务入队、资源分配、碎片资源利用、同队列优先级抢占、跨队列资源回收、负载重平衡等关键调度机制，为构建高效的批处理和AI训练调度系统提供完整的技术指南。"
+last_update:
+  date: "2026-09-18"
 ---
 
 `Actions`（动作）定义了调度器的工作流程和执行顺序。

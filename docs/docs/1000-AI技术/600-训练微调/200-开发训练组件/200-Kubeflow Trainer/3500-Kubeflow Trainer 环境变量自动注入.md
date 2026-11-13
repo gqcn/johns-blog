@@ -25,6 +25,8 @@ keywords:
     "训练框架"
   ]
 description: "详细介绍Kubeflow Trainer在不同训练框架（PyTorch、DeepSpeed、MLX、TorchTune、MPI）下自动注入的环境变量，包括PET系列环境变量、标准分布式训练环境变量、MPI环境变量等，以及各框架的使用示例和最佳实践"
+last_update:
+  date: "2026-09-18"
 ---
 
 

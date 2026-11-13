@@ -5,6 +5,8 @@ hide_title: true
 keywords: [Daytona, 沙箱, Sandbox, AI代码执行, 安全隔离, 弹性基础设施, AI Agent, 代码执行环境, Go SDK, Python SDK, TypeScript SDK, 开发环境, 容器化, OCI, Docker, 快照, Snapshot, 卷存储, Volume, SSH访问, MCP, 代码解释器, LLM, 大语言模型, 环境隔离, 云原生, 自动扩缩容, 多语言支持]
 description: "Daytona是一个开源的、安全且弹性的AI代码执行基础设施运行时平台，专为AI生成代码的安全执行和智能体工作流设计。它以沙箱（Sandbox）为核心，提供完全隔离的可组合计算环境，拥有独立内核、文件系统、网络栈及分配的vCPU/内存/磁盘资源。本文详细介绍Daytona的背景、核心优势、三平面架构设计、各组件功能、SDK使用方式及常见应用场景，帮助开发者快速掌握将Daytona集成进AI智能体工作流的方法。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是 Daytona

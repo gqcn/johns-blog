@@ -32,6 +32,8 @@ keywords:
   ]
 description: "Claude Code AgentTeams（智能体团队）是一套实验性的多智能体并行协作机制，允许多个独立的Claude Code实例作为团队共同工作，由团队Leader统一协调、分配任务和汇总结果，各Teammate拥有独立上下文窗口并能直接相互通信。本文详细介绍AgentTeams解决的核心问题、架构设计原理（Lead/Teammate/TaskList/Mailbox四层架构）、如何启用与创建首个智能体团队、控制团队的各种方式（显示模式、任务分配、计划审批、直接通信、优雅关闭）、与SubAgents的本质区别、并行代码审查和竞争假设调试等实用示例，以及最佳实践与常见问题排查，帮助开发者充分利用多智能体并行处理复杂工程任务。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

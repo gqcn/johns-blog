@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["kube-state-metrics", "Prometheus", "Kubernetes", "Pod", "Node", "PV", "PVC", "Label"]
 description: "系统介绍 kube-state-metrics 的 Node、PV、PVC、Pod、容器和 Pod 状态指标，并逐项说明所有可确认 Label。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本简介

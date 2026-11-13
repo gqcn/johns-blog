@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["OpenTracing", "链路追踪", "Jaeger", "Span", "分布式追踪", "链路监控"]
 description: "详细介绍 OpenTracing 分布式链路追踪规范，包括核心概念、数据模型和实践示例，并使用 Jaeger 进行演示"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["SIGSEGV", "段错误", "内存访问错误", "并发Bug", "错误分析", "进程崩溃"]
 description: "分析 Go 程序中的段错误（SIGSEGV）问题，包括可能的原因、问题定位和解决方案"
+last_update:
+  date: "2026-09-18"
 ---
 
 现网的资源采集组件出现以下致命报错，进程直接崩溃甚至无法`recover`。初步判断两个可能原因：

@@ -14,6 +14,8 @@ keywords:
     "容器管理",
   ]
 description: "详细对比 Docker、Containerd (crictl) 和 ctr 的常用命令，帮助用户在不同容器运行时环境下进行容器操作和管理"
+last_update:
+  date: "2026-09-18"
 ---
 
 | 命令  | docker | crictl（推荐） | ctr |

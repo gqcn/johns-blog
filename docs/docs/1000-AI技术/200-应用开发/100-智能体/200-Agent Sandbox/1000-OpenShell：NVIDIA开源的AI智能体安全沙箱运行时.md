@@ -5,6 +5,8 @@ hide_title: true
 keywords: [OpenShell, NVIDIA, AI智能体, 沙箱, 安全运行时, 策略引擎, OPA, Rego, 网络隔离, 文件系统隔离, Landlock, seccomp, Kubernetes, K3s, Gateway, 推理路由, Inference Router, Privacy Router, Claude Code, CodeX, OpenCode, Copilot, GPU, 自托管, 容器, 安全策略, mTLS, 零信任]
 description: "OpenShell 是 NVIDIA 开源的自治 AI 智能体安全沙箱运行时，通过声明式 YAML 策略在操作系统多层面（文件系统、网络、进程、推理层）实施防御纵深，防止数据泄露、凭据滥用和基础设施越权访问。本文详细介绍 OpenShell 的设计背景、核心问题、整体架构（Gateway、Sandbox、Policy Engine、Inference Router、TUI 等组件）以及完整的安装配置和使用示例，帮助读者快速理解并上手这一为 AI 智能体时代量身打造的安全基础设施。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是 OpenShell

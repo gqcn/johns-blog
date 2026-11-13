@@ -43,6 +43,8 @@ keywords:
     "超算网络"
   ]
 description: "系统梳理OpenAI公开披露的AI训练基础设施实践：以2018/2021两篇Kubernetes扩展文章为主线，覆盖OpenAI将Kubernetes扩展到2500/7500节点并支撑GPT-3、CLIP、DALL·E训练的工程方法；同时基于2021-2026年OpenAI、Microsoft、Oracle等官方资料，补充Azure/OCI容量扩展、Stargate、MRC网络协议和Jalapeño推理芯片等公开进展。"
+last_update:
+  date: "2026-10-09"
 ---
 
 自`2016`年前后起，`OpenAI`便开始基于`Kubernetes`（`K8S`）构建其`AI`研究基础设施，并将集群规模逐步从数百节点扩展至`7500`个节点，先后支撑了`GPT-3`、`CLIP`、`DALL·E`等大规模模型的训练。`2021`年之后，`OpenAI`公开资料的重点逐渐从`Kubernetes`控制平面扩展转向更大规模的算力供给、超算网络可靠性和推理效率：包括`Azure`与`OCI`容量扩展、`Stargate`基础设施项目、与多家硬件和云厂商合作开发的`MRC`（`Multipath Reliable Connection`）网络协议，以及与`Broadcom`合作的`Jalapeño`推理芯片。

@@ -11,6 +11,8 @@ keywords:
     "kube-system", "节点状态"
   ]
 description: "本文详细介绍 Node Problem Detector（NPD）—— Kubernetes 官方提供的节点问题检测守护进程。内容涵盖 NPD 的背景与设计目标、核心架构（Problem Daemon 与 Exporter）、系统日志监控、系统状态监控、自定义插件监控及健康检查器四类问题守护进程的配置格式与使用方式，并通过完整的 DaemonSet 部署示例和 ConfigMap 配置演示，帮助读者快速在 Kubernetes 集群中部署和使用 NPD，实现节点级异常的自动上报与可见化。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是 Node Problem Detector

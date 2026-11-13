@@ -26,6 +26,8 @@ keywords:
     "网盘挂载",
   ]
 description: "深入解析Kubernetes持久化存储机制PVC（PersistentVolumeClaim）和PV（PersistentVolume）的完整使用指南。详细讲解PVC的概念、生命周期、访问模式以及与Pod的关系。涵盖网络存储协议NFS、CIFS、iSCSI的配置方法和使用示例，展示如何在Kubernetes中挂载网盘。介绍StorageClass动态存储供应的实现原理和配置方案，提供Deployment和StatefulSet使用PVC的完整示例。适用于需要数据持久化、有状态应用部署的场景，助力实现灵活的存储管理和数据保护。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

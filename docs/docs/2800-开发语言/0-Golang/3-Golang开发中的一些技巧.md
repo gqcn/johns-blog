@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Go语言", "开发技巧", "最佳实践", "receiver name", "命名规范", "代码规范"]
 description: "总结 Go 语言开发中的实用技巧和最佳实践，包括命名规范、代码规范等开发经验"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 为什么`go`中的`receiver name`不推荐使用`this`或者`self`

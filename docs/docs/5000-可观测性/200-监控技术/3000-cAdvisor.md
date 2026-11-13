@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["cAdvisor", "Prometheus", "Kubernetes", "容器监控", "Kubelet", "Label", "cgroup"]
 description: "系统介绍 cAdvisor 暴露的容器 CPU、内存、文件系统、网络、进程、规格和机器级资源指标，并逐项说明指标 Label。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本简介

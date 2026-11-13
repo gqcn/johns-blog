@@ -4,6 +4,8 @@ title: Kubeflow Trainer 安装、部署及使用
 hide_title: true
 keywords: [kubeflow, trainer, pytorch, 分布式训练, kubernetes, hpc, cpu训练, configmap, hostpath, docker]
 description: "详细介绍Kubeflow Trainer的真实安装、部署及使用过程，基于CPU的PyTorch分布式训练案例，包括ConfigMap、HostPath、镜像构建三种部署方式的完整实践指南"
+last_update:
+  date: "2026-09-18"
 ---
 
 

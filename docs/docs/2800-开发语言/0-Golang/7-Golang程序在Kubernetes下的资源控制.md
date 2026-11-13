@@ -13,6 +13,8 @@ keywords:
     "资源限制",
   ]
 description: "详细说明 Go 语言程序在 Kubernetes 环境下的资源控制机制，包括 GOMAXPROCS 设置、资源限制和最佳实践"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本介绍

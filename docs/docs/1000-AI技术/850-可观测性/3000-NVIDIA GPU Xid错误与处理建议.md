@@ -8,6 +8,8 @@ keywords:
   ]
 description: "算力集群中GPU故障频发，如何从内核日志快速区分代码缺陷与硬件损坏？直击NVIDIA GPU Xid错误诊断痛点，剖析显存ECC、行重映射与错误遏制机制，梳理警告类与致命屏蔽类Xid字典，给出K8s与DCGM排障及自动隔离实践。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-10-30"
 ---
 
 

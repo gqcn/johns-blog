@@ -8,6 +8,8 @@ keywords:
     "节点特性发现", "GPU特性发现", "云原生", "标签管理", "资源调度", "AI基础设施", "硬件感知调度", "异构计算"
   ]
 description: "本文详细介绍Kubernetes中的Node Feature Discovery (NFD)和GPU Feature Discovery (GFD)技术，包括其基本概念、背景、作用、实现原理及支持的标签列表，帮助用户更好地理解和使用这些技术进行高效的资源调度。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

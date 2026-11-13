@@ -32,6 +32,8 @@ keywords:
   ]
 description: "MCP（Model Context Protocol，模型上下文协议）是Anthropic提出的开放标准，允许Claude Code连接到数百种外部工具、数据库和API服务。本文全面介绍MCP的设计背景与核心原理、三种传输方式（HTTP/SSE/stdio）、三种作用域（本地/项目/用户）的配置方法、OAuth认证机制、MCP资源引用、Tool Search动态加载等核心功能，并提供GitHub代码审查、Sentry错误监控、PostgreSQL数据库查询等实用示例，帮助开发者快速上手并充分发挥Claude Code与外部生态融合的强大能力。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

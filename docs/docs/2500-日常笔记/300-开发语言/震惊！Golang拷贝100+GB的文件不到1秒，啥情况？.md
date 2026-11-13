@@ -4,6 +4,8 @@ title: "震惊！Golang拷贝100+GB的文件不到1秒，啥情况？"
 hide_title: true
 keywords: ["Go", "Golang", "文件拷贝", "XFS", "reflink", "CoW", "写时复制", "copy_file_range", "文件系统", "Linux内核", "性能分析", "系统调用", "strace"]
 description: "深入分析为什么Go程序能在1秒内拷贝100GB+文件的神奇现象，揭秘XFS文件系统reflink特性和Copy-on-Write机制的工作原理"
+last_update:
+  date: "2026-09-18"
 ---
 
 

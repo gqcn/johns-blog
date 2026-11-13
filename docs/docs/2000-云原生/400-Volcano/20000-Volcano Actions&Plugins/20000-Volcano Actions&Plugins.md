@@ -23,6 +23,8 @@ keywords:
     "volcano-scheduler.conf",
   ]
 description: "深入解析Volcano调度器的Actions和Plugins机制，包括调度器配置、各个Action的执行流程、Plugins的作用和配置方法，帮助用户理解Volcano调度器的核心架构和工作原理。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -21,6 +21,8 @@ keywords:
     企业级部署
   ]
 description: "详细介绍在Kubernetes环境中部署多用户JupyterLab的实践案例。通过NFS共享存储配置PV/PVC，使用InitContainer动态读取用户UID/GID实现权限隔离，确保每个用户的JupyterLab实例只能访问自己的数据目录。涵盖完整的Pod配置、安全上下文设置、存储挂载和访问方式，适用于企业级多租户JupyterLab部署场景。"
+last_update:
+  date: "2026-10-16"
 ---
 
 

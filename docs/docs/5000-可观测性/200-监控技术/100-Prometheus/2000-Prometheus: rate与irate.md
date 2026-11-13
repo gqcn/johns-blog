@@ -4,6 +4,8 @@ title: "Prometheus: rate与irate"
 hide_title: true
 keywords: ["Prometheus", "rate", "irate", "监控", "指标计算", "时序数据"]
 description: "深入解析 Prometheus 中 rate 和 irate 函数的区别和使用场景，帮助用户更好地理解和选择合适的指标计算方法"
+last_update:
+  date: "2026-09-18"
 ---
 
 `irate`和`rate`都会用于计算某个指标在一定时间间隔内的变化速率。但是它们的计算方法有所不同：`irate`取的是在指定时间范围内的**最近两个数据点**来算速率，而`rate`会取指定时间**范围内所有数据点**，算出一组速率，然后取平均值作为结果。

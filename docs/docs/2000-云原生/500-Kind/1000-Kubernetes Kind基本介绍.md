@@ -7,6 +7,8 @@ keywords:
     "Kubernetes", "Kind", "本地集群", "测试环境", "Docker", "容器", "k8s", "minikube", "云原生", "开发环境"
   ]
 description: "本文详细介绍了如何使用Kind工具快速搭建Kubernetes本地测试集群，包括Kind的安装配置、基本使用方法以及常见问题解决方案，帮助开发者在本地高效进行Kubernetes应用开发和测试。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## Kind简介

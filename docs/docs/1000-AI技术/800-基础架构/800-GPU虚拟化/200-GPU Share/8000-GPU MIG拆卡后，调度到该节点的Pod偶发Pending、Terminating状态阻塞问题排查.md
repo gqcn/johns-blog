@@ -7,6 +7,8 @@ keywords:
     "GPU MIG", "Pod Pending", "Pod Terminating", "kubelet阻塞", "DevicePlugin", "GetPreferredAllocation", "NVIDIA H20", "nvidia-driver", "nvml init", "Kubernetes故障排查", "GPU Operator", "device plugin阻塞"
   ]
 description: "深入分析GPU MIG拆卡后Pod一直处于Pending或Terminating状态的根因，通过kubelet源码分析发现GetPreferredAllocation接口阻塞问题，最终定位到NVIDIA驱动570.158.01版本的nvml初始化BUG，提供完整的故障排查思路和解决方案"
+last_update:
+  date: "2026-09-18"
 ---
 
 

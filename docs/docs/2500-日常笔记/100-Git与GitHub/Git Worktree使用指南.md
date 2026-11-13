@@ -23,6 +23,8 @@ keywords:
     "hotfix",
   ]
 description: "详细介绍Git Worktree的概念、使用场景和核心优势，讲解如何创建、管理和删除Worktree，以及如何在VSCode中利用Git Worktree特性提升多分支并行开发效率，并提供实用的命令速查、注意事项与最佳实践，帮助开发者充分发挥Git的能力，告别反复stash/切换分支的烦恼。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是Git Worktree

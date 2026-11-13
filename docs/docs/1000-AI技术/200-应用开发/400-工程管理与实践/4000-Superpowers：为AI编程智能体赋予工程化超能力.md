@@ -31,6 +31,8 @@ keywords:
   ]
 description: "本文介绍Superpowers这一开源AI工程化技能库的背景与价值，详细讲解其如何通过可组合的技能（Skills）系统为Claude Code、Cursor、GitHub Copilot等AI编程工具赋予完整的软件工程工作流能力，包括头脑风暴设计、实现计划编写、测试驱动开发、子智能体并行执行、代码评审等核心工作流，并重点介绍如何在VSCode Copilot下手动集成并使用Superpowers技能库，帮助开发者解决AI编程中的工程管理痛点，显著提升AI辅助开发的质量与可预测性。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

@@ -21,6 +21,8 @@ keywords:
     "规则引擎"
   ]
 description: "深入剖析Kubernetes Node Feature Discovery中的NodeFeatureRule自定义资源，详细介绍其工作原理、配置结构和使用方法。本文涵盖NodeFeatureRule的核心字段说明、所有可用的特性类型、匹配操作符、模板语法以及丰富的实战示例，帮助用户掌握如何通过规则引擎实现灵活的节点标签管理和硬件感知调度。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

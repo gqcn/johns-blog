@@ -32,6 +32,8 @@ keywords:
   ]
 description: "Claude Code Plugins是一套将Skills、Agents、Hooks、MCP服务器和LSP服务器打包成可复用、可分发单元的插件机制，旨在解决团队协作中的功能共享与跨项目复用问题。本文详细介绍Plugins的设计原理、与Skills/MCP/Hooks的关键区别、完整的目录结构与manifest配置规范，并通过代码审查插件、自动格式化插件、数据库工具插件等多个实际示例，帮助开发者快速掌握从创建、调试到发布插件的完整流程，大幅提升团队AI辅助开发效率。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

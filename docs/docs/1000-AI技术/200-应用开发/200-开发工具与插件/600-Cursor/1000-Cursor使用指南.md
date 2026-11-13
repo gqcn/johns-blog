@@ -32,6 +32,8 @@ keywords:
   ]
 description: "编辑器、终端和云端 Agent 的配置容易混淆，模型用量、并行会话、Rules、Skills 与记忆边界也常被误解。本文介绍 Cursor CLI、斜杠指令、套餐计费，并对比 Claude Code 与 Codex，帮助建立可控工作流。"
 
+last_update:
+  date: "2026-09-28"
 ---
 
 ## 前言

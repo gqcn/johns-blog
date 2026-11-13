@@ -13,6 +13,8 @@ keywords:
     "系统架构",
   ]
 description: "深入分析etcd读请求的执行流程，包括请求处理、数据读取和响应过程的详细解析"
+last_update:
+  date: "2026-09-18"
 ---
 
 

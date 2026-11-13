@@ -4,6 +4,8 @@ title: "Docker删除无用的Image"
 hide_title: true
 keywords: ["Docker", "容器技术", "镜像管理", "系统清理", "存储优化", "运维技巧"]
 description: "介绍如何有效清理和管理Docker系统中的无用镜像，优化系统存储空间"
+last_update:
+  date: "2026-09-18"
 ---
 
 ![](/attachments/image2021-8-24_11-18-6.webp)

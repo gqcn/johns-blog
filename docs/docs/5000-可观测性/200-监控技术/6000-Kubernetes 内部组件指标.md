@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Kubernetes", "Prometheus", "API Server", "Kubelet", "client-go", "Go 运行时", "Workqueue", "Label"]
 description: "系统介绍 Kubernetes 内部组件常见指标，覆盖 API Server、认证授权、Kubelet、client-go、Go 运行时、进程和 workqueue，并逐项说明指标 Label。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本简介

@@ -21,6 +21,8 @@ keywords:
     "云原生调度"
   ]
 description: "详细分析Volcano调度器中层级队列配置不当导致的系统性故障问题，包括capacity插件的工作原理、问题根因分析、源码逻辑梳理以及完整的解决方案。涵盖PodGroup一直处于Pending状态、调度器panic crash等典型故障场景的排查和修复方法。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

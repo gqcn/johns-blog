@@ -4,6 +4,8 @@ title: "Golang Mutex 原理解析"
 hide_title: true
 keywords: ["Mutex", "互斥锁", "并发控制", "自旋锁", "饥饿模式", "锁机制"]
 description: "深入分析 Go 语言 Mutex 互斥锁的实现原理，包括加锁解锁机制、自旋锁、饥饿模式等核心概念"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -32,6 +32,8 @@ keywords:
     Pod调度
   ]
 description: "全面深入介绍JupyterHub的核心概念、系统架构、解决的问题以及各个核心组件（Hub、Proxy、Singleuser Server、User Scheduler、Autohttps）的详细作用和技术实现"
+last_update:
+  date: "2026-09-18"
 ---
 
 

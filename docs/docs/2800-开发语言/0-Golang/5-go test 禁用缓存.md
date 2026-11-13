@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["go test", "测试缓存", "单元测试", "性能测试", "测试技巧", "开发工具"]
 description: "详细说明如何禁用 go test 的缓存功能，包括使用 -count=1 标志和其他相关测试技巧"
+last_update:
+  date: "2026-09-18"
 ---
 
 

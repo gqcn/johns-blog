@@ -16,7 +16,22 @@
     transition: max-width 0.28s ease;
   }
 
-  .docItemColFull :global(.theme-doc-breadcrumbs) {
+  .docItemColFull :global(.theme-doc-breadcrumbs),
+  .docItemColFull :global(.articleDateCorner) {
     padding-right: 5.75rem;
+  }
+}
+
+@media (min-width: 1728px) {
+  .docItemRow {
+    flex-wrap: nowrap;
+  }
+
+  /* Share the main column with a fixed-width TOC instead of a 75% cap. */
+  .docItemCol {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0;
   }
 }

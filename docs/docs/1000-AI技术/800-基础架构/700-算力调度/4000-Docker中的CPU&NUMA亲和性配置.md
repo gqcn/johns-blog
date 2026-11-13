@@ -18,6 +18,8 @@ keywords:
     "跨NUMA通信",
   ]
 description: "深入解析Docker容器中CPU和NUMA亲和性配置的原理与实践。详细说明cpuset-cpus和cpuset-mems参数的区别与配置方法，解释为什么CPU亲和性不等于NUMA内存亲和性，以及如何优化单GPU和多GPU任务的性能。涵盖PCIe通信、DMA传输、跨NUMA节点场景等核心概念，帮助您在GPU训练任务中获得10%-20%的性能提升。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

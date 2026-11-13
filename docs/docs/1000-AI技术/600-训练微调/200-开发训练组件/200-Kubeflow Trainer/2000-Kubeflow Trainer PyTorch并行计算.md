@@ -30,6 +30,8 @@ keywords:
     "LOCAL_RANK"
   ]
 description: "深入介绍Kubeflow Trainer如何支持PyTorch框架实现HPC并行计算能力，包括HPC并行计算基础特性、PyTorch分布式训练原理、Kubeflow Trainer的CRD设计与组件架构、torchrun自动配置机制，以及算法工程师如何在代码中使用并行计算能力"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## HPC并行计算基础特性

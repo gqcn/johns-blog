@@ -4,6 +4,8 @@ title: "在K8S指定命名控制运行指定镜像"
 hide_title: true
 keywords: ["Kubernetes", "K8S", "命名空间", "镜像部署", "容器编排", "运维管理"]
 description: "详细说明如何在 Kubernetes 集群中指定命名空间部署和运行特定的容器镜像"
+last_update:
+  date: "2026-09-18"
 ---
 
 ```bash

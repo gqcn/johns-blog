@@ -22,6 +22,8 @@ keywords:
   ]
 description: "Copilot Instructions是VS Code中用于定制GitHub Copilot行为的强大功能，允许开发者通过自定义指令文件来规范AI生成代码的风格、遵循项目规范、实现一致性的开发体验。本文全面介绍Copilot Instructions的核心功能、使用方法、配置管理、应用场景和最佳实践，帮助开发者充分利用这一功能提升开发效率和代码质量。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

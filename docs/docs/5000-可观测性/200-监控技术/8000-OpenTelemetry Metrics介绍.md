@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["OpenTelemetry", "Metrics", "可观测性", "监控", "指标收集", "分布式追踪"]
 description: "详细介绍 OpenTelemetry Metrics 的核心概念、实现原理和最佳实践，帮助开发者更好地理解和使用 OpenTelemetry 进行应用监控"
+last_update:
+  date: "2026-09-18"
 ---
 
 `OpenTelemetry Metrics` 是一个关于如何收集、聚合和发送指标到 `OpenTelemetry APM` 工具(如 `Uptrace` 或 `Prometheus` )的标准。

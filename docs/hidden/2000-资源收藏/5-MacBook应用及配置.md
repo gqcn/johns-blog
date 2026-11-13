@@ -3,6 +3,8 @@ slug: "/hidden/macbook-app-and-config"
 title: "MacBook应用及配置"
 hide_title: true
 unlisted: false
+last_update:
+  date: "2026-09-18"
 ---
 
 /etc/profile

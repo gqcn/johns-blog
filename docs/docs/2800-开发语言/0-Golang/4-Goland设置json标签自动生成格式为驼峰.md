@@ -4,6 +4,8 @@ title: "Goland设置json标签自动生成格式为驼峰"
 hide_title: true
 keywords: ["Goland", "JSON标签", "驼峰命名", "自动生成", "IDE配置", "开发工具"]
 description: "教你如何在 Goland IDE 中配置 JSON 标签的自动生成格式，使其遵循驼峰命名规范"
+last_update:
+  date: "2026-09-18"
 ---
 
 注意`Expression`选择`camelCase`，并且参数为`fieldName() ` 

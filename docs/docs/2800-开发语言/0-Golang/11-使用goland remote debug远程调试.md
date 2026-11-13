@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Goland", "远程调试", "dlv", "Remote Debug", "Kubernetes", "调试工具"]
 description: "详细说明如何使用 Goland IDE 的 Remote Debug 功能进行远程调试，包括 dlv 工具的安装和配置过程"
+last_update:
+  date: "2026-09-18"
 ---
 
 当我们需要特定的运行环境才能复现某些疑难问题，通过`goland`的`remote debug`功能可以实现很方便的远程调试，快速定位问题。我这里以远程调试`Kubernetes`集群中的`golang`程序为示例演示如何使用`goland`的`remote debug`功能。

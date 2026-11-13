@@ -27,6 +27,8 @@ keywords:
   ]
 description: "从分布式训练的资源分配、作业准入、硬件拓扑和故障恢复需求出发，对比Kubernetes与Slurm的能力及适用条件，区分原生功能与生态扩展，介绍混合架构和基于实测的选型方法。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-10-09"
 ---
 
 

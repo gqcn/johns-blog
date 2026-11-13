@@ -25,3 +25,18 @@
     ) !important;
   }
 }
+
+/* Wider than a 1728px laptop: grow the 1320px container, but never narrower
+   than that cap, and keep the side gap that laptop already has. */
+@media (min-width: 1728px) {
+  .docItemWrapper,
+  .docItemWrapperEnhanced {
+    max-width: min(
+      var(--doc-wide-content-max),
+      max(
+        var(--ifm-container-width-xl),
+        calc(100% - 2 * var(--doc-side-gutter))
+      )
+    ) !important;
+  }
+}

@@ -7,6 +7,8 @@ keywords:
     "Volcano", "Kubernetes", "调度器", "Gang Scheduling", "批处理", "AI训练", "机器学习", "深度学习", "Queue", "PodGroup"
   ]
 description: "Volcano是基于Kubernetes的高性能批处理系统，为机器学习、深度学习等大数据应用提供高级调度功能。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 基本介绍

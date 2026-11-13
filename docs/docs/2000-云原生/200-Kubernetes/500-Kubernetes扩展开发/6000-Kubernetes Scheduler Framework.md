@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Kubernetes", "Scheduler", "调度器", "调度插件", "资源调度", "扩展点"]
 description: "深入解析 Kubernetes Scheduler Framework 的架构和实现原理，包括如何开发自定义调度插件"
+last_update:
+  date: "2026-09-18"
 ---
 
 

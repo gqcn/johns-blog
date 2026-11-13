@@ -4,6 +4,8 @@ title: "堆（Heap）"
 hide_title: true
 keywords: ["数据结构", "堆", "二叉堆", "优先队列", "完全二叉树", "堆排序"]
 description: "详细介绍堆（Heap）数据结构的概念、实现原理和应用场景，包括二叉堆的特性、堆操作和堆排序算法"
+last_update:
+  date: "2026-09-18"
 ---
 
 

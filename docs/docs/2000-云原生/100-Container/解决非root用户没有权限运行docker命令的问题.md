@@ -4,6 +4,8 @@ title: 解决非root用户没有权限运行docker命令的问题
 hide_title: true
 description: 解决非root用户没有权限运行docker命令的问题，包括添加用户到docker组的方法
 keywords: [Docker, 权限, Unix socket, 用户组, Linux, 非root用户]
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 问题描述

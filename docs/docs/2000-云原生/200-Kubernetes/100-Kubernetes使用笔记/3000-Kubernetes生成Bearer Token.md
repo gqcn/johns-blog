@@ -26,6 +26,8 @@ keywords:
     "安全认证"
   ]
 description: "详细介绍如何从现有的admin权限kubeconfig文件生成可用于Bearer Token验证的内容。包括创建ServiceAccount、绑定RBAC权限、提取Token、生成新kubeconfig文件等完整流程，以及使用curl和kubectl进行验证的方法。"
+last_update:
+  date: "2026-09-18"
 ---
 
 以下通过现有的`admin`权限`kubeconfig`文件生成可用于`Bearer Token`验证的内容。

@@ -4,6 +4,8 @@ title: "Goroutine调度器"
 hide_title: true
 keywords: ["Goroutine", "调度器", "GMP模型", "并发编程", "线程调度", "Go运行时"]
 description: "深入解析 Go 语言的 Goroutine 调度器原理，包括 GMP 模型、调度策略、上下文切换等核心机制"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## P、M、G关系

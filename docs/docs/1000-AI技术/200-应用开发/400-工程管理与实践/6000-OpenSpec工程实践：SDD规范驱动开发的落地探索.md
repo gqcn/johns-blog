@@ -34,6 +34,8 @@ keywords:
   ]
 description: "本文是作者基于OpenSpec框架进行SDD规范驱动开发落地实践的详细记录。文章首先横向对比了OpenSpec、Spec-kit、Superpowers三款主流SDD工具的优缺点并给出选型建议，随后介绍了Claude Code工具配置（插件与技能），详细讲解了基于OpenSpec的完整五步工程实践流程，包括探索对话、变更提案、代码实现、反馈修复和归档归因，并重点分享了实践过程中遇到的上下文治理、人机协作效能、架构约束、迭代熵管理等核心工程难题的解决方案，为希望将SDD方法论真正落地到实际项目的开发者提供可参考的完整实践路径。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ![OpenSpec工程实践：SDD规范驱动开发的落地探索](assets/6000-OpenSpec工程实践：SDD规范驱动开发的落地探索/image-2.webp)

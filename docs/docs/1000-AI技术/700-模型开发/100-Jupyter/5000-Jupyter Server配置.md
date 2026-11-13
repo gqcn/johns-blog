@@ -24,6 +24,8 @@ keywords:
     "Token认证"
   ]
 description: "Jupyter Server是Jupyter生态系统的核心后端服务，提供RESTful API和WebSocket接口。本文详细介绍Jupyter Server的完整配置体系，包括网络配置（IP地址、端口、远程访问）、认证与安全配置（Token、密码、XSRF防护）、SSL/TLS加密通信、目录与文件管理、内核生命周期管理、会话管理、日志系统、WebSocket通信、性能与限流控制、界面行为设置以及Gateway远程内核配置等核心功能模块，并提供默认配置文件的完整说明，帮助开发者和运维人员全面掌握Jupyter Server的配置方法和最佳实践。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

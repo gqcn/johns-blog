@@ -4,6 +4,8 @@ title: "Prometheus: 查询函数"
 hide_title: true
 keywords: [Prometheus, PromQL, 查询函数, 监控, Grafana, 时间序列, 聚合函数, rate, increase, histogram]
 description: "详细介绍Prometheus的完整查询函数列表及其用法，包括数学函数、时间函数、聚合函数、直方图函数等，以及Grafana中查询Prometheus数据时的特有变量和函数。"
+last_update:
+  date: "2026-09-18"
 ---
 
 参考`Prometheus`官网文档：https://prometheus.io/docs/prometheus/latest/querying/functions/

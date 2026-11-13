@@ -7,6 +7,8 @@ keywords:
     "Volcano", "Kubernetes", "跨队列抢占", "资源驱逐", "reclaim", "在线推理", "离线训练", "优先级调度", "GPU资源", "capacity-card", "多租户", "资源配额"
   ]
 description: "本文通过实际测试验证Volcano调度器的reclaim动作在跨队列资源抢占场景下的行为，重点测试在线推理服务和离线训练任务之间的资源抢占策略，包括不同优先级任务的抢占规则、资源回收机制以及使用自定义capacity-card插件实现GPU卡维度配额管理的实践经验。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 背景介绍

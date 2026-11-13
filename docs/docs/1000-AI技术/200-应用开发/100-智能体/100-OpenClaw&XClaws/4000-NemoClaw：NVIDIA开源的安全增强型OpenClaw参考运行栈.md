@@ -5,6 +5,8 @@ hide_title: true
 keywords: [NemoClaw, NVIDIA, OpenClaw, OpenShell, Agent, 智能体, 沙箱隔离, 推理路由, 网络策略, Landlock, seccomp, 蓝图, Blueprint, 生命周期管理, 凭证管理, NVIDIA Endpoints, Nemotron, 容器安全, 自主智能体, Always-on, 自托管, 零信任, 云原生, 多模型, 部署运维]
 description: "NemoClaw 是 NVIDIA 开源的参考运行栈，专为在 OpenShell 沙箱中安全地运行 OpenClaw 常驻 AI 助手而设计。它在 OpenClaw 的基础上叠加了受硬化的蓝图（Blueprint）、推理路由（Routed Inference）、网络与文件系统声明式策略、状态迁移管理等企业级安全能力，提供从一键安装到生产就绪的完整参考路径。本文详细介绍 NemoClaw 的定位、与 OpenClaw 的差异对比、核心架构设计、各组件职责，以及配置和使用示例，帮助开发者快速上手并深入理解这一重要的 NVIDIA Agent Toolkit 组件。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是 NemoClaw

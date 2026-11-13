@@ -4,6 +4,8 @@ title: "一个Golang程序内存占用问题排查优化（复盘）"
 hide_title: true
 keywords: ["内存优化", "PProf", "性能分析", "内存泄漏", "OOM", "性能优化"]
 description: "详细记录一个 Go 语言程序的内存占用问题排查和优化过程，包括使用 PProf 进行分析、问题定位和解决方案"
+last_update:
+  date: "2026-09-18"
 ---
 
 

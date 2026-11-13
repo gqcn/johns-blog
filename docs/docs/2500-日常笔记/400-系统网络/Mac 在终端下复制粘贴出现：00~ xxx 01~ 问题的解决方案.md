@@ -4,6 +4,8 @@ title: "Mac 在终端下复制粘贴出现：00~ xxx 01~ 问题的解决方案"
 hide_title: true
 keywords: ["Mac", "终端", "复制粘贴", "括号粘贴模式", "Terminal", "Shell"]
 description: "解决 Mac 终端下复制粘贴时出现 00~ xxx 01~ 问题，介绍括号粘贴模式的原理及关闭方法"
+last_update:
+  date: "2026-09-18"
 ---
 
 在 Mac 在终端下复制粘贴字符串的时候，偶然出现了粘贴的字符串收尾会多了一对字符：`00~ xxx 01~`

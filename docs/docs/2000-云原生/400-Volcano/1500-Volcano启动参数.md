@@ -7,6 +7,8 @@ keywords:
     "Volcano", "启动参数", "scheduler", "controller-manager", "admission", "webhook-manager", "配置参数", "命令行参数", "vc-scheduler", "vc-controller-manager", "vc-webhook-manager"
   ]
 description: "详细介绍Volcano调度系统中scheduler、controller-manager和admission三个核心组件的所有启动参数，包括参数名称、类型、默认值和说明，帮助用户正确配置和部署Volcano组件。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

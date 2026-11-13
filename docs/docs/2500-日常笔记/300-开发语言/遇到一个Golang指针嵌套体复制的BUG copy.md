@@ -4,6 +4,8 @@ title: "遇到一个Golang指针嵌套体复制的BUG"
 hide_title: true
 keywords: ["Go", "指针", "嵌套结构体", "Bug修复", "空指针", "内存管理"]
 description: "分析和解决 Golang 中遇到的指针嵌套结构体复制导致的空指针异常问题"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 排查1

@@ -7,6 +7,8 @@ keywords:
     "Volcano", "Kubernetes", "Annotations", "注解", "PodGroup", "Pod", "调度器", "queue-name", "preemptable", "min-available", "资源分配", "调度策略", "QoS", "SLA", "resource-group", "混部", "服务质量"
   ]
 description: "本文详细介绍了Volcano提供的各种注解（Annotations）及其在Pod和PodGroup资源上的应用，包括队列指定、资源预留、最小可用数量、优先级设置、QoS等级、SLA保障和资源组管理等，并提供了实际使用示例和最佳实践。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Kubelet", "cAdvisor", "指标采集", "容器监控", "监控配置", "性能数据"]
 description: "详细介绍如何从 Kubelet 获取 cAdvisor 的容器监控指标，包括配置方法、采集步骤和最佳实践"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 背景

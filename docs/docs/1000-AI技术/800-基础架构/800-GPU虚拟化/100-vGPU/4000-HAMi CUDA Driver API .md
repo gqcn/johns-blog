@@ -4,6 +4,8 @@ title: "HAMi CUDA Driver API"
 hide_title: true
 keywords: [HAMi Core, CUDA Driver API, API劫持, LD_PRELOAD, 显存配额, 算力限制, GPU虚拟化, CUDA拦截, vGPU实现原理]
 description: "深入解析HAMi Core通过LD_PRELOAD机制劫持的198个CUDA Driver API，涵盖设备管理、显存分配、内核启动、CUDA Graph等15个分类。详细说明20个核心劫持API如何实现显存配额检查和算力限制控制，以及178个透传API的作用。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -31,6 +31,8 @@ keywords:
     "整组调度"
   ]
 description: "提交训练任务后，平台常常先排队，镜像、资源和节点数也不会直接落到某一台机器。沿着Kubernetes与Volcano，说明任务如何整组调度、镜像如何分层、GPU与RDMA如何注入容器，以及多机进程怎样发现彼此并用NCCL交换梯度。"
+last_update:
+  date: "2026-10-21"
 ---
 
 ## 写在前面

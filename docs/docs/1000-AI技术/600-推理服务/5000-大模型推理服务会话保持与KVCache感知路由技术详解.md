@@ -30,6 +30,8 @@ keywords:
     "多轮对话"
   ]
 description: "从图书馆借阅咨询讲起，说明多轮对话中的KV Cache，以及轮询、扩缩容和模板变化为何让追问变慢。对比会话粘滞、一致性哈希、前缀路由和分层共享缓存，并结合Higress、AIBrix、llm-d、Dynamo、SGLang、LMCache、Mooncake讲原理、边界与选型。"
+last_update:
+  date: "2026-09-23"
 ---
 
 ## 引言

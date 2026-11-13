@@ -30,6 +30,8 @@ keywords:
   ]
 description: "本文介绍AI时代传统软件开发范式的核心痛点，引出规范驱动开发（SDD）的设计思想与核心理念，详细讲解SDD如何以规范为核心驱动代码生成，并重点介绍三款主流的SDD实践工具：OpenSpec、Spec-kit与Superpowers，分析三款工具的核心差异与适用场景，并提供工具选型建议，帮助开发者根据自身需求快速将SDD方法论落地到实际项目中，提升AI时代的开发效率与可预测性。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

@@ -32,6 +32,8 @@ keywords:
   ]
 description: "Claude Managed Agents是Anthropic推出的托管式智能体平台服务，为长时运行的自主智能体提供完整的基础设施支持。开发者无需自行搭建智能体循环、沙箱执行环境和工具调用层，只需定义Agent配置（模型、系统提示、工具集）和Environment（云容器模板），即可通过API启动Session并以SSE事件流的方式实时获取结果。本文详细介绍Managed Agents的核心设计思想（brain-hands-session三层解耦架构）、与SubAgents和AgentTeams的本质区别、四大核心概念（Agent/Environment/Session/Events）的配置细节、内置工具与自定义工具的使用方式、环境网络控制与包管理、完整的快速上手流程以及多个实用示例，帮助开发者构建可靠、可扩展的生产级AI自动化工作流。"
 toc_max_heading_level: 3
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 前言

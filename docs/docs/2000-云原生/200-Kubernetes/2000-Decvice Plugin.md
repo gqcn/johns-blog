@@ -7,6 +7,8 @@ keywords:
     "Kubernetes", "Device Plugin", "GPU", "扩展资源", "硬件资源", "容器编排", "AI", "资源管理", "自定义资源", "节点资源"
   ]
 description: "本文详细介绍了Kubernetes中的Device Plugin机制，包括其工作原理和实现方法。通过Device Plugin，Kubernetes可以感知和管理GPU等特殊硬件资源，使容器能够像使用CPU和内存一样使用这些资源，特别适用于AI和高性能计算场景。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

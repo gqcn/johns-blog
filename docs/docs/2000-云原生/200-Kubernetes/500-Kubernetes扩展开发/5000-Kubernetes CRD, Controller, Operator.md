@@ -13,6 +13,8 @@ keywords:
     "扩展开发",
   ]
 description: "详细介绍 Kubernetes 中的 CRD、Controller 和 Operator 概念，以及如何使用 KubeBuilder 开发自定义资源控制器"
+last_update:
+  date: "2026-09-18"
 ---
 
 由于[Kubernetes官网](https://kubernetes.io/zh/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/)已经对CRD做了比较详细的介绍，并且也有想用的工具和组件来开发Operator项目，因此本文仅做简单的概念介绍。

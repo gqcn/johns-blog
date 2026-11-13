@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["MySQL", "事务", "并发控制", "隔离级别", "ACID", "数据一致性", "事务管理"]
 description: "详细介绍 MySQL 事务的并发控制机制和不同隔离级别的特性及应用场景"
+last_update:
+  date: "2026-09-18"
 ---
 
 

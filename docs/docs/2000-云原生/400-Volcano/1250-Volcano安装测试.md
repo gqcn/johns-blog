@@ -13,6 +13,8 @@ keywords:
   - 测试验证
   - K8S集群
 description: "本文介绍如何在Kubernetes集群上使用Helm安装Volcano批处理调度系统，并通过创建Volcano Job进行测试验证，确保调度功能正常运行。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

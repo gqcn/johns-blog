@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Kubernetes", "NetworkPolicy", "网络策略", "安全", "云原生"]
 description: "详解Kubernetes NetworkPolicy的功能、配置方法、常见用法及业务场景实践。"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## NetworkPolicy简介

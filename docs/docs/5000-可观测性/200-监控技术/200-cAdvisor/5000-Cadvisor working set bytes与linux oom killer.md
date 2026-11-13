@@ -13,6 +13,8 @@ keywords:
     "资源限制",
   ]
 description: "探讨 Cadvisor 中 working set bytes 的概念以及其与 Linux OOM killer 的关系，帮助用户理解容器内存监控和管理机制"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 背景

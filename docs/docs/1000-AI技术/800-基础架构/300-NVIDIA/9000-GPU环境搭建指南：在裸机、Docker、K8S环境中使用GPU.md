@@ -7,6 +7,8 @@ keywords:
     "GPU环境搭建", "NVIDIA GPU", "GPU Driver", "CUDA Toolkit", "nvidia-container-toolkit", "K8S GPU", "device-plugin", "Docker GPU", "nvidia-smi", "GPU监控", "DCGM exporter", "Tesla T4"
   ]
 description: "详细介绍如何在裸机、Docker和Kubernetes环境中配置和使用NVIDIA GPU，包括GPU驱动安装、CUDA Toolkit配置、nvidia-container-toolkit部署、K8S device-plugin安装以及GPU监控配置的完整指南"
+last_update:
+  date: "2026-09-18"
 ---
 
 > 本来打算编写一篇从`0`到`1`搭建`GPU`环境的教程，但是发现网上已经有很多优秀的教程了，本文参考的原文链接：https://www.lixueduan.com/posts/ai/01-how-to-use-gpu/

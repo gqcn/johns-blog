@@ -14,6 +14,8 @@ keywords:
     "性能优化",
   ]
 description: "深入分析和对比各种IO多路复用模型的实现原理、特点和使用场景，包括select、poll、epoll和kqueue等系统调用的详细介绍"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## select、poll、epoll与kqueue简介

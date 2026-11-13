@@ -5,6 +5,8 @@ hide_title: true
 keywords: [Hermes Agent, NousResearch, AI Agent, 智能体, 自我改进, 学习闭环, Skills技能系统, 消息网关, Telegram, Discord, Slack, WhatsApp, Signal, MCP协议, 工具系统, 记忆系统, 定时调度, 多Agent委托, 终端后端, Docker, SSH, Modal, Daytona, OpenRouter, 自主学习, 批量轨迹生成, RL训练]
 description: "Hermes Agent 是由 Nous Research 开发的开源自主 AI 智能体框架，其最大亮点是内置学习闭环——能够从经验中自主创建技能、在使用过程中改进技能、跨会话搜索历史记忆、并对用户建立持续深化的认知模型。本文详细介绍 Hermes Agent 的核心设计理念、整体架构、各组件功能及其配置使用方法，并提供多个典型使用场景的示例，帮助读者快速掌握这一强大的 AI 智能体框架。"
 toc_max_heading_level: 4
+last_update:
+  date: "2026-09-18"
 ---
 
 ## 什么是 Hermes Agent

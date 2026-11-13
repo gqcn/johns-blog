@@ -13,6 +13,8 @@ keywords:
     "服务器推送",
   ]
 description: "深入探讨WebSocket协议的工作原理、连接建立过程、数据传输机制，以及与HTTP协议的区别和应用场景"
+last_update:
+  date: "2026-09-18"
 ---
 
 ## WebSocket的原理

@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Prometheus", "AlertManager", "PromQL", "监控告警", "告警规则", "监控运维"]
 description: "总结 Prometheus 常用的告警规则和 PromQL 查询语句，帮助运维人员快速配置和管理监控告警"
+last_update:
+  date: "2026-09-18"
 ---
 
 

@@ -1,8 +1,10 @@
 
+import { GlobExcludeDefault } from '@docusaurus/utils';
 import type { Options as IdealImageOptions } from '@docusaurus/plugin-ideal-image';
 import type * as Preset from '@docusaurus/preset-classic';
 import type { Config } from '@docusaurus/types';
 import { themes as prismThemes, type PrismTheme } from 'prism-react-renderer';
+import { sidebarItemsGenerator } from './sidebars-base-components';
 
 // Bundled okaidia/dracula omit token types Prism's own CSS colors.
 // YAML keys are `atrule`; booleans, null, and anchors are `important`.
@@ -57,7 +59,13 @@ const config: Config = {
         docs: {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.ts'),
-          lastVersion: 'current'
+          lastVersion: 'current',
+          // Link notes in 350-基础组件 are sidebar refs, not standalone pages.
+          exclude: [
+            ...GlobExcludeDefault,
+            'docs/1000-AI技术/800-基础架构/350-基础组件/**',
+          ],
+          sidebarItemsGenerator,
         },
         // Will be passed to @docusaurus/plugin-content-blog (false to disable)
         blog: {
@@ -83,6 +91,7 @@ const config: Config = {
   // 添加 Mermaid 主题
   themes: ['@docusaurus/theme-mermaid'],
   plugins: [
+    require.resolve('./src/plugins/article-dates.js'),
     "docusaurus-numbered-headings",
     require.resolve('docusaurus-plugin-image-zoom')
   ],

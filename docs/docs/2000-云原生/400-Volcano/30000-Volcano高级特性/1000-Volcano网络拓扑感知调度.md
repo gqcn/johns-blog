@@ -21,6 +21,8 @@ keywords:
     "高性能网络",
   ]
 description: "深入介绍Volcano网络拓扑感知调度特性，包括HyperNode CRD定义、自动发现机制、调度策略以及在多机多卡AI训练场景中的实践应用，帮助优化InfiniBand和NVLINK等高性能网络环境下的任务调度效率。"
+last_update:
+  date: "2026-09-18"
 ---
 
 

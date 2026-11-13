@@ -5,6 +5,8 @@ hide_title: true
 keywords:
   ["Argo Workflow", "GC策略", "Pod清理", "资源管理", "垃圾回收", "性能优化"]
 description: "详细说明 Argo Workflow 的垃圾回收策略，包括 Pod 的生命周期管理、清理时机和相关配置参数的解析"
+last_update:
+  date: "2026-09-18"
 ---
 
 我们发现，创建的Workflow在执行成功后并没有清理，而是全部都保留了下来，造成空间下的Pod越积越多。其实Argo Workflow是有清理策略的，我们先看看官方文档介绍：[https://argoproj.github.io/argo-workflows/cost-optimisation/#limit-the-total-number-of-workflows-and-pods](https://argoproj.github.io/argo-workflows/cost-optimisation/#limit-the-total-number-of-workflows-and-pods)

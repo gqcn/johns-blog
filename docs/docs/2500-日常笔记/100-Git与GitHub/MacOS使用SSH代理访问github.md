@@ -4,6 +4,8 @@ title: "MacOS使用SSH代理访问GitHub"
 hide_title: true
 keywords: ["macos", "ssh", "proxy", "github", "connect", "socks", "代理", "翻墙"]
 description: "解决MacOS环境下通过SSH代理访问GitHub超时问题的完整配置方案"
+last_update:
+  date: "2026-10-12"
 ---
 
 
