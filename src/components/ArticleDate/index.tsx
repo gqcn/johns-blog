@@ -167,7 +167,7 @@ function ArticleDateChip({updated}: {updated?: string}): JSX.Element | null {
           aria-hidden="true"
         />
         <span className={styles.item}>
-          <span className={styles.label}>更新于</span>
+          <span className={styles.label}>发布于</span>
           <DateTime day={updated} />
         </span>
       </div>
